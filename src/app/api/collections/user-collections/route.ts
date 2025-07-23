@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { authenticateApiKey, authenticateFirebaseRequest } from "@/core/auth";
-import { RBACService } from "@/core/auth";
+import { RBACService } from "@/lib/rbac-service";
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,11 +20,11 @@ export async function GET(request: NextRequest) {
             uid: firebaseUser.uid,
             email: firebaseUser.email,
             displayName: firebaseUser.displayName,
-            role: firebaseUser.customClaims?.role || "creator",
+            role: firebaseUser.customClaims?.role ?? "creator",
           },
         };
       }
-    } catch (error) {
+    } catch {
       // Firebase auth failed, try API key
       authResult = await authenticateApiKey(request);
     }
