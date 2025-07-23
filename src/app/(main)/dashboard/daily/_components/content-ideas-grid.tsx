@@ -147,8 +147,10 @@ export function ContentIdeasGrid() {
           )}
         >
           {/* Thumbnail/Video Preview */}
-          <div className="from-primary/20 to-accent/20 relative flex h-32 items-center justify-center bg-gradient-to-br">
-            <Play className="text-primary/70 group-hover:text-primary h-8 w-8 transition-colors" />
+          <div className="relative flex h-32 items-center justify-center bg-muted">
+            <div className="bg-chart-1 text-white rounded-full p-3 group-hover:bg-chart-2 transition-colors">
+              <Play className="h-6 w-6 fill-current" />
+            </div>
             {idea.duration && (
               <div className="absolute right-2 bottom-2 rounded bg-black/70 px-2 py-1 text-xs text-white">
                 {idea.duration}

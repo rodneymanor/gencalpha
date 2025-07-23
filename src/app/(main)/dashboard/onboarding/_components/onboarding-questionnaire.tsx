@@ -119,7 +119,7 @@ export function OnboardingQuestionnaire() {
         </div>
 
         {/* Main Form */}
-        <div className="bg-card space-y-6 rounded-lg border p-6 md:p-8">
+        <div className="bg-white space-y-6 rounded-lg border p-8">
           <div className="space-y-2">
             <h3 className="text-foreground text-2xl font-semibold">Define your topics</h3>
             <p className="text-muted-foreground">What do you want to post about?</p>
@@ -159,10 +159,10 @@ export function OnboardingQuestionnaire() {
                     <button
                       onClick={() => toggleTopic(topic.id)}
                       className={cn(
-                        "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-all hover:scale-105",
+                        "inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors",
                         selectedTopics.has(topic.id)
-                          ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                          : "bg-background text-foreground border-border hover:border-primary/50 hover:bg-accent",
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-white text-foreground border-border hover:border-primary/50 hover:bg-gray-50",
                       )}
                     >
                       {selectedTopics.has(topic.id) && <Check className="h-3 w-3" />}
@@ -189,7 +189,7 @@ export function OnboardingQuestionnaire() {
                   return (
                     <div
                       key={topicId}
-                      className="bg-primary/10 text-primary inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm"
+                      className="bg-primary/10 text-primary inline-flex items-center gap-1 rounded-lg border border-primary/20 px-3 py-1 text-sm"
                     >
                       {topic.name}
                       <button onClick={() => toggleTopic(topicId)} className="hover:bg-primary/20 rounded-full p-0.5">

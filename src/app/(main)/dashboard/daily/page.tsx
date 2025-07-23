@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 
 import { ContentIdeasGrid } from "./_components/content-ideas-grid";
+import { PersonalizationDialog } from "./_components/personalization-dialog";
 
 export const metadata: Metadata = {
   title: "Daily | Studio Admin",
@@ -19,6 +20,7 @@ export default function DailyPage() {
         <p className="text-muted-foreground mx-auto max-w-2xl text-lg md:text-xl">
           Short-form scripts. Human tone. AI speed.
         </p>
+        <PersonalizationDialog />
       </div>
 
       {/* Content Ideas Grid */}
