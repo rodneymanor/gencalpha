@@ -1,4 +1,4 @@
-import { Fingerprint, LayoutDashboard, ChartBar, Banknote, Calendar, type LucideIcon } from "lucide-react";
+import { Fingerprint, LayoutDashboard, ChartBar, Banknote, Calendar, Settings, type LucideIcon } from "lucide-react";
 
 export interface NavSubItem {
   title: string;
@@ -55,6 +55,11 @@ export const sidebarItems: NavGroup[] = [
         title: "Daily",
         url: "/dashboard/daily",
         icon: Calendar,
+      },
+      {
+        title: "Onboarding",
+        url: "/dashboard/onboarding",
+        icon: Settings,
       },
     ],
   },
