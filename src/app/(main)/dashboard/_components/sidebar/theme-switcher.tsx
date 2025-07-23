@@ -2,7 +2,7 @@
 
 import { Moon, Sun } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { SidebarMenuButton } from "@/components/ui/sidebar";
 import { updateThemeMode } from "@/lib/theme-utils";
 import { setValueToCookie } from "@/server/server-actions";
 import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
@@ -19,8 +19,9 @@ export function ThemeSwitcher() {
   };
 
   return (
-    <Button size="icon" onClick={handleValueChange}>
-      {themeMode === "dark" ? <Sun /> : <Moon />}
-    </Button>
+    <SidebarMenuButton size="default" onClick={handleValueChange}>
+      {themeMode === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      <span>Theme</span>
+    </SidebarMenuButton>
   );
 }

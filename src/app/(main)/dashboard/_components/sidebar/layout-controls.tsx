@@ -2,10 +2,10 @@
 
 import { Settings } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SidebarMenuButton } from "@/components/ui/sidebar";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { updateContentLayout } from "@/lib/layout-utils";
 import { updateThemeMode, updateThemePreset } from "@/lib/theme-utils";
@@ -48,9 +48,10 @@ export function LayoutControls(props: LayoutControlsProps) {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button size="icon">
-          <Settings />
-        </Button>
+        <SidebarMenuButton size="default">
+          <Settings className="h-4 w-4" />
+          <span>Settings</span>
+        </SidebarMenuButton>
       </PopoverTrigger>
       <PopoverContent align="end">
         <div className="flex flex-col gap-5">

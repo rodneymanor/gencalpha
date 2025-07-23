@@ -1,6 +1,6 @@
 "use client";
 
-import { Settings, CircleHelp, Search, Database, ClipboardList, File, Command } from "lucide-react";
+import { Command } from "lucide-react";
 
 import {
   Sidebar,
@@ -14,48 +14,22 @@ import {
 import { APP_CONFIG } from "@/config/app-config";
 import { rootUser } from "@/data/users";
 import { sidebarItems } from "@/navigation/sidebar/sidebar-items";
+import { type SidebarVariant, type SidebarCollapsible, type ContentLayout } from "@/types/preferences/layout";
 
+import { LayoutControls } from "./layout-controls";
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
+import { ThemeSwitcher } from "./theme-switcher";
 
-const data = {
-  navSecondary: [
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings,
-    },
-    {
-      title: "Get Help",
-      url: "#",
-      icon: CircleHelp,
-    },
-    {
-      title: "Search",
-      url: "#",
-      icon: Search,
-    },
-  ],
-  documents: [
-    {
-      name: "Data Library",
-      url: "#",
-      icon: Database,
-    },
-    {
-      name: "Reports",
-      url: "#",
-      icon: ClipboardList,
-    },
-    {
-      name: "Word Assistant",
-      url: "#",
-      icon: File,
-    },
-  ],
-};
+interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+  layoutPreferences?: {
+    contentLayout: ContentLayout;
+    variant: SidebarVariant;
+    collapsible: SidebarCollapsible;
+  };
+}
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({ layoutPreferences, ...props }: AppSidebarProps) {
   return (
     <Sidebar {...props}>
       <SidebarHeader>
@@ -70,10 +44,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-      <SidebarContent>
-        <NavMain items={sidebarItems} />
-        {/* <NavDocuments items={data.documents} /> */}
-        {/* <NavSecondary items={data.navSecondary} className="mt-auto" /> */}
+      <SidebarContent className="flex flex-col">
+        <div className="flex-1 overflow-auto">
+          <NavMain items={sidebarItems} />
+        </div>
+        <div className="mt-auto border-t pt-2">
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <ThemeSwitcher />
+            </SidebarMenuItem>
+            <SidebarMenuItem>{layoutPreferences && <LayoutControls {...layoutPreferences} />}</SidebarMenuItem>
+          </SidebarMenu>
+        </div>
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={rootUser} />
