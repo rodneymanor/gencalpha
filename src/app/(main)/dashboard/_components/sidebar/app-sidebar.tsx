@@ -33,7 +33,7 @@ function SidebarLogo() {
 
   return (
     <SidebarMenuButton asChild className="!h-12">
-      <a href="#" className="flex w-full items-center justify-center">
+      <a href="#" className="flex w-full items-center justify-start">
         {isCollapsed ? (
           // Show "G" when collapsed
           <span className="text-foreground text-2xl font-bold">G</span>
@@ -60,14 +60,14 @@ export function AppSidebar({ layoutPreferences, ...props }: AppSidebarProps) {
   // Set up hover listeners and initial state
   useEffect(() => {
     console.log("🔍 [Sidebar] useEffect running, setting up hover listeners");
-    
+
     // Set initial collapsed state only once
     if (!initializedRef.current) {
       console.log("🔍 [Sidebar] Setting initial collapsed state");
       setOpen(false);
       initializedRef.current = true;
     }
-    
+
     const sidebar = sidebarRef.current;
     if (!sidebar) {
       console.warn("⚠️ [Sidebar] sidebarRef.current is null, cannot attach listeners");
@@ -88,7 +88,7 @@ export function AppSidebar({ layoutPreferences, ...props }: AppSidebarProps) {
         console.log("🔍 [Sidebar] Mouse leave - sidebar is pinned, staying open");
         return;
       }
-      
+
       console.log("🔍 [Sidebar] Mouse leave - collapsing sidebar in 300ms");
       hoverTimeoutRef.current = setTimeout(() => {
         console.log("🔍 [Sidebar] Collapsing sidebar now");
@@ -111,7 +111,7 @@ export function AppSidebar({ layoutPreferences, ...props }: AppSidebarProps) {
   const handlePinToggle = () => {
     console.log("🔍 [Sidebar] Pin toggle - current state:", isPinned);
     setIsPinned(!isPinned);
-    
+
     if (!isPinned) {
       // When pinning, ensure sidebar is open
       setOpen(true);
