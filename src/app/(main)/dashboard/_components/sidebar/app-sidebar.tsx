@@ -55,6 +55,13 @@ export function AppSidebar({ layoutPreferences, ...props }: AppSidebarProps) {
   const sidebarRef = useRef<HTMLDivElement>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout>();
 
+  // Set initial collapsed state once
+  useEffect(() => {
+    console.log("🔍 [Sidebar] Setting initial collapsed state");
+    setOpen(false);
+  }, [setOpen]);
+
+  // Set up hover listeners
   useEffect(() => {
     console.log("🔍 [Sidebar] useEffect running, setting up hover listeners");
     const sidebar = sidebarRef.current;
@@ -82,10 +89,6 @@ export function AppSidebar({ layoutPreferences, ...props }: AppSidebarProps) {
     sidebar.addEventListener("mouseenter", handleMouseEnter);
     sidebar.addEventListener("mouseleave", handleMouseLeave);
 
-    // Set initial collapsed state
-    console.log("🔍 [Sidebar] Setting initial collapsed state");
-    setOpen(false);
-
     return () => {
       sidebar.removeEventListener("mouseenter", handleMouseEnter);
       sidebar.removeEventListener("mouseleave", handleMouseLeave);
@@ -93,7 +96,7 @@ export function AppSidebar({ layoutPreferences, ...props }: AppSidebarProps) {
         clearTimeout(hoverTimeoutRef.current);
       }
     };
-  }, [setOpen]);
+  }, []); // Remove setOpen from dependencies to prevent infinite loop
 
   return (
     <Sidebar ref={sidebarRef} className="transition-all duration-300 ease-in-out" {...props}>
