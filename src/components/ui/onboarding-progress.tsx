@@ -67,7 +67,7 @@ export function OnboardingProgress({ className }: OnboardingProgressProps) {
 
   return (
     <div className={cn("p-4 md:p-6", className)}>
-      <div className="bg-white border rounded-lg p-6">
+      <div className="bg-card border rounded-lg p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4 flex-1">
             {/* Greeting and Progress */}
@@ -121,8 +121,8 @@ export function OnboardingProgress({ className }: OnboardingProgressProps) {
               <div
                 key={task.id}
                 className={cn(
-                  "flex items-center gap-3 p-4 rounded-lg border bg-white hover:bg-gray-50 transition-colors cursor-pointer",
-                  task.completed && "bg-white border-gray-200"
+                  "flex items-center gap-3 p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer",
+                  task.completed && "bg-card border-border"
                 )}
                 onClick={() => toggleTask(task.id)}
               >
@@ -130,8 +130,8 @@ export function OnboardingProgress({ className }: OnboardingProgressProps) {
                   className={cn(
                     "flex items-center justify-center w-5 h-5 rounded-full border-2 transition-colors",
                     task.completed
-                      ? "bg-[#008a26] border-[#008a26] text-white"
-                      : "border-muted-foreground/30 hover:border-[#008a26]/50"
+                      ? "bg-primary border-primary text-primary-foreground"
+                      : "border-muted-foreground/30 hover:border-primary/50"
                   )}
                 >
                   {task.completed && <Check className="h-3 w-3" />}
