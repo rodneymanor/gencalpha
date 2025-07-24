@@ -2,6 +2,7 @@ import { Metadata } from "next";
 
 import { ContentIdeasGrid } from "./_components/content-ideas-grid";
 import { PersonalizationDialog } from "./_components/personalization-dialog";
+import { ViralVideosMasonry } from "./_components/viral-videos-masonry";
 
 export const metadata: Metadata = {
   title: "Daily | Studio Admin",
@@ -21,6 +22,11 @@ export default function DailyPage() {
           Short-form scripts. Human tone. AI speed.
         </p>
         <PersonalizationDialog />
+      </div>
+
+      {/* Viral Videos Masonry Grid */}
+      <div className="mx-auto max-w-7xl">
+        <ViralVideosMasonry />
       </div>
 
       {/* Content Ideas Grid */}
