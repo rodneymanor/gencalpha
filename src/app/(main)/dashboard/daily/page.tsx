@@ -13,15 +13,17 @@ export default function DailyPage() {
   return (
     <div className="space-y-8">
       {/* Header Section */}
-      <div className="mx-auto max-w-4xl space-y-3 text-center">
-        <h1 className="text-foreground text-2xl leading-tight font-bold md:text-3xl lg:text-4xl">
-          Use the relevant Inspiration for your content.
-        </h1>
-        <h2 className="text-primary text-lg font-semibold md:text-xl lg:text-2xl">Short form Inspiration For You!</h2>
-        <p className="text-muted-foreground mx-auto max-w-2xl text-base md:text-lg">
-          Short-form scripts. Human tone. AI speed.
-        </p>
-        <PersonalizationDialog />
+      <div className="mx-auto max-w-7xl space-y-4">
+        <div className="space-y-2">
+          <h1 className="text-foreground text-2xl font-bold tracking-tight md:text-3xl">
+            Use the relevant Inspiration for your content.
+          </h1>
+          <p className="text-muted-foreground text-base md:text-lg">Short-form scripts. Human tone. AI speed.</p>
+        </div>
+        <div className="flex items-center justify-between">
+          <h2 className="text-primary text-lg font-semibold md:text-xl">Short form Inspiration For You!</h2>
+          <PersonalizationDialog />
+        </div>
       </div>
 
       {/* Viral Videos Masonry Grid */}
