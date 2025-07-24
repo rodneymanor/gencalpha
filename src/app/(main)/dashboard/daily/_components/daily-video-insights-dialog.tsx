@@ -124,7 +124,7 @@ export function DailyVideoInsightsDialog({ video, open, onOpenChange }: DailyVid
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[90vh] max-w-7xl flex-col">
+      <DialogContent className="flex h-[90vh] w-[1600px] max-w-[95vw] flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             <div className="flex items-center gap-2">
