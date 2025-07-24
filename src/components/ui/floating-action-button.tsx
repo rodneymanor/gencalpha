@@ -21,7 +21,7 @@ export function FloatingActionButton() {
             ? "right-[23rem] sm:right-[24rem] z-20" 
             : "right-6 z-20"
         )}
-        style={{ backgroundColor: '#526af9', opacity: 0.2 }}
+        style={{ backgroundColor: '#8e24cb', opacity: 0.2 }}
       />
       
       {/* Main button */}
@@ -37,14 +37,14 @@ export function FloatingActionButton() {
             : "right-6 z-50"
         )}
         style={{ 
-          backgroundColor: '#526af9',
-          boxShadow: '0 10px 15px -3px rgba(82, 106, 249, 0.25), 0 4px 6px -2px rgba(82, 106, 249, 0.1)'
+          backgroundColor: '#8e24cb',
+          boxShadow: '0 10px 15px -3px rgba(142, 36, 203, 0.25), 0 4px 6px -2px rgba(142, 36, 203, 0.1)'
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = '#4c63f7';
+          e.currentTarget.style.backgroundColor = '#7a1fb5';
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = '#526af9';
+          e.currentTarget.style.backgroundColor = '#8e24cb';
         }}
         onClick={() => openPanel()}
       >

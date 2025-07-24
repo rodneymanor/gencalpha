@@ -21,7 +21,6 @@ function getDisplayName(userProfile: any, user: any): string {
   return userProfile?.displayName ?? user.displayName ?? user.email?.split("@")[0] ?? "User";
 }
 
-
 export function NavUser() {
   const { user, userProfile, logout, loading } = useAuth();
   const { isMobile } = useSidebar();
@@ -52,7 +51,7 @@ export function NavUser() {
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <div className="h-8 w-8 rounded-lg flex items-center justify-center text-white text-sm font-medium" style={{ backgroundColor: 'rgb(140, 39, 190)' }}>
+              <div className="bg-background text-foreground flex h-8 w-8 items-center justify-center rounded-lg border text-sm font-medium">
                 {getInitials(displayName)}
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
@@ -70,7 +69,7 @@ export function NavUser() {
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <div className="h-8 w-8 rounded-lg flex items-center justify-center text-white text-sm font-medium" style={{ backgroundColor: 'rgb(140, 39, 190)' }}>
+                <div className="bg-background text-foreground flex h-8 w-8 items-center justify-center rounded-lg border text-sm font-medium">
                   {getInitials(displayName)}
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
