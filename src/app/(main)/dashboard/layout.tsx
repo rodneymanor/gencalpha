@@ -19,9 +19,6 @@ import {
 } from "@/types/preferences/layout";
 
 export default async function Layout({ children }: Readonly<{ children: ReactNode }>) {
-  const cookieStore = await cookies();
-  const defaultOpen = cookieStore.get("sidebar_state")?.value === "true";
-
   const [sidebarVariant, sidebarCollapsible, contentLayout] = await Promise.all([
     getPreference<SidebarVariant>("sidebar_variant", SIDEBAR_VARIANT_VALUES, "inset"),
     getPreference<SidebarCollapsible>("sidebar_collapsible", SIDEBAR_COLLAPSIBLE_VALUES, "icon"),
@@ -36,7 +33,7 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
 
   return (
     <DashboardWrapper>
-      <SidebarProvider defaultOpen={defaultOpen}>
+      <SidebarProvider defaultOpen={false}>
         <AppSidebar variant={sidebarVariant} collapsible={sidebarCollapsible} layoutPreferences={layoutPreferences} />
         <SidebarInset
           data-content-layout={contentLayout}

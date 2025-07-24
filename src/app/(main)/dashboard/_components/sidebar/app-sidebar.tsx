@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useRef } from "react";
+
 import {
   Sidebar,
   SidebarContent,
@@ -51,8 +53,44 @@ function SidebarLogo() {
 }
 
 export function AppSidebar({ layoutPreferences, ...props }: AppSidebarProps) {
+  const { setOpen } = useSidebar();
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout>();
+
+  useEffect(() => {
+    const sidebar = sidebarRef.current;
+    if (!sidebar) return;
+
+    const handleMouseEnter = () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+      setOpen(true);
+    };
+
+    const handleMouseLeave = () => {
+      hoverTimeoutRef.current = setTimeout(() => {
+        setOpen(false);
+      }, 300); // 300ms delay before closing
+    };
+
+    sidebar.addEventListener("mouseenter", handleMouseEnter);
+    sidebar.addEventListener("mouseleave", handleMouseLeave);
+
+    // Set initial collapsed state
+    setOpen(false);
+
+    return () => {
+      sidebar.removeEventListener("mouseenter", handleMouseEnter);
+      sidebar.removeEventListener("mouseleave", handleMouseLeave);
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+    };
+  }, [setOpen]);
+
   return (
-    <Sidebar {...props}>
+    <Sidebar ref={sidebarRef} className="transition-all duration-300 ease-in-out" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
