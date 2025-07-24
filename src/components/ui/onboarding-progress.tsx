@@ -69,28 +69,21 @@ export function OnboardingProgress({ className }: OnboardingProgressProps) {
     <div className={cn("p-4 md:p-6", className)}>
       <div className="bg-card border rounded-lg p-6">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4 flex-1">
-            {/* Greeting and Progress */}
-            <div className="flex items-center gap-3">
-              <span className="text-lg">👋</span>
-              <div>
-                <h3 className="font-medium text-foreground">
-                  Hello! Let's take your Short Form game to the next level!
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Follow these key steps ({completedTasks}/{totalTasks}) • {totalPoints}/{maxPoints} pts
-                </p>
-              </div>
-            </div>
-            
-            {/* Progress Bar */}
-            <div className="flex-1 max-w-md">
-              <Progress value={progressPercentage} className="h-2" />
+          <div className="flex items-center gap-3">
+            {/* Greeting */}
+            <span className="text-lg">👋</span>
+            <div>
+              <h3 className="font-medium text-foreground">
+                Hello! Let's take your Short Form game to the next level!
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Follow these key steps ({completedTasks}/{totalTasks}) • {totalPoints}/{maxPoints} pts
+              </p>
             </div>
           </div>
 
           {/* Controls */}
-          <div className="flex items-center gap-2 ml-4">
+          <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
@@ -114,15 +107,22 @@ export function OnboardingProgress({ className }: OnboardingProgressProps) {
           </div>
         </div>
 
-        {/* Task List */}
+        {/* Progress Bar - Full Width */}
         {!isCollapsed && (
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="mt-4">
+            <Progress value={progressPercentage} className="h-2 w-full" />
+          </div>
+        )}
+
+        {/* Task List - Now as a vertical list */}
+        {!isCollapsed && (
+          <div className="mt-4 space-y-3">
             {tasks.map((task) => (
               <div
                 key={task.id}
                 className={cn(
-                  "flex items-center gap-3 p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer",
-                  task.completed && "bg-card border-border"
+                  "flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer",
+                  task.completed && "bg-accent/30"
                 )}
                 onClick={() => toggleTask(task.id)}
               >
@@ -136,15 +136,13 @@ export function OnboardingProgress({ className }: OnboardingProgressProps) {
                 >
                   {task.completed && <Check className="h-3 w-3" />}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p
-                    className="text-sm font-medium truncate text-foreground"
-                  >
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-foreground">
                     {task.title}
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    +{task.points} pts
-                  </p>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  +{task.points} pts
                 </div>
               </div>
             ))}
