@@ -54,8 +54,7 @@ export function MasonryVideoGrid({
       if (width < 640) setColumns(1);
       else if (width < 900) setColumns(2);
       else if (width < 1200) setColumns(3);
-      else if (width < 1600) setColumns(4);
-      else setColumns(5);
+      else setColumns(4); // Max 4 columns for better layout
     };
 
     updateColumns();

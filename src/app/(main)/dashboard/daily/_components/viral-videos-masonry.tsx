@@ -10,6 +10,8 @@ import { useAuth } from "@/contexts/auth-context";
 import { RBACClientService } from "@/core/auth/rbac-client";
 import { Video } from "@/lib/collections";
 
+import { DailyVideoInsightsDialog } from "./daily-video-insights-dialog";
+
 interface ViralVideosMasonryProps {
   className?: string;
 }
@@ -18,6 +20,8 @@ export function ViralVideosMasonry({ className }: ViralVideosMasonryProps) {
   const { user } = useAuth();
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
+  const [isInsightsDialogOpen, setIsInsightsDialogOpen] = useState(false);
 
   const loadAllVideos = useCallback(async () => {
     if (!user?.uid) return;
@@ -53,8 +57,8 @@ export function ViralVideosMasonry({ className }: ViralVideosMasonryProps) {
   }, [user?.uid, loadAllVideos]);
 
   const handleVideoClick = (video: Video) => {
-    // You can add more functionality here like opening a modal
-    console.log("🎥 [Viral Videos] Video clicked:", video.title);
+    setSelectedVideo(video);
+    setIsInsightsDialogOpen(true);
   };
 
   const handleToggleFavorite = (updatedVideo: Video) => {
@@ -98,6 +102,12 @@ export function ViralVideosMasonry({ className }: ViralVideosMasonryProps) {
           />
         </CardContent>
       </Card>
+
+      <DailyVideoInsightsDialog
+        video={selectedVideo}
+        open={isInsightsDialogOpen}
+        onOpenChange={setIsInsightsDialogOpen}
+      />
     </div>
   );
 }
