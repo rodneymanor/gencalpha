@@ -1,48 +1,41 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+
 import { Star, Folder, Video, MoreHorizontal, Edit, Trash2, StarOff } from "lucide-react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useCollections } from "./collections-context";
-import { EditCollectionDialog } from "./edit-collection-dialog";
-import { DeleteConfirmDialog } from "./delete-confirm-dialog";
-import { Collection, CollectionsService } from "@/lib/collections";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/auth-context";
+import { Collection, CollectionsService } from "@/lib/collections";
 import { cn } from "@/lib/utils";
+
+import { useCollections } from "./collections-context";
+import { DeleteConfirmDialog } from "./delete-confirm-dialog";
+import { EditCollectionDialog } from "./edit-collection-dialog";
 
 interface CollectionsSidebarProps {
   selectedCollectionId: string;
   onSelectCollection: (collectionId: string) => void;
 }
 
-export function CollectionsSidebar({
-  selectedCollectionId,
-  onSelectCollection,
-}: CollectionsSidebarProps) {
+export function CollectionsSidebar({ selectedCollectionId, onSelectCollection }: CollectionsSidebarProps) {
   const { state, dispatch } = useCollections();
   const { user } = useAuth();
   const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
   const [deletingCollection, setDeletingCollection] = useState<Collection | null>(null);
 
-  useEffect(() => {
-    if (user?.uid) {
-      loadCollections();
-    }
-  }, [user?.uid, loadCollections]);
-
-  const loadCollections = async () => {
+  const loadCollections = useCallback(async () => {
     if (!user?.uid) return;
-    
+
     dispatch({ type: "SET_LOADING", payload: true });
     try {
       const collections = await CollectionsService.getUserCollections(user.uid);
@@ -58,7 +51,13 @@ export function CollectionsSidebar({
     } finally {
       dispatch({ type: "SET_LOADING", payload: false });
     }
-  };
+  }, [user?.uid, dispatch]);
+
+  useEffect(() => {
+    if (user?.uid) {
+      loadCollections();
+    }
+  }, [user?.uid, loadCollections]);
 
   const handleToggleFavorite = async (collection: Collection) => {
     if (!user?.uid || !collection.id) return;
@@ -66,7 +65,7 @@ export function CollectionsSidebar({
     try {
       const newFavoriteStatus = !collection.favorite;
       await CollectionsService.setFavorite(user.uid, collection.id, newFavoriteStatus);
-      
+
       dispatch({
         type: "UPDATE_COLLECTION",
         payload: {
@@ -85,7 +84,7 @@ export function CollectionsSidebar({
     try {
       await CollectionsService.deleteCollection(user.uid, collection.id);
       dispatch({ type: "DELETE_COLLECTION", payload: collection.id });
-      
+
       // If we're deleting the selected collection, switch to all-videos
       if (selectedCollectionId === collection.id) {
         onSelectCollection("all-videos");
@@ -122,17 +121,17 @@ export function CollectionsSidebar({
             Collections
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-3 space-y-2">
+        <CardContent className="space-y-2 p-3">
           {/* All Videos */}
           <button
             onClick={() => onSelectCollection("all-videos")}
             className={cn(
-              "w-full flex items-center justify-between p-3 rounded-lg text-left transition-colors hover:bg-accent",
-              selectedCollectionId === "all-videos" && "bg-accent"
+              "hover:bg-accent flex w-full items-center justify-between rounded-lg p-3 text-left transition-colors",
+              selectedCollectionId === "all-videos" && "bg-accent",
             )}
           >
             <div className="flex items-center gap-3">
-              <Video className="h-4 w-4 text-muted-foreground" />
+              <Video className="text-muted-foreground h-4 w-4" />
               <span className="font-medium">All Videos</span>
             </div>
             <Badge variant="secondary" className="ml-auto">
@@ -145,26 +144,22 @@ export function CollectionsSidebar({
             <div
               key={collection.id}
               className={cn(
-                "group flex items-center justify-between p-3 rounded-lg transition-colors hover:bg-accent cursor-pointer",
-                selectedCollectionId === collection.id && "bg-accent"
+                "group hover:bg-accent flex cursor-pointer items-center justify-between rounded-lg p-3 transition-colors",
+                selectedCollectionId === collection.id && "bg-accent",
               )}
             >
               <button
                 onClick={() => onSelectCollection(collection.id!)}
-                className="flex items-center gap-3 flex-1 text-left"
+                className="flex flex-1 items-center gap-3 text-left"
               >
                 <div className="flex items-center gap-2">
-                  {collection.favorite && (
-                    <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
-                  )}
-                  <Folder className="h-4 w-4 text-muted-foreground" />
+                  {collection.favorite && <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />}
+                  <Folder className="text-muted-foreground h-4 w-4" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{collection.title}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium">{collection.title}</p>
                   {collection.description && (
-                    <p className="text-sm text-muted-foreground truncate">
-                      {collection.description}
-                    </p>
+                    <p className="text-muted-foreground truncate text-sm">{collection.description}</p>
                   )}
                 </div>
                 <Badge variant="secondary" className="ml-2">
@@ -174,38 +169,30 @@ export function CollectionsSidebar({
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
+                  <Button variant="ghost" className="h-8 w-8 p-0 opacity-0 transition-opacity group-hover:opacity-100">
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => setEditingCollection(collection)}>
-                    <Edit className="h-4 w-4 mr-2" />
+                    <Edit className="mr-2 h-4 w-4" />
                     Edit
                   </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => handleToggleFavorite(collection)}
-                  >
+                  <DropdownMenuItem onClick={() => handleToggleFavorite(collection)}>
                     {collection.favorite ? (
                       <>
-                        <StarOff className="h-4 w-4 mr-2" />
+                        <StarOff className="mr-2 h-4 w-4" />
                         Remove from favorites
                       </>
                     ) : (
                       <>
-                        <Star className="h-4 w-4 mr-2" />
+                        <Star className="mr-2 h-4 w-4" />
                         Add to favorites
                       </>
                     )}
                   </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => setDeletingCollection(collection)}
-                    className="text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
+                  <DropdownMenuItem onClick={() => setDeletingCollection(collection)} className="text-destructive">
+                    <Trash2 className="mr-2 h-4 w-4" />
                     Delete
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -214,8 +201,8 @@ export function CollectionsSidebar({
           ))}
 
           {state.collections.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              <Folder className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <div className="text-muted-foreground py-8 text-center">
+              <Folder className="mx-auto mb-4 h-12 w-12 opacity-50" />
               <p>No collections yet</p>
               <p className="text-sm">Create your first collection to get started</p>
             </div>
