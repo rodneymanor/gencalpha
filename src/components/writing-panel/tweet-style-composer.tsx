@@ -202,13 +202,6 @@ export function TweetStyleComposer({ className }: TweetStyleComposerProps) {
         <TabsContent value="compose" className="mt-4 space-y-4">
           <Card>
             <CardContent className="p-4 space-y-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span>Your content</span>
-                <Plus className="h-4 w-4" />
-                <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
-                  New draft
-                </Button>
-              </div>
               
               <div className="space-y-3">
                 <Textarea

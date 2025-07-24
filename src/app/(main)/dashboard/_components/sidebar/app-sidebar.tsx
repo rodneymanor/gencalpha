@@ -56,10 +56,15 @@ export function AppSidebar({ layoutPreferences, ...props }: AppSidebarProps) {
   const hoverTimeoutRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
+    console.log("🔍 [Sidebar] useEffect running, setting up hover listeners");
     const sidebar = sidebarRef.current;
-    if (!sidebar) return;
+    if (!sidebar) {
+      console.warn("⚠️ [Sidebar] sidebarRef.current is null, cannot attach listeners");
+      return;
+    }
 
     const handleMouseEnter = () => {
+      console.log("🔍 [Sidebar] Mouse enter - expanding sidebar");
       if (hoverTimeoutRef.current) {
         clearTimeout(hoverTimeoutRef.current);
       }
@@ -67,7 +72,9 @@ export function AppSidebar({ layoutPreferences, ...props }: AppSidebarProps) {
     };
 
     const handleMouseLeave = () => {
+      console.log("🔍 [Sidebar] Mouse leave - collapsing sidebar in 300ms");
       hoverTimeoutRef.current = setTimeout(() => {
+        console.log("🔍 [Sidebar] Collapsing sidebar now");
         setOpen(false);
       }, 300); // 300ms delay before closing
     };
@@ -76,6 +83,7 @@ export function AppSidebar({ layoutPreferences, ...props }: AppSidebarProps) {
     sidebar.addEventListener("mouseleave", handleMouseLeave);
 
     // Set initial collapsed state
+    console.log("🔍 [Sidebar] Setting initial collapsed state");
     setOpen(false);
 
     return () => {
