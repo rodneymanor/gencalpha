@@ -43,7 +43,7 @@ export function VideoInsightsDialog() {
 
   return (
     <Dialog open={state.isInsightsDialogOpen} onOpenChange={handleClose}>
-      <DialogContent className="flex h-[90vh] max-w-4xl flex-col">
+      <DialogContent className="flex h-[90vh] max-w-7xl flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             <div className="flex items-center gap-2">
@@ -65,40 +65,50 @@ export function VideoInsightsDialog() {
         </DialogHeader>
 
         <div className="flex-1 overflow-hidden">
-          <Tabs defaultValue="overview" className="flex h-full flex-col">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="script">Script</TabsTrigger>
-              <TabsTrigger value="transcript">Transcript</TabsTrigger>
-              <TabsTrigger value="metadata">Metadata</TabsTrigger>
-            </TabsList>
-
-            <div className="mt-4 flex-1 overflow-auto">
-              <TabsContent value="overview" className="mt-0 space-y-6">
-                <VideoPreview video={video} />
-                {video.metrics && <VideoMetricsGrid metrics={video.metrics} />}
-                <VideoActionButtons video={video} />
-              </TabsContent>
-
-              <TabsContent value="script" className="mt-0 space-y-4">
-                <ScriptComponentsTab components={video.components} copiedText={copiedText} onCopy={copyToClipboard} />
-              </TabsContent>
-
-              <TabsContent value="transcript" className="mt-0 space-y-4">
-                <TranscriptTab
-                  transcript={video.transcript}
-                  visualContext={video.visualContext}
-                  copiedText={copiedText}
-                  onCopy={copyToClipboard}
-                  video={video}
-                />
-              </TabsContent>
-
-              <TabsContent value="metadata" className="mt-0 space-y-4">
-                <MetadataTab video={video} />
-              </TabsContent>
+          <div className="flex h-full gap-6">
+            {/* Left Column - Script (1/3 width) */}
+            <div className="flex w-1/3 flex-col">
+              <div className="mb-4">
+                <h3 className="mb-2 text-lg font-semibold">Script Components</h3>
+                <div className="flex-1 overflow-auto">
+                  <ScriptComponentsTab components={video.components} copiedText={copiedText} onCopy={copyToClipboard} />
+                </div>
+              </div>
             </div>
-          </Tabs>
+
+            {/* Right Column - Information (2/3 width) */}
+            <div className="flex w-2/3 flex-col">
+              <Tabs defaultValue="overview" className="flex h-full flex-col">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="overview">Overview</TabsTrigger>
+                  <TabsTrigger value="transcript">Transcript</TabsTrigger>
+                  <TabsTrigger value="metadata">Metadata</TabsTrigger>
+                </TabsList>
+
+                <div className="mt-4 flex-1 overflow-auto">
+                  <TabsContent value="overview" className="mt-0 space-y-6">
+                    <VideoPreview video={video} />
+                    {video.metrics && <VideoMetricsGrid metrics={video.metrics} />}
+                    <VideoActionButtons video={video} />
+                  </TabsContent>
+
+                  <TabsContent value="transcript" className="mt-0 space-y-4">
+                    <TranscriptTab
+                      transcript={video.transcript}
+                      visualContext={video.visualContext}
+                      copiedText={copiedText}
+                      onCopy={copyToClipboard}
+                      video={video}
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="metadata" className="mt-0 space-y-4">
+                    <MetadataTab video={video} />
+                  </TabsContent>
+                </div>
+              </Tabs>
+            </div>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
