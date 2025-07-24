@@ -73,22 +73,22 @@ export function IdeaTable({ ideas, onViewIdea }: IdeaTableProps) {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Title</TableHead>
-          <TableHead>Source</TableHead>
-          <TableHead>Excerpt</TableHead>
-          <TableHead>Words</TableHead>
-          <TableHead>Added</TableHead>
+          <TableHead className="w-48">Title</TableHead>
+          <TableHead className="w-24">Source</TableHead>
+          <TableHead className="w-80">Excerpt</TableHead>
+          <TableHead className="w-20">Words</TableHead>
+          <TableHead className="w-24">Added</TableHead>
           <TableHead className="w-20">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {ideas.map((idea) => (
           <TableRow key={idea.id} className="hover:bg-muted/50 cursor-pointer">
-            <TableCell onClick={() => onViewIdea(idea)} className="font-medium">
-              <div className="flex items-center gap-2">
-                <span className="line-clamp-1">{idea.title}</span>
+            <TableCell onClick={() => onViewIdea(idea)} className="max-w-48 font-medium">
+              <div className="flex flex-col gap-1">
+                <span className="line-clamp-1 text-sm font-medium">{idea.title}</span>
                 {idea.tags.length > 0 && (
-                  <div className="flex gap-1">
+                  <div className="flex flex-wrap gap-1">
                     {idea.tags.slice(0, 2).map((tag) => (
                       <Badge key={tag} variant="secondary" className="text-xs">
                         {tag}
