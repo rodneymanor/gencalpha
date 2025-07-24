@@ -51,10 +51,10 @@ export function MasonryVideoGrid({
       if (!containerRef.current) return;
       
       const width = containerRef.current.offsetWidth;
-      if (width < 640) setColumns(1);
-      else if (width < 900) setColumns(2);
-      else if (width < 1200) setColumns(3);
-      else setColumns(4); // Max 4 columns for better layout
+      if (width < 480) setColumns(1);
+      else if (width < 768) setColumns(2);
+      else if (width < 1024) setColumns(3);
+      else setColumns(4); // 4 columns for desktop screens
     };
 
     updateColumns();
