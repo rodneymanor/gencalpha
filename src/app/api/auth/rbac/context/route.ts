@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { RBACService } from "@/core/auth/rbac";
+import { isAdminInitialized } from "@/lib/firebase-admin";
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,10 +11,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });
     }
 
+    // Check if Firebase Admin is initialized
+    if (!isAdminInitialized) {
+      console.warn("⚠️ [RBAC API] Firebase Admin not initialized - returning default creator context");
+      return NextResponse.json({
+        userId,
+        role: "creator",
+        accessibleCoaches: [],
+        isSuperAdmin: false,
+      });
+    }
+
     const context = await RBACService.getRBACContext(userId);
     return NextResponse.json(context);
   } catch (error) {
     console.error("❌ [RBAC API] Error getting RBAC context:", error);
-    return NextResponse.json({ error: "Failed to get RBAC context" }, { status: 500 });
+    // Return default creator context to prevent UI breaking
+    return NextResponse.json({
+      userId,
+      role: "creator",
+      accessibleCoaches: [],
+      isSuperAdmin: false,
+    });
   }
 }

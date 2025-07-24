@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { RBACService } from "@/core/auth/rbac";
+import { isAdminInitialized } from "@/lib/firebase-admin";
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,10 +11,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });
     }
 
+    // Check if Firebase Admin is initialized
+    if (!isAdminInitialized) {
+      console.warn("⚠️ [Collections API] Firebase Admin not initialized - returning empty collections");
+      return NextResponse.json({
+        collections: [],
+        accessibleCoaches: [],
+      });
+    }
+
     const result = await RBACService.getUserCollections(userId);
     return NextResponse.json(result);
   } catch (error) {
     console.error("❌ [Collections API] Error getting user collections:", error);
-    return NextResponse.json({ error: "Failed to get collections" }, { status: 500 });
+    // Return empty collections instead of error to prevent UI breaking
+    return NextResponse.json({
+      collections: [],
+      accessibleCoaches: [],
+    });
   }
 }

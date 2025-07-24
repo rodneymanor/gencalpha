@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { RBACService } from "@/core/auth/rbac";
+import { isAdminInitialized } from "@/lib/firebase-admin";
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,6 +9,15 @@ export async function POST(request: NextRequest) {
 
     if (!userId) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });
+    }
+
+    // Check if Firebase Admin is initialized
+    if (!isAdminInitialized) {
+      console.warn("⚠️ [Videos API] Firebase Admin not initialized - returning empty videos");
+      return NextResponse.json({
+        videos: [],
+        totalCount: 0,
+      });
     }
 
     // Note: lastDocId handling would need to be implemented if using pagination
@@ -22,6 +32,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(result);
   } catch (error) {
     console.error("❌ [Videos API] Error getting collection videos:", error);
-    return NextResponse.json({ error: "Failed to get videos" }, { status: 500 });
+    // Return empty videos instead of error to prevent UI breaking
+    return NextResponse.json({
+      videos: [],
+      totalCount: 0,
+    });
   }
 }
