@@ -160,12 +160,21 @@ export function MasonryVideoGrid({
                 onClick={() => handleVideoClick(video)}
               >
                 <div className="relative aspect-[9/16]">
-                  <img
-                    src={video.thumbnailUrl}
-                    alt={video.title}
-                    className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                    loading="lazy"
-                  />
+                  {video.thumbnailUrl ? (
+                    <img
+                      src={video.thumbnailUrl}
+                      alt={video.title}
+                      className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="bg-muted flex h-full w-full items-center justify-center">
+                      <div className="text-muted-foreground text-center">
+                        <Play className="mx-auto mb-2 h-6 w-6" />
+                        <p className="text-xs">No Preview</p>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/50">
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">

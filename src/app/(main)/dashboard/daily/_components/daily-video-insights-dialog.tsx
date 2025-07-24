@@ -51,7 +51,16 @@ function VideoAndMetricsColumn({ video }: { video: Video }) {
       <Card className="flex-1">
         <CardContent className="flex h-full flex-col p-4">
           <div className="bg-muted relative mb-3 flex-1 overflow-hidden rounded-lg">
-            <Image src={video.thumbnailUrl} alt={video.title} fill className="object-cover" />
+            {video.thumbnailUrl ? (
+              <Image src={video.thumbnailUrl} alt={video.title} fill className="object-cover" />
+            ) : (
+              <div className="bg-muted flex h-full w-full items-center justify-center">
+                <div className="text-muted-foreground text-center">
+                  <Play className="mx-auto mb-2 h-8 w-8" />
+                  <p className="text-sm">No Preview</p>
+                </div>
+              </div>
+            )}
             <div className="absolute inset-0 flex items-center justify-center">
               <Button size="icon" className="rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30">
                 <Play className="h-6 w-6 fill-white text-white" />
