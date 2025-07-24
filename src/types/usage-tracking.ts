@@ -67,22 +67,15 @@ export interface CreditTransaction {
 }
 
 export interface UsageStats {
-  userId: string;
-  accountLevel: "free" | "pro";
-  currentPeriod: {
-    start: string;
-    end: string;
-    creditsUsed: number;
-    creditsLimit: number;
-    creditsRemaining: number;
-  };
-  totals: {
-    creditsUsed: number;
-    scriptsGenerated: number;
-    voicesCreated: number;
-    videosProcessed: number;
-  };
+  creditsUsed: number;
+  creditsRemaining: number;
+  creditsLimit: number;
+  percentageUsed: number;
   periodType: "daily" | "monthly";
+  periodStart: string;
+  periodEnd: string;
+  timeUntilReset: string;
+  canPerformAction: boolean;
 }
 
 export interface SocialMediaStats {
