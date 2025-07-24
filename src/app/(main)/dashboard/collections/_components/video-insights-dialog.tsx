@@ -1,24 +1,21 @@
 "use client";
 
 import { useState } from "react";
+
 import { Play, Clock, User, ExternalLink, Copy, CheckCircle, Zap } from "lucide-react";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { useCollections } from "./collections-context";
-import { VideoMetricsGrid } from "./video-metrics-grid";
-import { ScriptComponentsTab } from "./script-components-tab";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+
+import { useCollections } from "./collections-context";
+import { ScriptComponentsTab } from "./script-components-tab";
+import { VideoMetricsGrid } from "./video-metrics-grid";
 
 export function VideoInsightsDialog() {
   const { state, dispatch } = useCollections();
@@ -45,24 +42,29 @@ export function VideoInsightsDialog() {
 
   return (
     <Dialog open={state.isInsightsDialogOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
+      <DialogContent className="flex h-[90vh] max-w-4xl flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <Badge className={cn(
-                video.platform?.toLowerCase() === "tiktok" 
-                  ? "bg-black text-white" 
-                  : "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
-              )}>
+              <Badge
+                className={cn(
+                  video.platform?.toLowerCase() === "tiktok"
+                    ? "bg-black text-white"
+                    : "bg-gradient-to-r from-purple-500 to-pink-500 text-white",
+                )}
+              >
                 {video.platform}
               </Badge>
               <span className="truncate">{video.title}</span>
             </div>
           </DialogTitle>
+          <DialogDescription>
+            View detailed insights, script components, transcript and metadata for this video.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="flex-1 overflow-hidden">
-          <Tabs defaultValue="overview" className="h-full flex flex-col">
+          <Tabs defaultValue="overview" className="flex h-full flex-col">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="script">Script</TabsTrigger>
@@ -70,23 +72,19 @@ export function VideoInsightsDialog() {
               <TabsTrigger value="metadata">Metadata</TabsTrigger>
             </TabsList>
 
-            <div className="flex-1 overflow-auto mt-4">
-              <TabsContent value="overview" className="space-y-6 mt-0">
+            <div className="mt-4 flex-1 overflow-auto">
+              <TabsContent value="overview" className="mt-0 space-y-6">
                 <VideoPreview video={video} />
                 {video.metrics && <VideoMetricsGrid metrics={video.metrics} />}
                 <HookRewriteCard />
               </TabsContent>
 
-              <TabsContent value="script" className="space-y-4 mt-0">
-                <ScriptComponentsTab 
-                  components={video.components}
-                  copiedText={copiedText}
-                  onCopy={copyToClipboard}
-                />
+              <TabsContent value="script" className="mt-0 space-y-4">
+                <ScriptComponentsTab components={video.components} copiedText={copiedText} onCopy={copyToClipboard} />
               </TabsContent>
 
-              <TabsContent value="transcript" className="space-y-4 mt-0">
-                <TranscriptTab 
+              <TabsContent value="transcript" className="mt-0 space-y-4">
+                <TranscriptTab
                   transcript={video.transcript}
                   visualContext={video.visualContext}
                   copiedText={copiedText}
@@ -94,7 +92,7 @@ export function VideoInsightsDialog() {
                 />
               </TabsContent>
 
-              <TabsContent value="metadata" className="space-y-4 mt-0">
+              <TabsContent value="metadata" className="mt-0 space-y-4">
                 <MetadataTab video={video} />
               </TabsContent>
             </div>
@@ -110,12 +108,8 @@ function VideoPreview({ video }: { video: any }) {
     <Card>
       <CardContent className="p-6">
         <div className="flex gap-6">
-          <div className="w-48 aspect-[9/16] relative rounded-lg overflow-hidden bg-muted">
-            <img
-              src={video.thumbnailUrl}
-              alt={video.title}
-              className="w-full h-full object-cover"
-            />
+          <div className="bg-muted relative aspect-[9/16] w-48 overflow-hidden rounded-lg">
+            <img src={video.thumbnailUrl} alt={video.title} className="h-full w-full object-cover" />
             <div className="absolute inset-0 flex items-center justify-center">
               <Button size="icon" className="rounded-full">
                 <Play className="h-6 w-6 fill-current" />
@@ -124,8 +118,8 @@ function VideoPreview({ video }: { video: any }) {
           </div>
           <div className="flex-1 space-y-4">
             <div>
-              <h3 className="text-lg font-semibold mb-2">{video.title}</h3>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <h3 className="mb-2 text-lg font-semibold">{video.title}</h3>
+              <div className="text-muted-foreground flex items-center gap-4 text-sm">
                 <span className="flex items-center gap-1">
                   <User className="h-4 w-4" />
                   {video.metadata?.author ?? "Unknown"}
@@ -138,7 +132,7 @@ function VideoPreview({ video }: { video: any }) {
                 )}
                 <span className="flex items-center gap-1">
                   <ExternalLink className="h-4 w-4" />
-                  <a 
+                  <a
                     href={video.originalUrl}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -177,11 +171,9 @@ function TranscriptTab({ transcript, visualContext, copiedText, onCopy }: any) {
     return (
       <Card>
         <CardContent className="p-6 text-center">
-          <div className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50">📄</div>
-          <h3 className="text-lg font-semibold mb-2">No Transcript Available</h3>
-          <p className="text-muted-foreground mb-4">
-            The transcript hasn&apos;t been generated yet for this video.
-          </p>
+          <div className="text-muted-foreground mx-auto mb-4 h-12 w-12 opacity-50">📄</div>
+          <h3 className="mb-2 text-lg font-semibold">No Transcript Available</h3>
+          <p className="text-muted-foreground mb-4">The transcript hasn&apos;t been generated yet for this video.</p>
           <Button>Generate Transcript</Button>
         </CardContent>
       </Card>
@@ -193,34 +185,19 @@ function TranscriptTab({ transcript, visualContext, copiedText, onCopy }: any) {
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>Full Transcript</span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onCopy(transcript, "transcript")}
-          >
-            {copiedText === "transcript" ? (
-              <CheckCircle className="h-4 w-4" />
-            ) : (
-              <Copy className="h-4 w-4" />
-            )}
+          <Button variant="outline" size="sm" onClick={() => onCopy(transcript, "transcript")}>
+            {copiedText === "transcript" ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
           </Button>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <Textarea
-          value={transcript}
-          readOnly
-          rows={12}
-          className="resize-none"
-        />
+        <Textarea value={transcript} readOnly rows={12} className="resize-none" />
         {visualContext && (
           <>
             <Separator className="my-4" />
             <div>
-              <h4 className="font-semibold mb-2">Visual Context</h4>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {visualContext}
-              </p>
+              <h4 className="mb-2 font-semibold">Visual Context</h4>
+              <p className="text-muted-foreground text-sm leading-relaxed">{visualContext}</p>
             </div>
           </>
         )}
@@ -231,7 +208,7 @@ function TranscriptTab({ transcript, visualContext, copiedText, onCopy }: any) {
 
 function MetadataTab({ video }: { video: any }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
       <Card>
         <CardHeader>
           <CardTitle>Basic Information</CardTitle>
@@ -262,11 +239,11 @@ function MetadataTab({ video }: { video: any }) {
           <div>
             <span className="text-muted-foreground text-sm">Original URL:</span>
             <div className="mt-1">
-              <a 
+              <a
                 href={video.originalUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary hover:underline text-sm break-all"
+                className="text-primary text-sm break-all hover:underline"
               >
                 {video.originalUrl}
               </a>
