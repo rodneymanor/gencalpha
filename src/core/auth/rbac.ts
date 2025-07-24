@@ -41,7 +41,7 @@ export class RBACService {
 
     return {
       userId,
-      role: userProfile?.role || "creator",
+      role: userProfile?.role ?? "creator",
       accessibleCoaches,
       isSuperAdmin: userProfile?.role === "super_admin",
     };
@@ -73,19 +73,15 @@ export class RBACService {
       return !collectionDoc.empty;
     }
 
-    // For videos, check if the video belongs to an accessible coach
-    if (resourceType === "video") {
-      const videoDoc = await getDocs(
-        query(
-          collection(db, this.VIDEOS_PATH),
-          where("id", "==", resourceId),
-          where("userId", "in", context.accessibleCoaches),
-        ),
-      );
-      return !videoDoc.empty;
-    }
-
-    return false;
+    // Check if the video belongs to an accessible coach
+    const videoDoc = await getDocs(
+      query(
+        collection(db, this.VIDEOS_PATH),
+        where("id", "==", resourceId),
+        where("userId", "in", context.accessibleCoaches),
+      ),
+    );
+    return !videoDoc.empty;
   }
 
   /**
@@ -248,7 +244,7 @@ export class RBACService {
     lastDoc?: DocumentSnapshot,
     context?: RBACContext,
   ): Promise<VideoAccessResult> {
-    const userContext = context || (await this.getRBACContext(userId));
+    const userContext = context ?? (await this.getRBACContext(userId));
     console.log("🔍 [RBAC] Accessible coaches:", userContext.accessibleCoaches);
 
     if (userContext.accessibleCoaches.length === 0) {

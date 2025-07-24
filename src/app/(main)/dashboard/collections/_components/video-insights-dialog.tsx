@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { useRBAC } from "@/hooks/use-rbac";
 import { cn } from "@/lib/utils";
 
 import { useCollections } from "./collections-context";
@@ -152,6 +153,8 @@ function VideoPreview({ video }: { video: any }) {
 }
 
 function VideoActionButtons({ video }: { video: any }) {
+  const { canWrite, loading } = useRBAC();
+
   const handleGenerateHooks = () => {
     console.log("🎬 Generate Hooks for video:", video.title);
     // TODO: Implement hook generation from video transcript
@@ -167,6 +170,11 @@ function VideoActionButtons({ video }: { video: any }) {
     // 2. Send it through the script writing process
     // 3. Open the right-hand panel with generated script
   };
+
+  // Don't show AI actions if user doesn't have write permissions
+  if (loading || !canWrite) {
+    return null;
+  }
 
   return (
     <Card>

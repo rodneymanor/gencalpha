@@ -15,7 +15,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/auth-context";
-import { Collection, CollectionsService } from "@/lib/collections";
+import { RBACService } from "@/core/auth/rbac";
+import { Collection } from "@/lib/collections";
 import { cn } from "@/lib/utils";
 
 import { useCollections } from "./collections-context";
@@ -38,9 +39,9 @@ export function CollectionsSidebar({ selectedCollectionId, onSelectCollection }:
 
     dispatch({ type: "SET_LOADING", payload: true });
     try {
-      const collections = await CollectionsService.getUserCollections(user.uid);
+      const result = await RBACService.getUserCollections(user.uid);
       // Sort: favorites first, then by updatedAt desc
-      const sortedCollections = [...collections].sort((a, b) => {
+      const sortedCollections = [...result.collections].sort((a, b) => {
         if (a.favorite && !b.favorite) return -1;
         if (!a.favorite && b.favorite) return 1;
         return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();

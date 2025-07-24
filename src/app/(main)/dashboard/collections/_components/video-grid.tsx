@@ -15,7 +15,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/auth-context";
-import { Video, CollectionsService } from "@/lib/collections";
+import { RBACService } from "@/core/auth/rbac";
+import { useRBAC } from "@/hooks/use-rbac";
+import { Video } from "@/lib/collections";
 import { cn } from "@/lib/utils";
 
 import { useCollections } from "./collections-context";
@@ -29,6 +31,7 @@ interface VideoGridProps {
 export function VideoGrid({ collectionId }: VideoGridProps) {
   const { state, dispatch } = useCollections();
   const { user } = useAuth();
+  const { canWrite, canDelete } = useRBAC();
   const [movingVideo, setMovingVideo] = useState<Video | null>(null);
   const [deletingVideo, setDeletingVideo] = useState<Video | null>(null);
 
@@ -37,12 +40,12 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
 
     dispatch({ type: "SET_LOADING", payload: true });
     try {
-      const videos = await CollectionsService.getCollectionVideos(
+      const result = await RBACService.getCollectionVideos(
         user.uid,
         collectionId === "all-videos" ? undefined : collectionId,
       );
 
-      dispatch({ type: "SET_VIDEOS", payload: videos });
+      dispatch({ type: "SET_VIDEOS", payload: result.videos });
     } catch (error) {
       console.error("Failed to load videos:", error);
     } finally {
@@ -173,54 +176,64 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
                         <Eye className="mr-2 h-4 w-4" />
                         View Insights
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleToggleFavorite(video);
-                        }}
-                      >
-                        {video.favorite ? (
-                          <>
-                            <StarOff className="mr-2 h-4 w-4" />
-                            Remove from favorites
-                          </>
-                        ) : (
-                          <>
-                            <Star className="mr-2 h-4 w-4" />
-                            Add to favorites
-                          </>
-                        )}
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setMovingVideo(video);
-                        }}
-                      >
-                        <Move className="mr-2 h-4 w-4" />
-                        Move to Collection
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          // Handle copy
-                        }}
-                      >
-                        <Copy className="mr-2 h-4 w-4" />
-                        Copy to Collection
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDeletingVideo(video);
-                        }}
-                        className="text-destructive"
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
-                      </DropdownMenuItem>
+                      {canWrite && (
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleFavorite(video);
+                          }}
+                        >
+                          {video.favorite ? (
+                            <>
+                              <StarOff className="mr-2 h-4 w-4" />
+                              Remove from favorites
+                            </>
+                          ) : (
+                            <>
+                              <Star className="mr-2 h-4 w-4" />
+                              Add to favorites
+                            </>
+                          )}
+                        </DropdownMenuItem>
+                      )}
+                      {canWrite && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setMovingVideo(video);
+                            }}
+                          >
+                            <Move className="mr-2 h-4 w-4" />
+                            Move to Collection
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Handle copy
+                            }}
+                          >
+                            <Copy className="mr-2 h-4 w-4" />
+                            Copy to Collection
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                      {canDelete && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeletingVideo(video);
+                            }}
+                            className="text-destructive"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete
+                          </DropdownMenuItem>
+                        </>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
