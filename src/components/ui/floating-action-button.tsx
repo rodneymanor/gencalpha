@@ -1,22 +1,53 @@
 "use client";
 
 import React, { useState } from "react";
-import { Plus } from "lucide-react";
+import { Pencil } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { SlideOutPanel } from "@/components/ui/slide-out-panel";
+import { cn } from "@/lib/utils";
 
 export function FloatingActionButton() {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
 
   return (
     <>
+      {/* Backdrop glow effect */}
+      <div 
+        className={cn(
+          "fixed bottom-6 h-16 w-16 rounded-xl blur-sm transition-all duration-300 ease-in-out",
+          isPanelOpen 
+            ? "right-[23rem] sm:right-[24rem] z-20" 
+            : "right-6 z-20"
+        )}
+        style={{ backgroundColor: '#526af9', opacity: 0.2 }}
+      />
+      
+      {/* Main button */}
       <Button
         size="icon"
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-shadow z-30"
+        className={cn(
+          "fixed bottom-6 h-14 w-14 rounded-xl transition-all duration-300 ease-in-out",
+          "text-white border-2 border-white/20 hover:border-white/30",
+          "shadow-lg hover:shadow-xl backdrop-blur-sm",
+          "hover:scale-105 active:scale-95",
+          isPanelOpen 
+            ? "right-[23rem] sm:right-[24rem] rounded-r-none border-r-0 z-30" 
+            : "right-6 z-50"
+        )}
+        style={{ 
+          backgroundColor: '#526af9',
+          boxShadow: '0 10px 15px -3px rgba(82, 106, 249, 0.25), 0 4px 6px -2px rgba(82, 106, 249, 0.1)'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = '#4c63f7';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = '#526af9';
+        }}
         onClick={() => setIsPanelOpen(true)}
       >
-        <Plus className="h-6 w-6" />
+        <Pencil className="h-5 w-5" />
       </Button>
 
       <SlideOutPanel 

@@ -148,6 +148,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ScriptRes
 
     // Calculate derived fields
     const wordCount = body.content.trim().split(/\s+/).length;
+    const characterCount = body.content.length;
     const duration = calculateDuration(body.content);
     const summary = body.summary ?? generateSummary(body.content);
     const category = body.category ?? inferCategory(body.content, body.approach);
@@ -159,7 +160,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ScriptRes
       title: body.title,
       content: body.content,
       authors: authResult.user.email || "Unknown",
-      status: "draft",
+      status: body.status || "draft",
       performance: { views: 0, engagement: 0 },
       category,
       createdAt: timestamp,
@@ -175,6 +176,11 @@ export async function POST(request: NextRequest): Promise<NextResponse<ScriptRes
       originalIdea: body.originalIdea,
       targetLength: body.targetLength,
       wordCount,
+      characterCount,
+      scheduledDate: body.scheduledDate,
+      platform: body.platform,
+      isThread: body.isThread,
+      threadParts: body.threadParts,
     };
 
     // Remove undefined fields for Firestore compatibility
@@ -258,6 +264,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse<ScriptResp
 
     // Calculate derived fields
     const wordCount = body.content.trim().split(/\s+/).length;
+    const characterCount = body.content.length;
     const duration = calculateDuration(body.content);
     const summary = body.summary ?? generateSummary(body.content);
     const category = body.category ?? inferCategory(body.content, body.approach || "general");
@@ -272,11 +279,16 @@ export async function PUT(request: NextRequest): Promise<NextResponse<ScriptResp
       duration,
       summary,
       wordCount,
+      characterCount,
       approach: body.approach || existingScript.approach,
       voice: body.voice || existingScript.voice,
       originalIdea: body.originalIdea || existingScript.originalIdea,
       targetLength: body.targetLength || existingScript.targetLength,
       tags: body.tags || existingScript.tags || [],
+      scheduledDate: body.scheduledDate || existingScript.scheduledDate,
+      platform: body.platform || existingScript.platform,
+      isThread: body.isThread || existingScript.isThread,
+      threadParts: body.threadParts || existingScript.threadParts,
     };
 
     // Remove undefined fields for Firestore compatibility

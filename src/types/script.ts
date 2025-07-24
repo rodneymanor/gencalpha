@@ -3,7 +3,7 @@ export interface Script {
   title: string;
   content: string;
   authors: string;
-  status: "draft" | "published" | "scheduled";
+  status: "draft" | "published" | "scheduled" | "sent";
   performance: { views: number; engagement: number };
   category: string;
   createdAt: string;
@@ -24,6 +24,13 @@ export interface Script {
   targetLength?: string;
   wordCount?: number;
   source?: "ghostwriter" | "ideas" | "scripting" | "hooks" | "collections";
+  // Enhanced scheduling and platform support
+  scheduledDate?: string;
+  platform?: "tiktok" | "instagram" | "youtube";
+  publishedUrl?: string;
+  isThread?: boolean;
+  threadParts?: string[];
+  characterCount?: number;
 }
 
 export interface CreateScriptRequest {
@@ -36,11 +43,17 @@ export interface CreateScriptRequest {
   voice?: {
     id: string;
     name: string;
-    badges: string[];
+    badges: string[];  
   };
   originalIdea?: string;
   targetLength?: string;
   source?: "ghostwriter" | "ideas" | "scripting" | "hooks" | "collections";
+  // Enhanced scheduling and platform support
+  scheduledDate?: string;
+  platform?: "tiktok" | "instagram" | "youtube";
+  status?: "draft" | "scheduled" | "sent";
+  isThread?: boolean;
+  threadParts?: string[];
 }
 
 export interface UpdateScriptRequest {
@@ -49,7 +62,12 @@ export interface UpdateScriptRequest {
   category?: string;
   tags?: string[];
   summary?: string;
-  status?: "draft" | "published" | "scheduled";
+  status?: "draft" | "published" | "scheduled" | "sent";
+  scheduledDate?: string;
+  platform?: "tiktok" | "instagram" | "youtube";
+  publishedUrl?: string;
+  isThread?: boolean;
+  threadParts?: string[];
 }
 
 export interface ScriptsResponse {

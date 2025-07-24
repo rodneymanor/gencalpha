@@ -716,14 +716,14 @@ export function HemingwayEditor({
               <TabsList className="grid h-auto w-full grid-cols-2 gap-0 rounded-none border-0 bg-transparent p-0">
                 <TabsTrigger
                   value="readability"
-                  className="text-muted-foreground hover:text-foreground data-[state=active]:border-primary data-[state=active]:text-foreground flex items-center justify-center gap-1 rounded-none border-0 border-b-2 border-transparent bg-transparent px-3 py-2 text-sm font-medium transition-all data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+                  className="text-muted-foreground hover:text-foreground data-[state=active]:border-[#555864] data-[state=active]:text-foreground flex items-center justify-center gap-1 rounded-none border-0 border-b-2 border-transparent bg-transparent px-4 py-2 text-sm font-medium transition-all data-[state=active]:bg-transparent data-[state=active]:shadow-none"
                 >
                   <Target className="h-3 w-3" />
                   Readability
                 </TabsTrigger>
                 <TabsTrigger
                   value="writing"
-                  className="text-muted-foreground hover:text-foreground data-[state=active]:border-primary data-[state=active]:text-foreground flex items-center justify-center gap-1 rounded-none border-0 border-b-2 border-transparent bg-transparent px-3 py-2 text-sm font-medium transition-all data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+                  className="text-muted-foreground hover:text-foreground data-[state=active]:border-[#555864] data-[state=active]:text-foreground flex items-center justify-center gap-1 rounded-none border-0 border-b-2 border-transparent bg-transparent px-4 py-2 text-sm font-medium transition-all data-[state=active]:bg-transparent data-[state=active]:shadow-none"
                 >
                   <BarChart3 className="h-3 w-3" />
                   Writing

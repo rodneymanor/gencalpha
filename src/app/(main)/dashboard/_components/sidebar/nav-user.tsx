@@ -3,7 +3,6 @@
 import { EllipsisVertical, CircleUser, CreditCard, MessageSquareDot, LogOut } from "lucide-react";
 import { toast } from "sonner";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,10 +21,6 @@ function getDisplayName(userProfile: any, user: any): string {
   return userProfile?.displayName ?? user.displayName ?? user.email?.split("@")[0] ?? "User";
 }
 
-// Helper function to get avatar URL
-function getAvatarUrl(userProfile: any, user: any): string {
-  return userProfile?.photoURL ?? user.photoURL ?? "";
-}
 
 export function NavUser() {
   const { user, userProfile, logout, loading } = useAuth();
@@ -47,7 +42,6 @@ export function NavUser() {
 
   const displayName = getDisplayName(userProfile, user);
   const email = user.email ?? "";
-  const avatar = getAvatarUrl(userProfile, user);
 
   return (
     <SidebarMenu>
@@ -58,10 +52,9 @@ export function NavUser() {
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <Avatar className="h-8 w-8 rounded-lg grayscale">
-                <AvatarImage src={avatar ?? undefined} alt={displayName} />
-                <AvatarFallback className="rounded-lg">{getInitials(displayName)}</AvatarFallback>
-              </Avatar>
+              <div className="h-8 w-8 rounded-lg flex items-center justify-center text-white text-sm font-medium" style={{ backgroundColor: 'rgb(140, 39, 190)' }}>
+                {getInitials(displayName)}
+              </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{displayName}</span>
                 <span className="text-muted-foreground truncate text-xs">{email}</span>
@@ -77,10 +70,9 @@ export function NavUser() {
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={avatar ?? undefined} alt={displayName} />
-                  <AvatarFallback className="rounded-lg">{getInitials(displayName)}</AvatarFallback>
-                </Avatar>
+                <div className="h-8 w-8 rounded-lg flex items-center justify-center text-white text-sm font-medium" style={{ backgroundColor: 'rgb(140, 39, 190)' }}>
+                  {getInitials(displayName)}
+                </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{displayName}</span>
                   <span className="text-muted-foreground truncate text-xs">{email}</span>

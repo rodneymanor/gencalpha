@@ -16,10 +16,8 @@ import { APP_CONFIG } from "@/config/app-config";
 import { sidebarItems } from "@/navigation/sidebar/sidebar-items";
 import { type SidebarVariant, type SidebarCollapsible, type ContentLayout } from "@/types/preferences/layout";
 
-import { LayoutControls } from "./layout-controls";
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
-import { ThemeSwitcher } from "./theme-switcher";
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   layoutPreferences?: {
@@ -101,14 +99,6 @@ export function AppSidebar({ layoutPreferences, ...props }: AppSidebarProps) {
       <SidebarContent className="flex flex-col">
         <div className="flex-1 overflow-auto">
           <NavMain items={sidebarItems} />
-        </div>
-        <div className="mt-auto border-t pt-2">
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <ThemeSwitcher />
-            </SidebarMenuItem>
-            <SidebarMenuItem>{layoutPreferences && <LayoutControls {...layoutPreferences} />}</SidebarMenuItem>
-          </SidebarMenu>
         </div>
       </SidebarContent>
       <SidebarFooter>

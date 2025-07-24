@@ -98,6 +98,11 @@ function prepareUpdateData(body: UpdateScriptRequest): Partial<Script> {
     ...(body.tags && { tags: body.tags }),
     ...(body.summary && { summary: body.summary }),
     ...(body.status && { status: body.status }),
+    ...(body.scheduledDate && { scheduledDate: body.scheduledDate }),
+    ...(body.platform && { platform: body.platform }),
+    ...(body.publishedUrl && { publishedUrl: body.publishedUrl }),
+    ...(body.isThread !== undefined && { isThread: body.isThread }),
+    ...(body.threadParts && { threadParts: body.threadParts }),
   };
 
   // Handle content update separately due to additional calculations
@@ -105,6 +110,7 @@ function prepareUpdateData(body: UpdateScriptRequest): Partial<Script> {
     updateData.content = body.content;
     updateData.duration = calculateDuration(body.content);
     updateData.wordCount = body.content.trim().split(/\s+/).length;
+    updateData.characterCount = body.content.length;
   }
 
   return updateData;

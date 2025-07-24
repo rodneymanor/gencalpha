@@ -16,7 +16,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/auth-context";
 import { RBACClientService } from "@/core/auth/rbac-client";
-import { Collection } from "@/lib/collections";
+import { Collection, CollectionsService } from "@/lib/collections";
 import { cn } from "@/lib/utils";
 
 import { useCollections } from "./collections-context";
@@ -39,7 +39,13 @@ export function CollectionsSidebar({ selectedCollectionId, onSelectCollection }:
 
     dispatch({ type: "SET_LOADING", payload: true });
     try {
+      // Check if user is super admin for debugging
+      const isSuperAdmin = await RBACClientService.isSuperAdmin(user.uid);
+      console.log("🔍 [Collections Sidebar] User is super admin:", isSuperAdmin);
+      
       const result = await RBACClientService.getUserCollections(user.uid);
+      console.log("🔍 [Collections Sidebar] Loaded collections:", result.collections.length);
+      
       // Sort: favorites first, then by updatedAt desc
       const sortedCollections = [...result.collections].sort((a, b) => {
         if (a.favorite && !b.favorite) return -1;

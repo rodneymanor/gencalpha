@@ -110,7 +110,10 @@ export function OnboardingProgress({ className }: OnboardingProgressProps) {
         {/* Progress Bar - Full Width */}
         {!isCollapsed && (
           <div className="mt-4">
-            <Progress value={progressPercentage} className="h-2 w-full" />
+            <Progress 
+              value={progressPercentage} 
+              className="h-2 w-full [&>*]:!bg-[#555864] !bg-[#555864]/20" 
+            />
           </div>
         )}
 
@@ -127,9 +130,13 @@ export function OnboardingProgress({ className }: OnboardingProgressProps) {
                   className={cn(
                     "flex items-center justify-center w-5 h-5 rounded-full border-2 transition-colors",
                     task.completed
-                      ? "bg-primary border-primary text-primary-foreground"
-                      : "border-muted-foreground/30 hover:border-primary/50"
+                      ? "text-white border-2"
+                      : "border-muted-foreground/30 hover:border-[#008a26]/50"
                   )}
+                  style={task.completed ? { 
+                    backgroundColor: '#008a26', 
+                    borderColor: '#008a26' 
+                  } : {}}
                 >
                   {task.completed && <Check className="h-3 w-3" />}
                 </div>
