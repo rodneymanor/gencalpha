@@ -43,7 +43,7 @@ export function VideoInsightsDialog() {
 
   return (
     <Dialog open={state.isInsightsDialogOpen} onOpenChange={handleClose}>
-      <DialogContent className="flex h-[90vh] max-w-7xl flex-col">
+      <DialogContent className="flex h-[90vh] w-[900px] !max-w-[900px] flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             <div className="flex items-center gap-2">
