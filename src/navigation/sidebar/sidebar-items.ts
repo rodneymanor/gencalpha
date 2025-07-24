@@ -1,13 +1,4 @@
-import {
-  Fingerprint,
-  LayoutDashboard,
-  ChartBar,
-  Banknote,
-  Calendar,
-  Settings,
-  Wand2,
-  type LucideIcon,
-} from "lucide-react";
+import { Fingerprint, Calendar, Settings, Wand2, BookOpen, type LucideIcon } from "lucide-react";
 
 export interface NavSubItem {
   title: string;
@@ -37,27 +28,6 @@ export interface NavGroup {
 export const sidebarItems: NavGroup[] = [
   {
     id: 1,
-    label: "Dashboards",
-    items: [
-      {
-        title: "Default",
-        url: "/dashboard/default",
-        icon: LayoutDashboard,
-      },
-      {
-        title: "CRM",
-        url: "/dashboard/crm",
-        icon: ChartBar,
-      },
-      {
-        title: "Finance",
-        url: "/dashboard/finance",
-        icon: Banknote,
-      },
-    ],
-  },
-  {
-    id: 2,
     label: "Content",
     items: [
       {
@@ -72,6 +42,12 @@ export const sidebarItems: NavGroup[] = [
         isNew: true,
       },
       {
+        title: "Idea Inbox",
+        url: "/dashboard/idea-inbox",
+        icon: BookOpen,
+        isNew: true,
+      },
+      {
         title: "Onboarding",
         url: "/dashboard/onboarding",
         icon: Settings,
@@ -79,7 +55,7 @@ export const sidebarItems: NavGroup[] = [
     ],
   },
   {
-    id: 3,
+    id: 2,
     label: "Pages",
     items: [
       {

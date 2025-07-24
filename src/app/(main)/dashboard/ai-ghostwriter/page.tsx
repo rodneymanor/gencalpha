@@ -200,7 +200,7 @@ export default function AIGhostwriterPage() {
         <TabsContent value={activeTab} className="mt-6">
           {loading ? (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {[...Array(6)].map((_, index) => (
+              {Array.from({ length: 6 }, (_, index) => (
                 <Card key={`skeleton-${index}`} className="animate-pulse">
                   <CardHeader>
                     <div className="h-4 w-3/4 rounded bg-gray-200"></div>
