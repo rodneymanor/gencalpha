@@ -1,4 +1,4 @@
-import { Fingerprint, Calendar, Settings, Wand2, BookOpen, type LucideIcon } from "lucide-react";
+import { Fingerprint, Calendar, Settings, Wand2, BookOpen, Video, type LucideIcon } from "lucide-react";
 
 export interface NavSubItem {
   title: string;
@@ -45,6 +45,12 @@ export const sidebarItems: NavGroup[] = [
         title: "Idea Inbox",
         url: "/dashboard/idea-inbox",
         icon: BookOpen,
+        isNew: true,
+      },
+      {
+        title: "Collections",
+        url: "/dashboard/collections",
+        icon: Video,
         isNew: true,
       },
       {
