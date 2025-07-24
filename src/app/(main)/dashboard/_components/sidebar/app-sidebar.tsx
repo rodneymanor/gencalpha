@@ -1,7 +1,5 @@
 "use client";
 
-import { Command } from "lucide-react";
-
 import {
   Sidebar,
   SidebarContent,
@@ -36,8 +34,11 @@ export function AppSidebar({ layoutPreferences, ...props }: AppSidebarProps) {
           <SidebarMenuItem>
             <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
               <a href="#">
-                <Command />
-                <span className="text-base font-semibold">{APP_CONFIG.name}</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-2xl font-bold text-white">Gen</span>
+                  <div className="h-2 w-2 rounded-full bg-yellow-400"></div>
+                  <span className="text-2xl font-bold text-white">C</span>
+                </div>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
