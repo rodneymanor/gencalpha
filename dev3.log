@@ -1,0 +1,158 @@
+
+> studio-admin@2.0.0 dev
+> next dev
+
+   ▲ Next.js 15.4.3
+   - Local:        http://localhost:3000
+   - Network:      http://172.20.10.2:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 2.1s
+ ✓ Compiled /middleware in 112ms (153 modules)
+🔍 [Middleware] Processing request for: /api/test-core
+ ✓ Compiled /api/test-core in 251ms (338 modules)
+✅ Firebase Admin SDK initialized successfully
+🔄 [Gemini] Attempt 1/2
+🤖 [Gemini] Starting content generation...
+✅ [Gemini] Generation successful in 813ms
+🔍 [BUNNY] Testing Bunny Stream Configuration:
+  - BUNNY_STREAM_LIBRARY_ID: 459811
+  - BUNNY_STREAM_API_KEY (length): 41
+  - BUNNY_CDN_HOSTNAME: vz-8416c36e-556.b-cdn.net
+✅ [BUNNY] All environment variables are present
+🔗 [BUNNY] Test URLs:
+  - Create URL: https://video.bunnycdn.com/library/459811/videos
+  - Upload URL: https://video.bunnycdn.com/library/459811/videos/test-video-id
+  - Iframe Embed URL: https://iframe.mediadelivery.net/embed/459811/test-video-id
+ GET /api/test-core 200 in 1912ms
+🔍 [Middleware] Processing request for: /api/script/speed-write
+ ⨯ ./src/lib/negative-keywords-service.ts:1:1
+Module not found: Can't resolve '@/data/negative-keywords'
+> 1 | import {
+    | ^
+  2 |   DEFAULT_NEGATIVE_KEYWORDS,
+  3 |   NegativeKeywordSettings,
+  4 |   UserNegativeKeywords,
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./src/lib/services/script-generation-service.ts
+./src/app/api/script/speed-write/route.ts
+ ○ Compiling /_not-found ...
+ ⨯ ./src/lib/negative-keywords-service.ts:1:1
+Module not found: Can't resolve '@/data/negative-keywords'
+> 1 | import {
+    | ^
+  2 |   DEFAULT_NEGATIVE_KEYWORDS,
+  3 |   NegativeKeywordSettings,
+  4 |   UserNegativeKeywords,
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./src/lib/services/script-generation-service.ts
+./src/app/api/script/speed-write/route.ts
+ ⨯ ./src/lib/negative-keywords-service.ts:1:1
+Module not found: Can't resolve '@/data/negative-keywords'
+> 1 | import {
+    | ^
+  2 |   DEFAULT_NEGATIVE_KEYWORDS,
+  3 |   NegativeKeywordSettings,
+  4 |   UserNegativeKeywords,
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./src/lib/services/script-generation-service.ts
+./src/app/api/script/speed-write/route.ts
+ POST /api/script/speed-write 500 in 1629ms
+🔍 [Middleware] Processing request for: /api/test-core
+ ✓ Compiled /api/test-core in 91ms (249 modules)
+🔄 [Gemini] Attempt 1/2
+🤖 [Gemini] Starting content generation...
+✅ [Gemini] Generation successful in 493ms
+🔍 [BUNNY] Testing Bunny Stream Configuration:
+  - BUNNY_STREAM_LIBRARY_ID: 459811
+  - BUNNY_STREAM_API_KEY (length): 41
+  - BUNNY_CDN_HOSTNAME: vz-8416c36e-556.b-cdn.net
+✅ [BUNNY] All environment variables are present
+🔗 [BUNNY] Test URLs:
+  - Create URL: https://video.bunnycdn.com/library/459811/videos
+  - Upload URL: https://video.bunnycdn.com/library/459811/videos/test-video-id
+  - Iframe Embed URL: https://iframe.mediadelivery.net/embed/459811/test-video-id
+ GET /api/test-core 200 in 1044ms
+🔍 [Middleware] Processing request for: /api/script/speed-write
+ ⨯ ./src/lib/negative-keywords-service.ts:1:1
+Module not found: Can't resolve '@/data/negative-keywords'
+> 1 | import {
+    | ^
+  2 |   DEFAULT_NEGATIVE_KEYWORDS,
+  3 |   NegativeKeywordSettings,
+  4 |   UserNegativeKeywords,
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./src/lib/services/script-generation-service.ts
+./src/app/api/script/speed-write/route.ts
+ ⨯ ./src/lib/negative-keywords-service.ts:1:1
+Module not found: Can't resolve '@/data/negative-keywords'
+> 1 | import {
+    | ^
+  2 |   DEFAULT_NEGATIVE_KEYWORDS,
+  3 |   NegativeKeywordSettings,
+  4 |   UserNegativeKeywords,
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./src/lib/services/script-generation-service.ts
+./src/app/api/script/speed-write/route.ts
+ ⨯ ./src/lib/negative-keywords-service.ts:1:1
+Module not found: Can't resolve '@/data/negative-keywords'
+> 1 | import {
+    | ^
+  2 |   DEFAULT_NEGATIVE_KEYWORDS,
+  3 |   NegativeKeywordSettings,
+  4 |   UserNegativeKeywords,
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./src/lib/services/script-generation-service.ts
+./src/app/api/script/speed-write/route.ts
+ POST /api/script/speed-write 500 in 243ms
+ ○ Compiling /_error ...
+🔍 [Middleware] Processing request for: /api/collections/user-collections
+ ⨯ ./src/lib/negative-keywords-service.ts:1:1
+Module not found: Can't resolve '@/data/negative-keywords'
+> 1 | import {
+    | ^
+  2 |   DEFAULT_NEGATIVE_KEYWORDS,
+  3 |   NegativeKeywordSettings,
+  4 |   UserNegativeKeywords,
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./src/lib/services/script-generation-service.ts
+./src/app/api/script/speed-write/route.ts
+ GET /api/collections/user-collections 500 in 272ms
+🔍 [Middleware] Processing request for: /test-all
+ ⨯ ./src/lib/negative-keywords-service.ts:1:1
+Module not found: Can't resolve '@/data/negative-keywords'
+> 1 | import {
+    | ^
+  2 |   DEFAULT_NEGATIVE_KEYWORDS,
+  3 |   NegativeKeywordSettings,
+  4 |   UserNegativeKeywords,
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./src/lib/services/script-generation-service.ts
+./src/app/api/script/speed-write/route.ts
+ GET /test-all 500 in 861ms
+[?25h

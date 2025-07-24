@@ -139,53 +139,19 @@ function transformToScriptOption(
 }
 
 /**
- * Handle V2 generation by forwarding to V2 endpoint
+ * Handle V2 generation (disabled for migration testing)
  */
 async function handleV2Generation(request: NextRequest): Promise<NextResponse<SpeedWriteResponse>> {
-  try {
-    // Clone the request to forward to V2 endpoint
-    const body = await request.json();
-
-    // Create a new request for the V2 endpoint
-    const v2Request = new Request(new URL("/api/script/speed-write/v2", request.url), {
-      method: "POST",
-      headers: request.headers,
-      body: JSON.stringify(body),
-    });
-
-    // Import V2 POST handler dynamically to avoid circular imports
-    const { POST: V2POST } = await import("./v2/route");
-
-    // Call V2 endpoint
-    const v2Response = await V2POST(v2Request as NextRequest);
-
-    // Get response data
-    const v2Data = await v2Response.json();
-
-    // Add V2 indicators to response
-    return NextResponse.json(
-      {
-        ...v2Data,
-        generationMethod: "v2",
-        featureFlagEnabled: true,
-      },
-      { status: v2Response.status },
-    );
-  } catch (error) {
-    console.error("❌ [V2 FORWARD] Error forwarding to V2:", error);
-
-    // Fallback to V1 if V2 forwarding fails
-    console.log("🔄 [V2 FALLBACK] V2 forwarding failed, continuing with V1");
-    return NextResponse.json(
-      {
-        success: false,
-        error: "V2 generation failed, please try again",
-        generationMethod: "v1",
-        featureFlagEnabled: true,
-      },
-      { status: 500 },
-    );
-  }
+  // V2 disabled for migration testing
+  return NextResponse.json(
+    {
+      success: false,
+      error: "V2 generation not available during migration",
+      generationMethod: "v1",
+      featureFlagEnabled: false,
+    },
+    { status: 503 },
+  );
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse<SpeedWriteResponse>> {
@@ -202,8 +168,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<SpeedWrit
 
     const { user } = authResult;
 
-    // Check V2 feature flag
-    const useV2 = await FeatureFlagService.isEnabled(user.uid, "v2_script_generation");
+    // Check V2 feature flag (disabled for testing/migration)
+    const useV2 = false; // await FeatureFlagService.isEnabled(user.uid, "v2_script_generation");
 
     if (useV2) {
       console.log("🚀 [V1->V2 REDIRECT] User enabled for V2, redirecting to V2 endpoint");
