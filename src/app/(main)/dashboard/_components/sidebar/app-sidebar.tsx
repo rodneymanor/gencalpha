@@ -54,16 +54,19 @@ export function AppSidebar({ layoutPreferences, ...props }: AppSidebarProps) {
   const { setOpen } = useSidebar();
   const sidebarRef = useRef<HTMLDivElement>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout>();
+  const initializedRef = useRef(false);
 
-  // Set initial collapsed state once
-  useEffect(() => {
-    console.log("🔍 [Sidebar] Setting initial collapsed state");
-    setOpen(false);
-  }, [setOpen]);
-
-  // Set up hover listeners
+  // Set up hover listeners and initial state
   useEffect(() => {
     console.log("🔍 [Sidebar] useEffect running, setting up hover listeners");
+    
+    // Set initial collapsed state only once
+    if (!initializedRef.current) {
+      console.log("🔍 [Sidebar] Setting initial collapsed state");
+      setOpen(false);
+      initializedRef.current = true;
+    }
+    
     const sidebar = sidebarRef.current;
     if (!sidebar) {
       console.warn("⚠️ [Sidebar] sidebarRef.current is null, cannot attach listeners");
