@@ -1,5 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'vz-8416c36e-556.b-cdn.net',
+        port: '',
+        pathname: '/**',
+      },
+    ],
+  },
   transpilePackages: [
     '@blocknote/core',
     '@blocknote/mantine',
