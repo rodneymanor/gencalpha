@@ -120,10 +120,7 @@ export function OnboardingProgress({ className }: OnboardingProgressProps) {
             {tasks.map((task) => (
               <div
                 key={task.id}
-                className={cn(
-                  "flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer",
-                  task.completed && "bg-accent/30"
-                )}
+                className="flex items-center gap-3 cursor-pointer"
                 onClick={() => toggleTask(task.id)}
               >
                 <div
@@ -138,11 +135,8 @@ export function OnboardingProgress({ className }: OnboardingProgressProps) {
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-medium text-foreground">
-                    {task.title}
+                    {task.title} <span className="text-xs text-muted-foreground">+{task.points} pts</span>
                   </p>
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  +{task.points} pts
                 </div>
               </div>
             ))}
