@@ -156,7 +156,26 @@ export function ScriptComponents({
   copiedText: string;
   onCopy: (text: string, label: string) => void;
 }) {
-  if (!video.components || !Array.isArray(video.components) || video.components.length === 0) {
+  if (!video.components || typeof video.components !== "object") {
+    return (
+      <Card>
+        <CardContent className="p-6 text-center">
+          <div className="text-muted-foreground mx-auto mb-4 h-12 w-12 opacity-50">📝</div>
+          <h3 className="mb-2 text-lg font-semibold">No Script Components</h3>
+          <p className="text-muted-foreground">This video doesn&rsquo;t have generated script components yet.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const componentEntries = [
+    { type: "Hook", content: video.components.hook },
+    { type: "Bridge", content: video.components.bridge },
+    { type: "Nugget", content: video.components.nugget },
+    { type: "WTA (What To Action)", content: video.components.wta },
+  ].filter((component) => component.content && component.content.trim().length > 0);
+
+  if (componentEntries.length === 0) {
     return (
       <Card>
         <CardContent className="p-6 text-center">
@@ -170,8 +189,8 @@ export function ScriptComponents({
 
   return (
     <div className="space-y-4">
-      {video.components.map((component: { type: string; content: string }, index: number) => (
-        <Card key={`component-${component.type}-${component.content.slice(0, 20)}-${index}`}>
+      {componentEntries.map((component, index) => (
+        <Card key={`component-${component.type}-${index}`}>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <span>{component.type}</span>

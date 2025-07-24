@@ -46,35 +46,35 @@ export function VideoPreviewWithMetrics({ video }: { video: Video }) {
 
           {/* Metrics beside video */}
           {video.metrics && (
-            <div className="flex flex-col items-center justify-center gap-6">
+            <div className="flex flex-col items-center justify-center gap-4">
               {/* Likes */}
               <div className="flex flex-col items-center gap-1">
-                <div className="bg-muted hover:bg-muted/80 flex h-12 w-12 items-center justify-center rounded-full transition-all">
-                  <Heart className="text-foreground h-6 w-6" />
+                <div className="bg-muted hover:bg-muted/80 flex h-8 w-8 items-center justify-center rounded-full transition-all">
+                  <Heart className="text-foreground h-4 w-4" />
                 </div>
                 <span className="text-foreground text-xs font-medium">{formatNumber(video.metrics.likes)}</span>
               </div>
 
               {/* Comments */}
               <div className="flex flex-col items-center gap-1">
-                <div className="bg-muted hover:bg-muted/80 flex h-12 w-12 items-center justify-center rounded-full transition-all">
-                  <MessageCircle className="text-foreground h-6 w-6" />
+                <div className="bg-muted hover:bg-muted/80 flex h-8 w-8 items-center justify-center rounded-full transition-all">
+                  <MessageCircle className="text-foreground h-4 w-4" />
                 </div>
                 <span className="text-foreground text-xs font-medium">{formatNumber(video.metrics.comments)}</span>
               </div>
 
               {/* Shares */}
               <div className="flex flex-col items-center gap-1">
-                <div className="bg-muted hover:bg-muted/80 flex h-12 w-12 items-center justify-center rounded-full transition-all">
-                  <Share className="text-foreground h-6 w-6" />
+                <div className="bg-muted hover:bg-muted/80 flex h-8 w-8 items-center justify-center rounded-full transition-all">
+                  <Share className="text-foreground h-4 w-4" />
                 </div>
                 <span className="text-foreground text-xs font-medium">{formatNumber(video.metrics.shares)}</span>
               </div>
 
               {/* Views */}
               <div className="flex flex-col items-center gap-1">
-                <div className="bg-muted hover:bg-muted/80 flex h-12 w-12 items-center justify-center rounded-full transition-all">
-                  <Eye className="text-foreground h-6 w-6" />
+                <div className="bg-muted hover:bg-muted/80 flex h-8 w-8 items-center justify-center rounded-full transition-all">
+                  <Eye className="text-foreground h-4 w-4" />
                 </div>
                 <span className="text-foreground text-xs font-medium">{formatNumber(video.metrics.views)}</span>
               </div>

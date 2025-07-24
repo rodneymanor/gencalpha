@@ -144,6 +144,19 @@ export function DailyVideoInsightsDialog({ video, open, onOpenChange }: DailyVid
 
   if (!video) return null;
 
+  // Debug logging to see video data structure
+  console.log("🎬 [Video Insights] Video data:", {
+    id: video.id,
+    title: video.title,
+    hasTranscript: !!video.transcript,
+    hasComponents: !!video.components,
+    components: video.components,
+    hasMetrics: !!video.metrics,
+    metrics: video.metrics,
+    hasMetadata: !!video.metadata,
+    metadata: video.metadata,
+  });
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex h-[90vh] w-[900px] !max-w-[900px] flex-col">
