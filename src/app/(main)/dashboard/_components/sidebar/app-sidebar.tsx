@@ -32,12 +32,12 @@ export function AppSidebar({ layoutPreferences, ...props }: AppSidebarProps) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
-              <a href="#">
+            <SidebarMenuButton asChild className="!h-10 data-[slot=sidebar-menu-button]:!p-2">
+              <a href="#" className="flex w-full items-center justify-center">
                 <div className="flex items-center gap-1">
-                  <span className="text-foreground text-base font-bold">Gen</span>
+                  <span className="text-foreground text-lg font-bold">Gen</span>
                   <div className="h-1.5 w-1.5 rounded-full bg-yellow-400"></div>
-                  <span className="text-foreground text-base font-bold">C</span>
+                  <span className="text-foreground text-lg font-bold">C</span>
                 </div>
               </a>
             </SidebarMenuButton>
