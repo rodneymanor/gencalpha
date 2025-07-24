@@ -47,6 +47,6 @@ export interface DatabaseNote {
     viewCount?: number;
     publishedAt?: string;
   };
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Date | string | any;
+  updatedAt: Date | string | any;
 }

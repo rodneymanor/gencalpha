@@ -101,6 +101,11 @@ export async function POST(request: NextRequest) {
 ```
 
 ---
+**Restart Dev Server**
+run this script after every major change to restart the development server.
+
+restart-dev.sh
+--
 
 **Git Workflow - MANDATORY:**
 After every major change (defined as any significant feature addition, component creation, bug fix, or architectural modification), you MUST:
