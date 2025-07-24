@@ -1,0 +1,126 @@
+export interface UsageRecord {
+  id?: string;
+  userId: string;
+  service: "gemini" | "openai" | "video_processing" | "voice_training" | "api_call";
+  operation: "script_generation" | "voice_training" | "video_analysis" | "api_request" | "collection_add";
+  promptType?: "speed_write" | "educational" | "brand_profile" | "voice_analysis";
+  tokensUsed?: number;
+  creditsUsed: number;
+  responseTime: number;
+  success: boolean;
+  timestamp: string;
+  error?: string;
+  metadata?: {
+    scriptLength?: "20" | "60" | "90";
+    voiceId?: string;
+    collectionId?: string;
+    videoUrl?: string;
+    platform?: "TikTok" | "Instagram" | "YouTube";
+    [key: string]: unknown;
+  };
+}
+
+export interface UserCredits {
+  id?: string;
+  userId: string;
+  accountLevel: "free" | "pro";
+
+  // Current period credits
+  creditsUsed: number;
+  creditsLimit: number;
+
+  // Period tracking
+  currentPeriodStart: string;
+  currentPeriodEnd: string;
+
+  // Daily tracking for free users
+  dailyCreditsUsed?: number;
+  dailyCreditsLimit?: number;
+  lastDailyReset?: string;
+
+  // Monthly tracking for pro users
+  monthlyCreditsUsed?: number;
+  monthlyCreditsLimit?: number;
+  lastMonthlyReset?: string;
+
+  // Metadata
+  createdAt: string;
+  updatedAt: string;
+
+  // Usage history
+  totalCreditsUsed: number;
+  totalScriptsGenerated: number;
+  totalVoicesCreated: number;
+  totalVideosProcessed: number;
+}
+
+export interface CreditTransaction {
+  id?: string;
+  userId: string;
+  creditsUsed: number;
+  operation: UsageRecord["operation"];
+  operationId?: string;
+  balanceBefore: number;
+  balanceAfter: number;
+  timestamp: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface UsageStats {
+  userId: string;
+  accountLevel: "free" | "pro";
+  currentPeriod: {
+    start: string;
+    end: string;
+    creditsUsed: number;
+    creditsLimit: number;
+    creditsRemaining: number;
+  };
+  totals: {
+    creditsUsed: number;
+    scriptsGenerated: number;
+    voicesCreated: number;
+    videosProcessed: number;
+  };
+  periodType: "daily" | "monthly";
+}
+
+export interface SocialMediaStats {
+  platform: "instagram" | "tiktok";
+  username: string;
+  followerCount: number;
+  weeklyChange: number;
+  weeklyChangePercent: number;
+  lastUpdated: string;
+}
+
+export interface UserSocialStats {
+  id?: string;
+  userId: string;
+  platforms: SocialMediaStats[];
+  lastUpdated: string;
+}
+
+// Credit cost constants
+export const CREDIT_COSTS = {
+  script_generation: 1,
+  voice_training: 80,
+  video_analysis: 1,
+  api_request: 1,
+  collection_add: 1,
+  refund: 0, // For refund operations
+} as const;
+
+// Account limits
+export const ACCOUNT_LIMITS = {
+  FREE: {
+    DAILY_CREDITS: 3,
+    MONTHLY_CREDITS: 0,
+  },
+  PRO: {
+    DAILY_CREDITS: 0,
+    MONTHLY_CREDITS: 5000,
+  },
+} as const;
+
+export type CreditOperation = keyof typeof CREDIT_COSTS;
