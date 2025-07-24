@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   Sidebar,
@@ -55,6 +55,7 @@ export function AppSidebar({ layoutPreferences, ...props }: AppSidebarProps) {
   const sidebarRef = useRef<HTMLDivElement>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout>();
   const initializedRef = useRef(false);
+  const [isPinned, setIsPinned] = useState(false);
 
   // Set up hover listeners and initial state
   useEffect(() => {
@@ -82,6 +83,12 @@ export function AppSidebar({ layoutPreferences, ...props }: AppSidebarProps) {
     };
 
     const handleMouseLeave = () => {
+      // Don't auto-collapse if pinned
+      if (isPinned) {
+        console.log("🔍 [Sidebar] Mouse leave - sidebar is pinned, staying open");
+        return;
+      }
+      
       console.log("🔍 [Sidebar] Mouse leave - collapsing sidebar in 300ms");
       hoverTimeoutRef.current = setTimeout(() => {
         console.log("🔍 [Sidebar] Collapsing sidebar now");
@@ -99,7 +106,20 @@ export function AppSidebar({ layoutPreferences, ...props }: AppSidebarProps) {
         clearTimeout(hoverTimeoutRef.current);
       }
     };
-  }, []); // Remove setOpen from dependencies to prevent infinite loop
+  }, [isPinned]); // Include isPinned to update hover behavior
+
+  const handlePinToggle = () => {
+    console.log("🔍 [Sidebar] Pin toggle - current state:", isPinned);
+    setIsPinned(!isPinned);
+    
+    if (!isPinned) {
+      // When pinning, ensure sidebar is open
+      setOpen(true);
+    } else {
+      // When unpinning, close the sidebar
+      setOpen(false);
+    }
+  };
 
   return (
     <Sidebar ref={sidebarRef} className="transition-all duration-300 ease-in-out" {...props}>
@@ -112,7 +132,7 @@ export function AppSidebar({ layoutPreferences, ...props }: AppSidebarProps) {
       </SidebarHeader>
       <SidebarContent className="flex flex-col">
         <div className="flex-1 overflow-auto">
-          <NavMain items={sidebarItems} />
+          <NavMain items={sidebarItems} isPinned={isPinned} onPinToggle={handlePinToggle} />
         </div>
       </SidebarContent>
       <SidebarFooter>

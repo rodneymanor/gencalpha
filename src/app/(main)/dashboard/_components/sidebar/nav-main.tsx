@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { Pencil, MailIcon, ChevronRight } from "lucide-react";
+import { Pencil, Pin, ChevronRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,6 +30,8 @@ import { type NavGroup, type NavMainItem } from "@/navigation/sidebar/sidebar-it
 
 interface NavMainProps {
   readonly items: readonly NavGroup[];
+  readonly isPinned?: boolean;
+  readonly onPinToggle?: () => void;
 }
 
 const IsComingSoon = () => (
@@ -141,7 +144,7 @@ const NavItemCollapsed = ({
   );
 };
 
-export function NavMain({ items }: NavMainProps) {
+export function NavMain({ items, isPinned = false, onPinToggle }: NavMainProps) {
   const path = usePathname();
   const { state, isMobile } = useSidebar();
 
@@ -171,11 +174,17 @@ export function NavMain({ items }: NavMainProps) {
               </SidebarMenuButton>
               <Button
                 size="icon"
-                className="h-9 w-9 shrink-0 group-data-[collapsible=icon]:opacity-0"
-                variant="outline"
+                className={cn(
+                  "h-9 w-9 shrink-0 group-data-[collapsible=icon]:opacity-0 transition-colors",
+                  isPinned 
+                    ? "bg-primary text-primary-foreground hover:bg-primary/90" 
+                    : "variant-outline"
+                )}
+                variant={isPinned ? "default" : "outline"}
+                onClick={onPinToggle}
               >
-                <MailIcon />
-                <span className="sr-only">Inbox</span>
+                <Pin className={cn("transition-transform", isPinned && "rotate-45")} />
+                <span className="sr-only">{isPinned ? "Unpin sidebar" : "Pin sidebar"}</span>
               </Button>
             </SidebarMenuItem>
           </SidebarMenu>
