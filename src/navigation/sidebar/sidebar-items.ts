@@ -1,4 +1,4 @@
-import { Calendar, Settings, Wand2, BookOpen, Video, Queue, type LucideIcon } from "lucide-react";
+import { Calendar, Settings, Wand2, BookOpen, Video, ListTodo, type LucideIcon } from "lucide-react";
 
 export interface NavSubItem {
   title: string;
@@ -56,7 +56,7 @@ export const sidebarItems: NavGroup[] = [
       {
         title: "Queue",
         url: "/dashboard/q",
-        icon: Queue,
+        icon: ListTodo,
         isNew: true,
       },
       {
