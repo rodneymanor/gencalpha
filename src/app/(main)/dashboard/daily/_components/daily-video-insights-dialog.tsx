@@ -25,7 +25,7 @@ interface DailyVideoInsightsDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-// Left column with video, info, and metrics
+// Left column with video and Instagram-style metrics overlay
 function VideoAndMetricsColumn({ video }: { video: Video }) {
   const formatNumber = (num: number): string => {
     if (num >= 1000000) {
@@ -36,85 +36,102 @@ function VideoAndMetricsColumn({ video }: { video: Video }) {
     return num.toString();
   };
 
-  const metrics = video.metrics
-    ? [
-        { label: "Views", value: video.metrics.views, icon: "👁️" },
-        { label: "Likes", value: video.metrics.likes, icon: "❤️" },
-        { label: "Comments", value: video.metrics.comments, icon: "💬" },
-        { label: "Shares", value: video.metrics.shares, icon: "🔄" },
-      ]
-    : [];
-
   return (
-    <div className="flex h-full flex-col space-y-4">
-      {/* Video Preview */}
-      <Card className="flex-1">
-        <CardContent className="flex h-full flex-col p-4">
-          <div className="bg-muted relative mb-3 flex-1 overflow-hidden rounded-lg">
-            {video.thumbnailUrl ? (
-              <Image src={video.thumbnailUrl} alt={video.title} fill className="object-cover" />
-            ) : (
-              <div className="bg-muted flex h-full w-full items-center justify-center">
-                <div className="text-muted-foreground text-center">
-                  <Play className="mx-auto mb-2 h-8 w-8" />
-                  <p className="text-sm">No Preview</p>
-                </div>
+    <Card className="flex h-full flex-col">
+      <CardContent className="flex h-full flex-col p-4">
+        <div className="bg-muted relative mb-3 flex-1 overflow-hidden rounded-lg">
+          {video.thumbnailUrl ? (
+            <Image src={video.thumbnailUrl} alt={video.title} fill className="object-cover" />
+          ) : (
+            <div className="bg-muted flex h-full w-full items-center justify-center">
+              <div className="text-muted-foreground text-center">
+                <Play className="mx-auto mb-2 h-8 w-8" />
+                <p className="text-sm">No Preview</p>
               </div>
-            )}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Button size="icon" className="rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30">
-                <Play className="h-6 w-6 fill-white text-white" />
-              </Button>
             </div>
+          )}
+
+          {/* Play Button */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Button size="icon" className="rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30">
+              <Play className="h-6 w-6 fill-white text-white" />
+            </Button>
           </div>
 
-          {/* Video Info */}
-          <div className="space-y-2">
-            <div className="text-muted-foreground flex items-center gap-1 text-sm">
-              <User className="h-4 w-4" />
-              <span>{video.metadata?.author ?? "Unknown"}</span>
-            </div>
-            {video.duration && (
-              <div className="text-muted-foreground flex items-center gap-1 text-sm">
-                <Clock className="h-4 w-4" />
-                <span>
-                  {Math.floor(video.duration / 60)}:{(video.duration % 60).toString().padStart(2, "0")}
+          {/* Instagram-style metrics overlay on right side */}
+          {video.metrics && (
+            <div className="absolute right-4 bottom-4 flex flex-col items-center gap-4">
+              {/* Likes */}
+              <div className="flex flex-col items-center gap-1">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm transition-colors hover:bg-white">
+                  <span className="text-lg">❤️</span>
+                </div>
+                <span className="text-xs font-medium text-white drop-shadow-lg">
+                  {formatNumber(video.metrics.likes)}
                 </span>
               </div>
-            )}
-            <div className="flex items-center gap-1 text-sm">
-              <ExternalLink className="h-4 w-4" />
-              <a
-                href={video.originalUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary hover:underline"
-              >
-                View Original
-              </a>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* Metrics */}
-      {video.metrics && (
-        <Card>
-          <CardContent className="p-4">
-            <h4 className="mb-3 font-medium">Performance</h4>
-            <div className="grid grid-cols-2 gap-3">
-              {metrics.map((metric) => (
-                <div key={metric.label} className="text-center">
-                  <div className="mb-1 text-lg">{metric.icon}</div>
-                  <div className="text-lg font-bold">{formatNumber(metric.value)}</div>
-                  <div className="text-muted-foreground text-xs">{metric.label}</div>
+              {/* Comments */}
+              <div className="flex flex-col items-center gap-1">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm transition-colors hover:bg-white">
+                  <span className="text-lg">💬</span>
                 </div>
-              ))}
+                <span className="text-xs font-medium text-white drop-shadow-lg">
+                  {formatNumber(video.metrics.comments)}
+                </span>
+              </div>
+
+              {/* Shares */}
+              <div className="flex flex-col items-center gap-1">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm transition-colors hover:bg-white">
+                  <span className="text-lg">🔄</span>
+                </div>
+                <span className="text-xs font-medium text-white drop-shadow-lg">
+                  {formatNumber(video.metrics.shares)}
+                </span>
+              </div>
+
+              {/* Views */}
+              <div className="flex flex-col items-center gap-1">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm transition-colors hover:bg-white">
+                  <span className="text-lg">👁️</span>
+                </div>
+                <span className="text-xs font-medium text-white drop-shadow-lg">
+                  {formatNumber(video.metrics.views)}
+                </span>
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+          )}
+        </div>
+
+        {/* Video Info */}
+        <div className="space-y-2">
+          <div className="text-muted-foreground flex items-center gap-1 text-sm">
+            <User className="h-4 w-4" />
+            <span>{video.metadata?.author ?? "Unknown"}</span>
+          </div>
+          {video.duration && (
+            <div className="text-muted-foreground flex items-center gap-1 text-sm">
+              <Clock className="h-4 w-4" />
+              <span>
+                {Math.floor(video.duration / 60)}:{(video.duration % 60).toString().padStart(2, "0")}
+              </span>
+            </div>
+          )}
+          <div className="flex items-center gap-1 text-sm">
+            <ExternalLink className="h-4 w-4" />
+            <a
+              href={video.originalUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              View Original
+            </a>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
