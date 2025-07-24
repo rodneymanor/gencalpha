@@ -1,12 +1,13 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Settings, Search, Check, X, Plus } from 'lucide-react';
+import React, { useState } from "react";
 
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
+import { Settings, Search, Check, X, Plus } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 interface Topic {
   id: string;
@@ -29,7 +30,7 @@ const availableTopics: Topic[] = [
   },
   {
     id: "fashion",
-    name: "Fashion & Style", 
+    name: "Fashion & Style",
     description: "Outfit inspiration, style tips, sustainable fashion, and trend analysis.",
   },
   {
@@ -73,12 +74,12 @@ export function PersonalizationDialog() {
   const [selectedTopics, setSelectedTopics] = useState<Set<string>>(new Set());
   const [tikTokAccounts, setTikTokAccounts] = useState<SocialAccount[]>([]);
   const [instagramAccounts, setInstagramAccounts] = useState<SocialAccount[]>([]);
-  const [tikTokSearch, setTikTokSearch] = useState('');
-  const [instagramSearch, setInstagramSearch] = useState('');
-  const [topicSearch, setTopicSearch] = useState('');
+  const [tikTokSearch, setTikTokSearch] = useState("");
+  const [instagramSearch, setInstagramSearch] = useState("");
+  const [topicSearch, setTopicSearch] = useState("");
 
   const toggleTopic = (topicId: string) => {
-    setSelectedTopics(prev => {
+    setSelectedTopics((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(topicId)) {
         newSet.delete(topicId);
@@ -96,8 +97,8 @@ export function PersonalizationDialog() {
         username: tikTokSearch.trim(),
         displayName: tikTokSearch.trim(),
       };
-      setTikTokAccounts(prev => [...prev, newAccount]);
-      setTikTokSearch('');
+      setTikTokAccounts((prev) => [...prev, newAccount]);
+      setTikTokSearch("");
     }
   };
 
@@ -108,23 +109,28 @@ export function PersonalizationDialog() {
         username: instagramSearch.trim(),
         displayName: instagramSearch.trim(),
       };
-      setInstagramAccounts(prev => [...prev, newAccount]);
-      setInstagramSearch('');
+      setInstagramAccounts((prev) => [...prev, newAccount]);
+      setInstagramSearch("");
     }
   };
 
-  const removeAccount = (accounts: SocialAccount[], setAccounts: React.Dispatch<React.SetStateAction<SocialAccount[]>>, id: string) => {
-    setAccounts(accounts.filter(account => account.id !== id));
+  const removeAccount = (
+    accounts: SocialAccount[],
+    setAccounts: React.Dispatch<React.SetStateAction<SocialAccount[]>>,
+    id: string,
+  ) => {
+    setAccounts(accounts.filter((account) => account.id !== id));
   };
 
-  const filteredTopics = availableTopics.filter(topic =>
-    topic.name.toLowerCase().includes(topicSearch.toLowerCase()) ||
-    topic.description.toLowerCase().includes(topicSearch.toLowerCase())
+  const filteredTopics = availableTopics.filter(
+    (topic) =>
+      topic.name.toLowerCase().includes(topicSearch.toLowerCase()) ||
+      topic.description.toLowerCase().includes(topicSearch.toLowerCase()),
   );
 
   const handleSave = () => {
     // Here you would save to your preferences store or API
-    console.log('Saving personalization:', {
+    console.log("Saving personalization:", {
       topics: Array.from(selectedTopics),
       tikTokAccounts,
       instagramAccounts,
@@ -134,22 +140,22 @@ export function PersonalizationDialog() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="mt-4">
-          <Settings className="h-4 w-4 mr-2" />
+        <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground mt-2">
+          <Settings className="mr-1 h-3 w-3" />
           Edit Personalization
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-h-[80vh] max-w-4xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Personalize Your Content Experience</DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-8">
           {/* Topics Section */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Content Topics</h3>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
               <Input
                 placeholder="Search topics..."
                 value={topicSearch}
@@ -166,7 +172,7 @@ export function PersonalizationDialog() {
                     "inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors",
                     selectedTopics.has(topic.id)
                       ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-white text-foreground border-border hover:border-primary/50 hover:bg-gray-50"
+                      : "text-foreground border-border hover:border-primary/50 bg-white hover:bg-gray-50",
                   )}
                 >
                   {selectedTopics.has(topic.id) && <Check className="h-3 w-3" />}
@@ -185,7 +191,7 @@ export function PersonalizationDialog() {
                   placeholder="Add TikTok username..."
                   value={tikTokSearch}
                   onChange={(e) => setTikTokSearch(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && addTikTokAccount()}
+                  onKeyPress={(e) => e.key === "Enter" && addTikTokAccount()}
                 />
               </div>
               <Button onClick={addTikTokAccount} size="sm">
@@ -196,12 +202,12 @@ export function PersonalizationDialog() {
               {tikTokAccounts.map((account) => (
                 <div
                   key={account.id}
-                  className="inline-flex items-center gap-2 bg-pink-50 text-pink-800 border border-pink-200 rounded-lg px-3 py-1 text-sm"
+                  className="inline-flex items-center gap-2 rounded-lg border border-pink-200 bg-pink-50 px-3 py-1 text-sm text-pink-800"
                 >
                   @{account.username}
                   <button
                     onClick={() => removeAccount(tikTokAccounts, setTikTokAccounts, account.id)}
-                    className="hover:bg-pink-200 rounded-full p-0.5"
+                    className="rounded-full p-0.5 hover:bg-pink-200"
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -219,7 +225,7 @@ export function PersonalizationDialog() {
                   placeholder="Add Instagram username..."
                   value={instagramSearch}
                   onChange={(e) => setInstagramSearch(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && addInstagramAccount()}
+                  onKeyPress={(e) => e.key === "Enter" && addInstagramAccount()}
                 />
               </div>
               <Button onClick={addInstagramAccount} size="sm">
@@ -230,12 +236,12 @@ export function PersonalizationDialog() {
               {instagramAccounts.map((account) => (
                 <div
                   key={account.id}
-                  className="inline-flex items-center gap-2 bg-purple-50 text-purple-800 border border-purple-200 rounded-lg px-3 py-1 text-sm"
+                  className="inline-flex items-center gap-2 rounded-lg border border-purple-200 bg-purple-50 px-3 py-1 text-sm text-purple-800"
                 >
                   @{account.username}
                   <button
                     onClick={() => removeAccount(instagramAccounts, setInstagramAccounts, account.id)}
-                    className="hover:bg-purple-200 rounded-full p-0.5"
+                    className="rounded-full p-0.5 hover:bg-purple-200"
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -245,7 +251,7 @@ export function PersonalizationDialog() {
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end gap-3 pt-4 border-t">
+          <div className="flex justify-end gap-3 border-t pt-4">
             <DialogTrigger asChild>
               <Button variant="outline">Cancel</Button>
             </DialogTrigger>
