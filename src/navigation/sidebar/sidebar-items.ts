@@ -1,4 +1,4 @@
-import { Fingerprint, Calendar, Settings, Wand2, BookOpen, Video, Queue, type LucideIcon } from "lucide-react";
+import { Calendar, Settings, Wand2, BookOpen, Video, Queue, type LucideIcon } from "lucide-react";
 
 export interface NavSubItem {
   title: string;
@@ -63,23 +63,6 @@ export const sidebarItems: NavGroup[] = [
         title: "Onboarding",
         url: "/dashboard/onboarding",
         icon: Settings,
-      },
-    ],
-  },
-  {
-    id: 2,
-    label: "Pages",
-    items: [
-      {
-        title: "Authentication",
-        url: "/auth",
-        icon: Fingerprint,
-        subItems: [
-          { title: "Login v1", url: "/auth/v1/login", newTab: true },
-          { title: "Login v2", url: "/auth/v2/login", newTab: true },
-          { title: "Register v1", url: "/auth/v1/register", newTab: true },
-          { title: "Register v2", url: "/auth/v2/register", newTab: true },
-        ],
       },
     ],
   },
