@@ -165,9 +165,6 @@ export function CollectionsSidebar({ selectedCollectionId, onSelectCollection }:
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">{collection.title}</p>
-                  {collection.description && (
-                    <p className="text-muted-foreground truncate text-sm">{collection.description}</p>
-                  )}
                 </div>
                 <Badge variant="secondary" className="ml-2">
                   {collection.videoCount}

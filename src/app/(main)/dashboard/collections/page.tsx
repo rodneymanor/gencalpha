@@ -11,15 +11,21 @@ import { VideoGrid } from "./_components/video-grid";
 import { CreateCollectionDialog } from "./_components/create-collection-dialog";
 import { AddVideoDialog } from "./_components/add-video-dialog";
 import { VideoInsightsDialog } from "./_components/video-insights-dialog";
+import { useCollections } from "./_components/collections-context";
 
-export default function CollectionsPage() {
+function CollectionsContent() {
   const [selectedCollectionId, setSelectedCollectionId] = useState<string>("all-videos");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isAddVideoDialogOpen, setIsAddVideoDialogOpen] = useState(false);
+  const { state } = useCollections();
+
+  // Get the selected collection data
+  const selectedCollection = selectedCollectionId === "all-videos" 
+    ? null 
+    : state.collections.find(c => c.id === selectedCollectionId);
 
   return (
-    <CollectionsProvider>
-      <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
         <div className="container mx-auto p-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
@@ -63,8 +69,13 @@ export default function CollectionsPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>
-                    {selectedCollectionId === "all-videos" ? "All Videos" : "Collection Videos"}
+                    {selectedCollectionId === "all-videos" ? "All Videos" : selectedCollection?.title || "Collection Videos"}
                   </CardTitle>
+                  {selectedCollection?.description && (
+                    <p className="text-muted-foreground text-sm mt-1">
+                      {selectedCollection.description}
+                    </p>
+                  )}
                 </CardHeader>
                 <CardContent>
                   <VideoGrid collectionId={selectedCollectionId} />
@@ -88,6 +99,13 @@ export default function CollectionsPage() {
 
         <VideoInsightsDialog />
       </div>
+  );
+}
+
+export default function CollectionsPage() {
+  return (
+    <CollectionsProvider>
+      <CollectionsContent />
     </CollectionsProvider>
   );
 }
