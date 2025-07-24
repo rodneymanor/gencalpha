@@ -7,7 +7,6 @@ import { Pencil, Pin, ChevronRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,6 +25,7 @@ import {
   SidebarMenuSubItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 import { type NavGroup, type NavMainItem } from "@/navigation/sidebar/sidebar-items";
 
 interface NavMainProps {
@@ -116,7 +116,7 @@ const NavItemCollapsed = ({
             isActive={isActive(item.url, item.subItems)}
           >
             {item.icon && <item.icon />}
-            <span>{item.title}</span>
+            <span>{item.title === "Queue" ? "Q" : item.title}</span>
             <ChevronRight />
           </SidebarMenuButton>
         </DropdownMenuTrigger>
@@ -167,7 +167,7 @@ export function NavMain({ items, isPinned = false, onPinToggle }: NavMainProps) 
             <SidebarMenuItem className="flex items-center gap-2">
               <SidebarMenuButton
                 tooltip="Write a Script"
-                className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear shadow-lg hover:shadow-xl border border-primary/20 hover:border-primary/30 backdrop-blur-sm"
+                className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground border-primary/20 hover:border-primary/30 min-w-8 border shadow-lg backdrop-blur-sm duration-200 ease-linear hover:shadow-xl"
               >
                 <Pencil className="rotate-[-15deg]" />
                 <span>Write a Script</span>
@@ -175,10 +175,8 @@ export function NavMain({ items, isPinned = false, onPinToggle }: NavMainProps) 
               <Button
                 size="icon"
                 className={cn(
-                  "h-9 w-9 shrink-0 group-data-[collapsible=icon]:opacity-0 transition-colors",
-                  isPinned 
-                    ? "bg-primary text-primary-foreground hover:bg-primary/90" 
-                    : "variant-outline"
+                  "h-9 w-9 shrink-0 transition-colors group-data-[collapsible=icon]:opacity-0",
+                  isPinned ? "bg-primary text-primary-foreground hover:bg-primary/90" : "variant-outline",
                 )}
                 variant={isPinned ? "default" : "outline"}
                 onClick={onPinToggle}
@@ -209,7 +207,7 @@ export function NavMain({ items, isPinned = false, onPinToggle }: NavMainProps) 
                         >
                           <Link href={item.url} target={item.newTab ? "_blank" : undefined}>
                             {item.icon && <item.icon />}
-                            <span>{item.title}</span>
+                            <span>{item.title === "Queue" ? "Q" : item.title}</span>
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>

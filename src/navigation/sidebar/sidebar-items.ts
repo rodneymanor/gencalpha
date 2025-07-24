@@ -54,7 +54,7 @@ export const sidebarItems: NavGroup[] = [
         isNew: true,
       },
       {
-        title: "Q",
+        title: "Queue",
         url: "/dashboard/q",
         icon: Queue,
         isNew: true,
