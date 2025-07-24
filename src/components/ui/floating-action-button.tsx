@@ -37,13 +37,24 @@ export function FloatingActionButton() {
         )}
         style={{ 
           backgroundColor: '#526af9',
+          background: `
+            radial-gradient(ellipse 80% 95% at 50% 100%, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%),
+            #526af9
+          `,
+          backgroundBlendMode: 'overlay, normal',
           boxShadow: '0 10px 15px -3px rgba(82, 106, 249, 0.25), 0 4px 6px -2px rgba(82, 106, 249, 0.1)'
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = '#4c63f7';
+          e.currentTarget.style.background = `
+            radial-gradient(ellipse 80% 95% at 50% 100%, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%),
+            #4c63f7
+          `;
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = '#526af9';
+          e.currentTarget.style.background = `
+            radial-gradient(ellipse 80% 95% at 50% 100%, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%),
+            #526af9
+          `;
         }}
         onClick={() => setIsPanelOpen(true)}
       >

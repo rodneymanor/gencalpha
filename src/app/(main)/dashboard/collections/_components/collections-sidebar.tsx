@@ -111,7 +111,7 @@ export function CollectionsSidebar({ selectedCollectionId, onSelectCollection }:
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {[...Array(5)].map((_, index) => (
+          {Array.from({ length: 5 }, (_, index) => (
             <Skeleton key={`skeleton-${index}`} className="h-12 w-full" />
           ))}
         </CardContent>

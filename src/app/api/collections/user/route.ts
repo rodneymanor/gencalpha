@@ -6,12 +6,14 @@ import { isAdminInitialized } from "@/lib/firebase-admin";
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await request.json();
+    console.log("🔍 [Collections API] Request for user:", userId);
 
     if (!userId) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });
     }
 
     // Check if Firebase Admin is initialized
+    console.log("🔍 [Collections API] Firebase Admin initialized:", isAdminInitialized);
     if (!isAdminInitialized) {
       console.warn("⚠️ [Collections API] Firebase Admin not initialized - returning empty collections");
       return NextResponse.json({
@@ -20,7 +22,9 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    console.log("🔍 [Collections API] Calling RBACService.getUserCollections");
     const result = await RBACService.getUserCollections(userId);
+    console.log("🔍 [Collections API] Result:", result.collections.length, "collections");
     return NextResponse.json(result);
   } catch (error) {
     console.error("❌ [Collections API] Error getting user collections:", error);

@@ -3,11 +3,9 @@
  * Centralized RBAC for collections and resources
  */
 
-import { collection, query, where, orderBy, getDocs, limit, startAfter, DocumentSnapshot } from "firebase/firestore";
-
 import { type Collection, type Video } from "@/lib/collections";
 import { formatTimestamp } from "@/lib/collections-helpers";
-import { db } from "@/lib/firebase";
+import { getAdminDb } from "@/lib/firebase-admin";
 import { UserManagementService } from "@/lib/user-management-server";
 
 export interface RBACContext {
@@ -89,14 +87,21 @@ export class RBACService {
    */
   static async getUserCollections(userId: string): Promise<CollectionAccessResult> {
     try {
+      const db = getAdminDb();
+      if (!db) {
+        console.error("❌ [RBAC] Firebase Admin DB not initialized");
+        return { collections: [], accessibleCoaches: [] };
+      }
+
       const context = await this.getRBACContext(userId);
+      console.log("🔍 [RBAC] User context:", { userId, role: context.role, isSuperAdmin: context.isSuperAdmin });
 
       if (context.isSuperAdmin) {
         console.log("🔍 [RBAC] Super admin loading all collections");
 
         // For super admin, get all collections
-        const q = query(collection(db, this.COLLECTIONS_PATH), orderBy("updatedAt", "desc"));
-        const querySnapshot = await getDocs(q);
+        const collectionsRef = db.collection(this.COLLECTIONS_PATH);
+        const querySnapshot = await collectionsRef.orderBy("updatedAt", "desc").get();
 
         const collections = querySnapshot.docs.map((doc) => ({
           id: doc.id,
@@ -110,16 +115,16 @@ export class RBACService {
       }
 
       if (context.accessibleCoaches.length === 0) {
+        console.log("🔍 [RBAC] No accessible coaches, returning empty");
         return { collections: [], accessibleCoaches: [] };
       }
 
-      const q = query(
-        collection(db, this.COLLECTIONS_PATH),
-        where("userId", "in", context.accessibleCoaches),
-        orderBy("updatedAt", "desc"),
-      );
+      const collectionsRef = db.collection(this.COLLECTIONS_PATH);
+      const querySnapshot = await collectionsRef
+        .where("userId", "in", context.accessibleCoaches)
+        .orderBy("updatedAt", "desc")
+        .get();
 
-      const querySnapshot = await getDocs(q);
       const collections = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
@@ -127,6 +132,7 @@ export class RBACService {
         updatedAt: formatTimestamp(doc.data().updatedAt),
       })) as Collection[];
 
+      console.log("✅ [RBAC] Regular user loaded collections:", collections.length);
       return { collections, accessibleCoaches: context.accessibleCoaches };
     } catch (error) {
       console.error("❌ [RBAC] Error fetching collections:", error);
