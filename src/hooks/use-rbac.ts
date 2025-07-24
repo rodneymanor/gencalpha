@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
 import { useAuth } from "@/contexts/auth-context";
-import { RBACService, type RBACContext } from "@/core/auth/rbac";
+import { RBACClientService, type RBACContext } from "@/core/auth/rbac-client";
 
 interface UseRBACReturn {
   context: RBACContext | null;
@@ -48,7 +48,7 @@ export function useRBAC(): UseRBACReturn {
       }
 
       try {
-        const rbacContext = await RBACService.getRBACContext(user.uid);
+        const rbacContext = await RBACClientService.getRBACContext(user.uid);
         setContext(rbacContext);
       } catch (error) {
         console.error("Failed to load RBAC context:", error);

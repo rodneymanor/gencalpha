@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/auth-context";
-import { RBACService } from "@/core/auth/rbac";
+import { RBACClientService } from "@/core/auth/rbac-client";
 import { useRBAC } from "@/hooks/use-rbac";
 import { Video } from "@/lib/collections";
 import { cn } from "@/lib/utils";
@@ -40,7 +40,7 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
 
     dispatch({ type: "SET_LOADING", payload: true });
     try {
-      const result = await RBACService.getCollectionVideos(
+      const result = await RBACClientService.getCollectionVideos(
         user.uid,
         collectionId === "all-videos" ? undefined : collectionId,
       );
