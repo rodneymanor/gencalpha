@@ -17,7 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/auth-context";
 import { RBACClientService } from "@/core/auth/rbac-client";
 import { useRBAC } from "@/hooks/use-rbac";
-import { Video } from "@/lib/collections";
+import { Video, CollectionsService } from "@/lib/collections";
 import { cn } from "@/lib/utils";
 
 import { useCollections } from "./collections-context";
@@ -38,6 +38,7 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
   const loadVideos = useCallback(async () => {
     if (!user?.uid) return;
 
+    console.log("🔍 [Video Grid] Loading videos for collection:", collectionId, "user:", user.uid);
     dispatch({ type: "SET_LOADING", payload: true });
     try {
       const result = await RBACClientService.getCollectionVideos(
@@ -45,9 +46,10 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
         collectionId === "all-videos" ? undefined : collectionId,
       );
 
+      console.log("🔍 [Video Grid] Loaded videos:", result.videos.length);
       dispatch({ type: "SET_VIDEOS", payload: result.videos });
     } catch (error) {
-      console.error("Failed to load videos:", error);
+      console.error("❌ [Video Grid] Failed to load videos:", error);
     } finally {
       dispatch({ type: "SET_LOADING", payload: false });
     }

@@ -22,7 +22,7 @@ export interface CollectionAccessResult {
 
 export interface VideoAccessResult {
   videos: Video[];
-  lastDoc?: DocumentSnapshot;
+  lastDoc?: any; // Firebase Admin SDK document snapshot
   totalCount: number;
 }
 
@@ -49,6 +49,12 @@ export class RBACService {
    * Check if user has access to a specific resource
    */
   static async hasAccess(userId: string, resourceType: "collection" | "video", resourceId: string): Promise<boolean> {
+    const db = getAdminDb();
+    if (!db) {
+      console.error("❌ [RBAC] Firebase Admin DB not initialized");
+      return false;
+    }
+
     const context = await this.getRBACContext(userId);
 
     if (context.isSuperAdmin) {
@@ -61,24 +67,18 @@ export class RBACService {
 
     // For collections, check if the collection belongs to an accessible coach
     if (resourceType === "collection") {
-      const collectionDoc = await getDocs(
-        query(
-          collection(db, this.COLLECTIONS_PATH),
-          where("id", "==", resourceId),
-          where("userId", "in", context.accessibleCoaches),
-        ),
-      );
+      const collectionDoc = await db.collection(this.COLLECTIONS_PATH)
+        .where("id", "==", resourceId)
+        .where("userId", "in", context.accessibleCoaches)
+        .get();
       return !collectionDoc.empty;
     }
 
     // Check if the video belongs to an accessible coach
-    const videoDoc = await getDocs(
-      query(
-        collection(db, this.VIDEOS_PATH),
-        where("id", "==", resourceId),
-        where("userId", "in", context.accessibleCoaches),
-      ),
-    );
+    const videoDoc = await db.collection(this.VIDEOS_PATH)
+      .where("id", "==", resourceId)
+      .where("userId", "in", context.accessibleCoaches)
+      .get();
     return !videoDoc.empty;
   }
 
@@ -147,7 +147,7 @@ export class RBACService {
     userId: string,
     collectionId?: string,
     videoLimit?: number,
-    lastDoc?: DocumentSnapshot,
+    lastDoc?: any,
   ): Promise<VideoAccessResult> {
     try {
       console.log("🔍 [RBAC] User ID:", userId, "Limit:", videoLimit, "HasCursor:", !!lastDoc);
@@ -172,19 +172,35 @@ export class RBACService {
     userId: string,
     collectionId?: string,
     videoLimit?: number,
-    lastDoc?: DocumentSnapshot,
+    lastDoc?: any,
   ): Promise<VideoAccessResult> {
     console.log("🔍 [RBAC] Super admin detected - bypassing coach restrictions");
 
-    let q;
+    const db = getAdminDb();
+    if (!db) {
+      console.error("❌ [RBAC] Firebase Admin DB not initialized");
+      return { videos: [], totalCount: 0 };
+    }
+
+    let query;
     if (!collectionId || collectionId === "all-videos") {
       console.log("🔍 [RBAC] Super admin loading all videos");
-      q = query(collection(db, this.VIDEOS_PATH), orderBy("addedAt", "desc"));
+      query = db.collection(this.VIDEOS_PATH).orderBy("addedAt", "desc");
     } else {
       try {
-        q = await this.getSuperAdminCollectionQuery(userId, collectionId);
+        const { collections } = await this.getUserCollections(userId);
+        const targetCollection = collections.find((c) => c.id === collectionId);
+
+        if (!targetCollection) {
+          console.log("❌ [RBAC] Collection not found:", collectionId);
+          return { videos: [], totalCount: 0 };
+        }
+
+        query = db.collection(this.VIDEOS_PATH)
+          .where("collectionId", "==", collectionId)
+          .where("userId", "==", targetCollection.userId)
+          .orderBy("addedAt", "desc");
       } catch (error) {
-        // Collection not found, return empty array
         console.log("❌ [RBAC] Collection query failed:", error instanceof Error ? error.message : String(error));
         return { videos: [], totalCount: 0 };
       }
@@ -192,15 +208,15 @@ export class RBACService {
 
     // Apply pagination cursor if provided
     if (lastDoc) {
-      q = query(q, startAfter(lastDoc));
+      query = query.startAfter(lastDoc);
     }
 
     // Apply limit if specified
     if (videoLimit) {
-      q = query(q, limit(videoLimit));
+      query = query.limit(videoLimit);
     }
 
-    const querySnapshot = await getDocs(q);
+    const querySnapshot = await query.get();
     let videos = querySnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
@@ -219,26 +235,6 @@ export class RBACService {
     return { videos, lastDoc: newLastDoc, totalCount: videos.length };
   }
 
-  /**
-   * Get collection query for super admin
-   */
-  private static async getSuperAdminCollectionQuery(userId: string, collectionId: string) {
-    console.log("🔍 [RBAC] Super admin loading videos from collection:", collectionId);
-    const { collections } = await this.getUserCollections(userId);
-    const targetCollection = collections.find((c) => c.id === collectionId);
-
-    if (!targetCollection) {
-      console.log("❌ [RBAC] Collection not found:", collectionId);
-      throw new Error(`Collection not found: ${collectionId}`);
-    }
-
-    return query(
-      collection(db, this.VIDEOS_PATH),
-      where("collectionId", "==", collectionId),
-      where("userId", "==", targetCollection.userId),
-      orderBy("addedAt", "desc"),
-    );
-  }
 
   /**
    * Get videos for regular users (coach/creator)
@@ -247,9 +243,15 @@ export class RBACService {
     userId: string,
     collectionId?: string,
     videoLimit?: number,
-    lastDoc?: DocumentSnapshot,
+    lastDoc?: any,
     context?: RBACContext,
   ): Promise<VideoAccessResult> {
+    const db = getAdminDb();
+    if (!db) {
+      console.error("❌ [RBAC] Firebase Admin DB not initialized");
+      return { videos: [], totalCount: 0 };
+    }
+
     const userContext = context ?? (await this.getRBACContext(userId));
     console.log("🔍 [RBAC] Accessible coaches:", userContext.accessibleCoaches);
 
@@ -258,19 +260,39 @@ export class RBACService {
       return { videos: [], totalCount: 0 };
     }
 
-    let q = await this.getRegularUserQuery(userId, collectionId, userContext.accessibleCoaches);
+    let query;
+    if (!collectionId || collectionId === "all-videos") {
+      console.log("🔍 [RBAC] Regular user loading all accessible videos");
+      query = db.collection(this.VIDEOS_PATH)
+        .where("userId", "in", userContext.accessibleCoaches)
+        .orderBy("addedAt", "desc");
+    } else {
+      console.log("🔍 [RBAC] Regular user loading videos from collection:", collectionId);
+      const { collections } = await this.getUserCollections(userId);
+      const targetCollection = collections.find((c) => c.id === collectionId);
+
+      if (!targetCollection) {
+        console.log("❌ [RBAC] Collection not found:", collectionId);
+        return { videos: [], totalCount: 0 };
+      }
+
+      query = db.collection(this.VIDEOS_PATH)
+        .where("collectionId", "==", collectionId)
+        .where("userId", "==", targetCollection.userId)
+        .orderBy("addedAt", "desc");
+    }
 
     // Apply pagination cursor if provided
     if (lastDoc) {
-      q = query(q, startAfter(lastDoc));
+      query = query.startAfter(lastDoc);
     }
 
     // Apply limit if specified
     if (videoLimit) {
-      q = query(q, limit(videoLimit));
+      query = query.limit(videoLimit);
     }
 
-    const querySnapshot = await getDocs(q);
+    const querySnapshot = await query.get();
     const videos = querySnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
@@ -283,39 +305,6 @@ export class RBACService {
     return { videos, lastDoc: newLastDoc, totalCount: videos.length };
   }
 
-  /**
-   * Get query for regular user videos
-   */
-  private static async getRegularUserQuery(
-    userId: string,
-    collectionId: string | undefined,
-    accessibleCoaches: string[],
-  ) {
-    if (!collectionId || collectionId === "all-videos") {
-      console.log("🔍 [RBAC] Regular user loading all accessible videos");
-      return query(
-        collection(db, this.VIDEOS_PATH),
-        where("userId", "in", accessibleCoaches),
-        orderBy("addedAt", "desc"),
-      );
-    }
-
-    console.log("🔍 [RBAC] Regular user loading videos from collection:", collectionId);
-    const { collections } = await this.getUserCollections(userId);
-    const targetCollection = collections.find((c) => c.id === collectionId);
-
-    if (!targetCollection) {
-      console.log("❌ [RBAC] Collection not found:", collectionId);
-      throw new Error(`Collection not found: ${collectionId}`);
-    }
-
-    return query(
-      collection(db, this.VIDEOS_PATH),
-      where("collectionId", "==", collectionId),
-      where("userId", "==", targetCollection.userId),
-      orderBy("addedAt", "desc"),
-    );
-  }
 
   /**
    * Deduplicate videos by originalUrl, keeping the most recent one
