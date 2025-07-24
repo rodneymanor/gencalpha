@@ -4,9 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 
 import { Star, Folder, Video, MoreHorizontal, Edit, Trash2, StarOff } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -103,116 +101,132 @@ export function CollectionsSidebar({ selectedCollectionId, onSelectCollection }:
 
   if (state.loading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Folder className="h-5 w-5" />
-            Collections
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {Array.from({ length: 5 }, (_, index) => (
-            <Skeleton key={`skeleton-${index}`} className="h-12 w-full" />
-          ))}
-        </CardContent>
-      </Card>
+      <div className="flex h-full flex-col overflow-hidden">
+        {/* Header */}
+        <div className="flex h-[52px] items-center justify-center px-2">
+          <div className="flex w-full items-center gap-2 rounded-md border border-input bg-transparent px-3 py-2 text-sm">
+            <Folder className="h-4 w-4 shrink-0" />
+            <span className="flex-1 truncate font-medium">Collections</span>
+          </div>
+        </div>
+
+        {/* Separator */}
+        <div className="h-[1px] w-full shrink-0 bg-border"></div>
+
+        {/* Loading Skeletons */}
+        <div className="flex flex-col gap-4 py-2">
+          <nav className="grid gap-1 px-2">
+            {Array.from({ length: 5 }, (_, index) => (
+              <Skeleton key={`skeleton-${index}`} className="h-8 w-full" />
+            ))}
+          </nav>
+        </div>
+      </div>
     );
   }
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Folder className="h-5 w-5" />
-            Collections
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2 p-3">
-          {/* All Videos */}
-          <button
-            onClick={() => onSelectCollection("all-videos")}
-            className={cn(
-              "hover:bg-accent flex w-full items-center justify-between rounded-lg p-3 text-left transition-colors",
-              selectedCollectionId === "all-videos" && "bg-accent",
-            )}
-          >
-            <div className="flex items-center gap-3">
-              <Video className="text-muted-foreground h-4 w-4" />
-              <span className="font-medium">All Videos</span>
-            </div>
-            <Badge variant="secondary" className="ml-auto">
-              {state.collections.reduce((total, c) => total + c.videoCount, 0)}
-            </Badge>
-          </button>
+      <div className="flex h-full flex-col overflow-hidden">
+        {/* Header */}
+        <div className="flex h-[52px] items-center justify-center px-2">
+          <div className="flex w-full items-center gap-2 rounded-md border border-input bg-transparent px-3 py-2 text-sm">
+            <Folder className="h-4 w-4 shrink-0" />
+            <span className="flex-1 truncate font-medium">Collections</span>
+          </div>
+        </div>
 
-          {/* Collections List */}
-          {state.collections.map((collection) => (
-            <div
-              key={collection.id}
+        {/* Separator */}
+        <div className="h-[1px] w-full shrink-0 bg-border"></div>
+
+        {/* Main Navigation */}
+        <div className="flex flex-col gap-4 py-2">
+          <nav className="grid gap-1 px-2">
+            {/* All Videos */}
+            <button
+              onClick={() => onSelectCollection("all-videos")}
               className={cn(
-                "group hover:bg-accent flex cursor-pointer items-center justify-between rounded-lg p-3 transition-colors",
-                selectedCollectionId === collection.id && "bg-accent",
+                "inline-flex items-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 h-8 rounded-md px-3 text-xs justify-start",
+                selectedCollectionId === "all-videos"
+                  ? "bg-primary text-primary-foreground shadow hover:bg-primary/90"
+                  : "hover:bg-accent hover:text-accent-foreground"
               )}
             >
-              <button
-                onClick={() => onSelectCollection(collection.id!)}
-                className="flex flex-1 items-center gap-3 text-left"
-              >
-                <div className="flex items-center gap-2">
-                  {collection.favorite && <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />}
-                  <Folder className="text-muted-foreground h-4 w-4" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium">{collection.title}</p>
-                </div>
-                <Badge variant="secondary" className="ml-2">
-                  {collection.videoCount}
-                </Badge>
-              </button>
+              <Video className="mr-2 h-4 w-4" />
+              All Videos
+              <span className="ml-auto">
+                {state.collections.reduce((total, c) => total + c.videoCount, 0)}
+              </span>
+            </button>
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-8 w-8 p-0 opacity-0 transition-opacity group-hover:opacity-100">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setEditingCollection(collection)}>
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleToggleFavorite(collection)}>
-                    {collection.favorite ? (
-                      <>
-                        <StarOff className="mr-2 h-4 w-4" />
-                        Remove from favorites
-                      </>
-                    ) : (
-                      <>
-                        <Star className="mr-2 h-4 w-4" />
-                        Add to favorites
-                      </>
-                    )}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setDeletingCollection(collection)} className="text-destructive">
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          ))}
+            {/* Collections List */}
+            {state.collections.map((collection) => (
+              <div key={collection.id} className="group relative">
+                <button
+                  onClick={() => onSelectCollection(collection.id!)}
+                  className={cn(
+                    "inline-flex items-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 h-8 rounded-md px-3 text-xs justify-start w-full",
+                    selectedCollectionId === collection.id
+                      ? "bg-primary text-primary-foreground shadow hover:bg-primary/90"
+                      : "hover:bg-accent hover:text-accent-foreground"
+                  )}
+                >
+                  <div className="flex items-center gap-1 mr-2">
+                    {collection.favorite && <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />}
+                    <Folder className="h-4 w-4" />
+                  </div>
+                  <span className="flex-1 truncate text-left">{collection.title}</span>
+                  <span className="ml-auto">{collection.videoCount}</span>
+                </button>
 
+                {/* Dropdown Menu */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      className="absolute right-1 top-1 h-6 w-6 p-0 opacity-0 transition-opacity group-hover:opacity-100"
+                    >
+                      <MoreHorizontal className="h-3 w-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setEditingCollection(collection)}>
+                      <Edit className="mr-2 h-4 w-4" />
+                      Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleToggleFavorite(collection)}>
+                      {collection.favorite ? (
+                        <>
+                          <StarOff className="mr-2 h-4 w-4" />
+                          Remove from favorites
+                        </>
+                      ) : (
+                        <>
+                          <Star className="mr-2 h-4 w-4" />
+                          Add to favorites
+                        </>
+                      )}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setDeletingCollection(collection)} className="text-destructive">
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            ))}
+          </nav>
+
+          {/* Empty State */}
           {state.collections.length === 0 && (
-            <div className="text-muted-foreground py-8 text-center">
-              <Folder className="mx-auto mb-4 h-12 w-12 opacity-50" />
-              <p>No collections yet</p>
-              <p className="text-sm">Create your first collection to get started</p>
+            <div className="text-muted-foreground px-2 py-8 text-center">
+              <Folder className="mx-auto mb-4 h-8 w-8 opacity-50" />
+              <p className="text-xs">No collections yet</p>
+              <p className="text-xs opacity-75">Create your first collection</p>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Edit Collection Dialog */}
       <EditCollectionDialog
