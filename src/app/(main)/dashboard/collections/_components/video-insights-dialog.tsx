@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { Play, Clock, User, ExternalLink, Copy, CheckCircle, Zap } from "lucide-react";
+import { Play, Clock, User, ExternalLink, Copy, CheckCircle, Zap, FileText } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -76,7 +76,7 @@ export function VideoInsightsDialog() {
               <TabsContent value="overview" className="mt-0 space-y-6">
                 <VideoPreview video={video} />
                 {video.metrics && <VideoMetricsGrid metrics={video.metrics} />}
-                <HookRewriteCard />
+                <VideoActionButtons video={video} />
               </TabsContent>
 
               <TabsContent value="script" className="mt-0 space-y-4">
@@ -89,6 +89,7 @@ export function VideoInsightsDialog() {
                   visualContext={video.visualContext}
                   copiedText={copiedText}
                   onCopy={copyToClipboard}
+                  video={video}
                 />
               </TabsContent>
 
@@ -150,23 +151,63 @@ function VideoPreview({ video }: { video: any }) {
   );
 }
 
-function HookRewriteCard() {
+function VideoActionButtons({ video }: { video: any }) {
+  const handleGenerateHooks = () => {
+    console.log("🎬 Generate Hooks for video:", video.title);
+    // TODO: Implement hook generation from video transcript
+    // This will integrate with your existing hook generation pipeline
+  };
+
+  const handleGenerateScript = () => {
+    console.log("📝 Generate Script for video:", video.title);
+    console.log("📝 Video transcript:", video.transcript);
+    // TODO: Implement script generation from video transcript
+    // This will:
+    // 1. Take the video transcript
+    // 2. Send it through the script writing process
+    // 3. Open the right-hand panel with generated script
+  };
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Zap className="h-5 w-5" />
-          Hook Rewrite
+          AI Actions
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <Button className="w-full">Rewrite Hook with AI</Button>
+        <div className="flex gap-3">
+          <Button onClick={handleGenerateHooks} variant="outline" className="flex-1 gap-2" disabled={!video.transcript}>
+            <Zap className="h-4 w-4" />
+            Generate Hooks
+          </Button>
+          <Button onClick={handleGenerateScript} className="flex-1 gap-2" disabled={!video.transcript}>
+            <FileText className="h-4 w-4" />
+            Generate Script
+          </Button>
+        </div>
+        {!video.transcript && (
+          <p className="text-muted-foreground mt-2 text-sm">
+            Transcript required for AI actions. Generate transcript first.
+          </p>
+        )}
       </CardContent>
     </Card>
   );
 }
 
-function TranscriptTab({ transcript, visualContext, copiedText, onCopy }: any) {
+function TranscriptTab({ transcript, visualContext, copiedText, onCopy, video }: any) {
+  const handleGenerateTranscript = () => {
+    console.log("🎤 Generate Transcript for video:", video?.title);
+    console.log("🎤 Video URL:", video?.originalUrl);
+    // TODO: Implement transcript generation
+    // This will:
+    // 1. Call the transcription API endpoint
+    // 2. Process the video's audio
+    // 3. Update the video with the generated transcript
+  };
+
   if (!transcript) {
     return (
       <Card>
@@ -174,7 +215,10 @@ function TranscriptTab({ transcript, visualContext, copiedText, onCopy }: any) {
           <div className="text-muted-foreground mx-auto mb-4 h-12 w-12 opacity-50">📄</div>
           <h3 className="mb-2 text-lg font-semibold">No Transcript Available</h3>
           <p className="text-muted-foreground mb-4">The transcript hasn&apos;t been generated yet for this video.</p>
-          <Button>Generate Transcript</Button>
+          <Button onClick={handleGenerateTranscript} className="gap-2">
+            <FileText className="h-4 w-4" />
+            Generate Transcript
+          </Button>
         </CardContent>
       </Card>
     );
