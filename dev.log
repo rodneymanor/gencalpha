@@ -1,0 +1,71 @@
+
+> studio-admin@2.0.0 dev
+> next dev
+
+   ▲ Next.js 15.4.3
+   - Local:        http://localhost:3000
+   - Network:      http://172.20.10.2:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1280ms
+ ✓ Compiled /middleware in 244ms (153 modules)
+🔍 [Middleware] Processing request for: /api/test-core
+ ○ Compiling /api/test-core ...
+ ✓ Compiled /api/test-core in 600ms (338 modules)
+✅ Firebase Admin SDK initialized successfully
+🔄 [Gemini] Attempt 1/2
+🤖 [Gemini] Starting content generation...
+✅ [Gemini] Generation successful in 553ms
+🔍 [BUNNY] Testing Bunny Stream Configuration:
+  - BUNNY_STREAM_LIBRARY_ID: 459811
+  - BUNNY_STREAM_API_KEY (length): 41
+  - BUNNY_CDN_HOSTNAME: vz-8416c36e-556.b-cdn.net
+✅ [BUNNY] All environment variables are present
+🔗 [BUNNY] Test URLs:
+  - Create URL: https://video.bunnycdn.com/library/459811/videos
+  - Upload URL: https://video.bunnycdn.com/library/459811/videos/test-video-id
+  - Iframe Embed URL: https://iframe.mediadelivery.net/embed/459811/test-video-id
+ GET /api/test-core 200 in 2081ms
+🔍 [Middleware] Processing request for: /api/collections/user-collections
+ ○ Compiling /api/collections/user-collections ...
+ ✓ Compiled /api/collections/user-collections in 504ms (527 modules)
+ GET /api/collections/user-collections 401 in 676ms
+🔍 [Middleware] Processing request for: /api/script/speed-write
+ ⨯ ./src/app/api/script/speed-write/route.ts:5:1
+Module not found: Can't resolve '@/lib/feature-flags'
+  3 | import { authenticateApiKey } from "@/lib/api-key-auth";
+  4 | import { CreditsService } from "@/lib/credits-service";
+> 5 | import { FeatureFlagService } from "@/lib/feature-flags";
+    | ^
+  6 | import { adminDb } from "@/lib/firebase-admin";
+  7 | import { ScriptService } from "@/lib/services/script-generation-service";
+  8 | import { trackApiUsageAdmin } from "@/lib/usage-tracker-admin";
+
+https://nextjs.org/docs/messages/module-not-found
+ ○ Compiling /_not-found ...
+ ⨯ ./src/app/api/script/speed-write/route.ts:5:1
+Module not found: Can't resolve '@/lib/feature-flags'
+  3 | import { authenticateApiKey } from "@/lib/api-key-auth";
+  4 | import { CreditsService } from "@/lib/credits-service";
+> 5 | import { FeatureFlagService } from "@/lib/feature-flags";
+    | ^
+  6 | import { adminDb } from "@/lib/firebase-admin";
+  7 | import { ScriptService } from "@/lib/services/script-generation-service";
+  8 | import { trackApiUsageAdmin } from "@/lib/usage-tracker-admin";
+
+https://nextjs.org/docs/messages/module-not-found
+ ⨯ ./src/app/api/script/speed-write/route.ts:5:1
+Module not found: Can't resolve '@/lib/feature-flags'
+  3 | import { authenticateApiKey } from "@/lib/api-key-auth";
+  4 | import { CreditsService } from "@/lib/credits-service";
+> 5 | import { FeatureFlagService } from "@/lib/feature-flags";
+    | ^
+  6 | import { adminDb } from "@/lib/firebase-admin";
+  7 | import { ScriptService } from "@/lib/services/script-generation-service";
+  8 | import { trackApiUsageAdmin } from "@/lib/usage-tracker-admin";
+
+https://nextjs.org/docs/messages/module-not-found
+ POST /api/script/speed-write 500 in 3764ms
+ ✓ Compiled /_error in 218ms (489 modules)
+ ✓ Compiled in 182ms (383 modules)

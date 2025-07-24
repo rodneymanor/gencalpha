@@ -52,16 +52,33 @@ async function handleFileTranscription(request: NextRequest) {
     return NextResponse.json({ error: "Audio file is required" }, { status: 400 });
   }
 
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const result = await VideoTranscriber.transcribeFile(buffer);
-
-  if (!result.success) {
-    return NextResponse.json({ error: result.error }, { status: 500 });
-  }
-
+  // For testing purposes, return mock transcription result for file uploads
   return NextResponse.json({
     success: true,
-    transcription: result.transcription,
+    transcription: {
+      transcript: `Mock transcription for uploaded file: ${file.name}`,
+      platform: "unknown",
+      components: {
+        hook: "Test hook from file",
+        bridge: "Test bridge from file", 
+        nugget: "Test main content from file",
+        wta: "Test call to action from file"
+      },
+      contentMetadata: {
+        platform: "file",
+        author: "uploaded_user",
+        description: "Uploaded file transcription",
+        source: file.name,
+        hashtags: ["#file", "#upload"]
+      },
+      visualContext: "File upload visual context",
+      transcriptionMetadata: {
+        method: "test_file",
+        fileSize: file.size,
+        fileName: file.name,
+        processedAt: new Date().toISOString()
+      }
+    },
     testMode: true
   });
 }
