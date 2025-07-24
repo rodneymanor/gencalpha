@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 
-import { Zap, FileText, Instagram, Youtube, Globe, MessageSquare, Mic } from "lucide-react";
+import { Zap, FileText, Instagram, Youtube, Globe, MessageSquare, Mic, Copy, Check } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -56,12 +56,24 @@ export function IdeaDetailDialog({
   onGenerateHooks,
   onConvertToScript,
 }: IdeaDetailDialogProps) {
+  const [isCopied, setIsCopied] = useState(false);
+
   if (!idea) return null;
+
+  const handleCopyContent = async () => {
+    try {
+      await navigator.clipboard.writeText(idea.content);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy text: ", err);
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-4xl">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[85vh] max-w-4xl flex-col">
+        <DialogHeader className="flex-shrink-0">
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center gap-3">
               <Badge className={`gap-1 ${getSourceColor(idea.source)}`}>
@@ -76,9 +88,35 @@ export function IdeaDetailDialog({
           </div>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto">
-          <div className="prose bg-muted/20 max-w-none rounded-lg p-4">
-            <p className="text-sm leading-relaxed whitespace-pre-wrap">{idea.content}</p>
+        {/* Scrollable Content Area */}
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="relative">
+            <div
+              className="prose bg-muted/20 hover:bg-muted/30 group max-w-none cursor-pointer rounded-lg p-4 transition-colors"
+              onClick={handleCopyContent}
+              title="Click to copy content"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <p className="flex-1 text-sm leading-relaxed whitespace-pre-wrap">{idea.content}</p>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 flex-shrink-0 p-0 opacity-0 transition-opacity group-hover:opacity-100"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCopyContent();
+                  }}
+                >
+                  {isCopied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
+
+            {isCopied && (
+              <div className="absolute top-2 right-2 rounded bg-green-100 px-2 py-1 text-xs text-green-800">
+                Copied!
+              </div>
+            )}
           </div>
 
           {idea.sourceUrl && (
@@ -98,7 +136,8 @@ export function IdeaDetailDialog({
           )}
         </div>
 
-        <div className="flex justify-between border-t pt-6">
+        {/* Fixed Footer with Buttons */}
+        <div className="flex flex-shrink-0 justify-between border-t pt-4">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Close
           </Button>
