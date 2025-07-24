@@ -8,6 +8,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { APP_CONFIG } from "@/config/app-config";
 import { sidebarItems } from "@/navigation/sidebar/sidebar-items";
@@ -26,21 +27,36 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   };
 }
 
+function SidebarLogo() {
+  const { state } = useSidebar();
+  const isCollapsed = state === "collapsed";
+
+  return (
+    <SidebarMenuButton asChild className="!h-12">
+      <a href="#" className="flex w-full items-center justify-center">
+        {isCollapsed ? (
+          // Show "G" when collapsed
+          <span className="text-foreground text-2xl font-bold">G</span>
+        ) : (
+          // Show full "Gen.C" when expanded
+          <div className="flex items-center gap-1">
+            <span className="text-foreground text-xl font-bold">Gen</span>
+            <div className="h-2 w-2 rounded-full bg-yellow-400"></div>
+            <span className="text-foreground text-xl font-bold">C</span>
+          </div>
+        )}
+      </a>
+    </SidebarMenuButton>
+  );
+}
+
 export function AppSidebar({ layoutPreferences, ...props }: AppSidebarProps) {
   return (
     <Sidebar {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild className="!h-10 data-[slot=sidebar-menu-button]:!p-2">
-              <a href="#" className="flex w-full items-center justify-center">
-                <div className="flex items-center gap-1">
-                  <span className="text-foreground text-lg font-bold">Gen</span>
-                  <div className="h-1.5 w-1.5 rounded-full bg-yellow-400"></div>
-                  <span className="text-foreground text-lg font-bold">C</span>
-                </div>
-              </a>
-            </SidebarMenuButton>
+            <SidebarLogo />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
