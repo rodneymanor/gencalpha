@@ -5,6 +5,7 @@ import { X, ChevronDown, ChevronUp, Check } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { MagicCard } from "@/components/magicui/magic-card";
 import { cn } from "@/lib/utils";
 
 interface OnboardingTask {
@@ -67,7 +68,14 @@ export function OnboardingProgress({ className }: OnboardingProgressProps) {
 
   return (
     <div className={cn("p-4 md:p-6", className)}>
-      <div className="bg-card border rounded-lg p-6">
+      <MagicCard 
+        className="bg-card border rounded-lg p-6"
+        gradientSize={300}
+        gradientColor="#ffffff"
+        gradientOpacity={0.1}
+        gradientFrom="#526af9"
+        gradientTo="#7c3aed"
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             {/* Greeting */}
@@ -149,7 +157,7 @@ export function OnboardingProgress({ className }: OnboardingProgressProps) {
             ))}
           </div>
         )}
-      </div>
+      </MagicCard>
     </div>
   );
 }
