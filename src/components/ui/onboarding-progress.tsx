@@ -21,7 +21,7 @@ interface OnboardingProgressProps {
 
 export function OnboardingProgress({ className }: OnboardingProgressProps) {
   const [isVisible, setIsVisible] = useState(true);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
 
   const [tasks, setTasks] = useState<OnboardingTask[]>([
     {
