@@ -156,7 +156,7 @@ export function ScriptComponents({
   copiedText: string;
   onCopy: (text: string, label: string) => void;
 }) {
-  if (!video.components || video.components.length === 0) {
+  if (!video.components || !Array.isArray(video.components) || video.components.length === 0) {
     return (
       <Card>
         <CardContent className="p-6 text-center">
