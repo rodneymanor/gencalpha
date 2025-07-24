@@ -1,12 +1,11 @@
 import { ReactNode } from "react";
 
-import { cookies } from "next/headers";
-
 import { DashboardWrapper } from "@/app/(main)/dashboard/_components/dashboard-wrapper";
 import { AppSidebar } from "@/app/(main)/dashboard/_components/sidebar/app-sidebar";
 import { FloatingActionButton } from "@/components/ui/floating-action-button";
 import { OnboardingProgress } from "@/components/ui/onboarding-progress";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { ScriptPanelProvider } from "@/contexts/script-panel-context";
 import { cn } from "@/lib/utils";
 import { getPreference } from "@/server/server-actions";
 import {
@@ -33,26 +32,28 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
 
   return (
     <DashboardWrapper>
-      <SidebarProvider defaultOpen={false}>
-        <AppSidebar variant={sidebarVariant} collapsible={sidebarCollapsible} layoutPreferences={layoutPreferences} />
-        <SidebarInset
-          data-content-layout={contentLayout}
-          className={cn(
-            "data-[content-layout=centered]:!mx-auto data-[content-layout=centered]:max-w-screen-2xl",
-            // Adds right margin for inset sidebar in centered layout up to 113rem.
-            // On wider screens with collapsed sidebar, removes margin and sets margin auto for alignment.
-            "max-[113rem]:peer-data-[variant=inset]:!mr-2 min-[101rem]:peer-data-[variant=inset]:peer-data-[state=collapsed]:!mr-auto",
-          )}
-        >
-          <div className="h-full">
-            <div className="mx-auto max-w-6xl">
-              <OnboardingProgress />
-              <div className="px-4 pb-4 md:px-6 md:pb-6">{children}</div>
+      <ScriptPanelProvider>
+        <SidebarProvider defaultOpen={false}>
+          <AppSidebar variant={sidebarVariant} collapsible={sidebarCollapsible} layoutPreferences={layoutPreferences} />
+          <SidebarInset
+            data-content-layout={contentLayout}
+            className={cn(
+              "data-[content-layout=centered]:!mx-auto data-[content-layout=centered]:max-w-screen-2xl",
+              // Adds right margin for inset sidebar in centered layout up to 113rem.
+              // On wider screens with collapsed sidebar, removes margin and sets margin auto for alignment.
+              "max-[113rem]:peer-data-[variant=inset]:!mr-2 min-[101rem]:peer-data-[variant=inset]:peer-data-[state=collapsed]:!mr-auto",
+            )}
+          >
+            <div className="h-full">
+              <div className="mx-auto max-w-6xl">
+                <OnboardingProgress />
+                <div className="px-4 pb-4 md:px-6 md:pb-6">{children}</div>
+              </div>
             </div>
-          </div>
-          <FloatingActionButton />
-        </SidebarInset>
-      </SidebarProvider>
+            <FloatingActionButton />
+          </SidebarInset>
+        </SidebarProvider>
+      </ScriptPanelProvider>
     </DashboardWrapper>
   );
 }

@@ -25,6 +25,7 @@ import {
   SidebarMenuSubItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useScriptPanel } from "@/contexts/script-panel-context";
 import { cn } from "@/lib/utils";
 import { type NavGroup, type NavMainItem } from "@/navigation/sidebar/sidebar-items";
 
@@ -147,6 +148,7 @@ const NavItemCollapsed = ({
 export function NavMain({ items, isPinned = false, onPinToggle }: NavMainProps) {
   const path = usePathname();
   const { state, isMobile } = useSidebar();
+  const { openPanel } = useScriptPanel();
 
   const isItemActive = (url: string, subItems?: NavMainItem["subItems"]) => {
     if (subItems?.length) {
@@ -167,6 +169,7 @@ export function NavMain({ items, isPinned = false, onPinToggle }: NavMainProps) 
             <SidebarMenuItem className="flex items-center gap-2">
               <SidebarMenuButton
                 tooltip="Write a Script"
+                onClick={openPanel}
                 className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground border-primary/20 hover:border-primary/30 min-w-8 border shadow-lg backdrop-blur-sm duration-200 ease-linear hover:shadow-xl"
               >
                 <Pencil className="rotate-[-15deg]" />

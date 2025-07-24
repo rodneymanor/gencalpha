@@ -1,14 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { Pencil } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { SlideOutPanel } from "@/components/ui/slide-out-panel";
 import { cn } from "@/lib/utils";
+import { useScriptPanel } from "@/contexts/script-panel-context";
 
 export function FloatingActionButton() {
-  const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const { isPanelOpen, openPanel, closePanel } = useScriptPanel();
 
   return (
     <>
@@ -45,14 +46,14 @@ export function FloatingActionButton() {
         onMouseLeave={(e) => {
           e.currentTarget.style.backgroundColor = '#526af9';
         }}
-        onClick={() => setIsPanelOpen(true)}
+        onClick={() => openPanel()}
       >
         <Pencil className="h-5 w-5" />
       </Button>
 
       <SlideOutPanel 
         isOpen={isPanelOpen} 
-        onClose={() => setIsPanelOpen(false)} 
+        onClose={() => closePanel()} 
       />
     </>
   );
