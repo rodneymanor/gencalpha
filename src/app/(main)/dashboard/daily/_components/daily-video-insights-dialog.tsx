@@ -7,10 +7,9 @@ import { Zap, FileText, Copy, CheckCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
 import { Video } from "@/lib/collections";
 import { cn } from "@/lib/utils";
 
@@ -44,31 +43,51 @@ function MainInsightsTab({
     console.log("🎤 Video URL:", video.originalUrl);
   };
 
+  const handleRewriteHook = () => {
+    console.log("✏️ Rewrite Hook for video:", video.title);
+  };
+
   return (
     <div className="space-y-6">
-      {/* Hook Generation Section */}
+      {/* Hook Section with prominent display */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Zap className="h-5 w-5" />
-            Generate Hooks
+          <CardTitle className="flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <Zap className="h-5 w-5" />
+              Hook
+            </span>
+            <div className="flex gap-2">
+              <Button
+                onClick={handleRewriteHook}
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                disabled={!video.transcript}
+              >
+                <Zap className="h-4 w-4" />
+                Rewrite Hook
+              </Button>
+              <Button onClick={handleGenerateHooks} size="sm" className="gap-2" disabled={!video.transcript}>
+                <Zap className="h-4 w-4" />
+                Generate Hook
+              </Button>
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground mb-4 text-sm">
-            Create engaging hooks based on this video&apos;s content and style.
-          </p>
-          <Button onClick={handleGenerateHooks} className="gap-2" disabled={!video.transcript}>
-            <Zap className="h-4 w-4" />
-            Generate Hooks
-          </Button>
+          <div className="bg-muted/50 flex min-h-[80px] items-center rounded-lg p-4">
+            <p className="text-sm leading-relaxed">
+              {(video as any).hook ?? "No hook available. Generate one using the button above."}
+            </p>
+          </div>
           {!video.transcript && (
-            <p className="text-muted-foreground mt-2 text-xs">Transcript required for hook generation.</p>
+            <p className="text-muted-foreground mt-3 text-xs">Transcript required for hook generation.</p>
           )}
         </CardContent>
       </Card>
 
-      {/* Transcript Section */}
+      {/* Transcript Section with fixed height and scrolling */}
       {video.transcript ? (
         <Card>
           <CardHeader>
@@ -80,7 +99,9 @@ function MainInsightsTab({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Textarea value={video.transcript} readOnly rows={8} className="resize-none" />
+            <div className="bg-muted/20 h-60 overflow-y-auto rounded-lg p-4 text-sm leading-relaxed">
+              {video.transcript}
+            </div>
             {video.visualContext && (
               <>
                 <Separator className="my-4" />
@@ -109,7 +130,7 @@ function MainInsightsTab({
   );
 }
 
-// Sticky action buttons component for bottom right
+// Sticky action buttons component for bottom
 function StickyActionButtons({ video }: { video: Video }) {
   const handleRemixScript = () => {
     console.log("📝 Remix Script for video:", video.title);
@@ -131,7 +152,7 @@ function StickyActionButtons({ video }: { video: Video }) {
   };
 
   return (
-    <div className="bg-background border-t px-4 py-3">
+    <div className="bg-background sticky bottom-0 border-t px-6 py-4">
       <div className="flex items-center justify-between">
         {/* Video Metrics */}
         {video.metrics && (
@@ -189,32 +210,19 @@ export function DailyVideoInsightsDialog({ video, open, onOpenChange }: DailyVid
 
   if (!video) return null;
 
-  // Debug logging to see video data structure
-  console.log("🎬 [Video Insights] Video data:", {
-    id: video.id,
-    title: video.title,
-    hasTranscript: !!video.transcript,
-    hasComponents: !!video.components,
-    components: video.components,
-    hasMetrics: !!video.metrics,
-    metrics: video.metrics,
-    hasMetadata: !!video.metadata,
-    metadata: video.metadata,
-  });
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="h-[90vh] !max-w-[1200px] overflow-hidden p-0">
+      <DialogContent className="h-[90vh] !max-w-[1400px] overflow-hidden p-0">
         <div className="flex h-full">
-          {/* Left side - Video Player (Instagram Reels style) */}
-          <div className="relative flex w-[400px] min-w-[400px] items-center justify-center bg-black">
+          {/* Fixed Video Column */}
+          <div className="flex w-[400px] max-w-[400px] min-w-[400px] items-center justify-center bg-black">
             <VideoPreviewWithMetrics video={video} showMetrics={false} />
           </div>
 
-          {/* Right side - Content Area */}
+          {/* Main Content Panel */}
           <div className="bg-background flex flex-1 flex-col">
             {/* Header with video info */}
-            <div className="border-b p-4">
+            <div className="border-b px-6 py-4">
               <div className="flex items-center gap-3">
                 <Badge
                   className={cn(
@@ -227,14 +235,14 @@ export function DailyVideoInsightsDialog({ video, open, onOpenChange }: DailyVid
                 >
                   {video.platform}
                 </Badge>
-                <h2 className="truncate font-semibold">{video.title}</h2>
+                <h2 className="truncate text-lg font-semibold">{video.title}</h2>
               </div>
             </div>
 
-            {/* Main content area with tabs */}
+            {/* Tab Content Area */}
             <div className="flex flex-1 flex-col overflow-hidden">
               <Tabs defaultValue="insights" className="flex h-full flex-col">
-                <div className="border-b px-4 pt-4 pb-4">
+                <div className="border-b px-6 py-4">
                   <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="insights">Insights</TabsTrigger>
                     <TabsTrigger value="script">Script Components</TabsTrigger>
@@ -242,25 +250,25 @@ export function DailyVideoInsightsDialog({ video, open, onOpenChange }: DailyVid
                   </TabsList>
                 </div>
 
-                {/* Tab contents with consistent height */}
-                <div className="flex-1 overflow-y-auto px-4 py-4">
-                  <TabsContent value="insights" className="mt-0">
+                {/* Scrollable Tab Contents */}
+                <div className="flex-1 overflow-y-auto px-6 py-6">
+                  <TabsContent value="insights" className="mt-0 h-full">
                     <MainInsightsTab video={video} copiedText={copiedText} onCopy={copyToClipboard} />
                   </TabsContent>
 
-                  <TabsContent value="script" className="mt-0">
+                  <TabsContent value="script" className="mt-0 h-full">
                     <ScriptComponents video={video} copiedText={copiedText} onCopy={copyToClipboard} />
                   </TabsContent>
 
-                  <TabsContent value="metadata" className="mt-0">
+                  <TabsContent value="metadata" className="mt-0 h-full">
                     <MetadataTab video={video} />
                   </TabsContent>
                 </div>
               </Tabs>
-
-              {/* Action Buttons at Bottom Right */}
-              <StickyActionButtons video={video} />
             </div>
+
+            {/* Sticky Footer - Always Visible */}
+            <StickyActionButtons video={video} />
           </div>
         </div>
       </DialogContent>
