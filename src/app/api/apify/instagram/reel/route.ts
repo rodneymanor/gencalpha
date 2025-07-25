@@ -77,16 +77,14 @@ async function scrapeInstagramReel(input: InstagramReelRequest): Promise<Instagr
   if (input.username) {
     usernames = [input.username];
   } else if (input.url || input.urls) {
-    // Extract username from Instagram URLs
-    const urls = input.url ? [input.url] : (input.urls ?? []);
-    usernames = urls
-      .map((url) => {
-        const match = url.match(/instagram\.com\/([^/]+)/);
-        return match ? match[1] : url;
-      })
-      .filter(Boolean);
+    // Instagram reel scraper requires usernames, not URLs
+    // If URLs are provided, inform user they need to provide usernames instead
+    throw new Error(
+      "Instagram reel scraper requires usernames, not URLs. " +
+        "Please provide the Instagram username(s) whose reels you want to scrape.",
+    );
   } else {
-    throw new Error("Either url/urls or username is required");
+    throw new Error("Username is required for Instagram reel scraping");
   }
 
   if (usernames.length === 0) {
