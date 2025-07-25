@@ -6,6 +6,7 @@ import { X, ChevronDown, ChevronUp, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { MagicCard } from "@/components/magicui/magic-card";
+import { ProcessingNotificationBadge } from "@/components/ui/processing-notification-badge";
 import { cn } from "@/lib/utils";
 
 interface OnboardingTask {

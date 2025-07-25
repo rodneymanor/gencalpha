@@ -12,29 +12,15 @@ interface AuthGuardProps {
 }
 
 export function AuthGuard({ children, fallback }: AuthGuardProps) {
-  const { user, initializing } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!initializing && !user) {
+    if (!user) {
       // Redirect to login if not authenticated
       router.push("/auth/v2/login");
     }
-  }, [user, initializing, router]);
-
-  // Show loading state while checking authentication
-  if (initializing) {
-    return (
-      fallback ?? (
-        <div className="flex h-screen items-center justify-center">
-          <div className="text-center">
-            <div className="border-primary h-32 w-32 animate-spin rounded-full border-b-2"></div>
-            <p className="mt-4 text-lg">Loading...</p>
-          </div>
-        </div>
-      )
-    );
-  }
+  }, [user, router]);
 
   // Show nothing if not authenticated (redirect will happen)
   if (!user) {

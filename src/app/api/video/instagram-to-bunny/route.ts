@@ -174,12 +174,12 @@ async function makeRapidApiRequest(shortcode: string) {
   const timeoutId = setTimeout(() => controller.abort(), 30000);
 
   const response = await fetch(
-    `https://instagram-scrapper-posts-reels-stories-downloader.p.rapidapi.com/reel_by_shortcode?shortcode=${shortcode}`,
+    `https://instagram-api-fast-reliable-data-scraper.p.rapidapi.com/reel_by_shortcode?shortcode=${shortcode}`,
     {
       method: "GET",
       headers: {
         "x-rapidapi-key": process.env.RAPIDAPI_KEY ?? "7d8697833dmsh0919d85dc19515ap1175f7jsn0f8bb6dae84e",
-        "x-rapidapi-host": "instagram-scrapper-posts-reels-stories-downloader.p.rapidapi.com",
+        "x-rapidapi-host": "instagram-api-fast-reliable-data-scraper.p.rapidapi.com",
       },
       signal: controller.signal,
     },

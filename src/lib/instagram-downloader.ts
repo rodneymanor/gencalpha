@@ -14,12 +14,12 @@ export async function fetchInstagramMetadata(shortcode: string) {
   }
 
   const response = await fetch(
-    `https://instagram-scrapper-posts-reels-stories-downloader.p.rapidapi.com/reel_by_shortcode?shortcode=${shortcode}`,
+    `https://instagram-api-fast-reliable-data-scraper.p.rapidapi.com/reel_by_shortcode?shortcode=${shortcode}`,
     {
       method: "GET",
       headers: {
         "x-rapidapi-key": rapidApiKey,
-        "x-rapidapi-host": "instagram-scrapper-posts-reels-stories-downloader.p.rapidapi.com",
+        "x-rapidapi-host": "instagram-api-fast-reliable-data-scraper.p.rapidapi.com",
       },
       signal: controller.signal,
     },

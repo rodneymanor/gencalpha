@@ -1,62 +1,59 @@
-// Production-ready video processing queue system
+// Simple In-Memory Video Processing Queue for Instagram Scraping
 
-import type {
-  VideoProcessingJob,
-  VideoProcessingStatus,
-  VideoProcessingError,
-  ProcessingProgress,
-  ProcessedVideoResult,
-  JobPriority,
-} from "@/types/video-processing";
+export interface VideoProcessingJob {
+  id: string;
+  url: string;
+  collectionId?: string;
+  userId: string;
+  status: "pending" | "processing" | "completed" | "failed";
+  progress: number; // 0-100
+  message: string;
+  startedAt: Date;
+  completedAt?: Date;
+  result?: {
+    videoId: string;
+    thumbnailUrl?: string;
+    title?: string;
+    author?: string;
+  };
+  error?: string;
+}
 
-import { getAdminDb, isAdminInitialized } from "./firebase-admin";
+export interface ProcessingStats {
+  total: number;
+  pending: number;
+  processing: number;
+  completed: number;
+  failed: number;
+}
 
-export class VideoProcessingQueue {
-  private static readonly JOBS_COLLECTION = "video_processing_jobs";
-  private static readonly MAX_RETRY_ATTEMPTS = 3;
+class SimpleVideoQueue {
+  private jobs = new Map<string, VideoProcessingJob>();
+  private processing = new Set<string>();
 
   /**
-   * Add a new video processing job to the queue
+   * Add new video to processing queue
    */
-  static async addJob(
-    userId: string,
-    collectionId: string,
-    videoUrl: string,
-    title?: string,
-    priority: JobPriority = "normal",
-  ): Promise<VideoProcessingJob> {
-    const adminDb = getAdminDb();
-    if (!isAdminInitialized || !adminDb) {
-      throw new Error("Firebase Admin SDK not configured");
-    }
-
-    const jobId = this.generateJobId();
-    const now = new Date().toISOString();
-
+  addJob(url: string, userId: string, collectionId?: string): VideoProcessingJob {
+    const jobId = `video_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
     const job: VideoProcessingJob = {
       id: jobId,
-      userId,
+      url,
       collectionId,
-      videoUrl,
-      title: title ?? `Video - ${new Date().toLocaleDateString()}`,
-      status: "queued",
-      priority,
-      attempts: 0,
-      maxAttempts: this.MAX_RETRY_ATTEMPTS,
-      createdAt: now,
-      updatedAt: now,
-      progress: {
-        stage: "queued",
-        percentage: 0,
-        message: "Video queued for processing...",
-      },
+      userId,
+      status: "pending",
+      progress: 0,
+      message: "Queued for processing...",
+      startedAt: new Date(),
     };
 
-    await adminDb.collection(this.JOBS_COLLECTION).doc(jobId).set(job);
-
-    // Start processing immediately (in production, this would be picked up by workers)
-    setTimeout(() => this.processJob(jobId), 100);
-
+    this.jobs.set(jobId, job);
+    console.log("📋 [QUEUE] Added job:", jobId, "for URL:", url);
+    
+    // Start processing immediately
+    this.processJob(jobId);
+    
     return job;
   }
 

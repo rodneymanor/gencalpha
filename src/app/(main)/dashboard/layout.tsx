@@ -4,6 +4,7 @@ import { DashboardWrapper } from "@/app/(main)/dashboard/_components/dashboard-w
 import { AppSidebar } from "@/app/(main)/dashboard/_components/sidebar/app-sidebar";
 import { FloatingActionButton } from "@/components/ui/floating-action-button";
 import { OnboardingProgress } from "@/components/ui/onboarding-progress";
+import { ProcessingNotificationBadge } from "@/components/ui/processing-notification-badge";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { ScriptPanelProvider } from "@/contexts/script-panel-context";
 import { cn } from "@/lib/utils";
@@ -46,7 +47,12 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
           >
             <div className="h-full">
               <div className="mx-auto max-w-6xl">
-                <OnboardingProgress />
+                <div className="relative">
+                  <OnboardingProgress />
+                  <div className="absolute top-6 right-6">
+                    <ProcessingNotificationBadge />
+                  </div>
+                </div>
                 <div className="px-4 pb-4 md:px-6 md:pb-6">{children}</div>
               </div>
             </div>

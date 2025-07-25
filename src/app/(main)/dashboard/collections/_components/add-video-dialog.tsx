@@ -42,9 +42,9 @@ const formSchema = z.object({
       (url) => {
         const lowerUrl = url.toLowerCase();
         return (
-          lowerUrl.includes("tiktok.com") ||
+          (lowerUrl.includes("tiktok.com") || lowerUrl.includes("vm.tiktok.com")) ||
           (lowerUrl.includes("instagram.com") && 
-           (lowerUrl.includes("/reel/") || lowerUrl.includes("/p/")))
+           (lowerUrl.includes("/reel") || lowerUrl.includes("/p/") || lowerUrl.includes("/tv/")))
         );
       },
       "Please enter a valid TikTok or Instagram Reel URL"
@@ -65,7 +65,7 @@ export function AddVideoDialog({
   onOpenChange, 
   selectedCollectionId = "all-videos" 
 }: AddVideoDialogProps) {
-  const { state, dispatch } = useCollections();
+  const { state } = useCollections();
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -82,38 +82,43 @@ export function AddVideoDialog({
 
     setIsLoading(true);
     try {
-      // Get Firebase ID token for authentication
-      const token = await user.getIdToken();
-      
-      // Call the video processing API endpoint
-      const response = await fetch("/api/video/process-and-add", {
+      // Use the new queue system for immediate response
+      const response = await fetch("/api/video/add-to-queue", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify({
           videoUrl: data.url,
           collectionId: data.collectionId === "all-videos" ? undefined : data.collectionId,
+          userId: user?.uid,
         }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to add video");
+        const errorData = await response.json();
+        throw new Error(errorData.error ?? "Failed to add video to queue");
       }
 
       const result = await response.json();
       
-      // Add the video to local state if successful
-      if (result.success && result.video) {
-        dispatch({ type: "ADD_VIDEO", payload: result.video });
+      if (result.success) {
+        // Show success message with processing info
+        console.log("✅ Video added to queue:", result.job.id);
+        
+        // Close dialog immediately - user will see progress in notification badge
+        form.reset();
+        onOpenChange(false);
+        
+        // Optional: Show a toast with processing info
+        // toast.success("Video added to processing queue! Check the notification badge for progress.");
+      } else {
+        throw new Error(result.error ?? "Failed to add video to queue");
       }
-
-      form.reset();
-      onOpenChange(false);
     } catch (error) {
       console.error("Failed to add video:", error);
-      // TODO: Show error toast
+      // Show error message to user
+      alert(error instanceof Error ? error.message : "Failed to add video. Please try again.");
     } finally {
       setIsLoading(false);
     }

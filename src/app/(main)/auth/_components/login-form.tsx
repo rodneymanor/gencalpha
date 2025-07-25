@@ -40,7 +40,7 @@ export function LoginForm() {
     try {
       await signIn(data.email, data.password);
       toast.success("Successfully logged in!");
-      router.push("/dashboard/collections");
+      router.push("/dashboard/daily");
     } catch (error) {
       console.error("Login error:", error);
       toast.error(error instanceof Error ? error.message : "Login failed. Please try again.");

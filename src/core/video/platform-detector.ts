@@ -67,8 +67,20 @@ export function detectPlatform(url: string): PlatformInfo {
  * @returns Video ID or null if not found
  */
 export function extractTikTokVideoId(url: string): string | null {
-  const match = url.match(/(?:tiktok\.com\/@[\w.-]+\/video\/|tiktok\.com\/v\/|tiktok\.com\/t\/)(\d+)/);
-  return match ? match[1] : null;
+  const patterns = [
+    /tiktok\.com\/@[\w.-]+\/video\/(\d+)/,
+    /tiktok\.com\/v\/(\d+)/,
+    /tiktok\.com\/t\/(\w+)/,
+    /vm\.tiktok\.com\/(\w+)/,
+    /tiktok\.com\/.*\/video\/(\d+)/
+  ];
+  
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) return match[1];
+  }
+  
+  return null;
 }
 
 /**
@@ -77,7 +89,7 @@ export function extractTikTokVideoId(url: string): string | null {
  * @returns Shortcode or null if not found
  */
 export function extractInstagramShortcode(url: string): string | null {
-  const match = url.match(/(?:instagram\.com|instagr\.am)\/(?:p|reels?)\/([A-Za-z0-9_-]+)/);
+  const match = url.match(/(?:instagram\.com|instagr\.am)\/(?:p|reels?|tv)\/([A-Za-z0-9_-]+)/);
   return match ? match[1] : null;
 }
 
