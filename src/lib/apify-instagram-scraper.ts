@@ -44,11 +44,40 @@ export interface ApifyInstagramResult {
 export interface ApifyRunInfo {
   id: string;
   actId: string;
+  actorId?: string;
+  userId?: string;
   status: "READY" | "RUNNING" | "SUCCEEDED" | "FAILED" | "TIMED-OUT" | "ABORTED";
+  statusMessage?: string;
   defaultDatasetId: string;
+  defaultKeyValueStoreId?: string;
+  defaultRequestQueueId?: string;
   createdAt: string;
   startedAt?: string;
   finishedAt?: string;
+  buildId?: string;
+  exitCode?: number;
+  meta?: {
+    origin?: string;
+    clientIp?: string;
+    userAgent?: string;
+  };
+  stats?: {
+    inputBodyLen?: number;
+    restartCount?: number;
+    resurrectCount?: number;
+    memAvgBytes?: number;
+    memMaxBytes?: number;
+    memCurrentBytes?: number;
+    cpuAvgUsage?: number;
+    cpuMaxUsage?: number;
+    cpuCurrentUsage?: number;
+    netRxBytes?: number;
+    netTxBytes?: number;
+    durationMillis?: number;
+    runTimeSecs?: number;
+    metamorph?: number;
+    computeUnits?: number;
+  };
 }
 
 export class ApifyInstagramScraper {
@@ -69,12 +98,12 @@ export class ApifyInstagramScraper {
    */
   async scrapeSyncQuick(
     urls: string | string[],
-    options: Partial<ApifyInstagramInput> = {}
+    options: Partial<ApifyInstagramInput> = {},
   ): Promise<ApifyInstagramResult[]> {
     console.log("🚀 [APIFY] Starting sync quick scrape for URLs:", urls);
 
     const urlArray = Array.isArray(urls) ? urls : [urls];
-    
+
     const input: ApifyInstagramInput = {
       directUrls: urlArray,
       resultsType: "details",
@@ -104,7 +133,7 @@ export class ApifyInstagramScraper {
           },
           body: JSON.stringify(input),
           signal: controller.signal,
-        }
+        },
       );
 
       clearTimeout(timeoutId);
@@ -118,7 +147,7 @@ export class ApifyInstagramScraper {
           const errorText = await response.text();
           errorDetails += ` - ${errorText}`;
           console.error("❌ [APIFY] Error response body:", errorText);
-        } catch (e) {
+        } catch {
           console.error("❌ [APIFY] Could not read error response body");
         }
         throw new Error(`Apify API error: ${errorDetails}`);
@@ -126,7 +155,7 @@ export class ApifyInstagramScraper {
 
       const results: ApifyInstagramResult[] = await response.json();
       console.log("✅ [APIFY] Sync scrape completed, got", results.length, "results");
-      
+
       if (results.length > 0) {
         console.log("🔍 [APIFY] First result sample:", {
           shortCode: results[0].shortCode,
@@ -136,21 +165,23 @@ export class ApifyInstagramScraper {
           hasImageUrl: !!results[0].imageUrl,
         });
       }
-      
+
       return results;
     } catch (error) {
       clearTimeout(timeoutId);
-      
+
       if (error instanceof Error) {
-        if (error.name === 'AbortError') {
+        if (error.name === "AbortError") {
           console.error("❌ [APIFY] Request timed out after 60 seconds");
-          throw new Error("Request timed out. Instagram scraping took too long - try using async method for complex requests.");
-        } else if (error.message.includes('fetch')) {
+          throw new Error(
+            "Request timed out. Instagram scraping took too long - try using async method for complex requests.",
+          );
+        } else if (error.message.includes("fetch")) {
           console.error("❌ [APIFY] Network error:", error.message);
           throw new Error("Network error connecting to Apify API. Please check your internet connection.");
         }
       }
-      
+
       console.error("❌ [APIFY] Sync scrape failed:", error);
       throw error;
     }
@@ -160,14 +191,11 @@ export class ApifyInstagramScraper {
    * Asynchronous scraping for larger jobs
    * Returns run info, use pollRun() and getResults() to fetch data
    */
-  async scrapeAsync(
-    urls: string | string[],
-    options: Partial<ApifyInstagramInput> = {}
-  ): Promise<ApifyRunInfo> {
+  async scrapeAsync(urls: string | string[], options: Partial<ApifyInstagramInput> = {}): Promise<ApifyRunInfo> {
     console.log("🚀 [APIFY] Starting async scrape for URLs:", urls);
 
     const urlArray = Array.isArray(urls) ? urls : [urls];
-    
+
     const input: ApifyInstagramInput = {
       directUrls: urlArray,
       resultsType: "details",
@@ -176,25 +204,34 @@ export class ApifyInstagramScraper {
       ...options,
     };
 
-    const response = await fetch(
-      `${this.baseUrl}/acts/${this.actorId}/runs?token=${this.apiToken}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(input),
-      }
-    );
+    const response = await fetch(`${this.baseUrl}/acts/${this.actorId}/runs?token=${this.apiToken}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(input),
+    });
 
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(`Apify API error: ${response.status} - ${errorText}`);
     }
 
-    const runInfo: ApifyRunInfo = await response.json();
-    console.log("✅ [APIFY] Async run started:", runInfo.id);
-    
+    const rawResponse = await response.json();
+    console.log("✅ [APIFY] Raw response received");
+
+    // Apify API wraps the run info in a 'data' property
+    const runInfo: ApifyRunInfo = rawResponse.data;
+    console.log("🔍 [APIFY] Parsed run info ID:", runInfo.id);
+
+    if (!runInfo?.id) {
+      console.error("❌ [APIFY] Missing run ID in response:", JSON.stringify(rawResponse, null, 2));
+      throw new Error(
+        `Failed to get run ID from Apify response. Expected data.id but got: ${JSON.stringify(rawResponse)}`,
+      );
+    }
+
+    console.log("✅ [APIFY] Async run started successfully:", runInfo.id);
     return runInfo;
   }
 
@@ -208,15 +245,14 @@ export class ApifyInstagramScraper {
     const pollInterval = 5000; // 5 seconds
 
     while (Date.now() - startTime < maxWaitTime) {
-      const response = await fetch(
-        `${this.baseUrl}/acts/${this.actorId}/runs/${runId}?token=${this.apiToken}`
-      );
+      const response = await fetch(`${this.baseUrl}/actor-runs/${runId}?token=${this.apiToken}`);
 
       if (!response.ok) {
         throw new Error(`Failed to poll run status: ${response.status}`);
       }
 
-      const runInfo: ApifyRunInfo = await response.json();
+      const rawResponse = await response.json();
+      const runInfo: ApifyRunInfo = rawResponse.data ?? rawResponse;
       console.log("🔄 [APIFY] Run status:", runInfo.status);
 
       if (runInfo.status === "SUCCEEDED") {
@@ -224,20 +260,12 @@ export class ApifyInstagramScraper {
         return runInfo;
       }
 
-      if (runInfo.status === "FAILED") {
-        throw new Error("Apify run failed");
-      }
-
-      if (runInfo.status === "TIMED-OUT") {
-        throw new Error("Apify run timed out");
-      }
-
-      if (runInfo.status === "ABORTED") {
-        throw new Error("Apify run was aborted");
+      if (runInfo.status === "FAILED" || runInfo.status === "TIMED-OUT" || runInfo.status === "ABORTED") {
+        throw new Error(`Apify run failed with status: ${runInfo.status}`);
       }
 
       // Wait before next poll
-      await new Promise(resolve => setTimeout(resolve, pollInterval));
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
     }
 
     throw new Error("Polling timeout exceeded");
@@ -250,7 +278,7 @@ export class ApifyInstagramScraper {
     console.log("📥 [APIFY] Fetching results from dataset:", datasetId);
 
     const response = await fetch(
-      `${this.baseUrl}/datasets/${datasetId}/items?clean=true&format=json&token=${this.apiToken}`
+      `${this.baseUrl}/datasets/${datasetId}/items?clean=true&format=json&token=${this.apiToken}`,
     );
 
     if (!response.ok) {
@@ -259,7 +287,7 @@ export class ApifyInstagramScraper {
 
     const results: ApifyInstagramResult[] = await response.json();
     console.log("✅ [APIFY] Fetched", results.length, "results");
-    
+
     return results;
   }
 
@@ -268,32 +296,39 @@ export class ApifyInstagramScraper {
    */
   async scrapeComplete(
     urls: string | string[],
-    options: Partial<ApifyInstagramInput> = {}
+    options: Partial<ApifyInstagramInput> = {},
   ): Promise<ApifyInstagramResult[]> {
-    const runInfo = await this.scrapeAsync(urls, options);
-    const completedRun = await this.pollRun(runInfo.id);
-    return await this.getResults(completedRun.defaultDatasetId);
+    try {
+      const runInfo = await this.scrapeAsync(urls, options);
+      console.log("🔍 [APIFY] Got run info, attempting to poll...");
+      const completedRun = await this.pollRun(runInfo.id);
+      console.log("✅ [APIFY] Polling completed, fetching results...");
+      return await this.getResults(completedRun.defaultDatasetId);
+    } catch (error) {
+      console.error("❌ [APIFY] scrapeComplete error:", error);
+      throw error;
+    }
   }
 
   /**
    * Extract video download URL from result
    */
   static getVideoUrl(result: ApifyInstagramResult): string | null {
-    return result.videoUrl || result.videoUrlBackup || null;
+    return result.videoUrl ?? result.videoUrlBackup ?? null;
   }
 
   /**
    * Extract image URL from result
    */
   static getImageUrl(result: ApifyInstagramResult): string | null {
-    return result.imageUrl || result.displayUrl || null;
+    return result.imageUrl ?? result.displayUrl ?? null;
   }
 
   /**
    * Extract thumbnail URL from result
    */
   static getThumbnailUrl(result: ApifyInstagramResult): string | null {
-    return result.thumbnailUrl || result.displayUrl || null;
+    return result.thumbnailUrl ?? result.displayUrl ?? null;
   }
 
   /**
@@ -318,11 +353,9 @@ export class ApifyInstagramScraper {
  */
 export function createApifyInstagramScraper(): ApifyInstagramScraper {
   const apiToken = process.env.APIFY_TOKEN;
-  
+
   if (!apiToken) {
-    throw new Error(
-      "APIFY_TOKEN environment variable is not set. Please configure your Apify API token."
-    );
+    throw new Error("APIFY_TOKEN environment variable is not set. Please configure your Apify API token.");
   }
 
   return new ApifyInstagramScraper(apiToken);
@@ -338,6 +371,6 @@ export async function scrapeInstagramUrl(url: string): Promise<ApifyInstagramRes
 
   const scraper = createApifyInstagramScraper();
   const results = await scraper.scrapeSyncQuick(url);
-  
+
   return results.length > 0 ? results[0] : null;
 }
