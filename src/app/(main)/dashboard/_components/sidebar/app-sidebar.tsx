@@ -57,16 +57,18 @@ export function AppSidebar({ layoutPreferences, ...props }: AppSidebarProps) {
   const initializedRef = useRef(false);
   const [isPinned, setIsPinned] = useState(false);
 
-  // Set up hover listeners and initial state
+  // Set initial collapsed state only once
   useEffect(() => {
-    console.log("🔍 [Sidebar] useEffect running, setting up hover listeners");
-
-    // Set initial collapsed state only once
     if (!initializedRef.current) {
       console.log("🔍 [Sidebar] Setting initial collapsed state");
       setOpen(false);
       initializedRef.current = true;
     }
+  }, []); // Run only once on mount
+
+  // Set up hover listeners
+  useEffect(() => {
+    console.log("🔍 [Sidebar] useEffect running, setting up hover listeners");
 
     const sidebar = sidebarRef.current;
     if (!sidebar) {
@@ -106,7 +108,7 @@ export function AppSidebar({ layoutPreferences, ...props }: AppSidebarProps) {
         clearTimeout(hoverTimeoutRef.current);
       }
     };
-  }, [isPinned]); // Include isPinned to update hover behavior
+  }, [isPinned, setOpen]); // Include both isPinned and setOpen in dependencies
 
   const handlePinToggle = () => {
     console.log("🔍 [Sidebar] Pin toggle - current state:", isPinned);
