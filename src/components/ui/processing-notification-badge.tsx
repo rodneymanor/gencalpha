@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,35 +11,15 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Loader2, CheckCircle, XCircle, Clock, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { VideoProcessingJob } from "@/lib/simple-video-queue";
+import { useVideoProcessing } from "@/contexts/video-processing-context";
 
 interface ProcessingNotificationBadgeProps {
   className?: string;
 }
 
 export function ProcessingNotificationBadge({ className }: ProcessingNotificationBadgeProps) {
-  const [jobs, setJobs] = useState<VideoProcessingJob[]>([]);
+  const { jobs, isPolling } = useVideoProcessing();
   const [open, setOpen] = useState(false);
-
-  // Poll for job updates every 2 seconds
-  useEffect(() => {
-    const fetchJobs = async () => {
-      try {
-        const response = await fetch("/api/video/processing-status");
-        if (response.ok) {
-          const data = await response.json();
-          setJobs(data.activeJobs || []);
-        }
-      } catch (error) {
-        console.error("Failed to fetch processing jobs:", error);
-      }
-    };
-
-    fetchJobs(); // Initial fetch
-    const interval = setInterval(fetchJobs, 2000); // Poll every 2 seconds
-
-    return () => clearInterval(interval);
-  }, []);
 
   const activeJobs = jobs.filter(job => 
     job.status === "pending" || job.status === "processing"

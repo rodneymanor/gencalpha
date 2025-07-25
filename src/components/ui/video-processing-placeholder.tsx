@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Loader2, Clock, CheckCircle, XCircle, RefreshCw, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useVideoProcessing } from "@/contexts/video-processing-context";
 import type { VideoProcessingJob } from "@/lib/simple-video-queue";
 
 interface VideoProcessingPlaceholderProps {
@@ -22,33 +23,16 @@ export function VideoProcessingPlaceholder({
   onRetry,
   onRemove 
 }: VideoProcessingPlaceholderProps) {
+  const { jobs } = useVideoProcessing();
   const [currentJob, setCurrentJob] = useState(job);
 
-  // Poll for job updates if it's still processing
+  // Update current job when jobs from context change
   useEffect(() => {
-    if (currentJob.status === "pending" || currentJob.status === "processing") {
-      const interval = setInterval(async () => {
-        try {
-          const response = await fetch("/api/video/processing-status", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ jobId: currentJob.id }),
-          });
-          
-          if (response.ok) {
-            const data = await response.json();
-            if (data.success && data.job) {
-              setCurrentJob(data.job);
-            }
-          }
-        } catch (error) {
-          console.error("Failed to update job status:", error);
-        }
-      }, 2000);
-
-      return () => clearInterval(interval);
+    const updatedJob = jobs.find(j => j.id === currentJob.id);
+    if (updatedJob) {
+      setCurrentJob(updatedJob);
     }
-  }, [currentJob.id, currentJob.status]);
+  }, [jobs, currentJob.id]);
 
   const getStatusIcon = () => {
     switch (currentJob.status) {
