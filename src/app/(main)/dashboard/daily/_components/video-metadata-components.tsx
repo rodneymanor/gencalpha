@@ -3,6 +3,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Video } from "@/lib/collections";
 
 export function MetadataTab({ video }: { video: Video }) {
+  // Debug logging for metadata
+  console.log("📊 [Metadata Tab] Video metadata:", {
+    hasMetadata: !!video.metadata,
+    metadata: video.metadata,
+    videoId: video.id,
+    videoTitle: video.title,
+    platform: video.platform,
+    originalUrl: video.originalUrl,
+    thumbnailUrl: video.thumbnailUrl,
+    duration: video.duration,
+    addedAt: video.addedAt,
+  });
+
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
       <Card>

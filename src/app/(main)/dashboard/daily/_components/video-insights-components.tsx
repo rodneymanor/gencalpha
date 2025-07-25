@@ -156,6 +156,16 @@ export function ScriptComponents({
   copiedText: string;
   onCopy: (text: string, label: string) => void;
 }) {
+  // Debug logging for script components
+  console.log("📋 [Script Components] Video components data:", {
+    hasComponents: !!video.components,
+    components: video.components,
+    componentType: typeof video.components,
+    componentKeys: video.components ? Object.keys(video.components) : [],
+    videoId: video.id,
+    videoTitle: video.title,
+  });
+
   if (!video.components || typeof video.components !== "object") {
     return (
       <Card>

@@ -23,6 +23,18 @@ export function VideoPreviewWithMetrics({ video, showMetrics = true }: VideoPrev
     return num.toString();
   };
 
+  const handlePlayVideo = () => {
+    console.log("🎮 [Video Preview] Play button clicked for:", video.title);
+    console.log("🎮 [Video Preview] Original URL:", video.originalUrl);
+
+    if (video.originalUrl) {
+      // Open video in new tab
+      window.open(video.originalUrl, "_blank");
+    } else {
+      console.warn("⚠️ [Video Preview] No originalUrl found for video:", video.id);
+    }
+  };
+
   return (
     <div className="relative h-full w-full">
       {/* Video Preview - fills the container */}
@@ -48,7 +60,11 @@ export function VideoPreviewWithMetrics({ video, showMetrics = true }: VideoPrev
 
       {/* Play Button Overlay */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <Button size="icon" className="h-16 w-16 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30">
+        <Button
+          size="icon"
+          className="h-16 w-16 rounded-full bg-white/20 backdrop-blur-sm transition-all hover:scale-110 hover:bg-white/30"
+          onClick={handlePlayVideo}
+        >
           <Play className="h-8 w-8 fill-white text-white" />
         </Button>
       </div>

@@ -7,7 +7,7 @@ import { Zap, FileText, Copy, CheckCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Video } from "@/lib/collections";
@@ -187,9 +187,36 @@ export function DailyVideoInsightsDialog({ video, open, onOpenChange }: DailyVid
 
   if (!video) return null;
 
+  // Enhanced debug logging for video data structure
+  console.log("🎬 [Video Insights Dialog] Complete video object:", {
+    id: video.id,
+    title: video.title,
+    platform: video.platform,
+    thumbnailUrl: video.thumbnailUrl,
+    originalUrl: video.originalUrl,
+    transcript: video.transcript?.substring(0, 100) + "...",
+    hasTranscript: !!video.transcript,
+    transcriptLength: video.transcript?.length ?? 0,
+    components: video.components,
+    hasComponents: !!video.components,
+    metrics: video.metrics,
+    hasMetrics: !!video.metrics,
+    metadata: video.metadata,
+    hasMetadata: !!video.metadata,
+    hook: (video as any).hook,
+    hasHook: !!(video as any).hook,
+    allKeys: Object.keys(video),
+  });
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="h-[calc(90vh-13px)] !max-w-[1200px] overflow-hidden p-0">
+        <DialogHeader className="sr-only">
+          <DialogTitle>{video.title} - Video Insights</DialogTitle>
+          <DialogDescription>
+            Video insights and analysis for {video.title} from {video.platform}
+          </DialogDescription>
+        </DialogHeader>
         <div className="flex h-full min-h-0">
           {/* Fixed Video Column */}
           <div className="flex h-[600px] w-[400px] max-w-[400px] min-w-[400px] items-center justify-center bg-black">
