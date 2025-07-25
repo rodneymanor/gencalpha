@@ -229,15 +229,15 @@ export function DailyVideoInsightsDialog({ video, open, onOpenChange }: DailyVid
 
                 {/* Scrollable Tab Contents */}
                 <div className="flex-1 overflow-y-auto px-6 py-6">
-                  <TabsContent value="insights" className="mt-0 h-full">
+                  <TabsContent value="insights" className="mt-0">
                     <MainInsightsTab video={video} copiedText={copiedText} onCopy={copyToClipboard} />
                   </TabsContent>
 
-                  <TabsContent value="script" className="mt-0 h-full">
+                  <TabsContent value="script" className="mt-0">
                     <ScriptComponents video={video} copiedText={copiedText} onCopy={copyToClipboard} />
                   </TabsContent>
 
-                  <TabsContent value="metadata" className="mt-0 h-full">
+                  <TabsContent value="metadata" className="mt-0">
                     <MetadataTab video={video} />
                   </TabsContent>
                 </div>
