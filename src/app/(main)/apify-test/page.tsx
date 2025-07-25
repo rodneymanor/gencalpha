@@ -574,12 +574,14 @@ export default function ApifyTestPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="tiktok-scraper-videos">Video URLs (comma-separated)</Label>
+                  <Label htmlFor="tiktok-scraper-videos" className="text-muted-foreground">Video URLs (currently not supported)</Label>
                   <Textarea
                     id="tiktok-scraper-videos"
-                    placeholder="https://www.tiktok.com/@user/video/123, https://www.tiktok.com/@user/video/456"
+                    placeholder="Video URL support is not available with the current TikTok scraper"
                     value={tiktokScraper.videoUrls}
                     onChange={(e) => setTiktokScraper(prev => ({ ...prev, videoUrls: e.target.value }))}
+                    disabled
+                    className="bg-muted/50"
                   />
                 </div>
 
@@ -605,7 +607,7 @@ export default function ApifyTestPage() {
 
                 <Button 
                   onClick={testTiktokScraper} 
-                  disabled={testStates.tiktokScraper.loading || (!tiktokScraper.profiles && !tiktokScraper.hashtags && !tiktokScraper.videoUrls && !tiktokScraper.searchQueries)}
+                  disabled={testStates.tiktokScraper.loading || (!tiktokScraper.profiles && !tiktokScraper.hashtags && !tiktokScraper.searchQueries)}
                   className="w-full"
                 >
                   {testStates.tiktokScraper.loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
