@@ -157,27 +157,33 @@ export class UnifiedVideoScraper {
 
     const tiktokData = apiResult.data[0]; // First result
 
+    // Extract video URL from subtitleLinks (TikTok's video download link)
+    const videoUrl = tiktokData.videoMeta?.subtitleLinks?.[0]?.downloadLink 
+      || tiktokData.videoUrl 
+      || tiktokData.playAddr 
+      || '';
+
     return {
       platform: 'tiktok',
-      shortCode: tiktokData.id || 'unknown',
-      videoUrl: tiktokData.videoUrl || tiktokData.playAddr || '',
-      thumbnailUrl: tiktokData.covers?.[0] || tiktokData.dynamicCover || tiktokData.originCover || '',
-      title: tiktokData.desc || tiktokData.title || `TikTok by @${tiktokData.author?.uniqueId}`,
-      author: tiktokData.author?.uniqueId || tiktokData.author?.nickname || 'unknown',
-      description: tiktokData.desc || tiktokData.title || '',
-      hashtags: tiktokData.textExtra?.filter((item: any) => item.hashtagName)?.map((item: any) => item.hashtagName) || [],
+      shortCode: tiktokData.id ?? 'unknown',
+      videoUrl,
+      thumbnailUrl: tiktokData.videoMeta?.coverUrl ?? tiktokData.covers?.[0] ?? tiktokData.dynamicCover ?? tiktokData.originCover ?? '',
+      title: tiktokData.text ?? tiktokData.desc ?? tiktokData.title ?? `TikTok by @${tiktokData.authorMeta?.name}`,
+      author: tiktokData.authorMeta?.name ?? tiktokData.author?.uniqueId ?? tiktokData.author?.nickname ?? 'unknown',
+      description: tiktokData.text ?? tiktokData.desc ?? tiktokData.title ?? '',
+      hashtags: tiktokData.textExtra?.filter((item: any) => item.hashtagName)?.map((item: any) => item.hashtagName) ?? [],
       metrics: {
-        likes: tiktokData.stats?.diggCount || tiktokData.digg_count || 0,
-        views: tiktokData.stats?.playCount || tiktokData.play_count || 0,
-        comments: tiktokData.stats?.commentCount || tiktokData.comment_count || 0,
-        shares: tiktokData.stats?.shareCount || tiktokData.share_count || 0,
-        saves: tiktokData.stats?.collectCount || 0,
+        likes: tiktokData.diggCount ?? tiktokData.stats?.diggCount ?? tiktokData.digg_count ?? 0,
+        views: tiktokData.playCount ?? tiktokData.stats?.playCount ?? tiktokData.play_count ?? 0,
+        comments: tiktokData.commentCount ?? tiktokData.stats?.commentCount ?? tiktokData.comment_count ?? 0,
+        shares: tiktokData.shareCount ?? tiktokData.stats?.shareCount ?? tiktokData.share_count ?? 0,
+        saves: tiktokData.collectCount ?? tiktokData.stats?.collectCount ?? 0,
       },
       metadata: {
-        duration: tiktokData.video?.duration || tiktokData.musicMeta?.duration || 0,
-        timestamp: tiktokData.createTime ? new Date(tiktokData.createTime * 1000).toISOString() : undefined,
-        isVerified: tiktokData.author?.verified || false,
-        followerCount: tiktokData.authorStats?.followerCount || 0,
+        duration: tiktokData.videoMeta?.duration ?? tiktokData.video?.duration ?? tiktokData.musicMeta?.duration ?? 0,
+        timestamp: tiktokData.createTime ? new Date(tiktokData.createTime * 1000).toISOString() : tiktokData.createTimeISO,
+        isVerified: tiktokData.authorMeta?.verified ?? tiktokData.author?.verified ?? false,
+        followerCount: tiktokData.authorMeta?.fans ?? tiktokData.authorStats?.followerCount ?? 0,
       },
       rawData: tiktokData,
     };
