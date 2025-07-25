@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+
 import { PanelRight, Sparkles, Save } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -19,10 +21,12 @@ interface SimpleScriptEditorProps {
 export function SimpleScriptEditor({ initialValue = "", onSave, className }: SimpleScriptEditorProps) {
   const { isPanelOpen, openPanel, editorContent, setEditorContent, scriptComponents } = useSimpleScript();
 
-  // Initialize editor content
-  if (initialValue && !editorContent) {
-    setEditorContent(initialValue);
-  }
+  // Initialize editor content properly in useEffect
+  useEffect(() => {
+    if (initialValue && !editorContent) {
+      setEditorContent(initialValue);
+    }
+  }, [initialValue, editorContent, setEditorContent]);
 
   const handleSave = () => {
     if (onSave) {
