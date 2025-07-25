@@ -215,7 +215,7 @@ export function DailyVideoInsightsDialog({ video, open, onOpenChange }: DailyVid
       <DialogContent className="h-[90vh] !max-w-[1400px] overflow-hidden p-0">
         <div className="flex h-full">
           {/* Fixed Video Column */}
-          <div className="flex w-[400px] max-w-[400px] min-w-[400px] items-center justify-center bg-black">
+          <div className="flex h-[600px] w-[400px] max-w-[400px] min-w-[400px] items-center justify-center bg-black">
             <VideoPreviewWithMetrics video={video} showMetrics={false} />
           </div>
 
