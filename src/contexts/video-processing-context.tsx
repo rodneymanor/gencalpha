@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 
 import type { VideoProcessingJob } from "@/lib/simple-video-queue";
 
@@ -21,8 +21,8 @@ export function VideoProcessingProvider({ children }: { children: React.ReactNod
       const response = await fetch("/api/video/processing-status");
       if (response.ok) {
         const data = await response.json();
-        setJobs(data.activeJobs || []);
-        return data.activeJobs || [];
+        setJobs(data.activeJobs ?? []);
+        return data.activeJobs ?? [];
       }
     } catch (error) {
       console.error("Failed to fetch processing jobs:", error);
@@ -34,44 +34,36 @@ export function VideoProcessingProvider({ children }: { children: React.ReactNod
     await fetchJobs();
   }, [fetchJobs]);
 
-  // Smart polling logic
+  // Smart polling logic - only poll when there are active jobs
   useEffect(() => {
+    const activeJobs = jobs.filter((job) => job.status === "pending" || job.status === "processing");
+
     let interval: NodeJS.Timeout | null = null;
 
-    const startPolling = () => {
-      if (interval) return; // Already polling
+    if (activeJobs.length > 0) {
+      // Active jobs: poll every 3 seconds
+      console.log(`🔄 Starting polling for ${activeJobs.length} active jobs`);
+      setIsPolling(true);
+      interval = setInterval(fetchJobs, 3000);
+    } else {
+      // No active jobs: stop polling completely
+      console.log("⏹️ No active jobs - stopping polling");
+      setIsPolling(false);
+    }
 
-      const activeJobs = jobs.filter((job) => job.status === "pending" || job.status === "processing");
-
-      if (activeJobs.length > 0) {
-        // Active jobs: poll every 3 seconds
-        console.log(`🔄 Starting active polling for ${activeJobs.length} jobs`);
-        setIsPolling(true);
-        interval = setInterval(fetchJobs, 3000);
-      } else {
-        // No active jobs: check every 30 seconds for new jobs
-        console.log("💤 Starting idle polling");
-        setIsPolling(false);
-        interval = setInterval(fetchJobs, 30000);
-      }
-    };
-
-    const stopPolling = () => {
+    return () => {
       if (interval) {
         clearInterval(interval);
-        interval = null;
-        setIsPolling(false);
-        console.log("⏹️ Stopped polling");
+        console.log("🛑 Cleaned up polling interval");
       }
     };
+  }, [jobs.length, fetchJobs]); // Include fetchJobs since it's stable (memoized)
 
-    // Initial fetch
-    fetchJobs().then(() => {
-      startPolling();
-    });
-
-    return stopPolling;
-  }, [jobs.length, fetchJobs]);
+  // Initial fetch on mount
+  useEffect(() => {
+    console.log("🚀 VideoProcessingContext: Initial fetch");
+    fetchJobs();
+  }, [fetchJobs]); // Include fetchJobs dependency
 
   // Log polling status changes
   useEffect(() => {
@@ -82,11 +74,14 @@ export function VideoProcessingProvider({ children }: { children: React.ReactNod
     }
   }, [jobs]);
 
-  const value: VideoProcessingContextType = {
-    jobs,
-    refreshJobs,
-    isPolling,
-  };
+  const value: VideoProcessingContextType = useMemo(
+    () => ({
+      jobs,
+      refreshJobs,
+      isPolling,
+    }),
+    [jobs, refreshJobs, isPolling],
+  );
 
   return <VideoProcessingContext.Provider value={value}>{children}</VideoProcessingContext.Provider>;
 }
