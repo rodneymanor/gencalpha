@@ -200,7 +200,7 @@ export function getBaseUrl(): string {
 export const APIFY_ACTORS = {
   INSTAGRAM_PROFILE: 'apify/instagram-scraper',
   INSTAGRAM_REEL: 'apify/instagram-scraper',
-  INSTAGRAM_HASHTAG: 'apify/instagram-hashtag-scraper',
+  INSTAGRAM_HASHTAG: 'apify/instagram-scraper',
   TIKTOK_PROFILE: 'clockworks/tiktok-scraper',
   TIKTOK_SCRAPER: 'clockworks/tiktok-scraper',
 } as const;
