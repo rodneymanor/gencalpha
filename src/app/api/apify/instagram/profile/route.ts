@@ -31,32 +31,34 @@ export interface InstagramProfileData {
 function mapToInstagramProfile(item: unknown): InstagramProfileData {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const data = item as any;
+  
+  // Instagram Profile Scraper output format
   return {
-    username: data.username ?? '',
-    fullName: data.fullName ?? '',
-    biography: data.biography ?? '',
-    followersCount: data.followersCount ?? 0,
-    followingCount: data.followingCount ?? 0,
-    postsCount: data.postsCount ?? 0,
-    isVerified: data.isVerified ?? false,
-    profilePicUrl: data.profilePicUrl ?? '',
-    isPrivate: data.isPrivate ?? false,
-    externalUrl: data.externalUrl,
-    posts: data.latestPosts?.map((post: unknown) => {
+    username: data.username ?? data.userName ?? '',
+    fullName: data.fullName ?? data.full_name ?? '',
+    biography: data.biography ?? data.bio ?? '',
+    followersCount: data.followersCount ?? data.followers_count ?? data.followedByCount ?? 0,
+    followingCount: data.followingCount ?? data.following_count ?? data.followsCount ?? 0,
+    postsCount: data.postsCount ?? data.posts_count ?? data.mediaCount ?? 0,
+    isVerified: data.isVerified ?? data.is_verified ?? data.verified ?? false,
+    profilePicUrl: data.profilePicUrl ?? data.profile_pic_url ?? data.profilePictureUrl ?? '',
+    isPrivate: data.isPrivate ?? data.is_private ?? data.private ?? false,
+    externalUrl: data.externalUrl ?? data.external_url ?? data.website ?? data.bioLinks?.[0],
+    posts: data.posts?.map((post: unknown) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const postData = post as any;
       return {
         id: postData.id ?? '',
-        shortcode: postData.shortcode ?? '',
-        url: postData.url ?? '',
-        type: postData.type ?? 'image',
-        caption: postData.caption ?? '',
-        timestamp: postData.timestamp ?? '',
-        likesCount: postData.likesCount ?? 0,
-        commentsCount: postData.commentsCount ?? 0,
-        videoUrl: postData.videoUrl,
-        imageUrl: postData.imageUrl,
-        displayUrl: postData.displayUrl ?? '',
+        shortcode: postData.shortcode ?? postData.code ?? '',
+        url: postData.url ?? `https://www.instagram.com/p/${postData.shortcode ?? postData.code}/`,
+        type: postData.type ?? (postData.isVideo ? 'video' : 'image'),
+        caption: postData.caption ?? postData.text ?? '',
+        timestamp: postData.timestamp ?? postData.taken_at ?? postData.createdTime ?? '',
+        likesCount: postData.likesCount ?? postData.likes_count ?? postData.likeCount ?? 0,
+        commentsCount: postData.commentsCount ?? postData.comments_count ?? postData.commentCount ?? 0,
+        videoUrl: postData.videoUrl ?? postData.video_url,
+        imageUrl: postData.imageUrl ?? postData.image_url ?? postData.displayUrl,
+        displayUrl: postData.displayUrl ?? postData.display_url ?? postData.imageUrl ?? '',
       };
     }) ?? [],
   };
@@ -87,10 +89,10 @@ async function scrapeInstagramProfile(input: InstagramProfileRequest): Promise<I
 
   console.log(`📸 Scraping Instagram profiles: ${usernames.join(', ')}`);
 
+  // Instagram Profile Scraper input schema - simple usernames array
   const apifyInput = {
     usernames: usernames,
-    resultsType: input.includeDetails ? 'details' : 'posts', 
-    resultsLimit: input.resultsLimit ?? 50,
+    // Optional parameters for Instagram Profile Scraper
     proxyConfiguration: {
       useApifyProxy: true
     }
