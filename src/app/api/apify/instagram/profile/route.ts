@@ -59,6 +59,9 @@ async function scrapeInstagramProfile(input: InstagramProfileRequest): Promise<I
     resultsLimit: input.resultsLimit ?? 50,
     searchType: 'user',
     searchLimit: 1,
+    proxyConfiguration: {
+      useApifyProxy: true
+    }
   };
 
   validateApifyInput(apifyInput, ['usernames']);

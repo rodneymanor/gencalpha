@@ -60,14 +60,22 @@ async function scrapeInstagramReel(input: InstagramReelRequest): Promise<Instagr
   if (input.url || input.urls) {
     apifyInput = {
       directUrls: input.url ? [input.url] : input.urls ?? [],
+      resultsType: 'details',
       resultsLimit: input.resultsLimit ?? 50,
+      proxyConfiguration: {
+        useApifyProxy: true
+      }
     };
     validateApifyInput(apifyInput, ['directUrls']);
   } else if (input.username) {
     apifyInput = {
       usernames: [input.username],
+      resultsType: 'details',
       resultsLimit: input.resultsLimit ?? 50,
       searchType: 'user',
+      proxyConfiguration: {
+        useApifyProxy: true
+      }
     };
     validateApifyInput(apifyInput, ['usernames']);
   } else {

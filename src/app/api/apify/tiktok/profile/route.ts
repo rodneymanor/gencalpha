@@ -83,11 +83,14 @@ async function scrapeTikTokProfile(input: TikTokProfileRequest): Promise<TikTokP
   const client = new ApifyClient();
   
   const apifyInput = {
-    profiles: input.username ? [input.username] : input.usernames || [],
+    profiles: input.username ? [input.username] : input.usernames ?? [],
     resultsLimit: input.resultsLimit ?? 50,
     shouldDownloadVideos: input.downloadVideos ?? false,
     shouldDownloadCovers: false,
     shouldDownloadSubtitles: false,
+    proxyConfiguration: {
+      useApifyProxy: true
+    }
   };
 
   validateApifyInput(apifyInput, ['profiles']);
