@@ -190,16 +190,16 @@ export function DailyVideoInsightsDialog({ video, open, onOpenChange }: DailyVid
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="h-[calc(90vh-13px)] !max-w-[1200px] overflow-hidden p-0">
-        <div className="flex h-full">
+        <div className="flex h-full min-h-0">
           {/* Fixed Video Column */}
           <div className="flex h-[600px] w-[400px] max-w-[400px] min-w-[400px] items-center justify-center bg-black">
             <VideoPreviewWithMetrics video={video} showMetrics={false} />
           </div>
 
           {/* Main Content Panel */}
-          <div className="bg-background flex flex-1 flex-col">
+          <div className="bg-background flex h-full min-h-0 flex-1 flex-col">
             {/* Header with video info */}
-            <div className="border-b px-6 py-4">
+            <div className="flex-shrink-0 border-b px-6 py-4">
               <div className="flex items-center gap-3">
                 <Badge
                   className={cn(
@@ -216,51 +216,52 @@ export function DailyVideoInsightsDialog({ video, open, onOpenChange }: DailyVid
               </div>
             </div>
 
-            {/* Tab Content Area */}
-            <div className="flex flex-1 flex-col overflow-hidden">
-              <Tabs defaultValue="insights" className="flex h-full flex-col">
-                <div className="bg-muted/30 border-b px-6 py-4">
-                  <TabsList className="bg-background grid w-full grid-cols-3 border shadow-sm">
-                    <TabsTrigger
-                      value="insights"
-                      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium"
-                    >
-                      Insights
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="script"
-                      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium"
-                    >
-                      Script Components
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="metadata"
-                      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium"
-                    >
-                      Metadata
-                    </TabsTrigger>
-                  </TabsList>
-                </div>
+            {/* Tabs Container */}
+            <Tabs defaultValue="insights" className="flex min-h-0 flex-1 flex-col">
+              {/* Tab List - Fixed Height */}
+              <div className="bg-muted/30 flex-shrink-0 border-b px-6 py-4">
+                <TabsList className="bg-background grid w-full grid-cols-3 border shadow-sm">
+                  <TabsTrigger
+                    value="insights"
+                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium"
+                  >
+                    Insights
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="script"
+                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium"
+                  >
+                    Script Components
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="metadata"
+                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium"
+                  >
+                    Metadata
+                  </TabsTrigger>
+                </TabsList>
+              </div>
 
-                {/* Scrollable Tab Contents */}
-                <div className="flex-1 overflow-y-auto px-6 py-6">
-                  <TabsContent value="insights" className="mt-0">
-                    <MainInsightsTab video={video} copiedText={copiedText} onCopy={copyToClipboard} />
-                  </TabsContent>
+              {/* Scrollable Tab Contents */}
+              <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
+                <TabsContent value="insights" className="mt-0">
+                  <MainInsightsTab video={video} copiedText={copiedText} onCopy={copyToClipboard} />
+                </TabsContent>
 
-                  <TabsContent value="script" className="mt-0">
-                    <ScriptComponents video={video} copiedText={copiedText} onCopy={copyToClipboard} />
-                  </TabsContent>
+                <TabsContent value="script" className="mt-0">
+                  <ScriptComponents video={video} copiedText={copiedText} onCopy={copyToClipboard} />
+                </TabsContent>
 
-                  <TabsContent value="metadata" className="mt-0">
-                    <MetadataTab video={video} />
-                  </TabsContent>
-                </div>
-              </Tabs>
-            </div>
+                <TabsContent value="metadata" className="mt-0">
+                  <MetadataTab video={video} />
+                </TabsContent>
+              </div>
+            </Tabs>
 
             {/* Sticky Footer - Always Visible */}
-            <StickyActionButtons video={video} />
+            <div className="flex-shrink-0">
+              <StickyActionButtons video={video} />
+            </div>
           </div>
         </div>
       </DialogContent>
