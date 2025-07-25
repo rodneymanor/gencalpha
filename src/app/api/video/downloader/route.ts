@@ -1,15 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { getTikTokAdditionalMetadata, getTikTokMetrics } from "@/lib/tiktok-downloader";
-import {
-  downloadTikTokVideo,
-  downloadInstagramVideoWithMetrics,
-  detectPlatform,
-  type DownloadResult,
-} from "@/lib/video-processing-helpers";
+import { scrapeVideoUrl, UnifiedVideoScraper, type UnifiedVideoResult } from "@/lib/unified-video-scraper";
 
 export async function POST(request: NextRequest) {
-  console.log("📥 [DOWNLOADER] Starting video download service...");
+  console.log("📥 [DOWNLOADER] Starting unified video download service...");
 
   try {
     const { url } = await request.json();
@@ -24,61 +18,65 @@ export async function POST(request: NextRequest) {
     console.log("🔍 [DOWNLOADER] Processing URL:", url);
     console.log("🔍 [DOWNLOADER] Decoded URL:", decodedUrl);
 
-    const platform = detectPlatform(decodedUrl);
-    console.log("🎯 [DOWNLOADER] Platform detected:", platform);
-
-    if (!["tiktok", "instagram"].includes(platform)) {
-      console.error("❌ [DOWNLOADER] Unsupported platform:", platform);
+    // Validate URL with detailed error message
+    const validation = UnifiedVideoScraper.validateUrlWithMessage(decodedUrl);
+    if (!validation.valid) {
+      console.error("❌ [DOWNLOADER] Invalid URL:", validation.message);
       return NextResponse.json(
-        {
-          error: "Only TikTok and Instagram videos are supported for download",
-        },
+        { error: validation.message },
         { status: 400 },
       );
     }
 
-    const downloadResult = await downloadVideo(decodedUrl, platform);
+    console.log("🎯 [DOWNLOADER] Platform detected:", validation.platform);
 
-    if (!downloadResult) {
-      console.error("❌ [DOWNLOADER] Failed to download video");
+    // Use the new unified scraper to get video data
+    const videoData = await scrapeVideoUrl(decodedUrl);
+
+    if (!videoData) {
+      console.error("❌ [DOWNLOADER] Failed to scrape video data");
       return NextResponse.json(
         {
-          error: "Failed to download video from the provided URL",
+          error: "Failed to extract video data from the provided URL",
         },
         { status: 500 },
       );
     }
 
-    console.log("✅ [DOWNLOADER] Video downloaded successfully");
+    console.log("✅ [DOWNLOADER] Video data extracted successfully");
     console.log("📊 [DOWNLOADER] Video info:");
-    console.log("  - Size:", Math.round((downloadResult.videoData.size / 1024 / 1024) * 100) / 100, "MB");
-    console.log("  - Type:", downloadResult.videoData.mimeType);
-    console.log("  - Platform:", platform);
+    console.log(`  - Platform: ${videoData.platform}`);
+    console.log(`  - Author: @${videoData.author}`);
+    console.log(`  - Title: ${videoData.title}`);
+    console.log(`  - Views: ${videoData.metrics.views}`);
+
+    // For now, we'll simulate video download by fetching the video URL
+    // In the future, you might want to actually download the video buffer
+    const videoBuffer = await downloadVideoBuffer(videoData.videoUrl);
 
     return NextResponse.json({
       success: true,
-      platform,
+      platform: videoData.platform,
       videoData: {
-        buffer: Array.from(new Uint8Array(downloadResult.videoData.buffer)),
-        size: downloadResult.videoData.size,
-        mimeType: downloadResult.videoData.mimeType,
-        filename: downloadResult.videoData.filename ?? `${platform}-video.mp4`,
+        buffer: Array.from(new Uint8Array(videoBuffer)),
+        size: videoBuffer.length,
+        mimeType: "video/mp4",
+        filename: `${videoData.platform}-${videoData.shortCode}.mp4`,
       },
-      metrics: downloadResult.metrics ?? {
-        likes: 0,
-        views: 0,
-        shares: 0,
-        comments: 0,
-        saves: 0,
-      },
-      additionalMetadata: downloadResult.additionalMetadata ?? {
-        author: "Unknown",
-        duration: 0,
+      metrics: videoData.metrics,
+      additionalMetadata: {
+        author: videoData.author,
+        description: videoData.description,
+        hashtags: videoData.hashtags,
+        duration: videoData.metadata.duration || 0,
+        timestamp: videoData.metadata.timestamp,
       },
       metadata: {
         originalUrl: decodedUrl,
-        platform,
+        platform: videoData.platform,
         downloadedAt: new Date().toISOString(),
+        shortCode: videoData.shortCode,
+        thumbnailUrl: videoData.thumbnailUrl,
       },
     });
   } catch (error) {
@@ -93,21 +91,27 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function downloadVideo(url: string, platform: string): Promise<DownloadResult | null> {
-  if (platform === "tiktok") {
-    const videoResult = await downloadTikTokVideo(url);
-    if (!videoResult) return null;
+/**
+ * Download video buffer from URL
+ * This function actually fetches the video file from the direct URL
+ */
+async function downloadVideoBuffer(videoUrl: string): Promise<ArrayBuffer> {
+  console.log("⬇️ [DOWNLOADER] Downloading video from:", videoUrl);
 
-    const additionalMetadata = await getTikTokAdditionalMetadata(url);
-    const metrics = await getTikTokMetrics(url);
+  const response = await fetch(videoUrl);
 
-    return {
-      videoData: videoResult,
-      additionalMetadata: additionalMetadata as any, // include description & hashtags
-      metrics,
-    };
-  } else if (platform === "instagram") {
-    return await downloadInstagramVideoWithMetrics(url);
+  if (!response.ok) {
+    throw new Error(`Failed to download video: ${response.status} ${response.statusText}`);
   }
-  return null;
+
+  const contentLength = response.headers.get("content-length");
+  if (contentLength) {
+    const sizeMB = Math.round((parseInt(contentLength) / 1024 / 1024) * 100) / 100;
+    console.log(`📦 [DOWNLOADER] Video size: ${sizeMB}MB`);
+  }
+
+  const arrayBuffer = await response.arrayBuffer();
+  console.log(`✅ [DOWNLOADER] Video buffer downloaded: ${arrayBuffer.byteLength} bytes`);
+
+  return arrayBuffer;
 }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { ApifyInstagramScraper } from "@/lib/apify-instagram-scraper";
+import { UnifiedVideoScraper } from "@/lib/unified-video-scraper";
 import { videoQueue } from "@/lib/simple-video-queue";
 
 interface AddToQueueRequest {
@@ -19,12 +19,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Video URL is required" }, { status: 400 });
     }
 
-    // Validate Instagram URL
-    if (!ApifyInstagramScraper.isValidInstagramUrl(videoUrl)) {
+    // Validate video URL using unified scraper
+    const validation = UnifiedVideoScraper.validateUrlWithMessage(videoUrl);
+    if (!validation.valid) {
       return NextResponse.json(
         {
           success: false,
-          error: "Please provide a valid Instagram URL (reels, posts, or IGTV)",
+          error: validation.message,
         },
         { status: 400 },
       );
@@ -76,11 +77,11 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   return NextResponse.json({
     message: "Video Queue API",
-    description: "Add Instagram videos to background processing queue",
+    description: "Add TikTok and Instagram videos to background processing queue",
     usage: {
       "POST /api/video/add-to-queue": {
         body: {
-          videoUrl: "Instagram URL (required)",
+          videoUrl: "TikTok or Instagram URL (required)",
           collectionId: "Collection ID (optional)",
           userId: "User ID (optional, get from auth in production)",
         },
@@ -97,6 +98,11 @@ export async function GET() {
       "Real-time progress updates",
       "Notification badge integration",
       "Automatic retry on failure",
+      "Supports both TikTok and Instagram",
     ],
+    supportedPlatforms: {
+      tiktok: ["https://www.tiktok.com/@user/video/123", "https://vm.tiktok.com/ABC123", "https://tiktok.com/t/ABC123"],
+      instagram: ["https://www.instagram.com/reel/ABC123", "https://www.instagram.com/p/ABC123", "https://www.instagram.com/tv/ABC123"],
+    },
   });
 }

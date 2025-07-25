@@ -1,9 +1,9 @@
 /**
  * Simple In-Memory Video Processing Queue
- * Idiot-proof solution for Instagram video processing
+ * Idiot-proof solution for TikTok and Instagram video processing via unified scraper
  */
 
-import { scrapeInstagramUrl } from "@/lib/apify-instagram-scraper";
+import { scrapeVideoUrl, type UnifiedVideoResult } from "@/lib/unified-video-scraper";
 
 export interface VideoProcessingJob {
   id: string;
@@ -135,28 +135,30 @@ class SimpleVideoQueue {
       // Update to processing
       job.status = "processing";
       job.progress = 10;
-      job.message = "Starting Instagram scrape...";
+      job.message = "Starting video scrape...";
       this.jobs.set(jobId, job);
 
-      // Step 1: Scrape Instagram data
+      // Step 1: Scrape video data (TikTok or Instagram)
       job.progress = 25;
       job.message = "Extracting video metadata...";
       this.jobs.set(jobId, job);
 
-      const instagramData = await scrapeInstagramUrl(job.url);
+      const videoData = await scrapeVideoUrl(job.url);
 
-      if (!instagramData) {
-        throw new Error("Failed to extract video data from Instagram");
+      if (!videoData) {
+        throw new Error(`Failed to extract video data from ${videoData?.platform || 'unknown platform'}`);
       }
+
+      console.log(`✅ [QUEUE] Scraped ${videoData.platform} video by @${videoData.author}`);
 
       // Step 2: Get video download URL
       job.progress = 50;
       job.message = "Getting video download link...";
       this.jobs.set(jobId, job);
 
-      const videoUrl = instagramData.videoUrl || instagramData.videoUrlBackup;
+      const videoUrl = videoData.videoUrl;
       if (!videoUrl) {
-        throw new Error("No video download URL found");
+        throw new Error(`No video download URL found for ${videoData.platform} video`);
       }
 
       // Step 3: Call your existing video processing API
@@ -164,7 +166,7 @@ class SimpleVideoQueue {
       job.message = "Adding to collection...";
       this.jobs.set(jobId, job);
 
-      const response = await this.callVideoProcessingAPI(job, instagramData);
+      const response = await this.callVideoProcessingAPI(job, videoData);
 
       if (!response.success) {
         throw new Error(response.error || "Video processing failed");
@@ -176,10 +178,10 @@ class SimpleVideoQueue {
       job.message = "Video added successfully!";
       job.completedAt = new Date();
       job.result = {
-        videoId: response.video?.id || instagramData.shortCode,
-        thumbnailUrl: instagramData.thumbnailUrl || instagramData.imageUrl,
-        title: instagramData.caption || `Video by @${instagramData.ownerUsername}`,
-        author: instagramData.ownerUsername,
+        videoId: response.video?.id || videoData.shortCode,
+        thumbnailUrl: videoData.thumbnailUrl,
+        title: videoData.title,
+        author: videoData.author,
         videoUrl: videoUrl,
       };
       this.jobs.set(jobId, job);
@@ -202,7 +204,7 @@ class SimpleVideoQueue {
   /**
    * Call your existing video processing API
    */
-  private async callVideoProcessingAPI(job: VideoProcessingJob, instagramData: any) {
+  private async callVideoProcessingAPI(job: VideoProcessingJob, videoData: UnifiedVideoResult) {
     try {
       // Determine the base URL
       const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000";
@@ -219,11 +221,18 @@ class SimpleVideoQueue {
           userId: job.userId,
           // Pass the scraped data to avoid re-scraping
           scrapedData: {
-            videoUrl: instagramData.videoUrl || instagramData.videoUrlBackup,
-            thumbnailUrl: instagramData.thumbnailUrl || instagramData.imageUrl,
-            title: instagramData.caption,
-            author: instagramData.ownerUsername,
-            metadata: instagramData,
+            platform: videoData.platform,
+            videoUrl: videoData.videoUrl,
+            thumbnailUrl: videoData.thumbnailUrl,
+            title: videoData.title,
+            author: videoData.author,
+            description: videoData.description,
+            hashtags: videoData.hashtags,
+            metrics: videoData.metrics,
+            metadata: {
+              ...videoData.metadata,
+              rawData: videoData.rawData,
+            },
           },
         }),
       });

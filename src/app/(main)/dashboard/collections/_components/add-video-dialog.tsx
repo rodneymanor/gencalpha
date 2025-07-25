@@ -29,13 +29,14 @@ const formSchema = z.object({
     .url("Please enter a valid URL")
     .refine((url) => {
       const lowerUrl = url.toLowerCase();
-      return (
-        lowerUrl.includes("tiktok.com") ||
-        lowerUrl.includes("vm.tiktok.com") ||
-        (lowerUrl.includes("instagram.com") &&
-          (lowerUrl.includes("/reel") || lowerUrl.includes("/p/") || lowerUrl.includes("/tv/")))
-      );
-    }, "Please enter a valid TikTok or Instagram Reel URL"),
+      // TikTok patterns
+      const isTikTok = lowerUrl.includes("tiktok.com") || lowerUrl.includes("vm.tiktok.com");
+      // Instagram patterns
+      const isInstagram = lowerUrl.includes("instagram.com") &&
+        (lowerUrl.includes("/reel") || lowerUrl.includes("/p/") || lowerUrl.includes("/tv/"));
+      
+      return isTikTok || isInstagram;
+    }, "Please enter a valid TikTok or Instagram video URL"),
   collectionId: z.string().min(1, "Please select a collection"),
 });
 
@@ -124,7 +125,10 @@ export function AddVideoDialog({ open, onOpenChange, selectedCollectionId = "all
                 <FormItem>
                   <FormLabel>Video URL</FormLabel>
                   <FormControl>
-                    <Input placeholder="https://www.tiktok.com/@username/video/..." {...field} />
+                    <Input 
+                      placeholder="https://www.tiktok.com/@username/video/... or https://www.instagram.com/reel/..." 
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
