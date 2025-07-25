@@ -121,17 +121,51 @@ function StickyActionButtons({ video }: { video: Video }) {
     console.log("✏️ Video transcript:", video.transcript);
   };
 
+  const formatNumber = (num: number): string => {
+    if (num >= 1000000) {
+      return (num / 1000000).toFixed(1) + "M";
+    } else if (num >= 1000) {
+      return (num / 1000).toFixed(1) + "K";
+    }
+    return num.toString();
+  };
+
   return (
-    <div className="bg-background sticky bottom-0 border-t px-4 py-3">
-      <div className="flex justify-end gap-3">
-        <Button onClick={handleRewriteScript} variant="outline" className="gap-2" disabled={!video.transcript}>
-          <FileText className="h-4 w-4" />
-          Rewrite Script
-        </Button>
-        <Button onClick={handleRemixScript} className="gap-2" disabled={!video.transcript}>
-          <Zap className="h-4 w-4" />
-          Remix Script
-        </Button>
+    <div className="bg-background border-t px-4 py-3">
+      <div className="flex items-center justify-between">
+        {/* Video Metrics */}
+        {video.metrics && (
+          <div className="flex items-center gap-6 text-sm">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold">{formatNumber(video.metrics.views)}</span>
+              <span className="text-muted-foreground">views</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-semibold">{formatNumber(video.metrics.likes)}</span>
+              <span className="text-muted-foreground">likes</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-semibold">{formatNumber(video.metrics.comments)}</span>
+              <span className="text-muted-foreground">comments</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-semibold">{formatNumber(video.metrics.shares)}</span>
+              <span className="text-muted-foreground">shares</span>
+            </div>
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        <div className="flex gap-3">
+          <Button onClick={handleRewriteScript} variant="outline" className="gap-2" disabled={!video.transcript}>
+            <FileText className="h-4 w-4" />
+            Rewrite Script
+          </Button>
+          <Button onClick={handleRemixScript} className="gap-2" disabled={!video.transcript}>
+            <Zap className="h-4 w-4" />
+            Remix Script
+          </Button>
+        </div>
       </div>
       {!video.transcript && (
         <p className="text-muted-foreground mt-2 text-right text-xs">Transcript required for AI actions.</p>
@@ -173,8 +207,8 @@ export function DailyVideoInsightsDialog({ video, open, onOpenChange }: DailyVid
       <DialogContent className="h-[90vh] !max-w-[1200px] overflow-hidden p-0">
         <div className="flex h-full">
           {/* Left side - Video Player (Instagram Reels style) */}
-          <div className="relative flex w-[40%] items-center justify-center bg-black">
-            <VideoPreviewWithMetrics video={video} />
+          <div className="relative flex w-[400px] min-w-[400px] items-center justify-center bg-black">
+            <VideoPreviewWithMetrics video={video} showMetrics={false} />
           </div>
 
           {/* Right side - Content Area */}
@@ -198,9 +232,9 @@ export function DailyVideoInsightsDialog({ video, open, onOpenChange }: DailyVid
             </div>
 
             {/* Main content area with tabs */}
-            <div className="flex-1 overflow-hidden">
+            <div className="flex flex-1 flex-col overflow-hidden">
               <Tabs defaultValue="insights" className="flex h-full flex-col">
-                <div className="px-4 pt-4">
+                <div className="border-b px-4 pt-4 pb-4">
                   <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="insights">Insights</TabsTrigger>
                     <TabsTrigger value="script">Script Components</TabsTrigger>
@@ -208,27 +242,24 @@ export function DailyVideoInsightsDialog({ video, open, onOpenChange }: DailyVid
                   </TabsList>
                 </div>
 
-                <div className="flex-1 overflow-hidden px-4 pb-4">
-                  <div className="flex h-full flex-col">
-                    <div className="flex-1 overflow-auto py-4">
-                      <TabsContent value="insights" className="mt-0">
-                        <MainInsightsTab video={video} copiedText={copiedText} onCopy={copyToClipboard} />
-                      </TabsContent>
+                {/* Tab contents with consistent height */}
+                <div className="flex-1 overflow-y-auto px-4 py-4">
+                  <TabsContent value="insights" className="mt-0">
+                    <MainInsightsTab video={video} copiedText={copiedText} onCopy={copyToClipboard} />
+                  </TabsContent>
 
-                      <TabsContent value="script" className="mt-0">
-                        <ScriptComponents video={video} copiedText={copiedText} onCopy={copyToClipboard} />
-                      </TabsContent>
+                  <TabsContent value="script" className="mt-0">
+                    <ScriptComponents video={video} copiedText={copiedText} onCopy={copyToClipboard} />
+                  </TabsContent>
 
-                      <TabsContent value="metadata" className="mt-0">
-                        <MetadataTab video={video} />
-                      </TabsContent>
-                    </div>
-
-                    {/* Sticky Action Buttons at Bottom Right */}
-                    <StickyActionButtons video={video} />
-                  </div>
+                  <TabsContent value="metadata" className="mt-0">
+                    <MetadataTab video={video} />
+                  </TabsContent>
                 </div>
               </Tabs>
+
+              {/* Action Buttons at Bottom Right */}
+              <StickyActionButtons video={video} />
             </div>
           </div>
         </div>

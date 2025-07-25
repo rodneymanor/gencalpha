@@ -8,7 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Video } from "@/lib/collections";
 
 // Instagram-style video preview with overlaid metrics
-export function VideoPreviewWithMetrics({ video }: { video: Video }) {
+interface VideoPreviewWithMetricsProps {
+  video: Video;
+  showMetrics?: boolean;
+}
+
+export function VideoPreviewWithMetrics({ video, showMetrics = true }: VideoPreviewWithMetricsProps) {
   const formatNumber = (num: number): string => {
     if (num >= 1000000) {
       return (num / 1000000).toFixed(1) + "M";
@@ -20,9 +25,18 @@ export function VideoPreviewWithMetrics({ video }: { video: Video }) {
 
   return (
     <div className="relative h-full w-full">
-      {/* Video Preview */}
+      {/* Video Preview - fills the container */}
       {video.thumbnailUrl ? (
-        <Image src={video.thumbnailUrl} alt={video.title} fill className="object-contain" />
+        <div className="relative h-full w-full">
+          <Image
+            src={video.thumbnailUrl}
+            alt={video.title}
+            fill
+            className="object-cover"
+            sizes="(max-width: 1200px) 40vw, 480px"
+            priority
+          />
+        </div>
       ) : (
         <div className="flex h-full w-full items-center justify-center">
           <div className="text-center text-white">
@@ -40,8 +54,8 @@ export function VideoPreviewWithMetrics({ video }: { video: Video }) {
       </div>
 
       {/* Metrics Overlay - Right Side */}
-      {video.metrics && (
-        <div className="absolute right-4 bottom-8 flex flex-col items-center gap-6">
+      {showMetrics && video.metrics && (
+        <div className="absolute right-4 bottom-20 flex flex-col items-center gap-6">
           {/* Likes */}
           <div className="flex flex-col items-center gap-1">
             <div className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-white/20 backdrop-blur-sm transition-all hover:bg-white/30">
