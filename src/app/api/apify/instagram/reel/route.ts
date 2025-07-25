@@ -1,5 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ApifyClient, validateApifyInput, APIFY_ACTORS, InstagramReelData } from '@/lib/apify';
+import { ApifyClient, validateApifyInput, APIFY_ACTORS } from '@/lib/apify';
+
+export interface InstagramReelData {
+  id: string;
+  shortcode: string;
+  url: string;
+  videoUrl: string;
+  thumbnailUrl: string;
+  caption: string;
+  timestamp: string;
+  likesCount: number;
+  commentsCount: number;
+  viewsCount?: number;
+  duration?: number;
+  username: string;
+}
 
 // eslint-disable-next-line complexity
 function mapToInstagramReel(item: unknown): InstagramReelData {
@@ -21,7 +36,8 @@ function mapToInstagramReel(item: unknown): InstagramReelData {
   };
 }
 
-function downloadVideosInBackground(client: ApifyClient, reels: InstagramReelData[]): void {
+function downloadVideosInBackground(reels: InstagramReelData[]): void {
+  const client = new ApifyClient();
   setTimeout(async () => {
     for (const reel of reels) {
       if (reel.videoUrl) {
@@ -68,16 +84,16 @@ async function scrapeInstagramReel(input: InstagramReelRequest): Promise<Instagr
     };
     validateApifyInput(apifyInput, ['directUrls']);
   } else if (input.username) {
+    // For username, construct profile URL for reel scraper
     apifyInput = {
-      usernames: [input.username],
+      directUrls: [`https://www.instagram.com/${input.username}/`],
       resultsType: 'details',
       resultsLimit: input.resultsLimit ?? 50,
-      searchType: 'user',
       proxyConfiguration: {
         useApifyProxy: true
       }
     };
-    validateApifyInput(apifyInput, ['usernames']);
+    validateApifyInput(apifyInput, ['directUrls']);
   } else {
     throw new Error('Either url/urls or username is required');
   }
@@ -95,7 +111,7 @@ async function scrapeInstagramReel(input: InstagramReelRequest): Promise<Instagr
   if (input.downloadVideo) {
     console.log('🎥 Downloading video files...');
     
-    downloadVideosInBackground(client, reels);
+    downloadVideosInBackground(reels);
   }
 
   return reels;

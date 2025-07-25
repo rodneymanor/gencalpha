@@ -1,5 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ApifyClient, validateApifyInput, APIFY_ACTORS, InstagramProfileData } from '@/lib/apify';
+import { ApifyClient, validateApifyInput, APIFY_ACTORS } from '@/lib/apify';
+
+export interface InstagramProfileData {
+  username: string;
+  fullName: string;
+  biography: string;
+  followersCount: number;
+  followingCount: number;
+  postsCount: number;
+  isVerified: boolean;
+  profilePicUrl: string;
+  isPrivate: boolean;
+  externalUrl?: string;
+  posts?: {
+    id: string;
+    shortcode: string;
+    url: string;
+    type: 'image' | 'video' | 'carousel';
+    caption: string;
+    timestamp: string;
+    likesCount: number;
+    commentsCount: number;
+    videoUrl?: string;
+    imageUrl?: string;
+    displayUrl: string;
+  }[];
+}
 
 // eslint-disable-next-line complexity
 function mapToInstagramProfile(item: unknown): InstagramProfileData {
@@ -53,24 +79,24 @@ export interface InstagramProfileResponse {
 async function scrapeInstagramProfile(input: InstagramProfileRequest): Promise<InstagramProfileData[]> {
   const client = new ApifyClient();
   
+  const usernames = input.username ? [input.username] : input.usernames ?? [];
+  
+  if (usernames.length === 0) {
+    throw new Error('At least one username is required');
+  }
+
+  console.log(`📸 Scraping Instagram profiles: ${usernames.join(', ')}`);
+
   const apifyInput = {
-    usernames: input.username ? [input.username] : input.usernames ?? [],
-    resultsType: input.includeDetails ? 'details' : 'posts',
+    usernames: usernames,
+    resultsType: input.includeDetails ? 'details' : 'posts', 
     resultsLimit: input.resultsLimit ?? 50,
-    searchType: 'user',
-    searchLimit: 1,
     proxyConfiguration: {
       useApifyProxy: true
     }
   };
 
   validateApifyInput(apifyInput, ['usernames']);
-
-  if (apifyInput.usernames.length === 0) {
-    throw new Error('At least one username is required');
-  }
-
-  console.log(`📸 Scraping Instagram profiles: ${apifyInput.usernames.join(', ')}`);
 
   const results = await client.runActor(APIFY_ACTORS.INSTAGRAM_PROFILE, apifyInput, true);
   
