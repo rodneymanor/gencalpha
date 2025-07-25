@@ -58,6 +58,8 @@ export default function ApifyTestPage() {
   const [tiktokScraper, setTiktokScraper] = useState({
     profiles: '',
     hashtags: '',
+    videoUrls: '',
+    searchQueries: '',
     resultsPerPage: 10,
   });
 
@@ -165,6 +167,14 @@ export default function ApifyTestPage() {
 
     if (tiktokScraper.hashtags) {
       body.hashtags = tiktokScraper.hashtags.split(',').map(h => h.trim());
+    }
+
+    if (tiktokScraper.videoUrls) {
+      body.videoUrls = tiktokScraper.videoUrls.split(',').map(url => url.trim());
+    }
+
+    if (tiktokScraper.searchQueries) {
+      body.searchQueries = tiktokScraper.searchQueries.split(',').map(q => q.trim());
     }
 
     makeAPICall('tiktok/scraper', body, 'tiktokScraper');
@@ -539,7 +549,7 @@ export default function ApifyTestPage() {
               <CardHeader>
                 <CardTitle>TikTok General Scraper</CardTitle>
                 <CardDescription>
-                  Scrape TikTok profiles and hashtags using the general scraper
+                  Scrape TikTok profiles, hashtags, individual videos, or search queries
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -564,6 +574,26 @@ export default function ApifyTestPage() {
                 </div>
 
                 <div className="space-y-2">
+                  <Label htmlFor="tiktok-scraper-videos">Video URLs (comma-separated)</Label>
+                  <Textarea
+                    id="tiktok-scraper-videos"
+                    placeholder="https://www.tiktok.com/@user/video/123, https://www.tiktok.com/@user/video/456"
+                    value={tiktokScraper.videoUrls}
+                    onChange={(e) => setTiktokScraper(prev => ({ ...prev, videoUrls: e.target.value }))}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="tiktok-scraper-search">Search Queries (comma-separated)</Label>
+                  <Input
+                    id="tiktok-scraper-search"
+                    placeholder="cats, cooking tutorials, funny pets"
+                    value={tiktokScraper.searchQueries}
+                    onChange={(e) => setTiktokScraper(prev => ({ ...prev, searchQueries: e.target.value }))}
+                  />
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="tiktok-scraper-limit">Results Per Page</Label>
                   <Input
                     id="tiktok-scraper-limit"
@@ -575,7 +605,7 @@ export default function ApifyTestPage() {
 
                 <Button 
                   onClick={testTiktokScraper} 
-                  disabled={testStates.tiktokScraper.loading || (!tiktokScraper.profiles && !tiktokScraper.hashtags)}
+                  disabled={testStates.tiktokScraper.loading || (!tiktokScraper.profiles && !tiktokScraper.hashtags && !tiktokScraper.videoUrls && !tiktokScraper.searchQueries)}
                   className="w-full"
                 >
                   {testStates.tiktokScraper.loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

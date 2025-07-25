@@ -4,6 +4,8 @@ import { ApifyClient, APIFY_ACTORS } from "@/lib/apify";
 export interface TikTokScraperRequest {
   profiles?: string[];
   hashtags?: string[];
+  videoUrls?: string[];
+  searchQueries?: string[];
   resultsPerPage?: number;
   proxyConfiguration?: {
     useApifyProxy: boolean;
@@ -48,6 +50,18 @@ async function scrapeTikTokGeneral(input: TikTokScraperRequest): Promise<unknown
     console.log("🏷️ Added hashtags:", input.hashtags);
   }
 
+  // Add video URLs if provided
+  if (input.videoUrls && input.videoUrls.length > 0) {
+    apifyInput.videoUrls = input.videoUrls;
+    console.log("🎬 Added video URLs:", input.videoUrls);
+  }
+
+  // Add search queries if provided
+  if (input.searchQueries && input.searchQueries.length > 0) {
+    apifyInput.searchQueries = input.searchQueries;
+    console.log("🔍 Added search queries:", input.searchQueries);
+  }
+
   // Add results per page
   if (input.resultsPerPage) {
     apifyInput.resultsPerPage = input.resultsPerPage;
@@ -80,11 +94,11 @@ export async function POST(request: NextRequest) {
     
     console.log("🎯 TikTok Scraper API called with:", JSON.stringify(body, null, 2));
 
-    if (!body.profiles && !body.hashtags) {
+    if (!body.profiles && !body.hashtags && !body.videoUrls && !body.searchQueries) {
       return NextResponse.json(
         {
           success: false,
-          error: "Either profiles or hashtags is required",
+          error: "At least one of profiles, hashtags, videoUrls, or searchQueries is required",
           timestamp: new Date().toISOString(),
         } satisfies TikTokScraperResponse,
         { status: 400 }
@@ -127,13 +141,15 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const profiles = searchParams.get("profiles")?.split(",");
   const hashtags = searchParams.get("hashtags")?.split(",");
+  const videoUrls = searchParams.get("videoUrls")?.split(",");
+  const searchQueries = searchParams.get("searchQueries")?.split(",");
   const resultsPerPage = searchParams.get("resultsPerPage") ? parseInt(searchParams.get("resultsPerPage")!) : undefined;
 
-  if (!profiles && !hashtags) {
+  if (!profiles && !hashtags && !videoUrls && !searchQueries) {
     return NextResponse.json(
       {
         success: false,
-        error: "Either profiles or hashtags parameter is required",
+        error: "At least one of profiles, hashtags, videoUrls, or searchQueries parameter is required",
         timestamp: new Date().toISOString(),
       } satisfies TikTokScraperResponse,
       { status: 400 }
@@ -144,6 +160,8 @@ export async function GET(request: NextRequest) {
     const results = await scrapeTikTokGeneral({
       profiles,
       hashtags,
+      videoUrls,
+      searchQueries,
       resultsPerPage,
     });
 
