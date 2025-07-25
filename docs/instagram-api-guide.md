@@ -1,8 +1,12 @@
 # Instagram API Integration Guide
 
+> **⚠️ DEPRECATED**: This guide has been superseded by the comprehensive [Apify Integration Guide](./apify-integration-guide.md) which covers both Instagram and TikTok integrations with current working endpoints.
+
 ## Overview
 
 This document provides a comprehensive guide to the Instagram API integration system built for Gen.C Alpha. The system uses Apify's Instagram Scraper Actor to extract video metadata, download URLs, and engagement data from Instagram posts and reels.
+
+**For the most up-to-date information, please refer to the [Apify Integration Guide](./apify-integration-guide.md).**
 
 ## Table of Contents
 
