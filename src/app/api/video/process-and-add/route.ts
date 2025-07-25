@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
       userId: userId,
     };
 
-    const addResult = await addVideoToCollection(collectionId, videoData);
+    const addResult = await addVideoToCollection(collectionId || "all-videos", videoData);
 
     if (!addResult.success) {
       return NextResponse.json(
@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
       baseUrl,
       downloadResult.data.videoData,
       addResult.videoId,
-      collectionId,
+      collectionId || "all-videos",
       downloadResult.data.platform,
 
       downloadResult.data.additionalMetadata || {},
@@ -256,18 +256,20 @@ async function addVideoToCollection(collectionId: string, videoData: any) {
       updatedAt: timestamp,
     });
 
-    // Update collection video count
-    const collectionRef = adminDb.collection("collections").doc(collectionId);
-    await adminDb.runTransaction(async (transaction) => {
-      const collectionDoc = await transaction.get(collectionRef);
-      if (collectionDoc.exists) {
-        const currentCount = collectionDoc.data()?.videoCount || 0;
-        transaction.update(collectionRef, {
-          videoCount: currentCount + 1,
-          updatedAt: new Date().toISOString(),
-        });
-      }
-    });
+    // Update collection video count (skip for "all-videos" as it's virtual)
+    if (collectionId !== "all-videos") {
+      const collectionRef = adminDb.collection("collections").doc(collectionId);
+      await adminDb.runTransaction(async (transaction) => {
+        const collectionDoc = await transaction.get(collectionRef);
+        if (collectionDoc.exists) {
+          const currentCount = collectionDoc.data()?.videoCount || 0;
+          transaction.update(collectionRef, {
+            videoCount: currentCount + 1,
+            updatedAt: new Date().toISOString(),
+          });
+        }
+      });
+    }
 
     console.log("✅ [VIDEO_PROCESS] Video added to collection:", videoRef.id);
     return { success: true, videoId: videoRef.id };
