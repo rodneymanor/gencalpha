@@ -43,10 +43,6 @@ function MainInsightsTab({
     console.log("🎤 Video URL:", video.originalUrl);
   };
 
-  const handleRewriteHook = () => {
-    console.log("✏️ Rewrite Hook for video:", video.title);
-  };
-
   return (
     <div className="space-y-6">
       {/* Hook Section with prominent display */}
@@ -58,16 +54,6 @@ function MainInsightsTab({
               Hook
             </span>
             <div className="flex gap-2">
-              <Button
-                onClick={handleRewriteHook}
-                variant="outline"
-                size="sm"
-                className="gap-2"
-                disabled={!video.transcript}
-              >
-                <Zap className="h-4 w-4" />
-                Rewrite Hook
-              </Button>
               <Button onClick={handleGenerateHooks} size="sm" className="gap-2" disabled={!video.transcript}>
                 <Zap className="h-4 w-4" />
                 Generate Hook
@@ -132,11 +118,6 @@ function MainInsightsTab({
 
 // Sticky action buttons component for bottom
 function StickyActionButtons({ video }: { video: Video }) {
-  const handleRemixScript = () => {
-    console.log("📝 Remix Script for video:", video.title);
-    console.log("📝 Video transcript:", video.transcript);
-  };
-
   const handleRewriteScript = () => {
     console.log("✏️ Rewrite Script for video:", video.title);
     console.log("✏️ Video transcript:", video.transcript);
@@ -178,13 +159,9 @@ function StickyActionButtons({ video }: { video: Video }) {
 
         {/* Action Buttons */}
         <div className="flex gap-3">
-          <Button onClick={handleRewriteScript} variant="outline" className="gap-2" disabled={!video.transcript}>
+          <Button onClick={handleRewriteScript} className="gap-2" disabled={!video.transcript}>
             <FileText className="h-4 w-4" />
             Rewrite Script
-          </Button>
-          <Button onClick={handleRemixScript} className="gap-2" disabled={!video.transcript}>
-            <Zap className="h-4 w-4" />
-            Remix Script
           </Button>
         </div>
       </div>
@@ -212,7 +189,7 @@ export function DailyVideoInsightsDialog({ video, open, onOpenChange }: DailyVid
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="h-[90vh] !max-w-[1400px] overflow-hidden p-0">
+      <DialogContent className="h-[calc(90vh-10px)] !max-w-[1200px] overflow-hidden p-0">
         <div className="flex h-full">
           {/* Fixed Video Column */}
           <div className="flex h-[600px] w-[400px] max-w-[400px] min-w-[400px] items-center justify-center bg-black">
