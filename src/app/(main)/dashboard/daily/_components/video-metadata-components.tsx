@@ -69,14 +69,14 @@ export function MetadataTab({ video }: { video: Video }) {
         </CardContent>
       </Card>
 
-      {video.tags && video.tags.length > 0 && (
+      {video.metadata?.hashtags && video.metadata.hashtags.length > 0 && (
         <Card className="md:col-span-2">
           <CardHeader>
             <CardTitle>Tags</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
-              {video.tags.map((tag: string) => (
+              {video.metadata.hashtags.map((tag: string) => (
                 <Badge key={tag} variant="secondary">
                   #{tag}
                 </Badge>

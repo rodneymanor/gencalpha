@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-import { Zap, FileText, Copy, CheckCircle } from "lucide-react";
+import { Zap, FileText, Copy, CheckCircle, Loader2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Video } from "@/lib/collections";
+import { VideoInsightsService } from "@/lib/video-insights-service";
+import { useAuth } from "@/contexts/auth-context";
 import { cn } from "@/lib/utils";
 
 import { ScriptComponents } from "./video-insights-components";
@@ -64,7 +66,7 @@ function MainInsightsTab({
         <CardContent>
           <div className="bg-muted/50 flex min-h-[80px] items-center rounded-lg p-4">
             <p className="text-sm leading-relaxed">
-              {(video as any).hook ?? "No hook available. Generate one using the button above."}
+              {video.components?.hook || "No hook available. Generate one using the button above."}
             </p>
           </div>
           {!video.transcript && (
@@ -173,7 +175,10 @@ function StickyActionButtons({ video }: { video: Video }) {
 }
 
 export function DailyVideoInsightsDialog({ video, open, onOpenChange }: DailyVideoInsightsDialogProps) {
+  const { user } = useAuth();
   const [copiedText, setCopiedText] = useState<string>("");
+  const [enhancedVideo, setEnhancedVideo] = useState<Video | null>(null);
+  const [isLoadingInsights, setIsLoadingInsights] = useState(false);
 
   const copyToClipboard = async (text: string, label: string) => {
     try {
@@ -185,42 +190,81 @@ export function DailyVideoInsightsDialog({ video, open, onOpenChange }: DailyVid
     }
   };
 
+  // Load enhanced video insights when dialog opens and video changes
+  useEffect(() => {
+    const loadVideoInsights = async () => {
+      if (!video?.id || !user?.uid || !open) {
+        setEnhancedVideo(null);
+        return;
+      }
+
+      setIsLoadingInsights(true);
+      try {
+        console.log("🔍 [Video Insights Dialog] Loading enhanced insights for video:", video.id);
+        const videoWithInsights = await VideoInsightsService.getVideoWithInsights(user.uid, video.id);
+        setEnhancedVideo(videoWithInsights);
+        console.log("✅ [Video Insights Dialog] Enhanced insights loaded successfully");
+      } catch (error) {
+        console.error("❌ [Video Insights Dialog] Failed to load enhanced insights:", error);
+        // Fallback to the original video data if enhanced loading fails
+        setEnhancedVideo(video);
+      } finally {
+        setIsLoadingInsights(false);
+      }
+    };
+
+    loadVideoInsights();
+  }, [video?.id, user?.uid, open]);
+
   if (!video) return null;
+
+  // Use enhanced video data if available, otherwise fallback to original
+  const displayVideo = enhancedVideo || video;
 
   // Enhanced debug logging for video data structure
   console.log("🎬 [Video Insights Dialog] Complete video object:", {
-    id: video.id,
-    title: video.title,
-    platform: video.platform,
-    thumbnailUrl: video.thumbnailUrl,
-    originalUrl: video.originalUrl,
-    transcript: video.transcript?.substring(0, 100) + "...",
-    hasTranscript: !!video.transcript,
-    transcriptLength: video.transcript?.length ?? 0,
-    components: video.components,
-    hasComponents: !!video.components,
-    metrics: video.metrics,
-    hasMetrics: !!video.metrics,
-    metadata: video.metadata,
-    hasMetadata: !!video.metadata,
-    hook: (video as any).hook,
-    hasHook: !!(video as any).hook,
-    allKeys: Object.keys(video),
+    id: displayVideo.id,
+    title: displayVideo.title,
+    platform: displayVideo.platform,
+    thumbnailUrl: displayVideo.thumbnailUrl,
+    originalUrl: displayVideo.originalUrl,
+    iframeUrl: displayVideo.iframeUrl,
+    directUrl: displayVideo.directUrl,
+    transcript: displayVideo.transcript?.substring(0, 100) + "...",
+    hasTranscript: !!displayVideo.transcript,
+    transcriptLength: displayVideo.transcript?.length ?? 0,
+    components: displayVideo.components,
+    hasComponents: !!displayVideo.components,
+    metrics: displayVideo.metrics,
+    hasMetrics: !!displayVideo.metrics,
+    metadata: displayVideo.metadata,
+    hasMetadata: !!displayVideo.metadata,
+    visualContext: displayVideo.visualContext,
+    hasVisualContext: !!displayVideo.visualContext,
+    allKeys: Object.keys(displayVideo),
+    isLoadingInsights,
+    isEnhanced: !!enhancedVideo,
   });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="h-[calc(90vh-13px)] !max-w-[1200px] overflow-hidden p-0">
         <DialogHeader className="sr-only">
-          <DialogTitle>{video.title} - Video Insights</DialogTitle>
+          <DialogTitle>{displayVideo.title} - Video Insights</DialogTitle>
           <DialogDescription>
-            Video insights and analysis for {video.title} from {video.platform}
+            Video insights and analysis for {displayVideo.title} from {displayVideo.platform}
           </DialogDescription>
         </DialogHeader>
         <div className="flex h-full min-h-0">
           {/* Fixed Video Column */}
           <div className="flex h-[600px] w-[400px] max-w-[400px] min-w-[400px] items-center justify-center bg-black">
-            <VideoPreviewWithMetrics video={video} showMetrics={false} />
+            {isLoadingInsights ? (
+              <div className="flex items-center justify-center h-full w-full">
+                <Loader2 className="h-8 w-8 animate-spin text-white" />
+              </div>
+            ) : (
+              <VideoPreviewWithMetrics video={displayVideo} showMetrics={false} />
+            )}
           </div>
 
           {/* Main Content Panel */}
@@ -230,16 +274,19 @@ export function DailyVideoInsightsDialog({ video, open, onOpenChange }: DailyVid
               <div className="flex items-center gap-3">
                 <Badge
                   className={cn(
-                    video.platform.toLowerCase() === "tiktok"
+                    displayVideo.platform.toLowerCase() === "tiktok"
                       ? "bg-black text-white"
-                      : video.platform.toLowerCase() === "instagram"
+                      : displayVideo.platform.toLowerCase() === "instagram"
                         ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
                         : "bg-red-600 text-white",
                   )}
                 >
-                  {video.platform}
+                  {displayVideo.platform}
                 </Badge>
-                <h2 className="truncate text-lg font-semibold">{video.title}</h2>
+                <h2 className="truncate text-lg font-semibold">{displayVideo.title}</h2>
+                {isLoadingInsights && (
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                )}
               </div>
             </div>
 
@@ -272,22 +319,22 @@ export function DailyVideoInsightsDialog({ video, open, onOpenChange }: DailyVid
               {/* Scrollable Tab Contents */}
               <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
                 <TabsContent value="insights" className="mt-0">
-                  <MainInsightsTab video={video} copiedText={copiedText} onCopy={copyToClipboard} />
+                  <MainInsightsTab video={displayVideo} copiedText={copiedText} onCopy={copyToClipboard} />
                 </TabsContent>
 
                 <TabsContent value="script" className="mt-0">
-                  <ScriptComponents video={video} copiedText={copiedText} onCopy={copyToClipboard} />
+                  <ScriptComponents video={displayVideo} copiedText={copiedText} onCopy={copyToClipboard} />
                 </TabsContent>
 
                 <TabsContent value="metadata" className="mt-0">
-                  <MetadataTab video={video} />
+                  <MetadataTab video={displayVideo} />
                 </TabsContent>
               </div>
             </Tabs>
 
             {/* Sticky Footer - Always Visible */}
             <div className="flex-shrink-0">
-              <StickyActionButtons video={video} />
+              <StickyActionButtons video={displayVideo} />
             </div>
           </div>
         </div>

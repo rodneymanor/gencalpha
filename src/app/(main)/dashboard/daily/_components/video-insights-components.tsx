@@ -50,10 +50,10 @@ export function VideoPreview({ video }: { video: Video }) {
                 </span>
               </div>
             </div>
-            {video.description && (
+            {video.metadata?.description && (
               <div>
                 <h4 className="mb-1 font-medium">Description</h4>
-                <p className="text-muted-foreground text-sm leading-relaxed">{video.description}</p>
+                <p className="text-muted-foreground text-sm leading-relaxed">{video.metadata.description}</p>
               </div>
             )}
           </div>

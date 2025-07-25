@@ -21,10 +21,11 @@ function calculateDuration(content: string): string {
 // GET: Fetch a specific script
 export async function GET(
   request: NextRequest,
-  { params }: { params: { scriptId: string } },
+  { params }: { params: Promise<{ scriptId: string }> },
 ): Promise<NextResponse<ScriptResponse>> {
   try {
-    console.log("📖 [Script API] GET request for script:", params.scriptId);
+    const resolvedParams = await params;
+    console.log("📖 [Script API] GET request for script:", resolvedParams.scriptId);
 
     // Authenticate API key
     const authResult = await authenticateApiKey(request);
@@ -35,7 +36,7 @@ export async function GET(
     const userId = authResult.user.uid;
 
     // Fetch script from Firestore
-    const scriptDoc = await adminDb.collection("scripts").doc(params.scriptId).get();
+    const scriptDoc = await adminDb.collection("scripts").doc(resolvedParams.scriptId).get();
 
     if (!scriptDoc.exists) {
       return NextResponse.json(
@@ -61,12 +62,12 @@ export async function GET(
     }
 
     // Update viewedAt timestamp
-    await adminDb.collection("scripts").doc(params.scriptId).update({
+    await adminDb.collection("scripts").doc(resolvedParams.scriptId).update({
       viewedAt: new Date().toISOString(),
     });
 
     const script: Script = {
-      id: params.scriptId,
+      id: resolvedParams.scriptId,
       ...scriptData,
       viewedAt: new Date().toISOString(),
     };
@@ -119,10 +120,11 @@ function prepareUpdateData(body: UpdateScriptRequest): Partial<Script> {
 // PUT: Update a script
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { scriptId: string } },
+  { params }: { params: Promise<{ scriptId: string }> },
 ): Promise<NextResponse<ScriptResponse>> {
   try {
-    console.log("✏️ [Script API] PUT request for script:", params.scriptId);
+    const resolvedParams = await params;
+    console.log("✏️ [Script API] PUT request for script:", resolvedParams.scriptId);
 
     // Authenticate API key
     const authResult = await authenticateApiKey(request);
@@ -134,7 +136,7 @@ export async function PUT(
     const body: UpdateScriptRequest = await request.json();
 
     // Fetch existing script to verify ownership
-    const scriptDoc = await adminDb.collection("scripts").doc(params.scriptId).get();
+    const scriptDoc = await adminDb.collection("scripts").doc(resolvedParams.scriptId).get();
 
     if (!scriptDoc.exists) {
       return NextResponse.json(
@@ -163,12 +165,12 @@ export async function PUT(
 
     // Prepare and apply update
     const updateData = prepareUpdateData(body);
-    await adminDb.collection("scripts").doc(params.scriptId).update(updateData);
+    await adminDb.collection("scripts").doc(resolvedParams.scriptId).update(updateData);
 
     // Fetch updated script
-    const updatedDoc = await adminDb.collection("scripts").doc(params.scriptId).get();
+    const updatedDoc = await adminDb.collection("scripts").doc(resolvedParams.scriptId).get();
     const script: Script = {
-      id: params.scriptId,
+      id: resolvedParams.scriptId,
       ...updatedDoc.data(),
     } as Script;
 
@@ -193,10 +195,11 @@ export async function PUT(
 // DELETE: Delete a script
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { scriptId: string } },
+  { params }: { params: Promise<{ scriptId: string }> },
 ): Promise<NextResponse<{ success: boolean; error?: string }>> {
   try {
-    console.log("🗑️ [Script API] DELETE request for script:", params.scriptId);
+    const resolvedParams = await params;
+    console.log("🗑️ [Script API] DELETE request for script:", resolvedParams.scriptId);
 
     // Authenticate API key
     const authResult = await authenticateApiKey(request);
@@ -207,7 +210,7 @@ export async function DELETE(
     const userId = authResult.user.uid;
 
     // Fetch script to verify ownership
-    const scriptDoc = await adminDb.collection("scripts").doc(params.scriptId).get();
+    const scriptDoc = await adminDb.collection("scripts").doc(resolvedParams.scriptId).get();
 
     if (!scriptDoc.exists) {
       return NextResponse.json(
@@ -233,7 +236,7 @@ export async function DELETE(
     }
 
     // Delete from Firestore
-    await adminDb.collection("scripts").doc(params.scriptId).delete();
+    await adminDb.collection("scripts").doc(resolvedParams.scriptId).delete();
 
     console.log("✅ [Script API] Script deleted successfully");
 

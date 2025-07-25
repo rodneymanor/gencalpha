@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 
 import { Play, Clock, User, ExternalLink, Heart, MessageCircle, Share, Eye } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Video } from "@/lib/collections";
+import { VideoPlayer } from "@/components/video-player";
 
 // Instagram-style video preview with overlaid metrics
 interface VideoPreviewWithMetricsProps {
@@ -14,6 +16,9 @@ interface VideoPreviewWithMetricsProps {
 }
 
 export function VideoPreviewWithMetrics({ video, showMetrics = true }: VideoPreviewWithMetricsProps) {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [showFallbackImage, setShowFallbackImage] = useState(true);
+
   const formatNumber = (num: number): string => {
     if (num >= 1000000) {
       return (num / 1000000).toFixed(1) + "M";
@@ -25,20 +30,39 @@ export function VideoPreviewWithMetrics({ video, showMetrics = true }: VideoPrev
 
   const handlePlayVideo = () => {
     console.log("🎮 [Video Preview] Play button clicked for:", video.title);
-    console.log("🎮 [Video Preview] Original URL:", video.originalUrl);
+    console.log("🎮 [Video Preview] Video URLs:", {
+      originalUrl: video.originalUrl,
+      iframeUrl: video.iframeUrl,
+      directUrl: video.directUrl
+    });
 
-    if (video.originalUrl) {
-      // Open video in new tab
+    // If we have an iframe URL or direct URL, start playing in the component
+    if (video.iframeUrl || video.directUrl) {
+      setIsPlaying(true);
+      setShowFallbackImage(false);
+    } else if (video.originalUrl) {
+      // Fallback to opening in new tab if no playable URL
       window.open(video.originalUrl, "_blank");
     } else {
-      console.warn("⚠️ [Video Preview] No originalUrl found for video:", video.id);
+      console.warn("⚠️ [Video Preview] No playable URL found for video:", video.id);
     }
   };
 
   return (
     <div className="relative h-full w-full">
-      {/* Video Preview - fills the container */}
-      {video.thumbnailUrl ? (
+      {/* Video Player or Image Preview */}
+      {isPlaying && (video.iframeUrl || video.directUrl) ? (
+        <VideoPlayer 
+          video={video} 
+          className="h-full w-full"
+          autoPlay={true}
+          onError={() => {
+            console.warn("⚠️ [Video Preview] Video playback failed, falling back to image");
+            setIsPlaying(false);
+            setShowFallbackImage(true);
+          }}
+        />
+      ) : showFallbackImage && video.thumbnailUrl ? (
         <div className="relative h-full w-full">
           <Image
             src={video.thumbnailUrl}
@@ -50,7 +74,7 @@ export function VideoPreviewWithMetrics({ video, showMetrics = true }: VideoPrev
           />
         </div>
       ) : (
-        <div className="flex h-full w-full items-center justify-center">
+        <div className="flex h-full w-full items-center justify-center bg-muted">
           <div className="text-center text-white">
             <Play className="mx-auto mb-2 h-12 w-12" />
             <p className="text-sm">No Preview</p>
@@ -58,16 +82,18 @@ export function VideoPreviewWithMetrics({ video, showMetrics = true }: VideoPrev
         </div>
       )}
 
-      {/* Play Button Overlay */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <Button
-          size="icon"
-          className="h-16 w-16 rounded-full bg-white/20 backdrop-blur-sm transition-all hover:scale-110 hover:bg-white/30"
-          onClick={handlePlayVideo}
-        >
-          <Play className="h-8 w-8 fill-white text-white" />
-        </Button>
-      </div>
+      {/* Play Button Overlay - only show when not playing */}
+      {!isPlaying && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <Button
+            size="icon"
+            className="h-16 w-16 rounded-full bg-white/20 backdrop-blur-sm transition-all hover:scale-110 hover:bg-white/30"
+            onClick={handlePlayVideo}
+          >
+            <Play className="h-8 w-8 fill-white text-white" />
+          </Button>
+        </div>
+      )}
 
       {/* Metrics Overlay - Right Side */}
       {showMetrics && video.metrics && (

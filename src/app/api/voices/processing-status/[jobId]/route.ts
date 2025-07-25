@@ -33,8 +33,9 @@ interface ProcessingStatusResponse {
   metadata?: any;
 }
 
-export async function GET(request: NextRequest, { params }: { params: { jobId: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ jobId: string }> }) {
   try {
+    const resolvedParams = await resolvedParams;
     // Authenticate the request
     const authResult = await authenticateApiKey(request);
     if (!authResult.success) {
@@ -42,7 +43,7 @@ export async function GET(request: NextRequest, { params }: { params: { jobId: s
     }
 
     const userId = authResult.user.uid;
-    const { jobId } = params;
+    const { jobId } = resolvedParams;
 
     if (!jobId) {
       return NextResponse.json({ error: "Job ID is required" }, { status: 400 });
@@ -122,8 +123,9 @@ export async function GET(request: NextRequest, { params }: { params: { jobId: s
 }
 
 // Optional: Add a DELETE endpoint to cancel processing jobs
-export async function DELETE(request: NextRequest, { params }: { params: { jobId: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ jobId: string }> }) {
   try {
+    const resolvedParams = await params;
     // Authenticate the request
     const authResult = await authenticateApiKey(request);
     if (!authResult.success) {
@@ -131,7 +133,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { jobId
     }
 
     const userId = authResult.user.uid;
-    const { jobId } = params;
+    const { jobId } = resolvedParams;
 
     console.log(`🛑 [CANCEL] Cancelling job: ${jobId}`);
 

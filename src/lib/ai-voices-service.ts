@@ -7,7 +7,7 @@ import {
 } from "@/types/ai-voices";
 
 import { adminDb } from "./firebase-admin";
-import { TemplateGenerator } from "./template-generator-service";
+// import { TemplateGenerator } from "./template-generator-service"; // TEMPORARILY DISABLED
 
 export class AIVoicesService {
   private static readonly CUSTOM_VOICE_LIMIT = 3;
@@ -84,9 +84,11 @@ export class AIVoicesService {
       const profileContent = await this.extractProfileContent(request.profileUrl, request.platform);
 
       // Generate templates using template-generator-service
-      const templateGenerator = new TemplateGenerator();
+      // const templateGenerator = new TemplateGenerator(); // TEMPORARILY DISABLED
       const templates: VoiceTemplate[] = [];
 
+      // TEMPORARILY DISABLED TEMPLATE GENERATION
+      /*
       for (const script of profileContent.scripts) {
         const result = await templateGenerator.generateTemplatesFromTranscription(script.content);
 
@@ -112,8 +114,11 @@ export class AIVoicesService {
         await new Promise((resolve) => setTimeout(resolve, 500));
       }
 
+      */
+      
       if (templates.length === 0) {
-        throw new Error("Failed to generate any templates from the provided profile");
+        // throw new Error("Failed to generate any templates from the provided profile"); // TEMPORARILY DISABLED
+        console.log("Template generation disabled - returning empty templates");
       }
 
       // Create voice data

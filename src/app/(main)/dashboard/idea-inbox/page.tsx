@@ -35,6 +35,11 @@ export default function IdeaInboxPage() {
 
   // Check authentication status
   useEffect(() => {
+    if (!auth) {
+      setIsLoading(false);
+      return;
+    }
+    
     const unsubscribe = auth.onAuthStateChanged((user) => {
       setIsAuthenticated(!!user);
       if (user) {

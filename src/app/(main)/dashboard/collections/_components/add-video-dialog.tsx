@@ -82,16 +82,19 @@ export function AddVideoDialog({
 
     setIsLoading(true);
     try {
+      // Get Firebase ID token for authentication
+      const token = await user.getIdToken();
+      
       // Call the video processing API endpoint
       const response = await fetch("/api/video/process-and-add", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify({
-          originalUrl: data.url,
+          videoUrl: data.url,
           collectionId: data.collectionId === "all-videos" ? undefined : data.collectionId,
-          userId: user.uid,
         }),
       });
 

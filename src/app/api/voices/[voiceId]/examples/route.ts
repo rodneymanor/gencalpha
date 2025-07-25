@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { AIVoicesService } from "@/lib/ai-voices-service";
 
-export async function GET(request: NextRequest, { params }: { params: { voiceId: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ voiceId: string }> }) {
   try {
-    const { voiceId } = params;
+    const resolvedParams = await params;
+    const { voiceId } = resolvedParams;
 
     if (!voiceId) {
       return NextResponse.json({ error: "Voice ID is required" }, { status: 400 });
