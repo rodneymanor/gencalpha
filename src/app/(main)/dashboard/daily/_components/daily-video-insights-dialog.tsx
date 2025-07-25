@@ -219,11 +219,26 @@ export function DailyVideoInsightsDialog({ video, open, onOpenChange }: DailyVid
             {/* Tab Content Area */}
             <div className="flex flex-1 flex-col overflow-hidden">
               <Tabs defaultValue="insights" className="flex h-full flex-col">
-                <div className="border-b px-6 py-4">
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="insights">Insights</TabsTrigger>
-                    <TabsTrigger value="script">Script Components</TabsTrigger>
-                    <TabsTrigger value="metadata">Metadata</TabsTrigger>
+                <div className="bg-muted/30 border-b px-6 py-4">
+                  <TabsList className="bg-background grid w-full grid-cols-3 border shadow-sm">
+                    <TabsTrigger
+                      value="insights"
+                      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium"
+                    >
+                      Insights
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="script"
+                      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium"
+                    >
+                      Script Components
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="metadata"
+                      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium"
+                    >
+                      Metadata
+                    </TabsTrigger>
                   </TabsList>
                 </div>
 
