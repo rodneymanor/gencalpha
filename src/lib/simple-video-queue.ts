@@ -234,6 +234,8 @@ class SimpleVideoQueue {
               rawData: videoData.rawData,
             },
           },
+          // Include thumbnail URL at top level for process-and-add route
+          thumbnailUrl: videoData.thumbnailUrl,
         }),
       });
 

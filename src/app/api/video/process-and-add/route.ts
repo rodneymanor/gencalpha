@@ -1,7 +1,7 @@
 // Production-ready video processing and collection addition endpoint
 import { NextRequest, NextResponse } from "next/server";
 
-import { uploadToBunnyStream } from "@/lib/bunny-stream";
+import { uploadToBunnyStream, uploadBunnyThumbnailWithRetry } from "@/lib/bunny-stream";
 import { generateBunnyThumbnailUrl } from "@/lib/bunny-stream";
 import { getAdminAuth, getAdminDb, isAdminInitialized } from "@/lib/firebase-admin";
 
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { videoUrl, collectionId, title } = await request.json();
+    const { videoUrl, collectionId, title, thumbnailUrl, scrapedData } = await request.json();
     const baseUrl = getBaseUrl(request);
 
     console.log("🔍 [VIDEO_PROCESS] Original URL:", videoUrl);
@@ -56,25 +56,89 @@ export async function POST(request: NextRequest) {
     const decodedUrl = decodeURIComponent(videoUrl);
     console.log("🔍 [VIDEO_PROCESS] Decoded URL:", decodedUrl);
 
-    // Step 1: Download video
-    console.log("📥 [VIDEO_PROCESS] Step 1: Downloading video...");
-    const downloadResult = await downloadVideo(baseUrl, decodedUrl);
+    // Step 1: Download video (or use scraped data if provided)
+    console.log("📥 [VIDEO_PROCESS] Step 1: Processing video...");
+    let downloadResult: any;
 
-    if (!downloadResult.success) {
-      return NextResponse.json(
-        {
-          error: "Failed to download video",
-          details: downloadResult.error,
+    if (scrapedData) {
+      console.log("🔄 [VIDEO_PROCESS] Using pre-scraped data to avoid re-download");
+      // Use the pre-scraped data from the queue
+      downloadResult = {
+        success: true,
+        data: {
+          platform: scrapedData.platform,
+          videoData: {
+            buffer: [], // Will be downloaded in streaming step
+            size: 0,
+            mimeType: "video/mp4",
+            filename: `${scrapedData.platform}-${Date.now()}.mp4`,
+          },
+          metrics: scrapedData.metrics || {},
+          additionalMetadata: {
+            author: scrapedData.author,
+            description: scrapedData.description,
+            hashtags: scrapedData.hashtags,
+            duration: scrapedData.metadata?.duration || 0,
+            timestamp: scrapedData.metadata?.timestamp,
+          },
+          thumbnailUrl: scrapedData.thumbnailUrl || thumbnailUrl,
+          metadata: {
+            originalUrl: decodedUrl,
+            platform: scrapedData.platform,
+            downloadedAt: new Date().toISOString(),
+            shortCode: scrapedData.metadata?.shortCode,
+            thumbnailUrl: scrapedData.thumbnailUrl || thumbnailUrl,
+          },
         },
-        { status: 500 },
-      );
+      };
+    } else {
+      // Fall back to downloading via API
+      downloadResult = await downloadVideo(baseUrl, decodedUrl);
+
+      if (!downloadResult.success) {
+        return NextResponse.json(
+          {
+            error: "Failed to download video",
+            details: downloadResult.error,
+          },
+          { status: 500 },
+        );
+      }
     }
 
-    console.log("✅ [VIDEO_PROCESS] Download successful");
+    console.log("✅ [VIDEO_PROCESS] Video processing successful");
 
     // Step 2: Stream to Bunny CDN
     console.log("🎬 [VIDEO_PROCESS] Step 2: Streaming to Bunny CDN...");
-    const streamResult = await streamToBunny(downloadResult.data);
+    let streamResult: any;
+
+    if (scrapedData?.videoUrl) {
+      // Stream directly from the scraped video URL
+      console.log("🌊 [VIDEO_PROCESS] Streaming directly from scraped video URL");
+      const { streamToBunnyFromUrl } = await import("@/lib/bunny-stream");
+      const iframeUrl = await streamToBunnyFromUrl(
+        scrapedData.videoUrl,
+        `${scrapedData.platform}-${Date.now()}.mp4`
+      );
+      
+      if (iframeUrl) {
+        // Extract GUID from iframe URL for thumbnail upload
+        const { extractVideoIdFromIframeUrl } = await import("@/lib/bunny-stream");
+        const videoGuid = extractVideoIdFromIframeUrl(iframeUrl);
+        
+        streamResult = {
+          success: true,
+          iframeUrl,
+          directUrl: iframeUrl,
+          guid: videoGuid,
+        };
+      } else {
+        streamResult = { success: false, error: "Failed to stream from video URL" };
+      }
+    } else {
+      // Traditional streaming approach
+      streamResult = await streamToBunny(downloadResult.data);
+    }
 
     if (!streamResult.success) {
       return NextResponse.json(
@@ -87,6 +151,29 @@ export async function POST(request: NextRequest) {
     }
 
     console.log("✅ [VIDEO_PROCESS] Streaming successful");
+
+    // Step 2.5: Upload custom thumbnail if available
+    if (downloadResult.data.thumbnailUrl && streamResult.guid) {
+      console.log("🖼️ [VIDEO_PROCESS] Step 2.5: Uploading custom thumbnail...");
+      try {
+        const thumbnailSuccess = await uploadBunnyThumbnailWithRetry(
+          streamResult.guid, 
+          downloadResult.data.thumbnailUrl,
+          2 // Max 2 retries for thumbnails
+        );
+        
+        if (thumbnailSuccess) {
+          console.log("✅ [VIDEO_PROCESS] Custom thumbnail uploaded successfully");
+        } else {
+          console.log("⚠️ [VIDEO_PROCESS] Custom thumbnail upload failed, using default");
+        }
+      } catch (error) {
+        console.error("❌ [VIDEO_PROCESS] Thumbnail upload error:", error);
+        // Continue processing even if thumbnail fails
+      }
+    } else {
+      console.log("ℹ️ [VIDEO_PROCESS] No custom thumbnail URL provided, using default");
+    }
 
     // Step 3: Add to collection with userId
     console.log("💾 [VIDEO_PROCESS] Step 3: Adding to collection...");

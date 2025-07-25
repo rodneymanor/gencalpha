@@ -416,3 +416,110 @@ export function extractVideoIdFromIframeUrl(iframeUrl: string): string | null {
     return null;
   }
 }
+
+/**
+ * Upload a custom thumbnail to Bunny CDN for a video
+ * Uses the Set Thumbnail API endpoint
+ * @param videoId - The video GUID/ID
+ * @param thumbnailUrl - URL of the thumbnail image to upload
+ * @returns boolean indicating success
+ */
+export async function uploadBunnyThumbnail(videoId: string, thumbnailUrl: string): Promise<boolean> {
+  try {
+    console.log("🖼️ [BUNNY] Starting thumbnail upload for video:", videoId);
+    console.log("🌐 [BUNNY] Thumbnail source URL:", thumbnailUrl);
+
+    // Validate configuration
+    const configResult = validateBunnyConfig();
+    if (!configResult.isValid || !configResult.config) {
+      console.error("❌ [BUNNY] Invalid Bunny configuration for thumbnail upload");
+      return false;
+    }
+
+    const { libraryId, apiKey } = configResult.config;
+
+    // First, download the thumbnail image
+    console.log("⬇️ [BUNNY] Downloading thumbnail image...");
+    const imageResponse = await fetch(thumbnailUrl, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+      },
+    });
+
+    if (!imageResponse.ok) {
+      console.error("❌ [BUNNY] Failed to download thumbnail:", imageResponse.status);
+      return false;
+    }
+
+    const imageBuffer = await imageResponse.arrayBuffer();
+    console.log("✅ [BUNNY] Thumbnail downloaded, size:", imageBuffer.byteLength, "bytes");
+
+    // Upload thumbnail to Bunny CDN
+    const thumbnailUploadUrl = `https://video.bunnycdn.com/library/${libraryId}/videos/${videoId}/thumbnail`;
+    console.log("📤 [BUNNY] Uploading to:", thumbnailUploadUrl);
+
+    const uploadResponse = await fetch(thumbnailUploadUrl, {
+      method: "POST",
+      headers: {
+        AccessKey: apiKey,
+        "Content-Type": "application/octet-stream",
+      },
+      body: imageBuffer,
+    });
+
+    if (!uploadResponse.ok) {
+      const errorText = await uploadResponse.text();
+      console.error("❌ [BUNNY] Thumbnail upload failed:", uploadResponse.status, errorText);
+      return false;
+    }
+
+    console.log("✅ [BUNNY] Thumbnail uploaded successfully for video:", videoId);
+    return true;
+  } catch (error) {
+    console.error("❌ [BUNNY] Thumbnail upload error:", error);
+    return false;
+  }
+}
+
+/**
+ * Upload thumbnail from URL with retry logic
+ * @param videoId - The video GUID/ID
+ * @param thumbnailUrl - URL of the thumbnail image
+ * @param maxRetries - Maximum number of retry attempts
+ * @returns boolean indicating success
+ */
+export async function uploadBunnyThumbnailWithRetry(
+  videoId: string, 
+  thumbnailUrl: string, 
+  maxRetries: number = 3
+): Promise<boolean> {
+  console.log(`🔄 [BUNNY] Attempting thumbnail upload with up to ${maxRetries} retries`);
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`📸 [BUNNY] Thumbnail upload attempt ${attempt}/${maxRetries}`);
+      
+      const success = await uploadBunnyThumbnail(videoId, thumbnailUrl);
+      
+      if (success) {
+        console.log(`✅ [BUNNY] Thumbnail upload succeeded on attempt ${attempt}`);
+        return true;
+      }
+
+      if (attempt < maxRetries) {
+        const waitTime = 2000 * attempt; // 2s, 4s, 6s
+        console.log(`⏳ [BUNNY] Waiting ${waitTime}ms before retry...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+      }
+    } catch (error) {
+      console.error(`❌ [BUNNY] Thumbnail upload attempt ${attempt} failed:`, error);
+      
+      if (attempt === maxRetries) {
+        console.error("❌ [BUNNY] All thumbnail upload attempts exhausted");
+        return false;
+      }
+    }
+  }
+
+  return false;
+}

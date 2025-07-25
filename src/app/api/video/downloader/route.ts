@@ -71,6 +71,7 @@ export async function POST(request: NextRequest) {
         duration: videoData.metadata.duration || 0,
         timestamp: videoData.metadata.timestamp,
       },
+      thumbnailUrl: videoData.thumbnailUrl, // Add at top level for easy access
       metadata: {
         originalUrl: decodedUrl,
         platform: videoData.platform,
