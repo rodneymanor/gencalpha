@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -14,19 +15,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Collection, CollectionsService, COLLECTION_LIMITS } from "@/lib/collections";
 import { useAuth } from "@/contexts/auth-context";
+import { Collection, CollectionsService, COLLECTION_LIMITS } from "@/lib/collections";
 
 const formSchema = z.object({
   title: z
@@ -35,7 +28,10 @@ const formSchema = z.object({
     .max(COLLECTION_LIMITS.MAX_TITLE_LENGTH, `Title must be ${COLLECTION_LIMITS.MAX_TITLE_LENGTH} characters or less`),
   description: z
     .string()
-    .max(COLLECTION_LIMITS.MAX_DESCRIPTION_LENGTH, `Description must be ${COLLECTION_LIMITS.MAX_DESCRIPTION_LENGTH} characters or less`)
+    .max(
+      COLLECTION_LIMITS.MAX_DESCRIPTION_LENGTH,
+      `Description must be ${COLLECTION_LIMITS.MAX_DESCRIPTION_LENGTH} characters or less`,
+    )
     .optional(),
 });
 
@@ -48,12 +44,7 @@ interface EditCollectionDialogProps {
   onSuccess: (updatedCollection: Collection) => void;
 }
 
-export function EditCollectionDialog({
-  collection,
-  open,
-  onOpenChange,
-  onSuccess,
-}: EditCollectionDialogProps) {
+export function EditCollectionDialog({ collection, open, onOpenChange, onSuccess }: EditCollectionDialogProps) {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -107,9 +98,7 @@ export function EditCollectionDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Edit Collection</DialogTitle>
-          <DialogDescription>
-            Update your collection details.
-          </DialogDescription>
+          <DialogDescription>Update your collection details.</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -121,10 +110,7 @@ export function EditCollectionDialog({
                 <FormItem>
                   <FormLabel>Title</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="Enter collection title"
-                      {...field}
-                    />
+                    <Input placeholder="Enter collection title" {...field} />
                   </FormControl>
                   <FormDescription>
                     {field.value.length}/{COLLECTION_LIMITS.MAX_TITLE_LENGTH} characters
@@ -141,11 +127,7 @@ export function EditCollectionDialog({
                 <FormItem>
                   <FormLabel>Description (Optional)</FormLabel>
                   <FormControl>
-                    <Textarea
-                      placeholder="Enter collection description"
-                      rows={3}
-                      {...field}
-                    />
+                    <Textarea placeholder="Enter collection description" rows={3} {...field} />
                   </FormControl>
                   <FormDescription>
                     {(field.value ?? "").length}/{COLLECTION_LIMITS.MAX_DESCRIPTION_LENGTH} characters
@@ -156,12 +138,7 @@ export function EditCollectionDialog({
             />
 
             <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-                disabled={isLoading}
-              >
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
                 Cancel
               </Button>
               <Button type="submit" disabled={isLoading}>

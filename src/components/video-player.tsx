@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+
+import { Play, Loader2 } from "lucide-react";
+
 import { Video } from "@/lib/collections";
 import { cn } from "@/lib/utils";
-import { Play, Loader2 } from "lucide-react";
 
 interface VideoPlayerProps {
   video: Video;
@@ -15,14 +17,14 @@ interface VideoPlayerProps {
   onError?: (error: string) => void;
 }
 
-export function VideoPlayer({ 
-  video, 
+export function VideoPlayer({
+  video,
   className,
   autoPlay = false,
   showControls = true,
   onLoadStart,
   onLoadEnd,
-  onError
+  onError,
 }: VideoPlayerProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -53,7 +55,7 @@ export function VideoPlayer({
 
   if (!videoUrl) {
     return (
-      <div className={cn("w-full h-full bg-muted flex items-center justify-center", className)}>
+      <div className={cn("bg-muted flex h-full w-full items-center justify-center", className)}>
         <p className="text-muted-foreground">No video URL available</p>
       </div>
     );
@@ -62,21 +64,21 @@ export function VideoPlayer({
   // Bunny.net iframe player
   if (video.iframeUrl) {
     return (
-      <div className={cn("w-full h-full relative", className)}>
+      <div className={cn("relative h-full w-full", className)}>
         {isLoading && (
-          <div className="absolute inset-0 bg-muted flex items-center justify-center z-10">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <div className="bg-muted absolute inset-0 z-10 flex items-center justify-center">
+            <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
           </div>
         )}
-        
+
         {hasError ? (
-          <div className="w-full h-full bg-muted flex items-center justify-center">
+          <div className="bg-muted flex h-full w-full items-center justify-center">
             <p className="text-muted-foreground">Failed to load video</p>
           </div>
         ) : (
           <iframe
             src={video.iframeUrl}
-            className="w-full h-full border-0"
+            className="h-full w-full border-0"
             allowFullScreen
             allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
             onLoad={handleIframeLoad}
@@ -90,22 +92,22 @@ export function VideoPlayer({
 
   // Fallback HTML5 video player
   return (
-    <div className={cn("w-full h-full relative", className)}>
+    <div className={cn("relative h-full w-full", className)}>
       {showPlayButton && (
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50">
           <button
             onClick={handlePlayClick}
-            className="bg-white/90 hover:bg-white rounded-full p-4 transition-colors"
+            className="rounded-full bg-white/90 p-4 transition-colors hover:bg-white"
             aria-label="Play video"
           >
-            <Play className="h-8 w-8 text-black fill-current" />
+            <Play className="h-8 w-8 fill-current text-black" />
           </button>
         </div>
       )}
 
       {isLoading && !showPlayButton && (
-        <div className="absolute inset-0 bg-muted flex items-center justify-center z-10">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <div className="bg-muted absolute inset-0 z-10 flex items-center justify-center">
+          <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
         </div>
       )}
 
@@ -114,7 +116,7 @@ export function VideoPlayer({
         poster={video.thumbnailUrl}
         controls={showControls && !showPlayButton}
         autoPlay={autoPlay}
-        className={cn("w-full h-full object-cover", className)}
+        className={cn("h-full w-full object-cover", className)}
         onLoadStart={() => {
           setIsLoading(true);
           onLoadStart?.();
@@ -133,7 +135,7 @@ export function VideoPlayer({
       </video>
 
       {hasError && (
-        <div className="absolute inset-0 bg-muted flex items-center justify-center">
+        <div className="bg-muted absolute inset-0 flex items-center justify-center">
           <p className="text-muted-foreground">Failed to load video</p>
         </div>
       )}

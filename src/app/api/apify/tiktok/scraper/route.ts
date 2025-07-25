@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { ApifyClient, APIFY_ACTORS } from "@/lib/apify";
 
 export interface TikTokScraperRequest {
@@ -28,14 +29,14 @@ export interface TikTokScraperResponse {
 
 async function scrapeTikTokGeneral(input: TikTokScraperRequest): Promise<unknown[]> {
   const client = new ApifyClient();
-  
+
   console.log("🎯 TikTok Scraper called with input:", JSON.stringify(input, null, 2));
-  
+
   // Build the input according to clockworks~tiktok-scraper schema
   const apifyInput: Record<string, unknown> = {
     proxyConfiguration: {
-      useApifyProxy: true
-    }
+      useApifyProxy: true,
+    },
   };
 
   // Add profiles if provided
@@ -44,7 +45,7 @@ async function scrapeTikTokGeneral(input: TikTokScraperRequest): Promise<unknown
     console.log("📱 Added profiles:", input.profiles);
   }
 
-  // Add hashtags if provided  
+  // Add hashtags if provided
   if (input.hashtags && input.hashtags.length > 0) {
     apifyInput.hashtags = input.hashtags;
     console.log("🏷️ Added hashtags:", input.hashtags);
@@ -72,13 +73,13 @@ async function scrapeTikTokGeneral(input: TikTokScraperRequest): Promise<unknown
   console.log("🎭 Using actor:", APIFY_ACTORS.TIKTOK_SCRAPER);
 
   const results = await client.runActor(APIFY_ACTORS.TIKTOK_SCRAPER, apifyInput, true);
-  
+
   console.log("📥 Raw response from Apify:");
   console.log("📊 Response type:", typeof results);
   console.log("📊 Is array:", Array.isArray(results));
   console.log("📊 Response length:", Array.isArray(results) ? results.length : "N/A");
   console.log("📊 Raw response sample:", JSON.stringify(results, null, 2));
-  
+
   if (!Array.isArray(results)) {
     console.log("⚠️ Response is not an array, wrapping in array");
     return [results];
@@ -91,7 +92,7 @@ async function scrapeTikTokGeneral(input: TikTokScraperRequest): Promise<unknown
 export async function POST(request: NextRequest) {
   try {
     const body: TikTokScraperRequest = await request.json();
-    
+
     console.log("🎯 TikTok Scraper API called with:", JSON.stringify(body, null, 2));
 
     if (!body.profiles && !body.hashtags && !body.videoUrls && !body.searchQueries) {
@@ -101,7 +102,7 @@ export async function POST(request: NextRequest) {
           error: "At least one of profiles, hashtags, videoUrls, or searchQueries is required",
           timestamp: new Date().toISOString(),
         } satisfies TikTokScraperResponse,
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -121,12 +122,11 @@ export async function POST(request: NextRequest) {
     };
 
     console.log("✅ Successfully scraped", results.length, "TikTok items");
-    
-    return NextResponse.json(response);
 
+    return NextResponse.json(response);
   } catch (error) {
     console.error("❌ TikTok scraper failed:", error);
-    
+
     const response: TikTokScraperResponse = {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error occurred",
@@ -152,7 +152,7 @@ export async function GET(request: NextRequest) {
         error: "At least one of profiles, hashtags, videoUrls, or searchQueries parameter is required",
         timestamp: new Date().toISOString(),
       } satisfies TikTokScraperResponse,
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -172,10 +172,9 @@ export async function GET(request: NextRequest) {
     };
 
     return NextResponse.json(response);
-
   } catch (error) {
     console.error("❌ TikTok scraper failed:", error);
-    
+
     const response: TikTokScraperResponse = {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error occurred",

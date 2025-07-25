@@ -1,52 +1,61 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function TestTranscription() {
   const [results, setResults] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
-  const [youtubeUrl, setYoutubeUrl] = useState('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+  const [youtubeUrl, setYoutubeUrl] = useState("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
 
   const runTest = async (endpoint: string, data: any = {}, key: string) => {
-    setLoading(prev => ({ ...prev, [key]: true }));
+    setLoading((prev) => ({ ...prev, [key]: true }));
     try {
       const response = await fetch(`/api/${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
       });
-      
+
       const result = await response.json();
-      setResults(prev => ({ ...prev, [key]: result }));
+      setResults((prev) => ({ ...prev, [key]: result }));
     } catch (error) {
-      setResults(prev => ({ 
-        ...prev, 
-        [key]: { error: error.message } 
+      setResults((prev) => ({
+        ...prev,
+        [key]: { error: error.message },
       }));
     } finally {
-      setLoading(prev => ({ ...prev, [key]: false }));
+      setLoading((prev) => ({ ...prev, [key]: false }));
     }
   };
 
   const testVoiceTranscription = () => {
-    runTest('transcribe/voice', {
-      audioData: 'base64_audio_data_here_for_testing',
-      format: 'wav',
-      testMode: true
-    }, 'voice');
+    runTest(
+      "transcribe/voice",
+      {
+        audioData: "base64_audio_data_here_for_testing",
+        format: "wav",
+        testMode: true,
+      },
+      "voice",
+    );
   };
 
   const testYouTubeTranscript = () => {
-    runTest('chrome-extension/youtube-transcript', {
-      url: youtubeUrl,
-      testMode: true
-    }, 'youtube');
+    runTest(
+      "chrome-extension/youtube-transcript",
+      {
+        url: youtubeUrl,
+        testMode: true,
+      },
+      "youtube",
+    );
   };
 
   const ResultDisplay = ({ result, title }: { result: any; title: string }) => (
@@ -55,20 +64,16 @@ export default function TestTranscription() {
         <CardTitle className="text-sm">{title} Result</CardTitle>
       </CardHeader>
       <CardContent>
-        <pre className="text-xs bg-muted p-3 rounded overflow-auto max-h-64">
-          {JSON.stringify(result, null, 2)}
-        </pre>
+        <pre className="bg-muted max-h-64 overflow-auto rounded p-3 text-xs">{JSON.stringify(result, null, 2)}</pre>
       </CardContent>
     </Card>
   );
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
+    <div className="container mx-auto max-w-4xl p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Transcription Services Test</h1>
-        <p className="text-muted-foreground">
-          Test voice transcription and YouTube transcript extraction services
-        </p>
+        <h1 className="mb-2 text-3xl font-bold">Transcription Services Test</h1>
+        <p className="text-muted-foreground">Test voice transcription and YouTube transcript extraction services</p>
       </div>
 
       <Tabs defaultValue="voice" className="space-y-6">
@@ -81,9 +86,7 @@ export default function TestTranscription() {
           <Card>
             <CardHeader>
               <CardTitle>Voice Transcription Test</CardTitle>
-              <CardDescription>
-                Test the /api/transcribe/voice endpoint with audio data
-              </CardDescription>
+              <CardDescription>Test the /api/transcribe/voice endpoint with audio data</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -95,15 +98,11 @@ export default function TestTranscription() {
                   placeholder="Audio data would be provided here..."
                 />
               </div>
-              
-              <Button 
-                onClick={testVoiceTranscription}
-                disabled={loading.voice}
-                className="w-full"
-              >
-                {loading.voice ? 'Transcribing...' : 'Test Voice Transcription'}
+
+              <Button onClick={testVoiceTranscription} disabled={loading.voice} className="w-full">
+                {loading.voice ? "Transcribing..." : "Test Voice Transcription"}
               </Button>
-              
+
               {results.voice && <ResultDisplay result={results.voice} title="Voice Transcription" />}
             </CardContent>
           </Card>
@@ -113,9 +112,7 @@ export default function TestTranscription() {
           <Card>
             <CardHeader>
               <CardTitle>YouTube Transcript Test</CardTitle>
-              <CardDescription>
-                Test the /api/chrome-extension/youtube-transcript endpoint
-              </CardDescription>
+              <CardDescription>Test the /api/chrome-extension/youtube-transcript endpoint</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -127,15 +124,11 @@ export default function TestTranscription() {
                   placeholder="Enter YouTube URL to test"
                 />
               </div>
-              
-              <Button 
-                onClick={testYouTubeTranscript}
-                disabled={loading.youtube}
-                className="w-full"
-              >
-                {loading.youtube ? 'Extracting...' : 'Test YouTube Transcript'}
+
+              <Button onClick={testYouTubeTranscript} disabled={loading.youtube} className="w-full">
+                {loading.youtube ? "Extracting..." : "Test YouTube Transcript"}
               </Button>
-              
+
               {results.youtube && <ResultDisplay result={results.youtube} title="YouTube Transcript" />}
             </CardContent>
           </Card>
@@ -145,29 +138,21 @@ export default function TestTranscription() {
       <Card className="mt-8">
         <CardHeader>
           <CardTitle>Supporting Services</CardTitle>
-          <CardDescription>
-            Additional transcription support files have been migrated
-          </CardDescription>
+          <CardDescription>Additional transcription support files have been migrated</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-            <div className="p-3 bg-muted rounded">
+          <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-3">
+            <div className="bg-muted rounded p-3">
               <h4 className="font-medium">Transcript Title Generator</h4>
-              <p className="text-xs text-muted-foreground">
-                Generates titles from transcripts
-              </p>
+              <p className="text-muted-foreground text-xs">Generates titles from transcripts</p>
             </div>
-            <div className="p-3 bg-muted rounded">
+            <div className="bg-muted rounded p-3">
               <h4 className="font-medium">Enhanced Readability Service</h4>
-              <p className="text-xs text-muted-foreground">
-                Improves transcript readability
-              </p>
+              <p className="text-muted-foreground text-xs">Improves transcript readability</p>
             </div>
-            <div className="p-3 bg-muted rounded">
+            <div className="bg-muted rounded p-3">
               <h4 className="font-medium">Script Analysis</h4>
-              <p className="text-xs text-muted-foreground">
-                Analyzes transcript content
-              </p>
+              <p className="text-muted-foreground text-xs">Analyzes transcript content</p>
             </div>
           </div>
         </CardContent>

@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useReducer, ReactNode, useMemo } from "react";
+
 import { Collection, Video } from "@/lib/collections";
 
 interface CollectionsState {
@@ -52,9 +53,7 @@ function collectionsReducer(state: CollectionsState, action: CollectionsAction):
       return { ...state, collections: [action.payload, ...state.collections] };
     case "UPDATE_COLLECTION": {
       const updatedCollections = state.collections.map((collection) =>
-        collection.id === action.payload.id
-          ? { ...collection, ...action.payload.updates }
-          : collection
+        collection.id === action.payload.id ? { ...collection, ...action.payload.updates } : collection,
       );
       return { ...state, collections: updatedCollections };
     }
@@ -67,7 +66,7 @@ function collectionsReducer(state: CollectionsState, action: CollectionsAction):
       return { ...state, videos: [action.payload, ...state.videos] };
     case "UPDATE_VIDEO": {
       const updatedVideos = state.videos.map((video) =>
-        video.id === action.payload.id ? { ...video, ...action.payload.updates } : video
+        video.id === action.payload.id ? { ...video, ...action.payload.updates } : video,
       );
       return { ...state, videos: updatedVideos };
     }
@@ -75,7 +74,7 @@ function collectionsReducer(state: CollectionsState, action: CollectionsAction):
       return {
         ...state,
         videos: state.videos.filter((video) => video.id !== action.payload),
-        selectedVideos: new Set([...state.selectedVideos].filter(id => id !== action.payload)),
+        selectedVideos: new Set([...state.selectedVideos].filter((id) => id !== action.payload)),
       };
     case "SET_SELECTED_VIDEO":
       return { ...state, selectedVideo: action.payload };
@@ -112,14 +111,10 @@ const CollectionsContext = createContext<{
 
 export function CollectionsProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(collectionsReducer, initialState);
-  
+
   const contextValue = useMemo(() => ({ state, dispatch }), [state, dispatch]);
 
-  return (
-    <CollectionsContext.Provider value={contextValue}>
-      {children}
-    </CollectionsContext.Provider>
-  );
+  return <CollectionsContext.Provider value={contextValue}>{children}</CollectionsContext.Provider>;
 }
 
 export function useCollections() {

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -14,41 +15,27 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useCollections } from "./collections-context";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/auth-context";
+
+import { useCollections } from "./collections-context";
 
 const formSchema = z.object({
   url: z
     .string()
     .min(1, "URL is required")
     .url("Please enter a valid URL")
-    .refine(
-      (url) => {
-        const lowerUrl = url.toLowerCase();
-        return (
-          (lowerUrl.includes("tiktok.com") || lowerUrl.includes("vm.tiktok.com")) ||
-          (lowerUrl.includes("instagram.com") && 
-           (lowerUrl.includes("/reel") || lowerUrl.includes("/p/") || lowerUrl.includes("/tv/")))
-        );
-      },
-      "Please enter a valid TikTok or Instagram Reel URL"
-    ),
+    .refine((url) => {
+      const lowerUrl = url.toLowerCase();
+      return (
+        lowerUrl.includes("tiktok.com") ||
+        lowerUrl.includes("vm.tiktok.com") ||
+        (lowerUrl.includes("instagram.com") &&
+          (lowerUrl.includes("/reel") || lowerUrl.includes("/p/") || lowerUrl.includes("/tv/")))
+      );
+    }, "Please enter a valid TikTok or Instagram Reel URL"),
   collectionId: z.string().min(1, "Please select a collection"),
 });
 
@@ -60,11 +47,7 @@ interface AddVideoDialogProps {
   selectedCollectionId?: string;
 }
 
-export function AddVideoDialog({ 
-  open, 
-  onOpenChange, 
-  selectedCollectionId = "all-videos" 
-}: AddVideoDialogProps) {
+export function AddVideoDialog({ open, onOpenChange, selectedCollectionId = "all-videos" }: AddVideoDialogProps) {
   const { state } = useCollections();
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
@@ -101,15 +84,15 @@ export function AddVideoDialog({
       }
 
       const result = await response.json();
-      
+
       if (result.success) {
         // Show success message with processing info
         console.log("✅ Video added to queue:", result.job.id);
-        
+
         // Close dialog immediately - user will see progress in notification badge
         form.reset();
         onOpenChange(false);
-        
+
         // Optional: Show a toast with processing info
         // toast.success("Video added to processing queue! Check the notification badge for progress.");
       } else {
@@ -129,9 +112,7 @@ export function AddVideoDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Add Video</DialogTitle>
-          <DialogDescription>
-            Add a video from TikTok or Instagram to your collection.
-          </DialogDescription>
+          <DialogDescription>Add a video from TikTok or Instagram to your collection.</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -143,10 +124,7 @@ export function AddVideoDialog({
                 <FormItem>
                   <FormLabel>Video URL</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="https://www.tiktok.com/@username/video/..."
-                      {...field}
-                    />
+                    <Input placeholder="https://www.tiktok.com/@username/video/..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -180,12 +158,7 @@ export function AddVideoDialog({
             />
 
             <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-                disabled={isLoading}
-              >
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
                 Cancel
               </Button>
               <Button type="submit" disabled={isLoading}>

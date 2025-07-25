@@ -39,7 +39,7 @@ export default function IdeaInboxPage() {
       setIsLoading(false);
       return;
     }
-    
+
     const unsubscribe = auth.onAuthStateChanged((user) => {
       setIsAuthenticated(!!user);
       if (user) {

@@ -150,7 +150,14 @@ const COMPONENT_ACTIONS: Record<ScriptElement["type"] | ScriptBlock["type"], AIA
   ],
 };
 
-export function AIInputPanel({ element, position, onAction, onTextUpdate, onClose, context = "scripts" }: AIInputPanelProps) {
+export function AIInputPanel({
+  element,
+  position,
+  onAction,
+  onTextUpdate,
+  onClose,
+  context = "scripts",
+}: AIInputPanelProps) {
   const [customPrompt, setCustomPrompt] = useState("");
   const [isOpen, setIsOpen] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -180,7 +187,7 @@ export function AIInputPanel({ element, position, onAction, onTextUpdate, onClos
         // Redirect to script editor with content as initial value
         const params = new URLSearchParams({
           content: element.text,
-          title: "Remixed from Idea Inbox"
+          title: "Remixed from Idea Inbox",
         });
         window.location.href = `/dashboard/scripts/editor?${params.toString()}`;
         return;

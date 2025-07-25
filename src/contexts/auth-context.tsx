@@ -14,10 +14,10 @@ import {
   updateProfile,
 } from "firebase/auth";
 
+import { APP_VERSION, APP_VERSION_STORAGE_KEY } from "@/config/app-version";
 import { getAuthCache, setAuthCache, clearAuthCache, isCacheStale, type AccountLevel } from "@/lib/auth-cache";
 import { auth } from "@/lib/firebase";
 import { UserManagementService, type UserProfile, type UserRole } from "@/lib/user-management";
-import { APP_VERSION, APP_VERSION_STORAGE_KEY } from "@/config/app-version";
 
 interface AuthContextType {
   user: User | null;
@@ -95,16 +95,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const checkVersionAndInitialize = async () => {
       const storedVersion = localStorage.getItem(APP_VERSION_STORAGE_KEY);
-      
+
       // If version has changed, force logout
       if (storedVersion && storedVersion !== APP_VERSION) {
         console.log("🔄 [AUTH] App version changed from", storedVersion, "to", APP_VERSION, "- forcing logout");
-        
+
         // Clear all auth-related storage
         clearAuthCache();
         localStorage.clear();
         sessionStorage.clear();
-        
+
         // Sign out if user is currently signed in
         if (auth?.currentUser) {
           try {
@@ -113,20 +113,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.error("Error signing out during version update:", error);
           }
         }
-        
+
         // Update stored version
         localStorage.setItem(APP_VERSION_STORAGE_KEY, APP_VERSION);
-        
+
         // Force page reload to ensure clean state
         window.location.reload();
         return;
       }
-      
+
       // If no version stored yet (first visit), just store it
       if (!storedVersion) {
         localStorage.setItem(APP_VERSION_STORAGE_KEY, APP_VERSION);
       }
-      
+
       // Normal initialization from cache
       const cachedAuth = getAuthCache();
       if (cachedAuth) {
@@ -139,7 +139,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsBackgroundVerifying(true);
       }
     };
-    
+
     checkVersionAndInitialize();
   }, []);
 

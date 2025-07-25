@@ -17,10 +17,13 @@ export async function POST(request: NextRequest) {
     const result = await VideoDownloader.download(url);
 
     if (!result) {
-      return NextResponse.json({ 
-        error: "Failed to download video",
-        details: "VideoDownloader returned null result"
-      }, { status: 500 });
+      return NextResponse.json(
+        {
+          error: "Failed to download video",
+          details: "VideoDownloader returned null result",
+        },
+        { status: 500 },
+      );
     }
 
     console.log("✅ [TEST-DOWNLOAD] Video download completed successfully");
@@ -30,7 +33,7 @@ export async function POST(request: NextRequest) {
       videoData: result.videoData,
       metrics: result.metrics,
       additionalMetadata: result.additionalMetadata,
-      testMode: true
+      testMode: true,
     });
   } catch (error) {
     console.error("❌ [TEST-DOWNLOAD] Download error:", error);
@@ -39,7 +42,7 @@ export async function POST(request: NextRequest) {
         error: "Failed to download video",
         details: error instanceof Error ? error.message : "Unknown error",
         stack: error instanceof Error ? error.stack : undefined,
-        testMode: true
+        testMode: true,
       },
       { status: 500 },
     );

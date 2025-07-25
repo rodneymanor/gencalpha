@@ -67,7 +67,8 @@ export class RBACService {
 
     // For collections, check if the collection belongs to an accessible coach
     if (resourceType === "collection") {
-      const collectionDoc = await db.collection(this.COLLECTIONS_PATH)
+      const collectionDoc = await db
+        .collection(this.COLLECTIONS_PATH)
         .where("id", "==", resourceId)
         .where("userId", "in", context.accessibleCoaches)
         .get();
@@ -75,7 +76,8 @@ export class RBACService {
     }
 
     // Check if the video belongs to an accessible coach
-    const videoDoc = await db.collection(this.VIDEOS_PATH)
+    const videoDoc = await db
+      .collection(this.VIDEOS_PATH)
       .where("id", "==", resourceId)
       .where("userId", "in", context.accessibleCoaches)
       .get();
@@ -196,7 +198,8 @@ export class RBACService {
           return { videos: [], totalCount: 0 };
         }
 
-        query = db.collection(this.VIDEOS_PATH)
+        query = db
+          .collection(this.VIDEOS_PATH)
           .where("collectionId", "==", collectionId)
           .where("userId", "==", targetCollection.userId)
           .orderBy("addedAt", "desc");
@@ -235,7 +238,6 @@ export class RBACService {
     return { videos, lastDoc: newLastDoc, totalCount: videos.length };
   }
 
-
   /**
    * Get videos for regular users (coach/creator)
    */
@@ -263,7 +265,8 @@ export class RBACService {
     let query;
     if (!collectionId || collectionId === "all-videos") {
       console.log("🔍 [RBAC] Regular user loading all accessible videos");
-      query = db.collection(this.VIDEOS_PATH)
+      query = db
+        .collection(this.VIDEOS_PATH)
         .where("userId", "in", userContext.accessibleCoaches)
         .orderBy("addedAt", "desc");
     } else {
@@ -276,7 +279,8 @@ export class RBACService {
         return { videos: [], totalCount: 0 };
       }
 
-      query = db.collection(this.VIDEOS_PATH)
+      query = db
+        .collection(this.VIDEOS_PATH)
         .where("collectionId", "==", collectionId)
         .where("userId", "==", targetCollection.userId)
         .orderBy("addedAt", "desc");
@@ -304,7 +308,6 @@ export class RBACService {
     console.log("✅ [RBAC] Regular user loaded videos:", videos.length);
     return { videos, lastDoc: newLastDoc, totalCount: videos.length };
   }
-
 
   /**
    * Deduplicate videos by originalUrl, keeping the most recent one

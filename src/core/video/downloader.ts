@@ -16,7 +16,7 @@ import {
   getTikTokMetrics,
 } from "@/lib/tiktok-downloader";
 
-import { detectPlatform, type Platform } from "./platform-detector";
+import { detectPlatform } from "./platform-detector";
 
 export interface VideoData {
   buffer: ArrayBuffer;

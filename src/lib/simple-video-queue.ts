@@ -43,7 +43,7 @@ class SimpleVideoQueue {
    */
   addJob(url: string, userId: string, collectionId?: string): VideoProcessingJob {
     const jobId = `video_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     const job: VideoProcessingJob = {
       id: jobId,
       url,
@@ -57,12 +57,12 @@ class SimpleVideoQueue {
 
     this.jobs.set(jobId, job);
     console.log("📋 [QUEUE] Added job:", jobId, "for URL:", url);
-    
+
     // Start processing in background (don't await)
-    this.processJob(jobId).catch(error => {
+    this.processJob(jobId).catch((error) => {
       console.error("❌ [QUEUE] Background processing failed:", error);
     });
-    
+
     return job;
   }
 
@@ -78,7 +78,7 @@ class SimpleVideoQueue {
    */
   getUserJobs(userId: string): VideoProcessingJob[] {
     return Array.from(this.jobs.values())
-      .filter(job => job.userId === userId)
+      .filter((job) => job.userId === userId)
       .sort((a, b) => b.startedAt.getTime() - a.startedAt.getTime());
   }
 
@@ -89,10 +89,10 @@ class SimpleVideoQueue {
     const jobs = Array.from(this.jobs.values());
     return {
       total: jobs.length,
-      pending: jobs.filter(j => j.status === "pending").length,
-      processing: jobs.filter(j => j.status === "processing").length,
-      completed: jobs.filter(j => j.status === "completed").length,
-      failed: jobs.filter(j => j.status === "failed").length,
+      pending: jobs.filter((j) => j.status === "pending").length,
+      processing: jobs.filter((j) => j.status === "processing").length,
+      completed: jobs.filter((j) => j.status === "completed").length,
+      failed: jobs.filter((j) => j.status === "failed").length,
     };
   }
 
@@ -101,13 +101,14 @@ class SimpleVideoQueue {
    */
   getActiveJobs(): VideoProcessingJob[] {
     const now = Date.now();
-    const oneHourAgo = now - (60 * 60 * 1000);
-    
+    const oneHourAgo = now - 60 * 60 * 1000;
+
     return Array.from(this.jobs.values())
-      .filter(job => 
-        job.status === "processing" || 
-        job.status === "pending" ||
-        (job.completedAt && job.completedAt.getTime() > oneHourAgo)
+      .filter(
+        (job) =>
+          job.status === "processing" ||
+          job.status === "pending" ||
+          (job.completedAt && job.completedAt.getTime() > oneHourAgo),
       )
       .sort((a, b) => b.startedAt.getTime() - a.startedAt.getTime());
   }
@@ -122,7 +123,7 @@ class SimpleVideoQueue {
 
     this.processing.add(jobId);
     const job = this.jobs.get(jobId);
-    
+
     if (!job) {
       this.processing.delete(jobId);
       return;
@@ -130,7 +131,7 @@ class SimpleVideoQueue {
 
     try {
       console.log("🚀 [QUEUE] Starting job:", jobId);
-      
+
       // Update to processing
       job.status = "processing";
       job.progress = 10;
@@ -143,7 +144,7 @@ class SimpleVideoQueue {
       this.jobs.set(jobId, job);
 
       const instagramData = await scrapeInstagramUrl(job.url);
-      
+
       if (!instagramData) {
         throw new Error("Failed to extract video data from Instagram");
       }
@@ -164,7 +165,7 @@ class SimpleVideoQueue {
       this.jobs.set(jobId, job);
 
       const response = await this.callVideoProcessingAPI(job, instagramData);
-      
+
       if (!response.success) {
         throw new Error(response.error || "Video processing failed");
       }
@@ -184,10 +185,9 @@ class SimpleVideoQueue {
       this.jobs.set(jobId, job);
 
       console.log("✅ [QUEUE] Job completed:", jobId);
-
     } catch (error) {
       console.error("❌ [QUEUE] Job failed:", jobId, error);
-      
+
       job.status = "failed";
       job.progress = 100;
       job.message = "Processing failed";
@@ -205,9 +205,7 @@ class SimpleVideoQueue {
   private async callVideoProcessingAPI(job: VideoProcessingJob, instagramData: any) {
     try {
       // Determine the base URL
-      const baseUrl = process.env.VERCEL_URL 
-        ? `https://${process.env.VERCEL_URL}` 
-        : 'http://localhost:3000';
+      const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000";
 
       const response = await fetch(`${baseUrl}/api/video/process-and-add`, {
         method: "POST",
@@ -226,16 +224,16 @@ class SimpleVideoQueue {
             title: instagramData.caption,
             author: instagramData.ownerUsername,
             metadata: instagramData,
-          }
+          },
         }),
       });
 
       return await response.json();
     } catch (error) {
       console.error("❌ [QUEUE] API call failed:", error);
-      return { 
-        success: false, 
-        error: "Failed to process video through API" 
+      return {
+        success: false,
+        error: "Failed to process video through API",
       };
     }
   }
@@ -245,8 +243,8 @@ class SimpleVideoQueue {
    */
   cleanup() {
     const now = Date.now();
-    const fourHoursAgo = now - (4 * 60 * 60 * 1000);
-    
+    const fourHoursAgo = now - 4 * 60 * 60 * 1000;
+
     let cleaned = 0;
     for (const [jobId, job] of this.jobs.entries()) {
       if (
@@ -258,7 +256,7 @@ class SimpleVideoQueue {
         cleaned++;
       }
     }
-    
+
     if (cleaned > 0) {
       console.log("🧹 [QUEUE] Cleaned up", cleaned, "old jobs");
     }
@@ -269,8 +267,11 @@ class SimpleVideoQueue {
 const videoQueue = new SimpleVideoQueue();
 
 // Clean up old jobs every hour
-setInterval(() => {
-  videoQueue.cleanup();
-}, 60 * 60 * 1000);
+setInterval(
+  () => {
+    videoQueue.cleanup();
+  },
+  60 * 60 * 1000,
+);
 
 export { videoQueue };

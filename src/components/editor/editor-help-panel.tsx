@@ -1,17 +1,13 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { HelpCircle, Keyboard, Zap, BookOpen, X } from 'lucide-react';
-import { 
-  scriptEditorTooltips, 
-  customBlockSlashCommands, 
-  editorTips, 
-  keyboardShortcuts,
-  helpResources 
-} from '@/data/editor-tooltips';
+import React from "react";
+
+import { HelpCircle, Keyboard, Zap, BookOpen, X } from "lucide-react";
+
+import { customBlockSlashCommands, editorTips, keyboardShortcuts, helpResources } from "@/data/editor-tooltips";
 
 interface EditorHelpPanelProps {
-  editorType: 'script' | 'custom' | 'blocknote';
+  editorType: "script" | "custom" | "blocknote";
   isOpen: boolean;
   onClose: () => void;
 }
@@ -21,27 +17,35 @@ export function EditorHelpPanel({ editorType, isOpen, onClose }: EditorHelpPanel
 
   const getEditorIcon = () => {
     switch (editorType) {
-      case 'script': return '🚀';
-      case 'custom': return '🎨';
-      case 'blocknote': return '📝';
-      default: return '📝';
+      case "script":
+        return "🚀";
+      case "custom":
+        return "🎨";
+      case "blocknote":
+        return "📝";
+      default:
+        return "📝";
     }
   };
 
   const getEditorName = () => {
     switch (editorType) {
-      case 'script': return 'Script Editor';
-      case 'custom': return 'Custom Block Editor';
-      case 'blocknote': return 'BlockNote Editor';
-      default: return 'Editor';
+      case "script":
+        return "Script Editor";
+      case "custom":
+        return "Custom Block Editor";
+      case "blocknote":
+        return "BlockNote Editor";
+      default:
+        return "Editor";
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl max-h-[80vh] overflow-hidden">
+    <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
+      <div className="max-h-[80vh] max-w-4xl overflow-hidden rounded-lg bg-white shadow-xl">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b">
+        <div className="flex items-center justify-between border-b p-4">
           <div className="flex items-center gap-2">
             <span className="text-2xl">{getEditorIcon()}</span>
             <div>
@@ -49,33 +53,29 @@ export function EditorHelpPanel({ editorType, isOpen, onClose }: EditorHelpPanel
               <p className="text-sm text-gray-500">Shortcuts, commands, and tips</p>
             </div>
           </div>
-          <button 
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-          >
+          <button onClick={onClose} className="rounded-full p-2 transition-colors hover:bg-gray-100">
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(80vh-80px)]">
-          <div className="grid md:grid-cols-2 gap-6">
-            
+        <div className="max-h-[calc(80vh-80px)] overflow-y-auto p-6">
+          <div className="grid gap-6 md:grid-cols-2">
             {/* Keyboard Shortcuts */}
             <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-3">
+              <div className="mb-3 flex items-center gap-2">
                 <Keyboard className="h-5 w-5 text-blue-600" />
                 <h3 className="font-semibold text-blue-800">Keyboard Shortcuts</h3>
               </div>
-              
-              {editorType === 'script' && (
+
+              {editorType === "script" && (
                 <div className="space-y-2">
                   {keyboardShortcuts.scriptEditor.map((shortcut, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                    <div key={index} className="flex items-center justify-between rounded bg-gray-50 p-2">
                       <span className="text-sm">{shortcut.action}</span>
                       <div className="flex gap-1">
                         {(shortcut.mac || shortcut.keys).map((key, i) => (
-                          <kbd key={i} className="px-2 py-1 text-xs bg-white border rounded">
+                          <kbd key={i} className="rounded border bg-white px-2 py-1 text-xs">
                             {key}
                           </kbd>
                         ))}
@@ -85,14 +85,14 @@ export function EditorHelpPanel({ editorType, isOpen, onClose }: EditorHelpPanel
                 </div>
               )}
 
-              {editorType === 'custom' && (
+              {editorType === "custom" && (
                 <div className="space-y-2">
                   {keyboardShortcuts.customBlockEditor.map((shortcut, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                    <div key={index} className="flex items-center justify-between rounded bg-gray-50 p-2">
                       <span className="text-sm">{shortcut.action}</span>
                       <div className="flex gap-1">
                         {shortcut.keys.map((key, i) => (
-                          <kbd key={i} className="px-2 py-1 text-xs bg-white border rounded">
+                          <kbd key={i} className="rounded border bg-white px-2 py-1 text-xs">
                             {key}
                           </kbd>
                         ))}
@@ -103,15 +103,15 @@ export function EditorHelpPanel({ editorType, isOpen, onClose }: EditorHelpPanel
               )}
 
               {/* Universal Shortcuts */}
-              <div className="pt-3 border-t">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Universal</h4>
+              <div className="border-t pt-3">
+                <h4 className="mb-2 text-sm font-medium text-gray-700">Universal</h4>
                 <div className="space-y-1">
                   {keyboardShortcuts.universal.slice(0, 4).map((shortcut, index) => (
                     <div key={index} className="flex items-center justify-between p-1 text-xs">
                       <span className="text-gray-600">{shortcut.action}</span>
                       <div className="flex gap-1">
                         {(shortcut.mac || shortcut.keys).map((key, i) => (
-                          <kbd key={i} className="px-1 py-0.5 bg-gray-100 border rounded text-xs">
+                          <kbd key={i} className="rounded border bg-gray-100 px-1 py-0.5 text-xs">
                             {key}
                           </kbd>
                         ))}
@@ -123,45 +123,46 @@ export function EditorHelpPanel({ editorType, isOpen, onClose }: EditorHelpPanel
             </div>
 
             {/* Slash Commands (Custom Editor Only) */}
-            {editorType === 'custom' && (
+            {editorType === "custom" && (
               <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-3">
+                <div className="mb-3 flex items-center gap-2">
                   <Zap className="h-5 w-5 text-purple-600" />
                   <h3 className="font-semibold text-purple-800">Slash Commands</h3>
                 </div>
-                
+
                 <div className="space-y-2">
-                  {customBlockSlashCommands.filter(cmd => cmd.category === 'script-blocks').map((command, index) => (
-                    <div key={index} className="p-3 bg-purple-50 rounded-lg border border-purple-200">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-lg">{command.icon}</span>
-                        <code className="text-sm font-mono bg-purple-100 px-2 py-1 rounded">
-                          {command.command}
-                        </code>
+                  {customBlockSlashCommands
+                    .filter((cmd) => cmd.category === "script-blocks")
+                    .map((command, index) => (
+                      <div key={index} className="rounded-lg border border-purple-200 bg-purple-50 p-3">
+                        <div className="mb-1 flex items-center gap-2">
+                          <span className="text-lg">{command.icon}</span>
+                          <code className="rounded bg-purple-100 px-2 py-1 font-mono text-sm">{command.command}</code>
+                        </div>
+                        <p className="text-sm text-purple-700">{command.description}</p>
+                        {command.example && <p className="mt-1 text-xs text-purple-600 italic">{command.example}</p>}
                       </div>
-                      <p className="text-sm text-purple-700">{command.description}</p>
-                      {command.example && (
-                        <p className="text-xs text-purple-600 mt-1 italic">{command.example}</p>
-                      )}
-                    </div>
-                  ))}
+                    ))}
                 </div>
               </div>
             )}
 
             {/* Tips Section */}
             <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-3">
+              <div className="mb-3 flex items-center gap-2">
                 <BookOpen className="h-5 w-5 text-green-600" />
                 <h3 className="font-semibold text-green-800">Tips & Best Practices</h3>
               </div>
-              
+
               <div className="space-y-2">
-                {(editorType === 'script' ? editorTips.scriptEditor : 
-                  editorType === 'custom' ? editorTips.customBlockEditor :
-                  editorTips.general).map((tip, index) => (
-                  <div key={index} className="flex items-start gap-2 p-2 bg-green-50 rounded">
-                    <span className="text-green-600 text-sm mt-0.5">💡</span>
+                {(editorType === "script"
+                  ? editorTips.scriptEditor
+                  : editorType === "custom"
+                    ? editorTips.customBlockEditor
+                    : editorTips.general
+                ).map((tip, index) => (
+                  <div key={index} className="flex items-start gap-2 rounded bg-green-50 p-2">
+                    <span className="mt-0.5 text-sm text-green-600">💡</span>
                     <p className="text-sm text-green-700">{tip}</p>
                   </div>
                 ))}
@@ -170,15 +171,15 @@ export function EditorHelpPanel({ editorType, isOpen, onClose }: EditorHelpPanel
 
             {/* Common Questions */}
             <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-3">
+              <div className="mb-3 flex items-center gap-2">
                 <HelpCircle className="h-5 w-5 text-orange-600" />
                 <h3 className="font-semibold text-orange-800">Common Questions</h3>
               </div>
-              
+
               <div className="space-y-3">
                 {helpResources.commonQuestions.slice(0, 3).map((qa, index) => (
-                  <div key={index} className="p-3 bg-orange-50 rounded-lg border border-orange-200">
-                    <h4 className="text-sm font-medium text-orange-800 mb-1">{qa.question}</h4>
+                  <div key={index} className="rounded-lg border border-orange-200 bg-orange-50 p-3">
+                    <h4 className="mb-1 text-sm font-medium text-orange-800">{qa.question}</h4>
                     <p className="text-sm text-orange-700">{qa.answer}</p>
                   </div>
                 ))}
@@ -187,9 +188,9 @@ export function EditorHelpPanel({ editorType, isOpen, onClose }: EditorHelpPanel
           </div>
 
           {/* Footer */}
-          <div className="mt-6 pt-4 border-t text-center">
+          <div className="mt-6 border-t pt-4 text-center">
             <p className="text-xs text-gray-500">
-              For complete documentation, see the{' '}
+              For complete documentation, see the{" "}
               <a href="/docs/editor-guide.md" className="text-blue-600 hover:underline">
                 Editor Guide
               </a>

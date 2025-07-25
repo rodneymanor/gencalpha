@@ -115,7 +115,7 @@ export class AIVoicesService {
       }
 
       */
-      
+
       if (templates.length === 0) {
         // throw new Error("Failed to generate any templates from the provided profile"); // TEMPORARILY DISABLED
         console.log("Template generation disabled - returning empty templates");

@@ -17,9 +17,7 @@ export interface InstagramReelData {
   username: string;
 }
 
-// eslint-disable-next-line complexity
 function mapToInstagramReel(item: unknown): InstagramReelData {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const data = item as any;
   return {
     id: data.id ?? "",

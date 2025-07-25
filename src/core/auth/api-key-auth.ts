@@ -8,7 +8,6 @@ import { createHash } from "crypto";
 import { NextResponse } from "next/server";
 
 import { getAdminDb, isAdminInitialized } from "@/lib/firebase-admin";
-import { authenticateWithFirebaseToken } from "@/lib/firebase-auth-helpers";
 import { UserManagementAdminService } from "@/lib/user-management-admin";
 
 export interface ApiKeyDocument {

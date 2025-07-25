@@ -1,7 +1,8 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import type { VideoProcessingJob } from '@/lib/simple-video-queue';
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+
+import type { VideoProcessingJob } from "@/lib/simple-video-queue";
 
 interface VideoProcessingContextType {
   jobs: VideoProcessingJob[];
@@ -40,9 +41,7 @@ export function VideoProcessingProvider({ children }: { children: React.ReactNod
     const startPolling = () => {
       if (interval) return; // Already polling
 
-      const activeJobs = jobs.filter(job => 
-        job.status === "pending" || job.status === "processing"
-      );
+      const activeJobs = jobs.filter((job) => job.status === "pending" || job.status === "processing");
 
       if (activeJobs.length > 0) {
         // Active jobs: poll every 3 seconds
@@ -76,10 +75,8 @@ export function VideoProcessingProvider({ children }: { children: React.ReactNod
 
   // Log polling status changes
   useEffect(() => {
-    const activeCount = jobs.filter(job => 
-      job.status === "pending" || job.status === "processing"
-    ).length;
-    
+    const activeCount = jobs.filter((job) => job.status === "pending" || job.status === "processing").length;
+
     if (activeCount > 0) {
       console.log(`📊 Processing ${activeCount} active jobs`);
     }
@@ -91,17 +88,13 @@ export function VideoProcessingProvider({ children }: { children: React.ReactNod
     isPolling,
   };
 
-  return (
-    <VideoProcessingContext.Provider value={value}>
-      {children}
-    </VideoProcessingContext.Provider>
-  );
+  return <VideoProcessingContext.Provider value={value}>{children}</VideoProcessingContext.Provider>;
 }
 
 export function useVideoProcessing() {
   const context = useContext(VideoProcessingContext);
   if (context === undefined) {
-    throw new Error('useVideoProcessing must be used within a VideoProcessingProvider');
+    throw new Error("useVideoProcessing must be used within a VideoProcessingProvider");
   }
   return context;
 }

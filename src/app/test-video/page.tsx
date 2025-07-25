@@ -1,51 +1,52 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function TestVideo() {
   const [results, setResults] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
-  const [testUrl, setTestUrl] = useState('https://www.tiktok.com/@example/video/123456789');
+  const [testUrl, setTestUrl] = useState("https://www.tiktok.com/@example/video/123456789");
 
   const runTest = async (endpoint: string, data: any = {}, key: string) => {
-    setLoading(prev => ({ ...prev, [key]: true }));
+    setLoading((prev) => ({ ...prev, [key]: true }));
     try {
       const response = await fetch(`/api/${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
       });
-      
+
       const result = await response.json();
-      setResults(prev => ({ ...prev, [key]: result }));
+      setResults((prev) => ({ ...prev, [key]: result }));
     } catch (error) {
-      setResults(prev => ({ 
-        ...prev, 
-        [key]: { error: error.message } 
+      setResults((prev) => ({
+        ...prev,
+        [key]: { error: error.message },
       }));
     } finally {
-      setLoading(prev => ({ ...prev, [key]: false }));
+      setLoading((prev) => ({ ...prev, [key]: false }));
     }
   };
 
   const testCoreServices = async () => {
-    setLoading(prev => ({ ...prev, core: true }));
+    setLoading((prev) => ({ ...prev, core: true }));
     try {
-      const response = await fetch('/api/test-core');
+      const response = await fetch("/api/test-core");
       const result = await response.json();
-      setResults(prev => ({ ...prev, core: result }));
+      setResults((prev) => ({ ...prev, core: result }));
     } catch (error) {
-      setResults(prev => ({ 
-        ...prev, 
-        core: { error: error.message } 
+      setResults((prev) => ({
+        ...prev,
+        core: { error: error.message },
       }));
     } finally {
-      setLoading(prev => ({ ...prev, core: false }));
+      setLoading((prev) => ({ ...prev, core: false }));
     }
   };
 
@@ -55,17 +56,15 @@ export default function TestVideo() {
         <CardTitle className="text-sm">{title} Result</CardTitle>
       </CardHeader>
       <CardContent>
-        <pre className="text-xs bg-muted p-3 rounded overflow-auto max-h-64">
-          {JSON.stringify(result, null, 2)}
-        </pre>
+        <pre className="bg-muted max-h-64 overflow-auto rounded p-3 text-xs">{JSON.stringify(result, null, 2)}</pre>
       </CardContent>
     </Card>
   );
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
+    <div className="container mx-auto max-w-6xl p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Video Processing Test Suite</h1>
+        <h1 className="mb-2 text-3xl font-bold">Video Processing Test Suite</h1>
         <p className="text-muted-foreground">
           Comprehensive testing for all video processing endpoints and core services
         </p>
@@ -83,17 +82,11 @@ export default function TestVideo() {
           <Card>
             <CardHeader>
               <CardTitle>Core Services Test</CardTitle>
-              <CardDescription>
-                Test Firebase, Gemini, and Bunny Stream connections
-              </CardDescription>
+              <CardDescription>Test Firebase, Gemini, and Bunny Stream connections</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button 
-                onClick={testCoreServices}
-                disabled={loading.core}
-                className="w-full"
-              >
-                {loading.core ? 'Testing...' : 'Test Core Services'}
+              <Button onClick={testCoreServices} disabled={loading.core} className="w-full">
+                {loading.core ? "Testing..." : "Test Core Services"}
               </Button>
               {results.core && <ResultDisplay result={results.core} title="Core Services" />}
             </CardContent>
@@ -107,7 +100,7 @@ export default function TestVideo() {
               <CardDescription>
                 Test download, transcribe, upload, and process-and-add endpoints
                 <br />
-                <span className="text-xs text-muted-foreground">
+                <span className="text-muted-foreground text-xs">
                   Note: Download, Transcribe, and Uploader use test endpoints without authentication
                 </span>
               </CardDescription>
@@ -122,41 +115,43 @@ export default function TestVideo() {
                   placeholder="Enter video URL to test"
                 />
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
-                <Button 
-                  onClick={() => runTest('test-video-download', { url: testUrl }, 'download')}
+                <Button
+                  onClick={() => runTest("test-video-download", { url: testUrl }, "download")}
                   disabled={loading.download}
                   variant="outline"
                 >
-                  {loading.download ? 'Testing...' : 'Test Download (No Auth)'}
+                  {loading.download ? "Testing..." : "Test Download (No Auth)"}
                 </Button>
-                
-                <Button 
-                  onClick={() => runTest('test-video-transcribe', { url: testUrl }, 'transcribe')}
+
+                <Button
+                  onClick={() => runTest("test-video-transcribe", { url: testUrl }, "transcribe")}
                   disabled={loading.transcribe}
                   variant="outline"
                 >
-                  {loading.transcribe ? 'Testing...' : 'Test Transcribe (No Auth)'}
+                  {loading.transcribe ? "Testing..." : "Test Transcribe (No Auth)"}
                 </Button>
-                
-                <Button 
-                  onClick={() => runTest('test-video-uploader', { videoBuffer: 'test', fileName: 'test.mp4' }, 'uploader')}
+
+                <Button
+                  onClick={() =>
+                    runTest("test-video-uploader", { videoBuffer: "test", fileName: "test.mp4" }, "uploader")
+                  }
                   disabled={loading.uploader}
                   variant="outline"
                 >
-                  {loading.uploader ? 'Testing...' : 'Test Uploader (No Auth)'}
+                  {loading.uploader ? "Testing..." : "Test Uploader (No Auth)"}
                 </Button>
-                
-                <Button 
-                  onClick={() => runTest('video/process-and-add', { url: testUrl }, 'processAdd')}
+
+                <Button
+                  onClick={() => runTest("video/process-and-add", { url: testUrl }, "processAdd")}
                   disabled={loading.processAdd}
                   variant="outline"
                 >
-                  {loading.processAdd ? 'Testing...' : 'Test Process & Add'}
+                  {loading.processAdd ? "Testing..." : "Test Process & Add"}
                 </Button>
               </div>
-              
+
               {results.download && <ResultDisplay result={results.download} title="Download" />}
               {results.transcribe && <ResultDisplay result={results.transcribe} title="Transcribe" />}
               {results.uploader && <ResultDisplay result={results.uploader} title="Uploader" />}
@@ -169,29 +164,27 @@ export default function TestVideo() {
           <Card>
             <CardHeader>
               <CardTitle>Priority 2 - Bunny Integration</CardTitle>
-              <CardDescription>
-                Test stream-to-bunny and instagram-to-bunny endpoints
-              </CardDescription>
+              <CardDescription>Test stream-to-bunny and instagram-to-bunny endpoints</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <Button 
-                  onClick={() => runTest('video/stream-to-bunny', { url: testUrl }, 'streamBunny')}
+                <Button
+                  onClick={() => runTest("video/stream-to-bunny", { url: testUrl }, "streamBunny")}
                   disabled={loading.streamBunny}
                   variant="outline"
                 >
-                  {loading.streamBunny ? 'Testing...' : 'Test Stream to Bunny'}
+                  {loading.streamBunny ? "Testing..." : "Test Stream to Bunny"}
                 </Button>
-                
-                <Button 
-                  onClick={() => runTest('video/instagram-to-bunny', { url: testUrl }, 'instaBunny')}
+
+                <Button
+                  onClick={() => runTest("video/instagram-to-bunny", { url: testUrl }, "instaBunny")}
                   disabled={loading.instaBunny}
                   variant="outline"
                 >
-                  {loading.instaBunny ? 'Testing...' : 'Test Instagram to Bunny'}
+                  {loading.instaBunny ? "Testing..." : "Test Instagram to Bunny"}
                 </Button>
               </div>
-              
+
               {results.streamBunny && <ResultDisplay result={results.streamBunny} title="Stream to Bunny" />}
               {results.instaBunny && <ResultDisplay result={results.instaBunny} title="Instagram to Bunny" />}
             </CardContent>
@@ -202,45 +195,43 @@ export default function TestVideo() {
           <Card>
             <CardHeader>
               <CardTitle>Priority 3 - Analysis Endpoints</CardTitle>
-              <CardDescription>
-                Test all video analysis endpoints
-              </CardDescription>
+              <CardDescription>Test all video analysis endpoints</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <Button 
-                  onClick={() => runTest('video/analyze-complete', { videoId: 'test123' }, 'analyzeComplete')}
+                <Button
+                  onClick={() => runTest("video/analyze-complete", { videoId: "test123" }, "analyzeComplete")}
                   disabled={loading.analyzeComplete}
                   variant="outline"
                 >
-                  {loading.analyzeComplete ? 'Testing...' : 'Test Analyze Complete'}
+                  {loading.analyzeComplete ? "Testing..." : "Test Analyze Complete"}
                 </Button>
-                
-                <Button 
-                  onClick={() => runTest('video/analyze-metadata', { videoId: 'test123' }, 'analyzeMeta')}
+
+                <Button
+                  onClick={() => runTest("video/analyze-metadata", { videoId: "test123" }, "analyzeMeta")}
                   disabled={loading.analyzeMeta}
                   variant="outline"
                 >
-                  {loading.analyzeMeta ? 'Testing...' : 'Test Analyze Metadata'}
+                  {loading.analyzeMeta ? "Testing..." : "Test Analyze Metadata"}
                 </Button>
-                
-                <Button 
-                  onClick={() => runTest('video/analyze-script', { videoId: 'test123' }, 'analyzeScript')}
+
+                <Button
+                  onClick={() => runTest("video/analyze-script", { videoId: "test123" }, "analyzeScript")}
                   disabled={loading.analyzeScript}
                   variant="outline"
                 >
-                  {loading.analyzeScript ? 'Testing...' : 'Test Analyze Script'}
+                  {loading.analyzeScript ? "Testing..." : "Test Analyze Script"}
                 </Button>
-                
-                <Button 
-                  onClick={() => runTest('video/analyze-visuals', { videoId: 'test123' }, 'analyzeVisuals')}
+
+                <Button
+                  onClick={() => runTest("video/analyze-visuals", { videoId: "test123" }, "analyzeVisuals")}
                   disabled={loading.analyzeVisuals}
                   variant="outline"
                 >
-                  {loading.analyzeVisuals ? 'Testing...' : 'Test Analyze Visuals'}
+                  {loading.analyzeVisuals ? "Testing..." : "Test Analyze Visuals"}
                 </Button>
               </div>
-              
+
               {results.analyzeComplete && <ResultDisplay result={results.analyzeComplete} title="Analyze Complete" />}
               {results.analyzeMeta && <ResultDisplay result={results.analyzeMeta} title="Analyze Metadata" />}
               {results.analyzeScript && <ResultDisplay result={results.analyzeScript} title="Analyze Script" />}

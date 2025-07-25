@@ -68,7 +68,7 @@ export class UnifiedScriptService {
     }
 
     const context = await this.contextProvider.loadContext(userId);
-    const scripts = await this.adapter.generateVariations(validation.sanitizedInput!, context, count);
+    const scripts = await this.adapter.generateVariations(validation.sanitizedInput, context, count);
 
     // Validate all outputs
     scripts.forEach((script) => this.validateOutput(script, validation.sanitizedInput!.duration));
@@ -122,7 +122,7 @@ export class UnifiedScriptService {
     const context = await this.contextProvider.loadContext(userId);
 
     // Step 3: Enrich
-    const enrichedInput = ContextEnricher.enrich(validation.sanitizedInput!, context);
+    const enrichedInput = ContextEnricher.enrich(validation.sanitizedInput, context);
 
     // Step 4: Apply rules
     const rules = RuleEngine.applyRules(enrichedInput);

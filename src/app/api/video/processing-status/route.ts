@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { videoQueue } from "@/lib/simple-video-queue";
 
 export async function GET() {
@@ -29,7 +30,7 @@ export async function GET() {
           failed: 0,
         },
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -37,21 +38,15 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const { jobId } = await request.json();
-    
+
     if (!jobId) {
-      return NextResponse.json(
-        { success: false, error: "Job ID required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: "Job ID required" }, { status: 400 });
     }
 
     const job = videoQueue.getJob(jobId);
-    
+
     if (!job) {
-      return NextResponse.json(
-        { success: false, error: "Job not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, error: "Job not found" }, { status: 404 });
     }
 
     return NextResponse.json({
@@ -66,7 +61,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: "Failed to get job status",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

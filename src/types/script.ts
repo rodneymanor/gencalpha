@@ -43,7 +43,7 @@ export interface CreateScriptRequest {
   voice?: {
     id: string;
     name: string;
-    badges: string[];  
+    badges: string[];
   };
   originalIdea?: string;
   targetLength?: string;

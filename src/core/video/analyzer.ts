@@ -4,7 +4,6 @@
  */
 
 import type { ContentMetadata, EngagementMetrics } from "./metadata";
-import type { Platform } from "./platform-detector";
 
 export interface ScriptElement {
   type: "hook" | "bridge" | "golden-nugget" | "wta";

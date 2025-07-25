@@ -77,8 +77,6 @@ async function processUrlInput(request: NextRequest) {
 async function processFileInput(request: NextRequest) {
   const formData = await request.formData();
   const file = formData.get("video") as File;
-
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (!file) {
     throw new Error("Video file is required");
   }

@@ -1,10 +1,11 @@
 import { createNegativeKeywordPromptInstruction } from "@/data/negative-keywords";
 import { generateScript } from "@/lib/gemini";
-import { parseStructuredResponse, createScriptElements, combineScriptElements } from "@/lib/json-extractor";
 import { NegativeKeywordsService } from "@/lib/negative-keywords-service";
-import { generateScriptWithValidation, validateScript, cleanScriptContent } from "@/lib/script-validation";
 
 import type { ScriptInput, ScriptResult } from "./speed";
+
+import { parseStructuredResponse, createScriptElements, combineScriptElements } from "@/lib/json-extractor";
+import { generateScriptWithValidation, validateScript, cleanScriptContent } from "@/lib/script-validation";
 
 export class EducationalEngine {
   constructor(private input: ScriptInput) {}

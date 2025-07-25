@@ -36,7 +36,7 @@ class SimpleVideoQueue {
    */
   addJob(url: string, userId: string, collectionId?: string): VideoProcessingJob {
     const jobId = `video_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     const job: VideoProcessingJob = {
       id: jobId,
       url,
@@ -50,10 +50,10 @@ class SimpleVideoQueue {
 
     this.jobs.set(jobId, job);
     console.log("📋 [QUEUE] Added job:", jobId, "for URL:", url);
-    
+
     // Start processing immediately
     this.processJob(jobId);
-    
+
     return job;
   }
 

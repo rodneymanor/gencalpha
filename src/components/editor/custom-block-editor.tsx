@@ -1,8 +1,10 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { BlockNoteEditor } from '@blocknote/core';
-import { customBlockSchema } from './custom-schema';
+import React from "react";
+
+import { BlockNoteEditor } from "@blocknote/core";
+
+import { customBlockSchema } from "./custom-schema";
 
 interface CustomBlockEditorProps {
   value: string;
@@ -11,7 +13,7 @@ interface CustomBlockEditorProps {
 
 // Create a safe content parser for custom blocks
 const createSafeCustomContent = (content: string) => {
-  if (!content || content.trim() === '') {
+  if (!content || content.trim() === "") {
     return [
       {
         id: "welcome-block",
@@ -21,11 +23,11 @@ const createSafeCustomContent = (content: string) => {
           {
             type: "text",
             text: "Start writing your script with custom blocks! Use / to add hooks, bridges, golden nuggets, and CTAs.",
-            styles: {}
-          }
+            styles: {},
+          },
         ],
-        children: []
-      }
+        children: [],
+      },
     ];
   }
 
@@ -38,7 +40,7 @@ const createSafeCustomContent = (content: string) => {
         type: block.type || "paragraph",
         props: block.props || {},
         content: Array.isArray(block.content) ? block.content : [],
-        children: Array.isArray(block.children) ? block.children : []
+        children: Array.isArray(block.children) ? block.children : [],
       }));
     }
   } catch {
@@ -54,11 +56,11 @@ const createSafeCustomContent = (content: string) => {
         {
           type: "text",
           text: content,
-          styles: {}
-        }
+          styles: {},
+        },
       ],
-      children: []
-    }
+      children: [],
+    },
   ];
 };
 
@@ -75,17 +77,17 @@ export function CustomBlockEditor({ value, onChange }: CustomBlockEditorProps) {
     const initializeEditor = async () => {
       try {
         setError(null);
-        console.log('🎨 Initializing custom block editor...');
+        console.log("🎨 Initializing custom block editor...");
 
         const initialContent = createSafeCustomContent(value);
-        console.log('📝 Custom content prepared:', initialContent);
+        console.log("📝 Custom content prepared:", initialContent);
 
         const editor = BlockNoteEditor.create({
           schema: customBlockSchema,
           initialContent,
         });
 
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         if (containerRef.current && !mountedRef.current) {
           editor.mount(containerRef.current);
@@ -100,18 +102,18 @@ export function CustomBlockEditor({ value, onChange }: CustomBlockEditorProps) {
                 const content = JSON.stringify(editor.document);
                 onChange(content);
               } catch (err) {
-                console.error('❌ Error serializing custom content:', err);
+                console.error("❌ Error serializing custom content:", err);
               }
             }, 200);
           });
 
           setTimeout(() => {
             setIsReady(true);
-            console.log('✅ Custom editor ready');
+            console.log("✅ Custom editor ready");
           }, 200);
         }
       } catch (err) {
-        console.error('❌ Error initializing custom editor:', err);
+        console.error("❌ Error initializing custom editor:", err);
         setError(err instanceof Error ? err.message : String(err));
         mountedRef.current = false;
       }
@@ -125,9 +127,9 @@ export function CustomBlockEditor({ value, onChange }: CustomBlockEditorProps) {
           editorRef.current.unmount();
           editorRef.current = null;
           mountedRef.current = false;
-          console.log('🧹 Custom editor unmounted');
+          console.log("🧹 Custom editor unmounted");
         } catch (err) {
-          console.error('❌ Error unmounting custom editor:', err);
+          console.error("❌ Error unmounting custom editor:", err);
         }
       }
     };
@@ -139,15 +141,12 @@ export function CustomBlockEditor({ value, onChange }: CustomBlockEditorProps) {
 
       try {
         const currentContent = JSON.stringify(editorRef.current.document);
-        if (currentContent !== value && value.trim() !== '') {
+        if (currentContent !== value && value.trim() !== "") {
           const newContent = createSafeCustomContent(value);
-          await editorRef.current.replaceBlocks(
-            editorRef.current.document,
-            newContent
-          );
+          await editorRef.current.replaceBlocks(editorRef.current.document, newContent);
         }
       } catch (err) {
-        console.error('❌ Error updating custom content:', err);
+        console.error("❌ Error updating custom content:", err);
       }
     };
 
@@ -157,21 +156,21 @@ export function CustomBlockEditor({ value, onChange }: CustomBlockEditorProps) {
 
   if (error) {
     return (
-      <div className="border rounded-lg p-4 bg-red-50">
+      <div className="rounded-lg border bg-red-50 p-4">
         <div className="mb-2">
           <strong className="text-red-700">Custom Editor Error</strong>
         </div>
-        <p className="text-red-600 text-sm mb-3">{error}</p>
-        <button 
+        <p className="mb-3 text-sm text-red-600">{error}</p>
+        <button
           onClick={() => {
             setError(null);
             setIsReady(false);
             mountedRef.current = false;
             if (containerRef.current) {
-              containerRef.current.innerHTML = '';
+              containerRef.current.innerHTML = "";
             }
           }}
-          className="text-sm px-3 py-1 bg-red-100 rounded hover:bg-red-200"
+          className="rounded bg-red-100 px-3 py-1 text-sm hover:bg-red-200"
         >
           Retry
         </button>
@@ -180,14 +179,14 @@ export function CustomBlockEditor({ value, onChange }: CustomBlockEditorProps) {
   }
 
   return (
-    <div className="border rounded-lg p-4">
+    <div className="rounded-lg border p-4">
       <div className="mb-3 flex items-center justify-between">
         <div>
           <strong>Custom Block Editor</strong>
-          <p className="text-xs text-gray-600 mt-1">
+          <p className="mt-1 text-xs text-gray-600">
             Script-focused editor with Hook, Bridge, Golden Nugget, and CTA blocks
           </p>
-          <div className="text-xs mt-1">
+          <div className="mt-1 text-xs">
             {isReady ? (
               <span className="text-green-600">✓ Ready with Custom Blocks</span>
             ) : (
@@ -196,19 +195,21 @@ export function CustomBlockEditor({ value, onChange }: CustomBlockEditorProps) {
           </div>
         </div>
       </div>
-      
-      <div 
+
+      <div
         ref={containerRef}
-        className="min-h-[300px] border rounded-md p-3 bg-white focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition-all"
-        style={{ 
-          fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
-          fontSize: '14px',
-          lineHeight: '1.6',
+        className="min-h-[300px] rounded-md border bg-white p-3 transition-all focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500"
+        style={{
+          fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
+          fontSize: "14px",
+          lineHeight: "1.6",
         }}
       />
-      
-      <div className="mt-3 text-xs text-gray-500 space-y-1">
-        <p>💡 <strong>Tips:</strong> Type "/" to access custom blocks</p>
+
+      <div className="mt-3 space-y-1 text-xs text-gray-500">
+        <p>
+          💡 <strong>Tips:</strong> Type "/" to access custom blocks
+        </p>
         <div className="flex gap-4 text-xs">
           <span>🪝 /hook - Add hooks</span>
           <span>🌉 /bridge - Add bridges</span>

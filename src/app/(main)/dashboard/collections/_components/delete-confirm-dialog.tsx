@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+
 import { AlertTriangle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -21,13 +22,7 @@ interface DeleteConfirmDialogProps {
   onConfirm: () => Promise<void>;
 }
 
-export function DeleteConfirmDialog({
-  title,
-  description,
-  open,
-  onOpenChange,
-  onConfirm,
-}: DeleteConfirmDialogProps) {
+export function DeleteConfirmDialog({ title, description, open, onOpenChange, onConfirm }: DeleteConfirmDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleConfirm = async () => {
@@ -55,24 +50,14 @@ export function DeleteConfirmDialog({
               <DialogTitle>{title}</DialogTitle>
             </div>
           </div>
-          <DialogDescription className="mt-2">
-            {description}
-          </DialogDescription>
+          <DialogDescription className="mt-2">{description}</DialogDescription>
         </DialogHeader>
 
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={isLoading}
-          >
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
             Cancel
           </Button>
-          <Button
-            variant="destructive"
-            onClick={handleConfirm}
-            disabled={isLoading}
-          >
+          <Button variant="destructive" onClick={handleConfirm} disabled={isLoading}>
             {isLoading ? "Deleting..." : "Delete"}
           </Button>
         </DialogFooter>

@@ -3,7 +3,7 @@
  * Registers all prompts and exports convenience functions
  */
 
-import { promptManager, PromptManager } from "./prompt-manager";
+import { promptManager } from "./prompt-manager";
 import SCRIPT_GENERATION_LIBRARY from "./script-generation";
 
 // Register all prompt libraries

@@ -6,12 +6,8 @@
 import { createNegativeKeywordPromptInstruction } from "@/data/negative-keywords";
 
 import { NegativeKeywordsService } from "../negative-keywords-service";
-import { createSpeedWriteVariables, SpeedWriteResult, executePrompt, ensurePromptLibraryInitialized } from "../prompts";
-import {
-  createDurationOptimizedVariables,
-  validateDurationOptimizedInput,
-  type DurationOptimizedScriptInput,
-} from "../prompts/integrations/duration-integration";
+import { SpeedWriteResult, executePrompt, ensurePromptLibraryInitialized } from "../prompts";
+import { createDurationOptimizedVariables } from "../prompts/integrations/duration-integration";
 import {
   createIdeaContextVariables,
   validateIdeaContext,

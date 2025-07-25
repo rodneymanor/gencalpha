@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import React from 'react';
+import React from "react";
 
 // BlockNote imports without CSS for now
-import { useCreateBlockNote } from '@blocknote/react';
-import { BlockNoteViewEditor } from '@blocknote/react';
+import { useCreateBlockNote } from "@blocknote/react";
+import { BlockNoteViewEditor } from "@blocknote/react";
 
 interface SimpleEditorProps {
   value: string;
@@ -13,7 +13,7 @@ interface SimpleEditorProps {
 
 // Helper function to safely parse BlockNote content
 const parseBlockNoteContent = (content: string) => {
-  if (!content || content.trim() === '') {
+  if (!content || content.trim() === "") {
     return undefined; // Let BlockNote use default empty content
   }
 
@@ -31,11 +31,11 @@ const parseBlockNoteContent = (content: string) => {
           {
             type: "text",
             text: content,
-            styles: {}
-          }
+            styles: {},
+          },
         ],
-        children: []
-      }
+        children: [],
+      },
     ];
   }
 };
@@ -51,16 +51,13 @@ function BlockNoteEditor({ value, onChange }: { value: string; onChange: (value:
       const content = JSON.stringify(editor.document);
       onChange(content);
     } catch (error) {
-      console.error('Error in handleChange:', error);
+      console.error("Error in handleChange:", error);
     }
   };
 
   return (
-    <div className="min-h-[200px] border rounded p-2 prose max-w-none">
-      <BlockNoteViewEditor 
-        editor={editor} 
-        onChange={handleChange}
-      />
+    <div className="prose min-h-[200px] max-w-none rounded border p-2">
+      <BlockNoteViewEditor editor={editor} onChange={handleChange} />
     </div>
   );
 }
@@ -86,25 +83,25 @@ export function SimpleEditor({ value, onChange }: SimpleEditorProps) {
 
   if (useBlockNote) {
     return (
-      <div className="border rounded-lg p-4">
+      <div className="rounded-lg border p-4">
         <div className="mb-2 flex items-center justify-between">
           <strong>BlockNote Editor (Active)</strong>
-          <button 
+          <button
             onClick={() => {
               setUseBlockNote(false);
               setBlockNoteError(null);
             }}
-            className="text-sm px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
+            className="rounded bg-gray-200 px-2 py-1 text-sm hover:bg-gray-300"
           >
             Switch to Textarea
           </button>
         </div>
         {blockNoteError ? (
-          <div className="bg-red-50 border border-red-200 rounded p-4 mb-4">
-            <p className="text-red-600 text-sm">BlockNote Error: {blockNoteError}</p>
-            <button 
+          <div className="mb-4 rounded border border-red-200 bg-red-50 p-4">
+            <p className="text-sm text-red-600">BlockNote Error: {blockNoteError}</p>
+            <button
               onClick={() => setUseBlockNote(false)}
-              className="mt-2 text-sm px-2 py-1 bg-red-100 rounded hover:bg-red-200"
+              className="mt-2 rounded bg-red-100 px-2 py-1 text-sm hover:bg-red-200"
             >
               Back to Textarea
             </button>
@@ -112,9 +109,7 @@ export function SimpleEditor({ value, onChange }: SimpleEditorProps) {
         ) : (
           <>
             <BlockNoteEditor value={value} onChange={onChange} />
-            <div className="mt-2 text-xs text-gray-500">
-              BlockNote editor active. Content will be saved as JSON.
-            </div>
+            <div className="mt-2 text-xs text-gray-500">BlockNote editor active. Content will be saved as JSON.</div>
           </>
         )}
       </div>
@@ -122,27 +117,20 @@ export function SimpleEditor({ value, onChange }: SimpleEditorProps) {
   }
 
   return (
-    <div className="border rounded-lg p-4">
+    <div className="rounded-lg border p-4">
       <div className="mb-2 flex items-center justify-between">
         <strong>Simple Editor (Textarea Mode)</strong>
-        <button 
-          onClick={testBlockNote}
-          className="text-sm px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
+        <button onClick={testBlockNote} className="rounded bg-blue-500 px-2 py-1 text-sm text-white hover:bg-blue-600">
           Test BlockNote
         </button>
       </div>
       <textarea
         value={value}
         onChange={handleTextChange}
-        className="w-full h-32 p-2 border rounded resize-none"
+        className="h-32 w-full resize-none rounded border p-2"
         placeholder="Type something here to test..."
       />
-      {blockNoteError && (
-        <div className="mt-2 text-xs text-red-600">
-          Last BlockNote error: {blockNoteError}
-        </div>
-      )}
+      {blockNoteError && <div className="mt-2 text-xs text-red-600">Last BlockNote error: {blockNoteError}</div>}
       <div className="mt-2 text-xs text-gray-500">
         Click "Test BlockNote" to try the BlockNote editor. Your text will be preserved.
       </div>

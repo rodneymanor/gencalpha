@@ -45,7 +45,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<TestInsta
           success: false,
           error: "URL is required",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<TestInsta
           success: false,
           error: "Invalid Instagram URL format. Please provide a valid Instagram reel, post, or profile URL.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -71,17 +71,17 @@ export async function POST(request: NextRequest): Promise<NextResponse<TestInsta
         {
           success: false,
           error: "Apify API token not configured. Please set APIFY_TOKEN environment variable.",
-          rawData: { envVars: Object.keys(process.env).filter(key => key.includes('APIFY')) },
+          rawData: { envVars: Object.keys(process.env).filter((key) => key.includes("APIFY")) },
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
     // Log token status (first/last 4 chars for security)
     const token = process.env.APIFY_TOKEN;
-    const tokenPreview = token.length > 8 ? `${token.slice(0, 4)}...${token.slice(-4)}` : 'SHORT_TOKEN';
+    const tokenPreview = token.length > 8 ? `${token.slice(0, 4)}...${token.slice(-4)}` : "SHORT_TOKEN";
     console.log("🔑 [TEST-INSTAGRAM] Using Apify token:", tokenPreview, `(${token.length} chars)`);
-    
+
     // Validate token format (Apify tokens are typically 40+ chars)
     if (token.length < 20) {
       console.error("❌ [TEST-INSTAGRAM] Apify token appears to be too short");
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<TestInsta
           error: "Apify API token appears to be invalid (too short). Please check your APIFY_TOKEN configuration.",
           rawData: { tokenLength: token.length },
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -189,7 +189,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<TestInsta
         error: errorMessage,
         rawData: error,
       },
-      { status: statusCode }
+      { status: statusCode },
     );
   }
 }
@@ -206,7 +206,7 @@ export async function GET(): Promise<NextResponse> {
       "POST /api/test-instagram": "Test Instagram URL scraping",
     },
     requirements: {
-      "APIFY_TOKEN": "Required environment variable",
+      APIFY_TOKEN: "Required environment variable",
     },
   });
 }

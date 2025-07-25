@@ -1,7 +1,8 @@
 import { createNegativeKeywordPromptInstruction } from "@/data/negative-keywords";
 import { generateScript } from "@/lib/gemini";
-import { parseStructuredResponse, createScriptElements, combineScriptElements } from "@/lib/json-extractor";
 import { NegativeKeywordsService } from "@/lib/negative-keywords-service";
+
+import { parseStructuredResponse, createScriptElements, combineScriptElements } from "@/lib/json-extractor";
 import { createSpeedWritePrompt } from "@/lib/prompt-helpers";
 import { generateScriptWithValidation, validateScript, cleanScriptContent } from "@/lib/script-validation";
 

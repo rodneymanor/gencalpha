@@ -1,4 +1,4 @@
-import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs } from "firebase/firestore";
 
 import { db } from "./firebase";
 import { type UserProfile } from "./user-management";

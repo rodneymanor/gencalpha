@@ -174,9 +174,9 @@ function validateMetadata(metadata: ContentMetadata, platform?: string): Content
     platform:
       platform ??
       (["TikTok", "Instagram", "YouTube", "Unknown"].includes(metadata.platform) ? metadata.platform : "Unknown"),
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+
     author: metadata.author ?? "Unknown",
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+
     description: metadata.description ?? "Video content analysis",
     source: ["educational", "entertainment", "tutorial", "lifestyle", "business", "other"].includes(metadata.source)
       ? metadata.source
@@ -194,7 +194,6 @@ function validateMetadata(metadata: ContentMetadata, platform?: string): Content
 
 function createFallbackMetadata(platform?: string): ContentMetadata {
   return {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     platform: (platform as ContentMetadata["platform"]) ?? "Unknown",
     author: "Unknown",
     description: "Video content analysis - metadata extraction failed",

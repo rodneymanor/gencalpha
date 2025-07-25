@@ -1,6 +1,7 @@
 "use client";
 
 import { Eye, Heart, MessageCircle, Share, Bookmark, TrendingUp } from "lucide-react";
+
 import { Card, CardContent } from "@/components/ui/card";
 
 interface VideoMetrics {
@@ -36,61 +37,61 @@ export function VideoMetricsGrid({ metrics }: VideoMetricsGridProps) {
     <div className="grid grid-cols-3 gap-4">
       <Card>
         <CardContent className="p-6 text-center">
-          <div className="flex items-center justify-center mb-2">
+          <div className="mb-2 flex items-center justify-center">
             <Eye className="h-8 w-8 text-blue-500" />
           </div>
           <div className="text-2xl font-bold">{formatNumber(metrics.views)}</div>
-          <div className="text-sm text-muted-foreground">Views</div>
+          <div className="text-muted-foreground text-sm">Views</div>
         </CardContent>
       </Card>
-      
+
       <Card>
         <CardContent className="p-6 text-center">
-          <div className="flex items-center justify-center mb-2">
+          <div className="mb-2 flex items-center justify-center">
             <Heart className="h-8 w-8 text-red-500" />
           </div>
           <div className="text-2xl font-bold">{formatNumber(metrics.likes)}</div>
-          <div className="text-sm text-muted-foreground">Likes</div>
+          <div className="text-muted-foreground text-sm">Likes</div>
         </CardContent>
       </Card>
-      
+
       <Card>
         <CardContent className="p-6 text-center">
-          <div className="flex items-center justify-center mb-2">
+          <div className="mb-2 flex items-center justify-center">
             <MessageCircle className="h-8 w-8 text-green-500" />
           </div>
           <div className="text-2xl font-bold">{formatNumber(metrics.comments)}</div>
-          <div className="text-sm text-muted-foreground">Comments</div>
+          <div className="text-muted-foreground text-sm">Comments</div>
         </CardContent>
       </Card>
-      
+
       <Card>
         <CardContent className="p-6 text-center">
-          <div className="flex items-center justify-center mb-2">
+          <div className="mb-2 flex items-center justify-center">
             <Share className="h-8 w-8 text-purple-500" />
           </div>
           <div className="text-2xl font-bold">{formatNumber(metrics.shares)}</div>
-          <div className="text-sm text-muted-foreground">Shares</div>
+          <div className="text-muted-foreground text-sm">Shares</div>
         </CardContent>
       </Card>
-      
+
       <Card>
         <CardContent className="p-6 text-center">
-          <div className="flex items-center justify-center mb-2">
+          <div className="mb-2 flex items-center justify-center">
             <Bookmark className="h-8 w-8 text-orange-500" />
           </div>
           <div className="text-2xl font-bold">{formatNumber(metrics.saves)}</div>
-          <div className="text-sm text-muted-foreground">Saves</div>
+          <div className="text-muted-foreground text-sm">Saves</div>
         </CardContent>
       </Card>
-      
+
       <Card>
         <CardContent className="p-6 text-center">
-          <div className="flex items-center justify-center mb-2">
+          <div className="mb-2 flex items-center justify-center">
             <TrendingUp className="h-8 w-8 text-indigo-500" />
           </div>
           <div className="text-2xl font-bold">{formatEngagementRate(metrics)}</div>
-          <div className="text-sm text-muted-foreground">Engagement Rate</div>
+          <div className="text-muted-foreground text-sm">Engagement Rate</div>
         </CardContent>
       </Card>
     </div>

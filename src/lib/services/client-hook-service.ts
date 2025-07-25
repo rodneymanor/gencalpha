@@ -1,5 +1,5 @@
 import { auth } from "@/lib/firebase";
-import { createHookGenerationPrompt, type HookGenerationResponse } from "@/lib/prompts/hook-generation";
+import { type HookGenerationResponse } from "@/lib/prompts/hook-generation";
 
 export class ClientHookService {
   private static readonly API_BASE = "/api/hooks";

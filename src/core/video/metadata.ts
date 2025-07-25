@@ -3,7 +3,7 @@
  * Centralized metadata extraction for engagement, author, and hashtag analysis
  */
 
-import type { VideoMetrics, VideoMetadata } from "./downloader";
+import type { VideoMetrics } from "./downloader";
 import type { Platform } from "./platform-detector";
 
 export interface ContentMetadata {

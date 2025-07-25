@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { authenticateApiKey } from "@/lib/api-key-auth";
 import { CreditsService } from "@/lib/credits-service";
-import { FeatureFlagService } from "@/lib/feature-flags";
 import { adminDb } from "@/lib/firebase-admin";
 import { ScriptService } from "@/lib/services/script-generation-service";
 import { trackApiUsageAdmin } from "@/lib/usage-tracker-admin";

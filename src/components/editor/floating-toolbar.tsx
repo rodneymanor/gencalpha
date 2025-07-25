@@ -15,13 +15,11 @@ import {
   Redo,
   Sparkles,
   Type,
-  Scissors,
   Volume2,
 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,8 +32,9 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useVoice, type VoiceType } from "@/contexts/voice-context";
 import { cn } from "@/lib/utils";
+
+import { useVoice, type VoiceType } from "@/contexts/voice-context";
 
 interface AIAction {
   key: string;
@@ -184,7 +183,7 @@ const FloatingToolbar: React.FC<FloatingToolbarProps> = memo(
     // Get actions based on context
     const contextualActions = useMemo(() => {
       const actions = [...UNIVERSAL_ACTIONS];
-      
+
       // Add remix action for ideas/notes context
       if (context === "ideas" || context === "notes") {
         actions.push({
@@ -194,7 +193,7 @@ const FloatingToolbar: React.FC<FloatingToolbarProps> = memo(
           icon: "🔄",
         });
       }
-      
+
       return actions;
     }, [context]);
 

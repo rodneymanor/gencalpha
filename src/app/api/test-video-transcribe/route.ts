@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { detectPlatform } from "@/core/video/platform-detector";
-import { transcribeVideoData } from "@/core/video/transcriber";
-
 async function handleCdnTranscription(request: NextRequest) {
   const { url, videoId } = await request.json();
 
@@ -20,25 +17,25 @@ async function handleCdnTranscription(request: NextRequest) {
       platform: "tiktok",
       components: {
         hook: "Test hook content",
-        bridge: "Test bridge content", 
+        bridge: "Test bridge content",
         nugget: "Test main content",
-        wta: "Test call to action"
+        wta: "Test call to action",
       },
       contentMetadata: {
         platform: "tiktok",
         author: "test_user",
         description: "Test video description",
         source: url || videoId,
-        hashtags: ["#test", "#demo"]
+        hashtags: ["#test", "#demo"],
       },
       visualContext: "Test visual context",
       transcriptionMetadata: {
         method: "test",
         duration: 30,
-        confidence: 0.95
-      }
+        confidence: 0.95,
+      },
     },
-    testMode: true
+    testMode: true,
   });
 }
 
@@ -60,26 +57,26 @@ async function handleFileTranscription(request: NextRequest) {
       platform: "unknown",
       components: {
         hook: "Test hook from file",
-        bridge: "Test bridge from file", 
+        bridge: "Test bridge from file",
         nugget: "Test main content from file",
-        wta: "Test call to action from file"
+        wta: "Test call to action from file",
       },
       contentMetadata: {
         platform: "file",
         author: "uploaded_user",
         description: "Uploaded file transcription",
         source: file.name,
-        hashtags: ["#file", "#upload"]
+        hashtags: ["#file", "#upload"],
       },
       visualContext: "File upload visual context",
       transcriptionMetadata: {
         method: "test_file",
         fileSize: file.size,
         fileName: file.name,
-        processedAt: new Date().toISOString()
-      }
+        processedAt: new Date().toISOString(),
+      },
     },
-    testMode: true
+    testMode: true,
   });
 }
 
@@ -101,7 +98,7 @@ export async function POST(request: NextRequest) {
         error: "Failed to transcribe video",
         details: error instanceof Error ? error.message : "Unknown error",
         stack: error instanceof Error ? error.stack : undefined,
-        testMode: true
+        testMode: true,
       },
       { status: 500 },
     );

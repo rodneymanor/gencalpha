@@ -36,8 +36,6 @@ export async function POST(request: NextRequest) {
 async function handleFileUpload(request: NextRequest) {
   const formData = await request.formData();
   const file = formData.get("video") as File;
-
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (!file) {
     console.error("❌ [UPLOADER] No video file provided");
     return NextResponse.json({ error: "Video file is required" }, { status: 400 });

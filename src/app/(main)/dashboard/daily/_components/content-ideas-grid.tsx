@@ -147,8 +147,8 @@ export function ContentIdeasGrid() {
           )}
         >
           {/* Thumbnail/Video Preview */}
-          <div className="relative flex h-32 items-center justify-center bg-muted">
-            <div className="bg-chart-1 text-white rounded-full p-3 group-hover:bg-chart-2 transition-colors">
+          <div className="bg-muted relative flex h-32 items-center justify-center">
+            <div className="bg-chart-1 group-hover:bg-chart-2 rounded-full p-3 text-white transition-colors">
               <Play className="h-6 w-6 fill-current" />
             </div>
             {idea.duration && (

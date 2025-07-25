@@ -1,8 +1,8 @@
 // Production-ready rate limiting system
 
-import type { RateLimitInfo, RateLimitResult } from "@/types/video-processing";
-
 import { getAdminDb, isAdminInitialized } from "./firebase-admin";
+
+import type { RateLimitInfo, RateLimitResult } from "@/types/video-processing";
 
 type LimitType = "video-processing" | "video-processing-burst" | "api-general" | "api-heavy";
 

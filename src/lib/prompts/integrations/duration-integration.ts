@@ -5,9 +5,7 @@
 
 import { ScriptGenerationInput } from "../../services/script-generation-service";
 import {
-  createDurationSubPrompt,
   calculateTargetWordsForDuration,
-  getDurationCharacteristics,
   isSupportedDuration,
   DURATION_CONFIGS,
 } from "../modifiers/duration-optimizer";

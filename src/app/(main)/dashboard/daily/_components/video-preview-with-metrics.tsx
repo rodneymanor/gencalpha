@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
+
 import Image from "next/image";
 
-import { Play, Clock, User, ExternalLink, Heart, MessageCircle, Share, Eye } from "lucide-react";
+import { Play, Heart, MessageCircle, Share, Eye } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Video } from "@/lib/collections";
 import { VideoPlayer } from "@/components/video-player";
+import { Video } from "@/lib/collections";
 
 // Instagram-style video preview with overlaid metrics
 interface VideoPreviewWithMetricsProps {
@@ -33,7 +34,7 @@ export function VideoPreviewWithMetrics({ video, showMetrics = true }: VideoPrev
     console.log("🎮 [Video Preview] Video URLs:", {
       originalUrl: video.originalUrl,
       iframeUrl: video.iframeUrl,
-      directUrl: video.directUrl
+      directUrl: video.directUrl,
     });
 
     // If we have an iframe URL or direct URL, start playing in the component
@@ -52,8 +53,8 @@ export function VideoPreviewWithMetrics({ video, showMetrics = true }: VideoPrev
     <div className="relative h-full w-full">
       {/* Video Player or Image Preview */}
       {isPlaying && (video.iframeUrl || video.directUrl) ? (
-        <VideoPlayer 
-          video={video} 
+        <VideoPlayer
+          video={video}
           className="h-full w-full"
           autoPlay={true}
           onError={() => {
@@ -74,7 +75,7 @@ export function VideoPreviewWithMetrics({ video, showMetrics = true }: VideoPrev
           />
         </div>
       ) : (
-        <div className="flex h-full w-full items-center justify-center bg-muted">
+        <div className="bg-muted flex h-full w-full items-center justify-center">
           <div className="text-center text-white">
             <Play className="mx-auto mb-2 h-12 w-12" />
             <p className="text-sm">No Preview</p>

@@ -13,10 +13,7 @@ async function handleFileUpload(request: NextRequest) {
   console.log("📤 [TEST-UPLOADER] Processing file upload:", file.name, `(${file.size} bytes)`);
 
   if (!isBunnyStreamConfigured()) {
-    return NextResponse.json(
-      { error: "Bunny Stream not configured" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Bunny Stream not configured" }, { status: 500 });
   }
 
   const arrayBuffer = await file.arrayBuffer();
@@ -29,7 +26,7 @@ async function handleFileUpload(request: NextRequest) {
   return NextResponse.json({
     success: true,
     uploadResult: result,
-    testMode: true
+    testMode: true,
   });
 }
 
@@ -37,19 +34,13 @@ async function handleJsonUpload(request: NextRequest) {
   const { videoBuffer, fileName, videoData } = await request.json();
 
   if (!videoBuffer || !fileName) {
-    return NextResponse.json(
-      { error: "videoBuffer and fileName are required" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "videoBuffer and fileName are required" }, { status: 400 });
   }
 
   console.log("📤 [TEST-UPLOADER] Processing JSON upload:", fileName);
 
   if (!isBunnyStreamConfigured()) {
-    return NextResponse.json(
-      { error: "Bunny Stream not configured" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Bunny Stream not configured" }, { status: 500 });
   }
 
   // For testing, return a mock success response
@@ -58,11 +49,11 @@ async function handleJsonUpload(request: NextRequest) {
     uploadResult: {
       iframeUrl: "https://iframe.mediadelivery.net/embed/459811/test-video-id",
       directUrl: "https://vz-8416c36e-556.b-cdn.net/test-video-id/play_1080p.mp4",
-      guid: "test-video-id-" + Date.now()
+      guid: "test-video-id-" + Date.now(),
     },
     videoData,
     testMode: true,
-    message: "Mock upload successful - actual upload would require real video data"
+    message: "Mock upload successful - actual upload would require real video data",
   });
 }
 
@@ -80,7 +71,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: "Content-Type must be multipart/form-data or application/json",
-          received: contentType
+          received: contentType,
         },
         { status: 400 },
       );
@@ -92,7 +83,7 @@ export async function POST(request: NextRequest) {
         error: "Failed to upload video to CDN",
         details: error instanceof Error ? error.message : "Unknown error",
         stack: error instanceof Error ? error.stack : undefined,
-        testMode: true
+        testMode: true,
       },
       { status: 500 },
     );

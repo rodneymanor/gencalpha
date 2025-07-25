@@ -1,14 +1,15 @@
 import { createNegativeKeywordPromptInstruction } from "@/data/negative-keywords";
 import { adminDb } from "@/lib/firebase-admin";
 import { generateScript } from "@/lib/gemini";
-import { parseStructuredResponse, createScriptElements, combineScriptElements } from "@/lib/json-extractor";
 import { NegativeKeywordsService } from "@/lib/negative-keywords-service";
-import { createAIVoicePrompt } from "@/lib/prompt-helpers";
-import { validateScript, cleanScriptContent } from "@/lib/script-validation";
-import { VoiceTemplateProcessor } from "@/lib/voice-template-processor";
 import type { AIVoice } from "@/types/ai-voices";
 
 import type { ScriptInput, ScriptResult } from "./speed";
+
+import { parseStructuredResponse, createScriptElements, combineScriptElements } from "@/lib/json-extractor";
+import { createAIVoicePrompt } from "@/lib/prompt-helpers";
+import { validateScript, cleanScriptContent } from "@/lib/script-validation";
+import { VoiceTemplateProcessor } from "@/lib/voice-template-processor";
 
 export interface VoiceScriptResult extends ScriptResult {
   voice?: {

@@ -10,3 +10,14 @@ README.md
 tsconfig.json
 .env
 src/components/ui
+*.log
+*.config.ts
+*.config.mjs
+*.config.js
+.git
+.husky
+.github
+public
+media
+docs
+Documenation

@@ -1,7 +1,8 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { cn } from '@/lib/utils';
+import React from "react";
+
+import { cn } from "@/lib/utils";
 
 interface ScriptEditorProps {
   value: string;
@@ -11,7 +12,12 @@ interface ScriptEditorProps {
 }
 
 // Simple, reliable editor focused on script writing
-export function ScriptEditor({ value, onChange, placeholder = "Start writing your script...", className }: ScriptEditorProps) {
+export function ScriptEditor({
+  value,
+  onChange,
+  placeholder = "Start writing your script...",
+  className,
+}: ScriptEditorProps) {
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const [isFocused, setIsFocused] = React.useState(false);
 
@@ -19,8 +25,8 @@ export function ScriptEditor({ value, onChange, placeholder = "Start writing you
   React.useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
-      textarea.style.height = 'auto';
-      textarea.style.height = Math.max(textarea.scrollHeight, 120) + 'px';
+      textarea.style.height = "auto";
+      textarea.style.height = Math.max(textarea.scrollHeight, 120) + "px";
     }
   }, [value]);
 
@@ -32,15 +38,15 @@ export function ScriptEditor({ value, onChange, placeholder = "Start writing you
     // Add some helpful keyboard shortcuts for script writing
     if (e.ctrlKey || e.metaKey) {
       switch (e.key) {
-        case 'b':
+        case "b":
           e.preventDefault();
-          insertFormatting('**', '**', 'bold text');
+          insertFormatting("**", "**", "bold text");
           break;
-        case 'i':
+        case "i":
           e.preventDefault();
-          insertFormatting('*', '*', 'italic text');
+          insertFormatting("*", "*", "italic text");
           break;
-        case 'Enter':
+        case "Enter":
           e.preventDefault();
           insertLineBreak();
           break;
@@ -57,9 +63,9 @@ export function ScriptEditor({ value, onChange, placeholder = "Start writing you
     const selectedText = value.substring(start, end);
     const textToInsert = selectedText || placeholder;
     const newText = value.substring(0, start) + prefix + textToInsert + suffix + value.substring(end);
-    
+
     onChange(newText);
-    
+
     // Set cursor position after formatting
     setTimeout(() => {
       if (selectedText) {
@@ -76,9 +82,9 @@ export function ScriptEditor({ value, onChange, placeholder = "Start writing you
     if (!textarea) return;
 
     const start = textarea.selectionStart;
-    const newText = value.substring(0, start) + '\n\n' + value.substring(start);
+    const newText = value.substring(0, start) + "\n\n" + value.substring(start);
     onChange(newText);
-    
+
     setTimeout(() => {
       textarea.setSelectionRange(start + 2, start + 2);
       textarea.focus();
@@ -86,23 +92,23 @@ export function ScriptEditor({ value, onChange, placeholder = "Start writing you
   };
 
   return (
-    <div className={cn("border rounded-lg overflow-hidden", className)}>
+    <div className={cn("overflow-hidden rounded-lg border", className)}>
       {/* Toolbar */}
-      <div className="bg-gray-50 border-b px-3 py-2 flex items-center gap-2 text-sm">
+      <div className="flex items-center gap-2 border-b bg-gray-50 px-3 py-2 text-sm">
         <span className="font-medium text-gray-700">Script Editor</span>
-        <div className="flex items-center gap-1 ml-auto">
+        <div className="ml-auto flex items-center gap-1">
           <button
             type="button"
-            onClick={() => insertFormatting('**', '**', 'bold text')}
-            className="px-2 py-1 text-xs bg-white border rounded hover:bg-gray-50 transition-colors"
+            onClick={() => insertFormatting("**", "**", "bold text")}
+            className="rounded border bg-white px-2 py-1 text-xs transition-colors hover:bg-gray-50"
             title="Bold (Ctrl+B)"
           >
             B
           </button>
           <button
             type="button"
-            onClick={() => insertFormatting('*', '*', 'italic text')}
-            className="px-2 py-1 text-xs bg-white border rounded hover:bg-gray-50 transition-colors italic"
+            onClick={() => insertFormatting("*", "*", "italic text")}
+            className="rounded border bg-white px-2 py-1 text-xs italic transition-colors hover:bg-gray-50"
             title="Italic (Ctrl+I)"
           >
             I
@@ -110,15 +116,13 @@ export function ScriptEditor({ value, onChange, placeholder = "Start writing you
           <button
             type="button"
             onClick={insertLineBreak}
-            className="px-2 py-1 text-xs bg-white border rounded hover:bg-gray-50 transition-colors"
+            className="rounded border bg-white px-2 py-1 text-xs transition-colors hover:bg-gray-50"
             title="Line Break (Ctrl+Enter)"
           >
             ¶
           </button>
         </div>
-        <div className="text-xs text-gray-500">
-          {value.length} chars
-        </div>
+        <div className="text-xs text-gray-500">{value.length} chars</div>
       </div>
 
       {/* Editor */}
@@ -132,33 +136,30 @@ export function ScriptEditor({ value, onChange, placeholder = "Start writing you
           onBlur={() => setIsFocused(false)}
           placeholder={placeholder}
           className={cn(
-            "w-full p-4 bg-white resize-none border-0 outline-none font-mono text-sm leading-relaxed",
-            "placeholder:text-gray-400 placeholder:font-sans",
-            isFocused && "ring-2 ring-blue-500 ring-inset"
+            "w-full resize-none border-0 bg-white p-4 font-mono text-sm leading-relaxed outline-none",
+            "placeholder:font-sans placeholder:text-gray-400",
+            isFocused && "ring-2 ring-blue-500 ring-inset",
           )}
           style={{
-            minHeight: '120px',
+            minHeight: "120px",
             fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-            lineHeight: '1.6'
+            lineHeight: "1.6",
           }}
         />
-        
+
         {/* Focus indicator */}
         {isFocused && (
           <div className="absolute top-2 right-2">
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+            <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500"></div>
           </div>
         )}
       </div>
 
       {/* Footer with tips */}
-      <div className="bg-gray-50 border-t px-3 py-2 text-xs text-gray-500">
+      <div className="border-t bg-gray-50 px-3 py-2 text-xs text-gray-500">
         <div className="flex items-center justify-between">
           <span>💡 Tips: Ctrl+B (bold), Ctrl+I (italic), Ctrl+Enter (line break)</span>
-          <span className={cn(
-            "transition-colors",
-            isFocused ? "text-blue-600" : "text-gray-400"
-          )}>
+          <span className={cn("transition-colors", isFocused ? "text-blue-600" : "text-gray-400")}>
             {isFocused ? "✏️ Editing" : "📝 Ready"}
           </span>
         </div>

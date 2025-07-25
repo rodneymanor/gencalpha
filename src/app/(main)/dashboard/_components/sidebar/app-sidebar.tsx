@@ -12,7 +12,6 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { APP_CONFIG } from "@/config/app-config";
 import { sidebarItems } from "@/navigation/sidebar/sidebar-items";
 import { type SidebarVariant, type SidebarCollapsible, type ContentLayout } from "@/types/preferences/layout";
 

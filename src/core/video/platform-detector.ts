@@ -72,14 +72,14 @@ export function extractTikTokVideoId(url: string): string | null {
     /tiktok\.com\/v\/(\d+)/,
     /tiktok\.com\/t\/(\w+)/,
     /vm\.tiktok\.com\/(\w+)/,
-    /tiktok\.com\/.*\/video\/(\d+)/
+    /tiktok\.com\/.*\/video\/(\d+)/,
   ];
-  
+
   for (const pattern of patterns) {
     const match = url.match(pattern);
     if (match) return match[1];
   }
-  
+
   return null;
 }
 

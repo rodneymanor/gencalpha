@@ -8,24 +8,16 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useScriptsApi } from "@/hooks/use-scripts-api";
 import { Script } from "@/types/script";
 
-
 export default function QPage() {
   const { scripts, loading, error, fetchScripts, updateScript } = useScriptsApi();
-  
+
   const [selectedScript, setSelectedScript] = useState<Script | null>(null);
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
   const [scheduleDate, setScheduleDate] = useState("");
@@ -53,7 +45,7 @@ export default function QPage() {
         status: "scheduled",
         scheduledDate: new Date(scheduleDate).toISOString(),
       });
-      
+
       if (result) {
         toast.success("Script scheduled successfully!");
         setIsScheduleDialogOpen(false);
@@ -193,7 +185,8 @@ export default function QPage() {
                     <Badge variant="default">{script.platform}</Badge>
                   </div>
                   <div className="text-muted-foreground text-sm">
-                    Scheduled: {script.scheduledDate ? new Date(script.scheduledDate).toLocaleDateString() : 'Not scheduled'}
+                    Scheduled:{" "}
+                    {script.scheduledDate ? new Date(script.scheduledDate).toLocaleDateString() : "Not scheduled"}
                   </div>
                 </CardHeader>
                 <CardContent>

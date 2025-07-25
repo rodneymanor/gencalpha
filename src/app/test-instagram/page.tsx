@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Copy, Download, ExternalLink, Loader2 } from "lucide-react";
+
+import { Copy, ExternalLink, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 
 interface InstagramResponse {
   success: boolean;
@@ -36,9 +38,9 @@ export default function TestInstagramPage() {
   const [response, setResponse] = useState<InstagramResponse | null>(null);
 
   const testUrls = [
-    "https://www.instagram.com/reel/DMUd-PGuLux/",  // Recent reel
-    "https://www.instagram.com/p/C5NKOqtRW6n/",     // Instagram post
-    "https://www.instagram.com/reel/C5eGEVIOS8b/",  // Another reel
+    "https://www.instagram.com/reel/DMUd-PGuLux/", // Recent reel
+    "https://www.instagram.com/p/C5NKOqtRW6n/", // Instagram post
+    "https://www.instagram.com/reel/C5eGEVIOS8b/", // Another reel
   ];
 
   const handleSubmit = async (testUrl?: string, method: "sync" | "async" = "sync") => {
@@ -53,7 +55,7 @@ export default function TestInstagramPage() {
 
     try {
       console.log("🚀 Testing Instagram URL:", targetUrl, "with method:", method);
-      
+
       const res = await fetch("/api/test-instagram", {
         method: "POST",
         headers: {
@@ -94,7 +96,7 @@ export default function TestInstagramPage() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto space-y-6 p-6">
       <div className="space-y-2">
         <h1 className="text-3xl font-bold">Instagram URL Tester</h1>
         <p className="text-muted-foreground">
@@ -105,9 +107,7 @@ export default function TestInstagramPage() {
       <Card>
         <CardHeader>
           <CardTitle>Test Instagram URL</CardTitle>
-          <CardDescription>
-            Enter an Instagram reel or post URL to extract metadata and download links.
-          </CardDescription>
+          <CardDescription>Enter an Instagram reel or post URL to extract metadata and download links.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-2">
@@ -118,13 +118,9 @@ export default function TestInstagramPage() {
               disabled={loading}
             />
             <Button onClick={() => handleSubmit()} disabled={loading || !url}>
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Test Sync"}
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Test Sync"}
             </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => handleSubmit(undefined, "async")} 
-              disabled={loading || !url}
-            >
+            <Button variant="outline" onClick={() => handleSubmit(undefined, "async")} disabled={loading || !url}>
               Test Async
             </Button>
           </div>
@@ -162,16 +158,26 @@ export default function TestInstagramPage() {
           <CardContent className="space-y-4">
             {response.success && response.data ? (
               <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <h3 className="font-semibold">Basic Info</h3>
                     <div className="space-y-1 text-sm">
-                      <p><strong>Short Code:</strong> {response.data.shortCode}</p>
-                      <p><strong>Author:</strong> @{response.data.author.username}</p>
-                      <p><strong>Full Name:</strong> {response.data.author.fullName}</p>
-                      <p><strong>Likes:</strong> {response.data.likesCount.toLocaleString()}</p>
+                      <p>
+                        <strong>Short Code:</strong> {response.data.shortCode}
+                      </p>
+                      <p>
+                        <strong>Author:</strong> @{response.data.author.username}
+                      </p>
+                      <p>
+                        <strong>Full Name:</strong> {response.data.author.fullName}
+                      </p>
+                      <p>
+                        <strong>Likes:</strong> {response.data.likesCount.toLocaleString()}
+                      </p>
                       {response.data.videoViewCount && (
-                        <p><strong>Views:</strong> {response.data.videoViewCount.toLocaleString()}</p>
+                        <p>
+                          <strong>Views:</strong> {response.data.videoViewCount.toLocaleString()}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -182,20 +188,16 @@ export default function TestInstagramPage() {
                       {response.data.videoUrl && (
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium">Video:</span>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => copyToClipboard(response.data!.videoUrl!)}
-                          >
-                            <Copy className="w-3 h-3 mr-1" />
+                          <Button variant="outline" size="sm" onClick={() => copyToClipboard(response.data!.videoUrl!)}>
+                            <Copy className="mr-1 h-3 w-3" />
                             Copy URL
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => window.open(response.data!.videoUrl!, '_blank')}
+                            onClick={() => window.open(response.data!.videoUrl, "_blank")}
                           >
-                            <ExternalLink className="w-3 h-3 mr-1" />
+                            <ExternalLink className="mr-1 h-3 w-3" />
                             Open
                           </Button>
                         </div>
@@ -203,20 +205,16 @@ export default function TestInstagramPage() {
                       {response.data.imageUrl && (
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium">Image:</span>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => copyToClipboard(response.data!.imageUrl!)}
-                          >
-                            <Copy className="w-3 h-3 mr-1" />
+                          <Button variant="outline" size="sm" onClick={() => copyToClipboard(response.data!.imageUrl!)}>
+                            <Copy className="mr-1 h-3 w-3" />
                             Copy URL
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => window.open(response.data!.imageUrl!, '_blank')}
+                            onClick={() => window.open(response.data!.imageUrl, "_blank")}
                           >
-                            <ExternalLink className="w-3 h-3 mr-1" />
+                            <ExternalLink className="mr-1 h-3 w-3" />
                             Open
                           </Button>
                         </div>
@@ -229,7 +227,7 @@ export default function TestInstagramPage() {
                             size="sm"
                             onClick={() => copyToClipboard(response.data!.thumbnailUrl!)}
                           >
-                            <Copy className="w-3 h-3 mr-1" />
+                            <Copy className="mr-1 h-3 w-3" />
                             Copy URL
                           </Button>
                         </div>
@@ -241,7 +239,7 @@ export default function TestInstagramPage() {
                 {response.data.caption && (
                   <div className="space-y-2">
                     <h3 className="font-semibold">Caption</h3>
-                    <p className="text-sm bg-muted p-3 rounded-md">{response.data.caption}</p>
+                    <p className="bg-muted rounded-md p-3 text-sm">{response.data.caption}</p>
                   </div>
                 )}
 
@@ -262,7 +260,7 @@ export default function TestInstagramPage() {
 
                 <div className="space-y-2">
                   <h3 className="font-semibold">Raw Response Data</h3>
-                  <pre className="text-xs bg-muted p-3 rounded-md overflow-auto max-h-96">
+                  <pre className="bg-muted max-h-96 overflow-auto rounded-md p-3 text-xs">
                     {JSON.stringify(response.rawData, null, 2)}
                   </pre>
                 </div>
@@ -274,7 +272,7 @@ export default function TestInstagramPage() {
                 {response.rawData && (
                   <div className="space-y-2">
                     <h3 className="font-semibold">Raw Error Data</h3>
-                    <pre className="text-xs bg-muted p-3 rounded-md overflow-auto max-h-96">
+                    <pre className="bg-muted max-h-96 overflow-auto rounded-md p-3 text-xs">
                       {JSON.stringify(response.rawData, null, 2)}
                     </pre>
                   </div>

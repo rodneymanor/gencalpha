@@ -3,7 +3,7 @@
  * Centralized usage tracking and analytics
  */
 
-import { collection, addDoc, serverTimestamp, query, where, getDocs, orderBy, limit } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, query, where, getDocs, orderBy } from "firebase/firestore";
 
 import { db } from "@/lib/firebase";
 

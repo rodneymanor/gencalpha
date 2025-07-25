@@ -10,10 +10,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Video } from "@/lib/collections";
-import { VideoInsightsService } from "@/lib/video-insights-service";
 import { useAuth } from "@/contexts/auth-context";
+import { Video } from "@/lib/collections";
 import { cn } from "@/lib/utils";
+import { VideoInsightsService } from "@/lib/video-insights-service";
 
 import { ScriptComponents } from "./video-insights-components";
 import { MetadataTab } from "./video-metadata-components";
@@ -259,7 +259,7 @@ export function DailyVideoInsightsDialog({ video, open, onOpenChange }: DailyVid
           {/* Fixed Video Column */}
           <div className="flex h-[600px] w-[400px] max-w-[400px] min-w-[400px] items-center justify-center bg-black">
             {isLoadingInsights ? (
-              <div className="flex items-center justify-center h-full w-full">
+              <div className="flex h-full w-full items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-white" />
               </div>
             ) : (
@@ -284,9 +284,7 @@ export function DailyVideoInsightsDialog({ video, open, onOpenChange }: DailyVid
                   {displayVideo.platform}
                 </Badge>
                 <h2 className="truncate text-lg font-semibold">{displayVideo.title}</h2>
-                {isLoadingInsights && (
-                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                )}
+                {isLoadingInsights && <Loader2 className="text-muted-foreground h-4 w-4 animate-spin" />}
               </div>
             </div>
 

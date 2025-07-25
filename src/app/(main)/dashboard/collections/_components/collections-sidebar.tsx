@@ -40,10 +40,10 @@ export function CollectionsSidebar({ selectedCollectionId, onSelectCollection }:
       // Check if user is super admin for debugging
       const isSuperAdmin = await RBACClientService.isSuperAdmin(user.uid);
       console.log("🔍 [Collections Sidebar] User is super admin:", isSuperAdmin);
-      
+
       const result = await RBACClientService.getUserCollections(user.uid);
       console.log("🔍 [Collections Sidebar] Loaded collections:", result.collections.length);
-      
+
       // Sort: favorites first, then by updatedAt desc
       const sortedCollections = [...result.collections].sort((a, b) => {
         if (a.favorite && !b.favorite) return -1;
@@ -104,14 +104,14 @@ export function CollectionsSidebar({ selectedCollectionId, onSelectCollection }:
       <div className="flex h-full flex-col overflow-hidden">
         {/* Header */}
         <div className="flex h-[52px] items-center justify-center px-2">
-          <div className="flex w-full items-center gap-2 rounded-md border border-input bg-transparent px-3 py-2 text-sm">
+          <div className="border-input flex w-full items-center gap-2 rounded-md border bg-transparent px-3 py-2 text-sm">
             <Folder className="h-4 w-4 shrink-0" />
             <span className="flex-1 truncate font-medium">Collections</span>
           </div>
         </div>
 
         {/* Separator */}
-        <div className="h-[1px] w-full shrink-0 bg-border"></div>
+        <div className="bg-border h-[1px] w-full shrink-0"></div>
 
         {/* Loading Skeletons */}
         <div className="flex flex-col gap-4 py-2">
@@ -130,14 +130,14 @@ export function CollectionsSidebar({ selectedCollectionId, onSelectCollection }:
       <div className="flex h-full flex-col overflow-hidden">
         {/* Header */}
         <div className="flex h-[52px] items-center justify-center px-2">
-          <div className="flex w-full items-center gap-2 rounded-md border border-input bg-transparent px-3 py-2 text-sm">
+          <div className="border-input flex w-full items-center gap-2 rounded-md border bg-transparent px-3 py-2 text-sm">
             <Folder className="h-4 w-4 shrink-0" />
             <span className="flex-1 truncate font-medium">Collections</span>
           </div>
         </div>
 
         {/* Separator */}
-        <div className="h-[1px] w-full shrink-0 bg-border"></div>
+        <div className="bg-border h-[1px] w-full shrink-0"></div>
 
         {/* Main Navigation */}
         <div className="flex flex-col gap-4 py-2">
@@ -146,17 +146,15 @@ export function CollectionsSidebar({ selectedCollectionId, onSelectCollection }:
             <button
               onClick={() => onSelectCollection("all-videos")}
               className={cn(
-                "inline-flex items-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 h-8 rounded-md px-3 text-xs justify-start",
+                "focus-visible:ring-ring inline-flex h-8 items-center justify-start gap-2 rounded-md px-3 text-xs font-medium whitespace-nowrap transition-colors focus-visible:ring-1 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
                 selectedCollectionId === "all-videos"
-                  ? "bg-primary text-primary-foreground shadow hover:bg-primary/90"
-                  : "hover:bg-accent hover:text-accent-foreground"
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow"
+                  : "hover:bg-accent hover:text-accent-foreground",
               )}
             >
               <Video className="mr-2 h-4 w-4" />
               All Videos
-              <span className="ml-auto">
-                {state.collections.reduce((total, c) => total + c.videoCount, 0)}
-              </span>
+              <span className="ml-auto">{state.collections.reduce((total, c) => total + c.videoCount, 0)}</span>
             </button>
 
             {/* Collections List */}
@@ -165,13 +163,13 @@ export function CollectionsSidebar({ selectedCollectionId, onSelectCollection }:
                 <button
                   onClick={() => onSelectCollection(collection.id!)}
                   className={cn(
-                    "inline-flex items-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 h-8 rounded-md px-3 text-xs justify-start w-full",
+                    "focus-visible:ring-ring inline-flex h-8 w-full items-center justify-start gap-2 rounded-md px-3 text-xs font-medium whitespace-nowrap transition-colors focus-visible:ring-1 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
                     selectedCollectionId === collection.id
-                      ? "bg-primary text-primary-foreground shadow hover:bg-primary/90"
-                      : "hover:bg-accent hover:text-accent-foreground"
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow"
+                      : "hover:bg-accent hover:text-accent-foreground",
                   )}
                 >
-                  <div className="flex items-center gap-1 mr-2">
+                  <div className="mr-2 flex items-center gap-1">
                     {collection.favorite && <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />}
                     <Folder className="h-4 w-4" />
                   </div>
@@ -182,9 +180,9 @@ export function CollectionsSidebar({ selectedCollectionId, onSelectCollection }:
                 {/* Dropdown Menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      className="absolute right-1 top-1 h-6 w-6 p-0 opacity-0 transition-opacity group-hover:opacity-100"
+                    <Button
+                      variant="ghost"
+                      className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 transition-opacity group-hover:opacity-100"
                     >
                       <MoreHorizontal className="h-3 w-3" />
                     </Button>

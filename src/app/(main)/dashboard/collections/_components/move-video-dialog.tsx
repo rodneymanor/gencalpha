@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -14,24 +15,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useCollections } from "./collections-context";
-import { Video, CollectionsService } from "@/lib/collections";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/auth-context";
+import { Video, CollectionsService } from "@/lib/collections";
+
+import { useCollections } from "./collections-context";
 
 const formSchema = z.object({
   collectionId: z.string().min(1, "Please select a collection"),
@@ -46,12 +35,7 @@ interface MoveVideoDialogProps {
   onSuccess: () => void;
 }
 
-export function MoveVideoDialog({ 
-  video, 
-  open, 
-  onOpenChange, 
-  onSuccess 
-}: MoveVideoDialogProps) {
+export function MoveVideoDialog({ video, open, onOpenChange, onSuccess }: MoveVideoDialogProps) {
   const { state } = useCollections();
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
@@ -69,7 +53,7 @@ export function MoveVideoDialog({
     setIsLoading(true);
     try {
       await CollectionsService.moveVideo(user.uid, video.id, data.collectionId);
-      
+
       form.reset();
       onSuccess();
     } catch (error) {
@@ -81,18 +65,14 @@ export function MoveVideoDialog({
   };
 
   // Filter out the current collection from the options
-  const availableCollections = state.collections.filter(
-    (collection) => collection.id !== video?.collectionId
-  );
+  const availableCollections = state.collections.filter((collection) => collection.id !== video?.collectionId);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Move Video</DialogTitle>
-          <DialogDescription>
-            Move &quot;{video?.title}&quot; to a different collection.
-          </DialogDescription>
+          <DialogDescription>Move &quot;{video?.title}&quot; to a different collection.</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -124,12 +104,7 @@ export function MoveVideoDialog({
             />
 
             <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-                disabled={isLoading}
-              >
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
                 Cancel
               </Button>
               <Button type="submit" disabled={isLoading}>

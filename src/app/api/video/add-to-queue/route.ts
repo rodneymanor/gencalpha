@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { videoQueue } from "@/lib/simple-video-queue";
+
 import { ApifyInstagramScraper } from "@/lib/apify-instagram-scraper";
+import { videoQueue } from "@/lib/simple-video-queue";
 
 interface AddToQueueRequest {
   videoUrl: string;
@@ -15,10 +16,7 @@ export async function POST(request: NextRequest) {
     const { videoUrl, collectionId, userId }: AddToQueueRequest = await request.json();
 
     if (!videoUrl) {
-      return NextResponse.json(
-        { success: false, error: "Video URL is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: "Video URL is required" }, { status: 400 });
     }
 
     // Validate Instagram URL
@@ -28,7 +26,7 @@ export async function POST(request: NextRequest) {
           success: false,
           error: "Please provide a valid Instagram URL (reels, posts, or IGTV)",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -55,23 +53,22 @@ export async function POST(request: NextRequest) {
         notification: "Watch the notification badge in the top-right corner",
         timeline: [
           "Extracting video metadata (10-20s)",
-          "Getting download links (5-10s)", 
+          "Getting download links (5-10s)",
           "Adding to collection (10-20s)",
-          "Complete!"
-        ]
-      }
+          "Complete!",
+        ],
+      },
     });
-
   } catch (error) {
     console.error("❌ [ADD-TO-QUEUE] Error:", error);
-    
+
     return NextResponse.json(
       {
         success: false,
         error: "Failed to add video to queue",
         details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -85,21 +82,21 @@ export async function GET() {
         body: {
           videoUrl: "Instagram URL (required)",
           collectionId: "Collection ID (optional)",
-          userId: "User ID (optional, get from auth in production)"
+          userId: "User ID (optional, get from auth in production)",
         },
         response: {
           success: true,
           job: "Job details with ID and status",
-          instructions: "How to track progress"
-        }
-      }
+          instructions: "How to track progress",
+        },
+      },
     },
     features: [
       "Immediate response (< 500ms)",
       "Background processing with Apify",
       "Real-time progress updates",
       "Notification badge integration",
-      "Automatic retry on failure"
-    ]
+      "Automatic retry on failure",
+    ],
   });
 }
