@@ -116,15 +116,26 @@ function StickyActionButtons({ video }: { video: Video }) {
     console.log("📝 Video transcript:", video.transcript);
   };
 
+  const handleRewriteScript = () => {
+    console.log("✏️ Rewrite Script for video:", video.title);
+    console.log("✏️ Video transcript:", video.transcript);
+  };
+
   return (
-    <div className="bg-background sticky bottom-0 border-t pt-4">
-      <div className="flex gap-3">
-        <Button onClick={handleRemixScript} className="flex-1 gap-2" disabled={!video.transcript}>
+    <div className="bg-background sticky bottom-0 border-t px-4 py-3">
+      <div className="flex justify-end gap-3">
+        <Button onClick={handleRewriteScript} variant="outline" className="gap-2" disabled={!video.transcript}>
           <FileText className="h-4 w-4" />
+          Rewrite Script
+        </Button>
+        <Button onClick={handleRemixScript} className="gap-2" disabled={!video.transcript}>
+          <Zap className="h-4 w-4" />
           Remix Script
         </Button>
       </div>
-      {!video.transcript && <p className="text-muted-foreground mt-2 text-xs">Transcript required for AI actions.</p>}
+      {!video.transcript && (
+        <p className="text-muted-foreground mt-2 text-right text-xs">Transcript required for AI actions.</p>
+      )}
     </div>
   );
 }
@@ -159,48 +170,47 @@ export function DailyVideoInsightsDialog({ video, open, onOpenChange }: DailyVid
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[90vh] w-[900px] !max-w-[900px] flex-col">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <Badge
-                className={cn(
-                  video.platform.toLowerCase() === "tiktok"
-                    ? "bg-black text-white"
-                    : video.platform.toLowerCase() === "instagram"
-                      ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
-                      : "bg-red-600 text-white",
-                )}
-              >
-                {video.platform}
-              </Badge>
-              <span className="truncate">{video.title}</span>
-            </div>
-          </DialogTitle>
-          <DialogDescription>
-            View detailed insights, script components, transcript and metadata for this viral video.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="h-[90vh] !max-w-[1200px] overflow-hidden p-0">
+        <div className="flex h-full">
+          {/* Left side - Video Player (Instagram Reels style) */}
+          <div className="relative flex w-[40%] items-center justify-center bg-black">
+            <VideoPreviewWithMetrics video={video} />
+          </div>
 
-        <div className="flex-1 overflow-hidden">
-          <div className="flex h-full gap-6">
-            {/* Left Column - Video & Metrics (1/3 width) */}
-            <div className="w-1/3">
-              <VideoPreviewWithMetrics video={video} />
+          {/* Right side - Content Area */}
+          <div className="bg-background flex flex-1 flex-col">
+            {/* Header with video info */}
+            <div className="border-b p-4">
+              <div className="flex items-center gap-3">
+                <Badge
+                  className={cn(
+                    video.platform.toLowerCase() === "tiktok"
+                      ? "bg-black text-white"
+                      : video.platform.toLowerCase() === "instagram"
+                        ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+                        : "bg-red-600 text-white",
+                  )}
+                >
+                  {video.platform}
+                </Badge>
+                <h2 className="truncate font-semibold">{video.title}</h2>
+              </div>
             </div>
 
-            {/* Right Column - Main Insights with Sticky Actions (2/3 width) */}
-            <div className="flex w-2/3 flex-col">
+            {/* Main content area with tabs */}
+            <div className="flex-1 overflow-hidden">
               <Tabs defaultValue="insights" className="flex h-full flex-col">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="insights">Insights</TabsTrigger>
-                  <TabsTrigger value="script">Script Components</TabsTrigger>
-                  <TabsTrigger value="metadata">Metadata</TabsTrigger>
-                </TabsList>
+                <div className="px-4 pt-4">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="insights">Insights</TabsTrigger>
+                    <TabsTrigger value="script">Script Components</TabsTrigger>
+                    <TabsTrigger value="metadata">Metadata</TabsTrigger>
+                  </TabsList>
+                </div>
 
-                <div className="mt-4 flex-1 overflow-hidden">
+                <div className="flex-1 overflow-hidden px-4 pb-4">
                   <div className="flex h-full flex-col">
-                    <div className="flex-1 overflow-auto">
+                    <div className="flex-1 overflow-auto py-4">
                       <TabsContent value="insights" className="mt-0">
                         <MainInsightsTab video={video} copiedText={copiedText} onCopy={copyToClipboard} />
                       </TabsContent>
@@ -214,7 +224,7 @@ export function DailyVideoInsightsDialog({ video, open, onOpenChange }: DailyVid
                       </TabsContent>
                     </div>
 
-                    {/* Sticky Action Buttons at Bottom */}
+                    {/* Sticky Action Buttons at Bottom Right */}
                     <StickyActionButtons video={video} />
                   </div>
                 </div>
