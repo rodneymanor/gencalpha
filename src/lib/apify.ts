@@ -1,4 +1,3 @@
-
 export interface ApifyConfig {
   token: string;
   baseUrl: string;
@@ -36,7 +35,7 @@ export interface InstagramPost {
   id: string;
   shortcode: string;
   url: string;
-  type: 'image' | 'video' | 'carousel';
+  type: "image" | "video" | "carousel";
   caption: string;
   timestamp: string;
   likesCount: number;
@@ -95,22 +94,22 @@ export class ApifyClient {
 
   constructor(token?: string) {
     this.config = {
-      token: token ?? process.env.APIFY_TOKEN ?? '',
-      baseUrl: 'https://api.apify.com/v2'
+      token: token ?? process.env.APIFY_TOKEN ?? "",
+      baseUrl: "https://api.apify.com/v2",
     };
 
     if (!this.config.token) {
-      throw new Error('Apify token is required');
+      throw new Error("Apify token is required");
     }
   }
 
   private async makeRequest(endpoint: string, options: RequestInit = {}) {
     const url = `${this.config.baseUrl}${endpoint}`;
-    
+
     const response = await fetch(url, {
       ...options,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options.headers,
       },
     });
@@ -124,7 +123,7 @@ export class ApifyClient {
   }
 
   async runActor(actorId: string, input: object, waitForFinish = true): Promise<unknown> {
-    const endpoint = waitForFinish 
+    const endpoint = waitForFinish
       ? `/acts/${actorId}/run-sync-get-dataset-items?token=${this.config.token}`
       : `/acts/${actorId}/runs?token=${this.config.token}`;
 
@@ -133,7 +132,7 @@ export class ApifyClient {
 
     try {
       const result = await this.makeRequest(endpoint, {
-        method: 'POST',
+        method: "POST",
         body: JSON.stringify(input),
       });
 
@@ -147,9 +146,9 @@ export class ApifyClient {
 
   async getDatasetItems(datasetId: string): Promise<ApifyDatasetItem[]> {
     const endpoint = `/datasets/${datasetId}/items?token=${this.config.token}`;
-    
+
     console.log(`📊 Fetching dataset items: ${datasetId}`);
-    
+
     try {
       const items = await this.makeRequest(endpoint);
       console.log(`✅ Retrieved ${items.length} items from dataset`);
@@ -162,13 +161,13 @@ export class ApifyClient {
 
   async downloadMedia(url: string): Promise<Buffer> {
     console.log(`⬇️ Downloading media: ${url}`);
-    
+
     try {
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`Failed to download: ${response.status}`);
       }
-      
+
       const buffer = Buffer.from(await response.arrayBuffer());
       console.log(`✅ Downloaded ${buffer.length} bytes`);
       return buffer;
@@ -181,8 +180,7 @@ export class ApifyClient {
 
 export function validateApifyInput(input: Record<string, unknown>, requiredFields: string[]): void {
   for (const field of requiredFields) {
-    // eslint-disable-next-line security/detect-object-injection
-    if (!input[field as keyof typeof input]) {
+    if (!input[field]) {
       throw new Error(`Missing required field: ${field}`);
     }
   }
@@ -192,15 +190,13 @@ export function getBaseUrl(): string {
   if (process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL}`;
   }
-  return process.env.NODE_ENV === 'development' 
-    ? 'http://localhost:3000'
-    : 'https://localhost:3000';
+  return process.env.NODE_ENV === "development" ? "http://localhost:3000" : "https://localhost:3000";
 }
 
 export const APIFY_ACTORS = {
-  INSTAGRAM_PROFILE: 'apify/instagram-profile-scraper',
-  INSTAGRAM_REEL: 'apify/instagram-reel-scraper', 
-  INSTAGRAM_HASHTAG: 'apify/instagram-hashtag-scraper',
-  TIKTOK_PROFILE: 'clockworks/tiktok-profile-scraper',
-  TIKTOK_SCRAPER: 'clockworks/tiktok-scraper',
+  INSTAGRAM_PROFILE: "apify~instagram-profile-scraper",
+  INSTAGRAM_REEL: "apify~instagram-reel-scraper",
+  INSTAGRAM_HASHTAG: "apify~instagram-hashtag-scraper",
+  TIKTOK_PROFILE: "clockworks~tiktok-profile-scraper",
+  TIKTOK_SCRAPER: "clockworks~tiktok-scraper",
 } as const;

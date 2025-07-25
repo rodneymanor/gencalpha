@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { ApifyClient, validateApifyInput, APIFY_ACTORS } from '@/lib/apify';
+import { NextRequest, NextResponse } from "next/server";
+
+import { ApifyClient, validateApifyInput, APIFY_ACTORS } from "@/lib/apify";
 
 export interface InstagramReelData {
   id: string;
@@ -21,18 +22,18 @@ function mapToInstagramReel(item: unknown): InstagramReelData {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const data = item as any;
   return {
-    id: data.id ?? '',
-    shortcode: data.shortcode ?? '',
-    url: data.url ?? '',
-    videoUrl: data.videoUrl ?? data.video_url ?? '',
-    thumbnailUrl: data.thumbnailUrl ?? data.thumbnail_url ?? '',
-    caption: data.caption ?? '',
-    timestamp: data.timestamp ?? data.taken_at_timestamp ?? '',
+    id: data.id ?? "",
+    shortcode: data.shortcode ?? "",
+    url: data.url ?? "",
+    videoUrl: data.videoUrl ?? data.video_url ?? "",
+    thumbnailUrl: data.thumbnailUrl ?? data.thumbnail_url ?? "",
+    caption: data.caption ?? "",
+    timestamp: data.timestamp ?? data.taken_at_timestamp ?? "",
     likesCount: data.likesCount ?? data.like_count ?? 0,
     commentsCount: data.commentsCount ?? data.comment_count ?? 0,
     viewsCount: data.viewsCount ?? data.view_count,
     duration: data.duration ?? data.video_duration,
-    username: data.username ?? data.owner?.username ?? '',
+    username: data.username ?? data.owner?.username ?? "",
   };
 }
 
@@ -69,48 +70,52 @@ export interface InstagramReelResponse {
 
 async function scrapeInstagramReel(input: InstagramReelRequest): Promise<InstagramReelData[]> {
   const client = new ApifyClient();
-  
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let apifyInput: any;
 
-  if (input.url || input.urls) {
-    apifyInput = {
-      directUrls: input.url ? [input.url] : input.urls ?? [],
-      resultsType: 'details',
-      resultsLimit: input.resultsLimit ?? 50,
-      proxyConfiguration: {
-        useApifyProxy: true
-      }
-    };
-    validateApifyInput(apifyInput, ['directUrls']);
-  } else if (input.username) {
-    // For username, construct profile URL for reel scraper
-    apifyInput = {
-      directUrls: [`https://www.instagram.com/${input.username}/`],
-      resultsType: 'details',
-      resultsLimit: input.resultsLimit ?? 50,
-      proxyConfiguration: {
-        useApifyProxy: true
-      }
-    };
-    validateApifyInput(apifyInput, ['directUrls']);
+  // Instagram reel scraper requires username field (not directUrls)
+  let usernames: string[] = [];
+
+  if (input.username) {
+    usernames = [input.username];
+  } else if (input.url || input.urls) {
+    // Extract username from Instagram URLs
+    const urls = input.url ? [input.url] : (input.urls ?? []);
+    usernames = urls
+      .map((url) => {
+        const match = url.match(/instagram\.com\/([^/]+)/);
+        return match ? match[1] : url;
+      })
+      .filter(Boolean);
   } else {
-    throw new Error('Either url/urls or username is required');
+    throw new Error("Either url/urls or username is required");
   }
+
+  if (usernames.length === 0) {
+    throw new Error("No valid usernames found");
+  }
+
+  const apifyInput = {
+    username: usernames,
+    resultsLimit: input.resultsLimit ?? 5,
+    proxyConfiguration: {
+      useApifyProxy: true,
+    },
+  };
+
+  validateApifyInput(apifyInput, ["username"]);
 
   console.log(`🎬 Scraping Instagram reels with input:`, apifyInput);
 
   const results = await client.runActor(APIFY_ACTORS.INSTAGRAM_REEL, apifyInput, true);
-  
+
   if (!Array.isArray(results)) {
-    throw new Error('Invalid response format from Apify');
+    throw new Error("Invalid response format from Apify");
   }
 
   const reels: InstagramReelData[] = results.map((item: unknown): InstagramReelData => mapToInstagramReel(item));
 
   if (input.downloadVideo) {
-    console.log('🎥 Downloading video files...');
-    
+    console.log("🎥 Downloading video files...");
+
     downloadVideosInBackground(reels);
   }
 
@@ -120,17 +125,17 @@ async function scrapeInstagramReel(input: InstagramReelRequest): Promise<Instagr
 export async function POST(request: NextRequest) {
   try {
     const body: InstagramReelRequest = await request.json();
-    
-    console.log('🎯 Instagram Reel API called with:', body);
+
+    console.log("🎯 Instagram Reel API called with:", body);
 
     if (!body.url && !body.urls && !body.username) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Either url, urls, or username is required',
-          timestamp: new Date().toISOString()
+        {
+          success: false,
+          error: "Either url, urls, or username is required",
+          timestamp: new Date().toISOString(),
         } satisfies InstagramReelResponse,
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -143,15 +148,14 @@ export async function POST(request: NextRequest) {
     };
 
     console.log(`✅ Successfully scraped ${reels.length} Instagram reels`);
-    
-    return NextResponse.json(response);
 
+    return NextResponse.json(response);
   } catch (error) {
-    console.error('❌ Instagram reel scraping failed:', error);
-    
+    console.error("❌ Instagram reel scraping failed:", error);
+
     const response: InstagramReelResponse = {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred',
+      error: error instanceof Error ? error.message : "Unknown error occurred",
       timestamp: new Date().toISOString(),
     };
 
@@ -161,20 +165,20 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const url = searchParams.get('url');
-  const urls = searchParams.get('urls')?.split(',');
-  const username = searchParams.get('username');
-  const resultsLimit = searchParams.get('resultsLimit') ? parseInt(searchParams.get('resultsLimit')!) : undefined;
-  const downloadVideo = searchParams.get('downloadVideo') === 'true';
+  const url = searchParams.get("url");
+  const urls = searchParams.get("urls")?.split(",");
+  const username = searchParams.get("username");
+  const resultsLimit = searchParams.get("resultsLimit") ? parseInt(searchParams.get("resultsLimit")!) : undefined;
+  const downloadVideo = searchParams.get("downloadVideo") === "true";
 
   if (!url && !urls && !username) {
     return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Either url, urls, or username parameter is required',
-        timestamp: new Date().toISOString()
+      {
+        success: false,
+        error: "Either url, urls, or username parameter is required",
+        timestamp: new Date().toISOString(),
       } satisfies InstagramReelResponse,
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -194,13 +198,12 @@ export async function GET(request: NextRequest) {
     };
 
     return NextResponse.json(response);
-
   } catch (error) {
-    console.error('❌ Instagram reel scraping failed:', error);
-    
+    console.error("❌ Instagram reel scraping failed:", error);
+
     const response: InstagramReelResponse = {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred',
+      error: error instanceof Error ? error.message : "Unknown error occurred",
       timestamp: new Date().toISOString(),
     };
 
