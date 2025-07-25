@@ -82,6 +82,8 @@ export interface TikTokProfileResponse {
 async function scrapeTikTokProfile(input: TikTokProfileRequest): Promise<TikTokProfileData[]> {
   const client = new ApifyClient();
   
+  console.log("🎯 TikTok Profile Scraper called with input:", JSON.stringify(input, null, 2));
+  
   const apifyInput = {
     profiles: input.username ? [input.username] : input.usernames ?? [],
     resultsLimit: input.resultsLimit ?? 50,
@@ -89,6 +91,9 @@ async function scrapeTikTokProfile(input: TikTokProfileRequest): Promise<TikTokP
       useApifyProxy: true
     }
   };
+
+  console.log("🚀 Final Apify input for profile scraper:", JSON.stringify(apifyInput, null, 2));
+  console.log("🎭 Using actor:", APIFY_ACTORS.TIKTOK_PROFILE);
 
   validateApifyInput(apifyInput, ['profiles']);
 
@@ -100,11 +105,27 @@ async function scrapeTikTokProfile(input: TikTokProfileRequest): Promise<TikTokP
 
   const results = await client.runActor(APIFY_ACTORS.TIKTOK_PROFILE, apifyInput, true);
   
+  console.log("📥 Raw response from TikTok Profile Scraper:");
+  console.log("📊 Response type:", typeof results);
+  console.log("📊 Is array:", Array.isArray(results));
+  console.log("📊 Response length:", Array.isArray(results) ? results.length : "N/A");
+  console.log("📊 Raw response sample:", JSON.stringify(results, null, 2));
+  
   if (!Array.isArray(results)) {
-    throw new Error('Invalid response format from Apify');
+    console.log("❌ Expected array but got:", typeof results);
+    throw new Error('Invalid response format from Apify - expected array');
   }
 
-  const profiles: TikTokProfileData[] = results.map((item: unknown): TikTokProfileData => mapToTikTokProfile(item));
+  console.log(`✅ Got ${results.length} raw items from Apify`);
+
+  const profiles: TikTokProfileData[] = results.map((item: unknown, index: number): TikTokProfileData => {
+    console.log(`🔄 Mapping item ${index + 1}:`, JSON.stringify(item, null, 2));
+    const mapped = mapToTikTokProfile(item);
+    console.log(`✅ Mapped to profile:`, JSON.stringify(mapped, null, 2));
+    return mapped;
+  });
+
+  console.log(`✅ Successfully mapped ${profiles.length} profiles`);
 
   if (input.downloadVideos) {
     console.log('🎥 Starting background video downloads...');

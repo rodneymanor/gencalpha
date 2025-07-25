@@ -128,18 +128,39 @@ export class ApifyClient {
       : `/acts/${actorId}/runs?token=${this.config.token}`;
 
     console.log(`🚀 Running Apify actor: ${actorId}`);
+    console.log(`🔗 Full URL: ${this.config.baseUrl}${endpoint.replace(this.config.token, 'TOKEN_HIDDEN')}`);
+    console.log(`⏱️ Wait mode: ${waitForFinish ? 'sync (wait for completion)' : 'async (immediate return)'}`);
     console.log(`📝 Input:`, JSON.stringify(input, null, 2));
 
     try {
+      const startTime = Date.now();
       const result = await this.makeRequest(endpoint, {
         method: "POST",
         body: JSON.stringify(input),
       });
+      const duration = Date.now() - startTime;
 
-      console.log(`✅ Actor ${actorId} completed successfully`);
+      console.log(`✅ Actor ${actorId} completed successfully in ${duration}ms`);
+      console.log(`📊 Result type: ${typeof result}`);
+      console.log(`📊 Is array: ${Array.isArray(result)}`);
+      console.log(`📊 Length/keys: ${Array.isArray(result) ? result.length : Object.keys(result ?? {}).length}`);
+      
+      // Log first few items if it's an array
+      if (Array.isArray(result)) {
+        console.log(`📋 First few items preview:`, JSON.stringify(result.slice(0, 2), null, 2));
+      } else {
+        console.log(`📋 Result preview:`, JSON.stringify(result, null, 2));
+      }
+      
       return result;
     } catch (error) {
       console.error(`❌ Actor ${actorId} failed:`, error);
+      console.error(`❌ Error details:`, {
+        actorId,
+        endpoint: endpoint.replace(this.config.token, 'TOKEN_HIDDEN'),
+        inputKeys: Object.keys(input),
+        errorType: error instanceof Error ? error.constructor.name : typeof error
+      });
       throw error;
     }
   }

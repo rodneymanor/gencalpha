@@ -55,6 +55,12 @@ export default function ApifyTestPage() {
     downloadVideos: false,
   });
 
+  const [tiktokScraper, setTiktokScraper] = useState({
+    profiles: '',
+    hashtags: '',
+    resultsPerPage: 10,
+  });
+
   const [orchestrator, setOrchestrator] = useState({
     instagramProfiles: '',
     instagramReels: '',
@@ -69,6 +75,7 @@ export default function ApifyTestPage() {
     instagramProfile: { loading: false, response: null, error: null },
     instagramReel: { loading: false, response: null, error: null },
     tiktokProfile: { loading: false, response: null, error: null },
+    tiktokScraper: { loading: false, response: null, error: null },
     orchestrator: { loading: false, response: null, error: null },
   });
 
@@ -145,6 +152,22 @@ export default function ApifyTestPage() {
     }
 
     makeAPICall('tiktok/profile', body, 'tiktokProfile');
+  };
+
+  const testTiktokScraper = () => {
+    const body: Record<string, unknown> = {
+      resultsPerPage: tiktokScraper.resultsPerPage,
+    };
+
+    if (tiktokScraper.profiles) {
+      body.profiles = tiktokScraper.profiles.split(',').map(u => u.trim());
+    }
+
+    if (tiktokScraper.hashtags) {
+      body.hashtags = tiktokScraper.hashtags.split(',').map(h => h.trim());
+    }
+
+    makeAPICall('tiktok/scraper', body, 'tiktokScraper');
   };
 
   const testOrchestrator = () => {
@@ -255,7 +278,7 @@ export default function ApifyTestPage() {
       </div>
 
       <Tabs defaultValue="instagram-profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="instagram-profile" className="flex items-center gap-2">
             <User className="h-4 w-4" />
             IG Profile
@@ -267,6 +290,10 @@ export default function ApifyTestPage() {
           <TabsTrigger value="tiktok-profile" className="flex items-center gap-2">
             <PlayCircle className="h-4 w-4" />
             TikTok Profile
+          </TabsTrigger>
+          <TabsTrigger value="tiktok-scraper" className="flex items-center gap-2">
+            <PlayCircle className="h-4 w-4" />
+            TikTok Scraper
           </TabsTrigger>
           <TabsTrigger value="orchestrator" className="flex items-center gap-2">
             <Layers className="h-4 w-4" />
@@ -501,6 +528,68 @@ export default function ApifyTestPage() {
               </CardHeader>
               <CardContent>
                 <ResponseDisplay {...testStates.tiktokProfile} />
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="tiktok-scraper">
+          <div className="grid lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>TikTok General Scraper</CardTitle>
+                <CardDescription>
+                  Scrape TikTok profiles and hashtags using the general scraper
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="tiktok-scraper-profiles">Profiles (comma-separated)</Label>
+                  <Input
+                    id="tiktok-scraper-profiles"
+                    placeholder="apifytech, therock"
+                    value={tiktokScraper.profiles}
+                    onChange={(e) => setTiktokScraper(prev => ({ ...prev, profiles: e.target.value }))}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="tiktok-scraper-hashtags">Hashtags (comma-separated)</Label>
+                  <Input
+                    id="tiktok-scraper-hashtags"
+                    placeholder="funny, viral, dance"
+                    value={tiktokScraper.hashtags}
+                    onChange={(e) => setTiktokScraper(prev => ({ ...prev, hashtags: e.target.value }))}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="tiktok-scraper-limit">Results Per Page</Label>
+                  <Input
+                    id="tiktok-scraper-limit"
+                    type="number"
+                    value={tiktokScraper.resultsPerPage}
+                    onChange={(e) => setTiktokScraper(prev => ({ ...prev, resultsPerPage: Number(e.target.value) }))}
+                  />
+                </div>
+
+                <Button 
+                  onClick={testTiktokScraper} 
+                  disabled={testStates.tiktokScraper.loading || (!tiktokScraper.profiles && !tiktokScraper.hashtags)}
+                  className="w-full"
+                >
+                  {testStates.tiktokScraper.loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Test API
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Response</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponseDisplay {...testStates.tiktokScraper} />
               </CardContent>
             </Card>
           </div>

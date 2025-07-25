@@ -1,4 +1,4 @@
 {
-   "profiles": ["apifytech"],
-   "resultsPerPage": 10
+   "profiles": ["apifytech", "therock"],
+   "resultsPerPage": 3
  }
