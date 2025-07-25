@@ -4,7 +4,7 @@ import { ApifyClient, APIFY_ACTORS } from "@/lib/apify";
 export interface TikTokScraperRequest {
   profiles?: string[];
   hashtags?: string[];
-  videoUrls?: string[]; // Note: Not currently supported by clockworks~tiktok-scraper
+  videoUrls?: string[]; // Mapped to postURLs parameter
   searchQueries?: string[];
   resultsPerPage?: number;
   proxyConfiguration?: {
@@ -50,10 +50,10 @@ async function scrapeTikTokGeneral(input: TikTokScraperRequest): Promise<unknown
     console.log("🏷️ Added hashtags:", input.hashtags);
   }
 
-  // Video URLs are not supported by clockworks~tiktok-scraper actor
+  // Try postURLs parameter for video URLs
   if (input.videoUrls && input.videoUrls.length > 0) {
-    console.log("⚠️ Video URLs not supported by clockworks~tiktok-scraper");
-    throw new Error("Individual video URLs are not supported by the TikTok scraper. Use profiles, hashtags, or search queries instead.");
+    apifyInput.postURLs = input.videoUrls;
+    console.log("🎬 Added video URLs as postURLs:", input.videoUrls);
   }
 
   // Add search queries if provided
@@ -94,11 +94,11 @@ export async function POST(request: NextRequest) {
     
     console.log("🎯 TikTok Scraper API called with:", JSON.stringify(body, null, 2));
 
-    if (!body.profiles && !body.hashtags && !body.searchQueries) {
+    if (!body.profiles && !body.hashtags && !body.videoUrls && !body.searchQueries) {
       return NextResponse.json(
         {
           success: false,
-          error: "At least one of profiles, hashtags, or searchQueries is required. Video URLs are not currently supported.",
+          error: "At least one of profiles, hashtags, videoUrls, or searchQueries is required",
           timestamp: new Date().toISOString(),
         } satisfies TikTokScraperResponse,
         { status: 400 }
@@ -145,11 +145,11 @@ export async function GET(request: NextRequest) {
   const searchQueries = searchParams.get("searchQueries")?.split(",");
   const resultsPerPage = searchParams.get("resultsPerPage") ? parseInt(searchParams.get("resultsPerPage")!) : undefined;
 
-  if (!profiles && !hashtags && !searchQueries) {
+  if (!profiles && !hashtags && !videoUrls && !searchQueries) {
     return NextResponse.json(
       {
         success: false,
-        error: "At least one of profiles, hashtags, or searchQueries parameter is required. Video URLs are not currently supported.",
+        error: "At least one of profiles, hashtags, videoUrls, or searchQueries parameter is required",
         timestamp: new Date().toISOString(),
       } satisfies TikTokScraperResponse,
       { status: 400 }
