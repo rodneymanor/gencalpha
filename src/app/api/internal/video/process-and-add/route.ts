@@ -202,6 +202,7 @@ export async function POST(request: NextRequest) {
       collectionId || "all-videos",
       downloadResult.data.platform,
       downloadResult.data.additionalMetadata || {},
+      scrapedData, // Pass scraped data for URL-based transcription
     );
 
     console.log("✅ [INTERNAL_VIDEO] Complete internal workflow successful!");
@@ -359,6 +360,7 @@ function startBackgroundTranscription(
   collectionId: string,
   platform: string,
   additionalMetadata: any = {},
+  scrapedData: any = null,
 ) {
   // Use setTimeout to ensure response is sent before starting background work
   setTimeout(async () => {
@@ -375,19 +377,37 @@ function startBackgroundTranscription(
         }
       }, 5 * 60 * 1000); // 5 minute timeout
 
-      // Convert buffer array back to proper format for transcription
-      const buffer = Buffer.from(videoData.buffer);
-      const blob = new Blob([buffer], { type: videoData.mimeType });
-      const formData = new FormData();
-      formData.append("video", blob, videoData.filename);
+      // Use direct video URL transcription if available (more efficient)
+      let response;
+      if (scrapedData?.videoUrl) {
+        console.log("🌐 [INTERNAL_BACKGROUND] Using direct URL transcription");
+        response = await fetch(`${baseUrl}/api/internal/video/transcribe`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-internal-secret": process.env.INTERNAL_API_SECRET || "",
+          },
+          body: JSON.stringify({
+            videoUrl: scrapedData.videoUrl,
+            platform: platform,
+          }),
+        });
+      } else {
+        console.log("📁 [INTERNAL_BACKGROUND] Using file-based transcription");
+        // Convert buffer array back to proper format for transcription
+        const buffer = Buffer.from(videoData.buffer);
+        const blob = new Blob([buffer], { type: videoData.mimeType });
+        const formData = new FormData();
+        formData.append("video", blob, videoData.filename);
 
-      const response = await fetch(`${baseUrl}/api/internal/video/transcribe`, {
-        method: "POST",
-        headers: {
-          "x-internal-secret": process.env.INTERNAL_API_SECRET || "",
-        },
-        body: formData,
-      });
+        response = await fetch(`${baseUrl}/api/internal/video/transcribe`, {
+          method: "POST",
+          headers: {
+            "x-internal-secret": process.env.INTERNAL_API_SECRET || "",
+          },
+          body: formData,
+        });
+      }
 
       if (!response.ok) {
         const errorText = await response.text();
