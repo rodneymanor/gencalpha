@@ -80,11 +80,22 @@ export class UnifiedVideoScraper {
   }
 
   /**
-   * Scrape Instagram video using Apify reel endpoint
+   * Scrape Instagram video using appropriate endpoint based on URL format
    */
   private async scrapeInstagram(url: string, options: ScraperOptions = {}): Promise<UnifiedVideoResult> {
     console.log('📸 [UNIFIED_SCRAPER] Scraping Instagram URL...');
 
+    // Check if this is a post URL format: /p/shortcode/ or /reel/shortcode/
+    const shortcodeMatch = url.match(/\/(?:p|reel)\/([A-Za-z0-9_-]+)/);
+    if (shortcodeMatch) {
+      const shortcode = shortcodeMatch[1];
+      console.log(`📝 [UNIFIED_SCRAPER] Detected Instagram post/reel with shortcode: ${shortcode}`);
+      
+      // For post URLs, we'll use a different approach
+      return await this.scrapeInstagramPost(url, shortcode);
+    }
+
+    // Fall back to username-based scraping for other URL formats
     const response = await fetch(`${this.baseUrl}/api/apify/instagram/reel`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -127,6 +138,62 @@ export class UnifiedVideoScraper {
       },
       rawData: instagramData,
     };
+  }
+
+  /**
+   * Scrape Instagram post/reel by shortcode using a more direct approach
+   */
+  private async scrapeInstagramPost(url: string, shortcode: string): Promise<UnifiedVideoResult> {
+    console.log(`📋 [UNIFIED_SCRAPER] Scraping Instagram post with shortcode: ${shortcode}`);
+
+    // Try the Instagram post scraper first - we'll create this endpoint
+    try {
+      const response = await fetch(`${this.baseUrl}/api/apify/instagram/post`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url, shortcode }),
+      });
+
+      if (response.ok) {
+        const apiResult = await response.json();
+        if (apiResult.success && apiResult.data) {
+          const instagramData = apiResult.data;
+          
+          return {
+            platform: 'instagram',
+            shortCode: shortcode,
+            videoUrl: instagramData.videoUrl || instagramData.videoUrlBackup || '',
+            thumbnailUrl: instagramData.thumbnailUrl || instagramData.imageUrl || instagramData.displayUrl || '',
+            title: instagramData.caption || `Video by @${instagramData.ownerUsername}`,
+            author: instagramData.ownerUsername || 'unknown',
+            description: instagramData.caption || '',
+            hashtags: instagramData.hashtags || [],
+            metrics: {
+              likes: instagramData.likesCount || 0,
+              views: instagramData.videoViewCount || 0,
+              comments: instagramData.commentsCount || 0,
+              shares: 0,
+            },
+            metadata: {
+              shortCode: shortcode,
+              timestamp: instagramData.timestamp,
+              location: instagramData.location?.name,
+            },
+            rawData: instagramData,
+          };
+        }
+      }
+    } catch (error) {
+      console.log(`⚠️ [UNIFIED_SCRAPER] Instagram post scraper failed, falling back: ${error}`);
+    }
+
+    // For now, throw an error to indicate we need a different approach
+    console.log(`❌ [UNIFIED_SCRAPER] Instagram post URLs are not yet supported`);
+    throw new Error(
+      `Instagram post URLs (${url}) are not currently supported. ` +
+      `The system requires Instagram reel URLs or usernames. ` +
+      `This post format (/p/${shortcode}) needs a different scraping approach.`
+    );
   }
 
   /**
