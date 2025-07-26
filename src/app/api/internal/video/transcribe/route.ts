@@ -57,10 +57,13 @@ async function handleCdnTranscription(request: NextRequest) {
 
   console.log("✅ [INTERNAL_TRANSCRIBE] CDN transcription completed successfully");
   return NextResponse.json({
+    success: true,
     transcript: result.transcript,
-    confidence: result.confidence,
-    duration: result.duration,
-    platform: detectedPlatform,
+    platform: result.platform,
+    components: result.components,
+    contentMetadata: result.contentMetadata,
+    visualContext: result.visualContext,
+    transcriptionMetadata: result.transcriptionMetadata,
   });
 }
 
@@ -81,7 +84,16 @@ async function handleFileTranscription(request: NextRequest) {
     console.log("⚠️ [PLATFORM] Platform unknown for URL:", videoFile.name);
   }
 
-  const result = await VideoTranscriber.transcribeFromFile(videoFile, detectedPlatform.platform);
+  // Convert file to video data for transcription
+  const arrayBuffer = await videoFile.arrayBuffer();
+  const videoData = {
+    buffer: arrayBuffer,
+    size: videoFile.size,
+    mimeType: videoFile.type,
+    filename: videoFile.name,
+  };
+
+  const result = await VideoTranscriber.transcribe(videoData, detectedPlatform.platform);
 
   if (!result) {
     return NextResponse.json({ error: "Failed to transcribe video file" }, { status: 500 });
@@ -89,9 +101,12 @@ async function handleFileTranscription(request: NextRequest) {
 
   console.log("✅ [INTERNAL_TRANSCRIBE] File transcription completed successfully");
   return NextResponse.json({
+    success: true,
     transcript: result.transcript,
-    confidence: result.confidence,
-    duration: result.duration,
-    platform: detectedPlatform.platform,
+    platform: result.platform,
+    components: result.components,
+    contentMetadata: result.contentMetadata,
+    visualContext: result.visualContext,
+    transcriptionMetadata: result.transcriptionMetadata,
   });
 }
