@@ -4,7 +4,7 @@
  */
 
 export interface UnifiedVideoResult {
-  platform: 'tiktok' | 'instagram';
+  platform: "tiktok" | "instagram";
   shortCode: string;
   videoUrl: string;
   thumbnailUrl: string;
@@ -38,44 +38,41 @@ export interface ScraperOptions {
 export class UnifiedVideoScraper {
   private baseUrl: string;
 
-  constructor(baseUrl: string = '') {
+  constructor(baseUrl: string = "") {
     // Auto-detect base URL for API calls
-    this.baseUrl = baseUrl || (
-      process.env.VERCEL_URL 
-        ? `https://${process.env.VERCEL_URL}`
-        : 'http://localhost:3000'
-    );
+    this.baseUrl = baseUrl || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
   }
 
   /**
    * Main scraping method - detects platform and routes to appropriate scraper
    */
   async scrapeUrl(url: string, options: ScraperOptions = {}): Promise<UnifiedVideoResult> {
-    console.log('🔍 [UNIFIED_SCRAPER] Starting scrape for URL:', url);
+    console.log("🔍 [UNIFIED_SCRAPER] Starting scrape for URL:", url);
 
     const platform = this.detectPlatform(url);
-    
-    if (platform === 'unsupported') {
+
+    if (platform === "unsupported") {
       throw new Error(`Unsupported URL format: ${url}. Only TikTok and Instagram videos are supported.`);
     }
 
-    console.log('🎯 [UNIFIED_SCRAPER] Platform detected:', platform);
+    console.log("🎯 [UNIFIED_SCRAPER] Platform detected:", platform);
 
     try {
       let result: UnifiedVideoResult;
 
-      if (platform === 'instagram') {
+      if (platform === "instagram") {
         result = await this.scrapeInstagram(url, options);
       } else {
         result = await this.scrapeTikTok(url, options);
       }
 
-      console.log('✅ [UNIFIED_SCRAPER] Scraping successful for:', platform);
+      console.log("✅ [UNIFIED_SCRAPER] Scraping successful for:", platform);
       return result;
-
     } catch (error) {
       console.error(`❌ [UNIFIED_SCRAPER] ${platform} scraping failed:`, error);
-      throw new Error(`Failed to scrape ${platform} video: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to scrape ${platform} video: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   }
 
@@ -83,46 +80,44 @@ export class UnifiedVideoScraper {
    * Scrape Instagram video using appropriate endpoint based on URL format
    */
   private async scrapeInstagram(url: string, options: ScraperOptions = {}): Promise<UnifiedVideoResult> {
-    console.log('📸 [UNIFIED_SCRAPER] Scraping Instagram URL...');
+    console.log("📸 [UNIFIED_SCRAPER] Scraping Instagram URL...");
 
-    // Check if this is a post URL format: /p/shortcode/ or /reel/shortcode/
-    const shortcodeMatch = url.match(/\/(?:p|reel)\/([A-Za-z0-9_-]+)/);
-    if (shortcodeMatch) {
-      const shortcode = shortcodeMatch[1];
-      console.log(`📝 [UNIFIED_SCRAPER] Detected Instagram post/reel with shortcode: ${shortcode}`);
-      
-      // For post URLs, we'll use a different approach
+    // Only block /p/ post URLs, allow /reel/ to go to existing reel scraper
+    if (url.includes('/p/')) {
+      const shortcode = url.match(/\/p\/([A-Za-z0-9_-]+)/)?.[1] || 'unknown';
+      console.log(`📝 [UNIFIED_SCRAPER] Detected Instagram post with shortcode: ${shortcode}`);
       return await this.scrapeInstagramPost(url, shortcode);
     }
 
+    // For reel URLs and other formats, use the existing reel scraper
+
     // Fall back to username-based scraping for other URL formats
     const response = await fetch(`${this.baseUrl}/api/apify/instagram/reel`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ url }),
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'API request failed' }));
-      throw new Error(errorData.error || `Instagram API error: ${response.status}`);
+      throw new Error("Error processing Instagram video. Please try again.");
     }
 
     const apiResult = await response.json();
 
     if (!apiResult.success || !apiResult.data || apiResult.data.length === 0) {
-      throw new Error('No Instagram data returned from Apify');
+      throw new Error("Error processing Instagram video. Please try again.");
     }
 
     const instagramData = apiResult.data[0]; // First result
 
     return {
-      platform: 'instagram',
-      shortCode: instagramData.shortCode || this.extractShortcode(url) || 'unknown',
-      videoUrl: instagramData.videoUrl || instagramData.videoUrlBackup || '',
-      thumbnailUrl: instagramData.thumbnailUrl || instagramData.imageUrl || instagramData.displayUrl || '',
+      platform: "instagram",
+      shortCode: instagramData.shortCode || this.extractShortcode(url) || "unknown",
+      videoUrl: instagramData.videoUrl || instagramData.videoUrlBackup || "",
+      thumbnailUrl: instagramData.thumbnailUrl || instagramData.imageUrl || instagramData.displayUrl || "",
       title: instagramData.caption || `Video by @${instagramData.ownerUsername}`,
-      author: instagramData.ownerUsername || 'unknown',
-      description: instagramData.caption || '',
+      author: instagramData.ownerUsername || "unknown",
+      description: instagramData.caption || "",
       hashtags: instagramData.hashtags || [],
       metrics: {
         likes: instagramData.likesCount || 0,
@@ -149,8 +144,8 @@ export class UnifiedVideoScraper {
     // Try the Instagram post scraper first - we'll create this endpoint
     try {
       const response = await fetch(`${this.baseUrl}/api/apify/instagram/post`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url, shortcode }),
       });
 
@@ -158,15 +153,15 @@ export class UnifiedVideoScraper {
         const apiResult = await response.json();
         if (apiResult.success && apiResult.data) {
           const instagramData = apiResult.data;
-          
+
           return {
-            platform: 'instagram',
+            platform: "instagram",
             shortCode: shortcode,
-            videoUrl: instagramData.videoUrl || instagramData.videoUrlBackup || '',
-            thumbnailUrl: instagramData.thumbnailUrl || instagramData.imageUrl || instagramData.displayUrl || '',
+            videoUrl: instagramData.videoUrl || instagramData.videoUrlBackup || "",
+            thumbnailUrl: instagramData.thumbnailUrl || instagramData.imageUrl || instagramData.displayUrl || "",
             title: instagramData.caption || `Video by @${instagramData.ownerUsername}`,
-            author: instagramData.ownerUsername || 'unknown',
-            description: instagramData.caption || '',
+            author: instagramData.ownerUsername || "unknown",
+            description: instagramData.caption || "",
             hashtags: instagramData.hashtags || [],
             metrics: {
               likes: instagramData.likesCount || 0,
@@ -191,8 +186,8 @@ export class UnifiedVideoScraper {
     console.log(`❌ [UNIFIED_SCRAPER] Instagram post URLs are not yet supported`);
     throw new Error(
       `Instagram post URLs are not supported yet. ` +
-      `Please use Instagram reel URLs instead (look for /reel/ in the URL). ` +
-      `Post URLs with /p/ are not compatible with our current video processing system.`
+        `Please use Instagram reel URLs instead (look for /reel/ in the URL). ` +
+        `Post URLs with /p/ are not compatible with our current video processing system.`,
     );
   }
 
@@ -200,45 +195,49 @@ export class UnifiedVideoScraper {
    * Scrape TikTok video using Apify scraper endpoint with postURLs
    */
   private async scrapeTikTok(url: string, options: ScraperOptions = {}): Promise<UnifiedVideoResult> {
-    console.log('🎵 [UNIFIED_SCRAPER] Scraping TikTok URL...');
+    console.log("🎵 [UNIFIED_SCRAPER] Scraping TikTok URL...");
 
     const response = await fetch(`${this.baseUrl}/api/apify/tiktok/scraper`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
         videoUrls: [url], // This gets mapped to postURLs in the API
-        resultsPerPage: 1 
+        resultsPerPage: 1,
       }),
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'API request failed' }));
+      const errorData = await response.json().catch(() => ({ error: "API request failed" }));
       throw new Error(errorData.error || `TikTok API error: ${response.status}`);
     }
 
     const apiResult = await response.json();
 
     if (!apiResult.success || !apiResult.data || apiResult.data.length === 0) {
-      throw new Error('No TikTok data returned from Apify');
+      throw new Error("No TikTok data returned from Apify");
     }
 
     const tiktokData = apiResult.data[0]; // First result
 
     // Extract video URL from subtitleLinks (TikTok's video download link)
-    const videoUrl = tiktokData.videoMeta?.subtitleLinks?.[0]?.downloadLink 
-      || tiktokData.videoUrl 
-      || tiktokData.playAddr 
-      || '';
+    const videoUrl =
+      tiktokData.videoMeta?.subtitleLinks?.[0]?.downloadLink || tiktokData.videoUrl || tiktokData.playAddr || "";
 
     return {
-      platform: 'tiktok',
-      shortCode: tiktokData.id ?? 'unknown',
+      platform: "tiktok",
+      shortCode: tiktokData.id ?? "unknown",
       videoUrl,
-      thumbnailUrl: tiktokData.videoMeta?.coverUrl ?? tiktokData.covers?.[0] ?? tiktokData.dynamicCover ?? tiktokData.originCover ?? '',
+      thumbnailUrl:
+        tiktokData.videoMeta?.coverUrl ??
+        tiktokData.covers?.[0] ??
+        tiktokData.dynamicCover ??
+        tiktokData.originCover ??
+        "",
       title: tiktokData.text ?? tiktokData.desc ?? tiktokData.title ?? `TikTok by @${tiktokData.authorMeta?.name}`,
-      author: tiktokData.authorMeta?.name ?? tiktokData.author?.uniqueId ?? tiktokData.author?.nickname ?? 'unknown',
-      description: tiktokData.text ?? tiktokData.desc ?? tiktokData.title ?? '',
-      hashtags: tiktokData.textExtra?.filter((item: any) => item.hashtagName)?.map((item: any) => item.hashtagName) ?? [],
+      author: tiktokData.authorMeta?.name ?? tiktokData.author?.uniqueId ?? tiktokData.author?.nickname ?? "unknown",
+      description: tiktokData.text ?? tiktokData.desc ?? tiktokData.title ?? "",
+      hashtags:
+        tiktokData.textExtra?.filter((item: any) => item.hashtagName)?.map((item: any) => item.hashtagName) ?? [],
       metrics: {
         likes: tiktokData.diggCount ?? tiktokData.stats?.diggCount ?? tiktokData.digg_count ?? 0,
         views: tiktokData.playCount ?? tiktokData.stats?.playCount ?? tiktokData.play_count ?? 0,
@@ -248,7 +247,9 @@ export class UnifiedVideoScraper {
       },
       metadata: {
         duration: tiktokData.videoMeta?.duration ?? tiktokData.video?.duration ?? tiktokData.musicMeta?.duration ?? 0,
-        timestamp: tiktokData.createTime ? new Date(tiktokData.createTime * 1000).toISOString() : tiktokData.createTimeISO,
+        timestamp: tiktokData.createTime
+          ? new Date(tiktokData.createTime * 1000).toISOString()
+          : tiktokData.createTimeISO,
         isVerified: tiktokData.authorMeta?.verified ?? tiktokData.author?.verified ?? false,
         followerCount: tiktokData.authorMeta?.fans ?? tiktokData.authorStats?.followerCount ?? 0,
       },
@@ -259,25 +260,27 @@ export class UnifiedVideoScraper {
   /**
    * Detect platform from URL
    */
-  static detectPlatform(url: string): 'tiktok' | 'instagram' | 'unsupported' {
+  static detectPlatform(url: string): "tiktok" | "instagram" | "unsupported" {
     const lowerUrl = url.toLowerCase();
 
     // Instagram patterns
-    if (lowerUrl.includes('instagram.com') && 
-        (lowerUrl.includes('/reel') || lowerUrl.includes('/p/') || lowerUrl.includes('/tv/'))) {
-      return 'instagram';
+    if (
+      lowerUrl.includes("instagram.com") &&
+      (lowerUrl.includes("/reel") || lowerUrl.includes("/p/") || lowerUrl.includes("/tv/"))
+    ) {
+      return "instagram";
     }
 
     // TikTok patterns
-    if (lowerUrl.includes('tiktok.com') || lowerUrl.includes('vm.tiktok.com')) {
-      return 'tiktok';
+    if (lowerUrl.includes("tiktok.com") || lowerUrl.includes("vm.tiktok.com")) {
+      return "tiktok";
     }
 
-    return 'unsupported';
+    return "unsupported";
   }
 
   // Instance method for convenience
-  detectPlatform(url: string): 'tiktok' | 'instagram' | 'unsupported' {
+  detectPlatform(url: string): "tiktok" | "instagram" | "unsupported" {
     return UnifiedVideoScraper.detectPlatform(url);
   }
 
@@ -285,7 +288,7 @@ export class UnifiedVideoScraper {
    * Validate if URL is supported
    */
   static validateUrl(url: string): boolean {
-    return this.detectPlatform(url) !== 'unsupported';
+    return this.detectPlatform(url) !== "unsupported";
   }
 
   /**
@@ -302,7 +305,8 @@ export class UnifiedVideoScraper {
   static getUrlPatterns() {
     return {
       instagram: /^https?:\/\/(www\.)?(instagram\.com|instagr\.am)\/(p|reel|reels|tv)\/[A-Za-z0-9_-]+/,
-      tiktok: /^https?:\/\/(www\.)?(tiktok\.com\/@[\w.-]+\/video\/\d+|vm\.tiktok\.com\/[A-Za-z0-9]+|tiktok\.com\/t\/[A-Za-z0-9]+)/,
+      tiktok:
+        /^https?:\/\/(www\.)?(tiktok\.com\/@[\w.-]+\/video\/\d+|vm\.tiktok\.com\/[A-Za-z0-9]+|tiktok\.com\/t\/[A-Za-z0-9]+)/,
     };
   }
 
@@ -310,30 +314,31 @@ export class UnifiedVideoScraper {
    * Enhanced URL validation with specific error messages
    */
   static validateUrlWithMessage(url: string): { valid: boolean; message?: string; platform?: string } {
-    if (!url || url.trim() === '') {
-      return { valid: false, message: 'URL is required' };
+    if (!url || url.trim() === "") {
+      return { valid: false, message: "URL is required" };
     }
 
     try {
       new URL(url); // Basic URL format validation
     } catch {
-      return { valid: false, message: 'Please enter a valid URL' };
+      return { valid: false, message: "Please enter a valid URL" };
     }
 
     // Check for Instagram post URLs specifically
-    if (url.includes('instagram.com') && url.match(/\/p\/[A-Za-z0-9_-]+/)) {
-      return { 
-        valid: false, 
-        message: 'Instagram post URLs are not supported yet. Please use Instagram reel URLs instead (look for /reel/ in the URL).' 
+    if (url.includes("instagram.com") && url.match(/\/p\/[A-Za-z0-9_-]+/)) {
+      return {
+        valid: false,
+        message:
+          "Instagram post URLs are not supported yet. Please use Instagram reel URLs instead (look for /reel/ in the URL).",
       };
     }
 
     const platform = this.detectPlatform(url);
-    
-    if (platform === 'unsupported') {
-      return { 
-        valid: false, 
-        message: 'Only TikTok and Instagram video URLs are supported' 
+
+    if (platform === "unsupported") {
+      return {
+        valid: false,
+        message: "Only TikTok and Instagram video URLs are supported",
       };
     }
 
