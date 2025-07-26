@@ -121,7 +121,9 @@ function VideoPreview({ video }: { video: any }) {
       <CardContent className="p-6">
         <div className="flex gap-6">
           <div className="bg-muted relative aspect-[9/16] w-48 overflow-hidden rounded-lg">
-            <img src={video.thumbnailUrl} alt={video.title} className="h-full w-full object-cover" />
+            {video.thumbnailUrl && (
+              <img src={video.thumbnailUrl} alt={video.title} className="h-full w-full object-cover" />
+            )}
             <div className="absolute inset-0 flex items-center justify-center">
               <Button size="icon" className="rounded-full">
                 <Play className="h-6 w-6 fill-current" />

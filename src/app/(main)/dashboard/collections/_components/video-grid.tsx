@@ -138,11 +138,13 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
               className="group bg-muted relative aspect-[9/16] cursor-pointer overflow-hidden rounded-lg"
               onClick={() => handleVideoClick(video)}
             >
-              <img
-                src={video.thumbnailUrl}
-                alt={video.title}
-                className="h-full w-full object-cover transition-transform group-hover:scale-105"
-              />
+              {video.thumbnailUrl && (
+                <img
+                  src={video.thumbnailUrl}
+                  alt={video.title}
+                  className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                />
+              )}
 
               <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/50">
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">

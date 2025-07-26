@@ -6,8 +6,8 @@ export interface InstagramReelDownloadData {
   id: string;
   shortcode: string;
   url: string;
-  videoUrl: string;
-  thumbnailUrl: string;
+  videoUrl: string | null;
+  thumbnailUrl: string | null;
   caption: string;
   timestamp: string;
   likesCount: number;
@@ -15,27 +15,32 @@ export interface InstagramReelDownloadData {
   viewsCount?: number;
   duration?: number;
   username: string;
-  displayUrl?: string;
+  displayUrl?: string | null;
 }
 
 function mapToInstagramReelDownload(item: unknown): InstagramReelDownloadData {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const data = item as any;
   
-  // Map various possible field names from the downloader API
+  // Map presetshubham/instagram-reel-downloader response format
+  const videoUrl = data.video_url ?? data.videoUrl ?? data.downloadUrl ?? data.downloadLink ?? "";
+  const thumbnailUrl = data.thumbnail_url ?? data.thumbnailUrl ?? data.displayUrl ?? data.thumbnail ?? "";
+  const displayUrl = data.display_url ?? data.displayUrl ?? data.thumbnail_url ?? data.thumbnailUrl ?? "";
+  
   return {
     id: data.id ?? data.postId ?? data.mediaId ?? "",
     shortcode: data.shortcode ?? data.code ?? "",
     url: data.url ?? data.postUrl ?? data.permalink ?? "",
-    videoUrl: data.videoUrl ?? data.video_url ?? data.downloadUrl ?? data.downloadLink ?? "",
-    thumbnailUrl: data.thumbnailUrl ?? data.thumbnail_url ?? data.displayUrl ?? data.thumbnail ?? "",
+    videoUrl: videoUrl || null,
+    thumbnailUrl: thumbnailUrl || null,
     caption: data.caption ?? data.text ?? data.description ?? "",
     timestamp: data.timestamp ?? data.taken_at_timestamp ?? data.createdAt ?? "",
-    likesCount: data.likesCount ?? data.like_count ?? data.likes ?? 0,
-    commentsCount: data.commentsCount ?? data.comment_count ?? data.comments ?? 0,
-    viewsCount: data.viewsCount ?? data.view_count ?? data.views,
+    likesCount: data.likes ?? data.likesCount ?? data.like_count ?? 0,
+    commentsCount: data.comments ?? data.commentsCount ?? data.comment_count ?? 0,
+    viewsCount: data.views ?? data.viewsCount ?? data.view_count,
     duration: data.duration ?? data.video_duration ?? data.videoDuration,
-    username: data.username ?? data.owner?.username ?? data.author?.username ?? "",
-    displayUrl: data.displayUrl ?? data.display_url ?? data.thumbnailUrl ?? data.thumbnail_url ?? "",
+    username: data.owner_username ?? data.username ?? data.owner?.username ?? data.author?.username ?? "",
+    displayUrl: displayUrl || null,
   };
 }
 
@@ -59,20 +64,21 @@ async function downloadInstagramReel(input: InstagramReelDownloadRequest): Promi
   }
 
   // Validate URL format
+  // eslint-disable-next-line security/detect-unsafe-regex
   const urlPattern = /(?:https?:\/\/)?(?:www\.)?instagram\.com\/(?:reel|p|tv)\/([A-Za-z0-9_-]+)/i;
   if (!urlPattern.test(input.url)) {
     throw new Error("Invalid Instagram reel URL format. Please provide a valid Instagram reel, post, or TV URL.");
   }
 
-  // The Instagram Reels Downloader expects a 'links' array
+  // The Instagram Reels Downloader expects a 'reelLinks' array
   const apifyInput = {
-    links: [input.url],
+    reelLinks: [input.url],
     proxyConfiguration: {
       useApifyProxy: true,
     },
   };
 
-  validateApifyInput(apifyInput, ["links"]);
+  validateApifyInput(apifyInput, ["reelLinks"]);
 
   console.log(`🎬 Downloading Instagram reel with input:`, apifyInput);
 
@@ -84,10 +90,15 @@ async function downloadInstagramReel(input: InstagramReelDownloadRequest): Promi
   }
 
   if (results.length === 0) {
+    console.error("❌ Empty results array from Apify");
     throw new Error("No reel data found. The URL might be private, deleted, or invalid.");
   }
 
-  console.log(`📋 Raw response from downloader:`, JSON.stringify(results[0], null, 2));
+  console.log(`📋 Successfully downloaded reel data:`, {
+    hasVideoUrl: !!results[0]?.video_url,
+    username: results[0]?.owner_username,
+    likes: results[0]?.likes
+  });
 
   const reel: InstagramReelDownloadData = mapToInstagramReelDownload(results[0]);
 
