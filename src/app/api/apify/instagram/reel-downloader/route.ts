@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { ApifyClient, validateApifyInput, APIFY_ACTORS } from "@/lib/apify";
-
 export interface InstagramReelDownloadData {
   id: string;
   shortcode: string;
@@ -22,25 +20,24 @@ function mapToInstagramReelDownload(item: unknown): InstagramReelDownloadData {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const data = item as any;
   
-  // Map presetshubham/instagram-reel-downloader response format
-  const videoUrl = data.video_url ?? data.videoUrl ?? data.downloadUrl ?? data.downloadLink ?? "";
-  const thumbnailUrl = data.thumbnail_url ?? data.thumbnailUrl ?? data.displayUrl ?? data.thumbnail ?? "";
-  const displayUrl = data.display_url ?? data.displayUrl ?? data.thumbnail_url ?? data.thumbnailUrl ?? "";
+  // Map RapidAPI Instagram response format
+  const videoUrl = data.video_versions?.[0]?.url ?? "";
+  const thumbnailUrl = data.image_versions2?.candidates?.[0]?.url ?? "";
   
   return {
-    id: data.id ?? data.postId ?? data.mediaId ?? "",
-    shortcode: data.shortcode ?? data.code ?? "",
-    url: data.url ?? data.postUrl ?? data.permalink ?? "",
+    id: String(data.id ?? data.pk ?? ""),
+    shortcode: data.code ?? "",
+    url: `https://www.instagram.com/reel/${data.code}/`,
     videoUrl: videoUrl || null,
     thumbnailUrl: thumbnailUrl || null,
-    caption: data.caption ?? data.text ?? data.description ?? "",
-    timestamp: data.timestamp ?? data.taken_at_timestamp ?? data.createdAt ?? "",
-    likesCount: data.likes ?? data.likesCount ?? data.like_count ?? 0,
-    commentsCount: data.comments ?? data.commentsCount ?? data.comment_count ?? 0,
-    viewsCount: data.views ?? data.viewsCount ?? data.view_count,
-    duration: data.duration ?? data.video_duration ?? data.videoDuration,
-    username: data.owner_username ?? data.username ?? data.owner?.username ?? data.author?.username ?? "",
-    displayUrl: displayUrl || null,
+    caption: data.caption?.text ?? "",
+    timestamp: data.taken_at ? String(data.taken_at) : "",
+    likesCount: data.like_count ?? 0,
+    commentsCount: data.comment_count ?? 0,
+    viewsCount: data.play_count ?? 0,
+    duration: data.video_duration ?? 0,
+    username: data.user?.username ?? "",
+    displayUrl: thumbnailUrl || null,
   };
 }
 
@@ -56,55 +53,65 @@ export interface InstagramReelDownloadResponse {
   timestamp: string;
 }
 
-async function downloadInstagramReel(input: InstagramReelDownloadRequest): Promise<InstagramReelDownloadData> {
-  const client = new ApifyClient();
+function extractShortcodeFromUrl(url: string): string {
+  // Extract shortcode from Instagram URL
+  const match = url.match(/\/(?:reel|p|tv)\/([A-Za-z0-9_-]+)/);
+  return match ? match[1] : "";
+}
 
+async function downloadInstagramReel(input: InstagramReelDownloadRequest): Promise<InstagramReelDownloadData> {
   if (!input.url) {
     throw new Error("Instagram reel URL is required");
   }
 
-  // Validate URL format
+  // Validate URL format and extract shortcode
   // eslint-disable-next-line security/detect-unsafe-regex
   const urlPattern = /(?:https?:\/\/)?(?:www\.)?instagram\.com\/(?:reel|p|tv)\/([A-Za-z0-9_-]+)/i;
   if (!urlPattern.test(input.url)) {
     throw new Error("Invalid Instagram reel URL format. Please provide a valid Instagram reel, post, or TV URL.");
   }
 
-  // The Instagram Reels Downloader expects a 'reelLinks' array
-  const apifyInput = {
-    reelLinks: [input.url],
-    proxyConfiguration: {
-      useApifyProxy: true,
-    },
-  };
-
-  validateApifyInput(apifyInput, ["reelLinks"]);
-
-  console.log(`🎬 Downloading Instagram reel with input:`, apifyInput);
-
-  const results = await client.runActor(APIFY_ACTORS.INSTAGRAM_REEL_DOWNLOADER, apifyInput, true);
-
-  if (!Array.isArray(results)) {
-    console.error("❌ Invalid response format from Apify:", results);
-    throw new Error("Invalid response format from Instagram downloader");
+  const shortcode = extractShortcodeFromUrl(input.url);
+  if (!shortcode) {
+    throw new Error("Could not extract shortcode from Instagram URL");
   }
 
-  if (results.length === 0) {
-    console.error("❌ Empty results array from Apify");
-    throw new Error("No reel data found. The URL might be private, deleted, or invalid.");
+  console.log(`🎬 Downloading Instagram reel with shortcode: ${shortcode}`);
+
+  // Call RapidAPI Instagram scraper
+  const rapidApiUrl = `https://instagram-api-fast-reliable-data-scraper.p.rapidapi.com/post?shortcode=${shortcode}`;
+  
+  const response = await fetch(rapidApiUrl, {
+    method: 'GET',
+    headers: {
+      'x-rapidapi-host': 'instagram-api-fast-reliable-data-scraper.p.rapidapi.com',
+      'x-rapidapi-key': process.env.RAPIDAPI_KEY || '',
+    },
+  });
+
+  if (!response.ok) {
+    console.error("❌ RapidAPI request failed:", response.status, response.statusText);
+    throw new Error(`Instagram API request failed: ${response.status} ${response.statusText}`);
+  }
+
+  const data = await response.json();
+
+  if (!data || typeof data !== 'object') {
+    console.error("❌ Invalid response format from RapidAPI:", data);
+    throw new Error("Invalid response format from Instagram API");
   }
 
   console.log(`📋 Successfully downloaded reel data:`, {
-    hasVideoUrl: !!results[0]?.video_url,
-    username: results[0]?.owner_username,
-    likes: results[0]?.likes
+    hasVideoUrl: !!data.video_versions?.[0]?.url,
+    username: data.user?.username,
+    likes: data.like_count
   });
 
-  const reel: InstagramReelDownloadData = mapToInstagramReelDownload(results[0]);
+  const reel: InstagramReelDownloadData = mapToInstagramReelDownload(data);
 
-  if (!reel.videoUrl && !reel.displayUrl) {
-    console.error("❌ No video URL found in response:", results[0]);
-    throw new Error("Could not extract video download URL from the reel");
+  if (!reel.videoUrl) {
+    console.error("❌ No video URL found in response:", data);
+    throw new Error("Could not extract video download URL from the reel. The content may be private or unavailable.");
   }
 
   console.log(`✅ Successfully mapped reel data:`, {
