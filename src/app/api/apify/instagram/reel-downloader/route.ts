@@ -17,19 +17,29 @@ export interface InstagramReelDownloadData {
 }
 
 function mapToInstagramReelDownload(item: unknown): InstagramReelDownloadData {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const data = item as any;
-  
-  // Map RapidAPI Instagram response format
-  const videoUrl = data.video_versions?.[0]?.url ?? "";
+
+  // Map RapidAPI Instagram response format - select smallest video file to reduce size
+  const videoVersions = data.video_versions ?? [];
+  let videoUrl = "";
+
+  if (videoVersions.length > 0) {
+    // Sort by width to get smallest resolution (smallest file size)
+    const sortedVersions = videoVersions.sort((a: any, b: any) => (a.width ?? 0) - (b.width ?? 0));
+    videoUrl = sortedVersions[0]?.url ?? "";
+    console.log(
+      `📱 Selected smallest video version: ${sortedVersions[0]?.width ?? 0}x${sortedVersions[0]?.height ?? 0} from ${videoVersions.length} available versions`,
+    );
+  }
+
   const thumbnailUrl = data.image_versions2?.candidates?.[0]?.url ?? "";
-  
+
   return {
     id: String(data.id ?? data.pk ?? ""),
     shortcode: data.code ?? "",
     url: `https://www.instagram.com/reel/${data.code}/`,
-    videoUrl: videoUrl || null,
-    thumbnailUrl: thumbnailUrl || null,
+    videoUrl: videoUrl ?? null,
+    thumbnailUrl: thumbnailUrl ?? null,
     caption: data.caption?.text ?? "",
     timestamp: data.taken_at ? String(data.taken_at) : "",
     likesCount: data.like_count ?? 0,
@@ -37,7 +47,7 @@ function mapToInstagramReelDownload(item: unknown): InstagramReelDownloadData {
     viewsCount: data.play_count ?? 0,
     duration: data.video_duration ?? 0,
     username: data.user?.username ?? "",
-    displayUrl: thumbnailUrl || null,
+    displayUrl: thumbnailUrl ?? null,
   };
 }
 
@@ -80,12 +90,12 @@ async function downloadInstagramReel(input: InstagramReelDownloadRequest): Promi
 
   // Call RapidAPI Instagram scraper
   const rapidApiUrl = `https://instagram-api-fast-reliable-data-scraper.p.rapidapi.com/post?shortcode=${shortcode}`;
-  
+
   const response = await fetch(rapidApiUrl, {
-    method: 'GET',
+    method: "GET",
     headers: {
-      'x-rapidapi-host': 'instagram-api-fast-reliable-data-scraper.p.rapidapi.com',
-      'x-rapidapi-key': process.env.RAPIDAPI_KEY || '',
+      "x-rapidapi-host": "instagram-api-fast-reliable-data-scraper.p.rapidapi.com",
+      "x-rapidapi-key": process.env.RAPIDAPI_KEY ?? "",
     },
   });
 
@@ -96,7 +106,7 @@ async function downloadInstagramReel(input: InstagramReelDownloadRequest): Promi
 
   const data = await response.json();
 
-  if (!data || typeof data !== 'object') {
+  if (!data || typeof data !== "object") {
     console.error("❌ Invalid response format from RapidAPI:", data);
     throw new Error("Invalid response format from Instagram API");
   }
@@ -104,7 +114,7 @@ async function downloadInstagramReel(input: InstagramReelDownloadRequest): Promi
   console.log(`📋 Successfully downloaded reel data:`, {
     hasVideoUrl: !!data.video_versions?.[0]?.url,
     username: data.user?.username,
-    likes: data.like_count
+    likes: data.like_count,
   });
 
   const reel: InstagramReelDownloadData = mapToInstagramReelDownload(data);

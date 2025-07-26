@@ -325,54 +325,96 @@ async function createBunnyVideoObject(filename: string): Promise<string | null> 
   }
 }
 
-async function streamVideoToBunny(sourceUrl: string, videoGuid: string): Promise<boolean> {
-  try {
-    console.log("🌊 [BUNNY_STREAM] Streaming video data...");
+async function fetchSourceVideo(sourceUrl: string): Promise<Response | null> {
+  const sourceResponse = await fetch(sourceUrl, {
+    headers: {
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+    },
+  });
 
-    // Create a streaming pipeline: Instagram → Bunny CDN
-    const sourceResponse = await fetch(sourceUrl, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-      },
-    });
-
-    if (!sourceResponse.ok) {
-      console.error("❌ [BUNNY_STREAM] Failed to fetch source video:", sourceResponse.status);
-      return false;
-    }
-
-    if (!sourceResponse.body) {
-      console.error("❌ [BUNNY_STREAM] No response body from source");
-      return false;
-    }
-
-    // Stream directly to Bunny CDN
-    const uploadResponse = await fetch(
-      `https://video.bunnycdn.com/library/${process.env.BUNNY_STREAM_LIBRARY_ID}/videos/${videoGuid}`,
-      {
-        method: "PUT",
-        headers: {
-          AccessKey: process.env.BUNNY_STREAM_API_KEY ?? "",
-          "Content-Type": "application/octet-stream",
-        },
-        body: sourceResponse.body, // Direct stream!
-        // @ts-expect-error - duplex is supported in Node.js fetch
-        duplex: "half",
-      },
-    );
-
-    if (!uploadResponse.ok) {
-      console.error("❌ [BUNNY_STREAM] Upload failed:", uploadResponse.status);
-      return false;
-    }
-
-    console.log("✅ [BUNNY_STREAM] Video streamed successfully");
-    return true;
-  } catch (error) {
-    console.error("❌ [BUNNY_STREAM] Stream error:", error);
-    return false;
+  if (!sourceResponse.ok) {
+    console.error("❌ [BUNNY_STREAM] Failed to fetch source video:", sourceResponse.status);
+    return null;
   }
+
+  if (!sourceResponse.body) {
+    console.error("❌ [BUNNY_STREAM] No response body from source");
+    return null;
+  }
+
+  return sourceResponse;
+}
+
+function checkVideoSize(response: Response): boolean {
+  const contentLength = response.headers.get("content-length");
+  if (contentLength) {
+    const sizeInMB = parseInt(contentLength) / (1024 * 1024);
+    console.log(`📏 [BUNNY_STREAM] Video size: ${sizeInMB.toFixed(2)} MB`);
+
+    if (sizeInMB > 50) {
+      console.warn(`⚠️ [BUNNY_STREAM] Video too large (${sizeInMB.toFixed(2)} MB), skipping upload`);
+      return false;
+    }
+  }
+  return true;
+}
+
+async function uploadToBunny(videoGuid: string, body: ReadableStream): Promise<boolean> {
+  const uploadResponse = await fetch(
+    `https://video.bunnycdn.com/library/${process.env.BUNNY_STREAM_LIBRARY_ID}/videos/${videoGuid}`,
+    {
+      method: "PUT",
+      headers: {
+        AccessKey: process.env.BUNNY_STREAM_API_KEY ?? "",
+        "Content-Type": "application/octet-stream",
+      },
+      body,
+      // @ts-expect-error - duplex is supported in Node.js fetch
+      duplex: "half",
+      signal: AbortSignal.timeout(60000), // 60 second timeout
+    },
+  );
+
+  return uploadResponse.ok;
+}
+
+async function streamVideoToBunny(sourceUrl: string, videoGuid: string, maxRetries: number = 2): Promise<boolean> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`🌊 [BUNNY_STREAM] Streaming video data... (attempt ${attempt}/${maxRetries})`);
+
+      const sourceResponse = await fetchSourceVideo(sourceUrl);
+      if (!sourceResponse) continue;
+
+      if (!checkVideoSize(sourceResponse)) return false;
+
+      const uploadSuccess = await uploadToBunny(videoGuid, sourceResponse.body);
+      if (!uploadSuccess) {
+        console.error(`❌ [BUNNY_STREAM] Upload failed (attempt ${attempt})`);
+        if (attempt < maxRetries) {
+          console.log(`🔄 [BUNNY_STREAM] Retrying in 2 seconds...`);
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+          continue;
+        }
+        return false;
+      }
+
+      console.log("✅ [BUNNY_STREAM] Video streamed successfully");
+      return true;
+    } catch (error) {
+      console.error(`❌ [BUNNY_STREAM] Stream error (attempt ${attempt}):`, error);
+      if (attempt < maxRetries) {
+        console.log(`🔄 [BUNNY_STREAM] Retrying in 2 seconds...`);
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        continue;
+      }
+      return false;
+    }
+  }
+
+  console.error("❌ [BUNNY_STREAM] All upload attempts failed");
+  return false;
 }
 
 /**

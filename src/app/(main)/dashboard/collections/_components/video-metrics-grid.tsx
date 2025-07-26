@@ -5,11 +5,11 @@ import { Eye, Heart, MessageCircle, Share, Bookmark, TrendingUp } from "lucide-r
 import { Card, CardContent } from "@/components/ui/card";
 
 interface VideoMetrics {
-  views: number;
-  likes: number;
-  comments: number;
-  shares: number;
-  saves: number;
+  views?: number;
+  likes?: number;
+  comments?: number;
+  shares?: number;
+  saves?: number;
 }
 
 interface VideoMetricsGridProps {
@@ -17,7 +17,10 @@ interface VideoMetricsGridProps {
 }
 
 export function VideoMetricsGrid({ metrics }: VideoMetricsGridProps) {
-  const formatNumber = (num: number): string => {
+  const formatNumber = (num: number | undefined): string => {
+    if (num == null) {
+      return "0";
+    }
     if (num >= 1000000) {
       return (num / 1000000).toFixed(1) + "M";
     } else if (num >= 1000) {
@@ -27,7 +30,7 @@ export function VideoMetricsGrid({ metrics }: VideoMetricsGridProps) {
   };
 
   const formatEngagementRate = (metricsData: VideoMetrics): string => {
-    if (!metricsData || !metricsData.views || metricsData.views === 0) return "0%";
+    if (!metricsData.views || metricsData.views === 0) return "0%";
     const total = (metricsData.likes ?? 0) + (metricsData.comments ?? 0) + (metricsData.shares ?? 0);
     const rate = (total / metricsData.views) * 100;
     return rate.toFixed(1) + "%";
