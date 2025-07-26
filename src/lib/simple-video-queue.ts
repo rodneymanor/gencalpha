@@ -202,18 +202,20 @@ class SimpleVideoQueue {
   }
 
   /**
-   * Call your existing video processing API
+   * Call the internal video processing API (bypasses user authentication)
    */
   private async callVideoProcessingAPI(job: VideoProcessingJob, videoData: UnifiedVideoResult) {
     try {
       // Determine the base URL
       const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000";
 
-      const response = await fetch(`${baseUrl}/api/video/process-and-add`, {
+      console.log("🔐 [QUEUE] Calling internal processing endpoint for job:", job.id);
+
+      const response = await fetch(`${baseUrl}/api/internal/video/process-and-add`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          // In production, you'd need to pass authentication headers
+          "x-internal-secret": process.env.INTERNAL_API_SECRET || "",
         },
         body: JSON.stringify({
           videoUrl: job.url,
@@ -239,12 +241,23 @@ class SimpleVideoQueue {
         }),
       });
 
-      return await response.json();
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("❌ [QUEUE] Internal API call failed:", response.status, errorText);
+        return {
+          success: false,
+          error: `Internal API call failed: ${response.status} ${errorText}`,
+        };
+      }
+
+      const result = await response.json();
+      console.log("✅ [QUEUE] Internal API call successful");
+      return result;
     } catch (error) {
       console.error("❌ [QUEUE] API call failed:", error);
       return {
         success: false,
-        error: "Failed to process video through API",
+        error: "Failed to process video through internal API",
       };
     }
   }
