@@ -19,8 +19,13 @@ export function ProcessingBadge({ jobs, className }: ProcessingBadgeProps) {
     const processing = jobs.filter(job => job.status === "pending" || job.status === "processing").length;
     const completed = jobs.filter(job => job.status === "completed").length;
     const failed = jobs.filter(job => job.status === "failed").length;
+    const recentFailed = jobs.filter(job => 
+      job.status === "failed" && 
+      job.completedAt && 
+      new Date().getTime() - new Date(job.completedAt).getTime() < 10 * 60 * 1000 // Recent failures within 10 minutes
+    ).length;
     
-    return { processing, completed, failed, total: jobs.length };
+    return { processing, completed, failed, recentFailed, total: jobs.length };
   }, [jobs]);
 
   // Don't show badge if no jobs
@@ -37,14 +42,14 @@ export function ProcessingBadge({ jobs, className }: ProcessingBadgeProps) {
     variant = "default";
     icon = <Clock className="h-3 w-3 animate-spin" />;
     text = `${stats.processing} processing`;
-  } else if (stats.completed > 0 && stats.failed === 0) {
+  } else if (stats.recentFailed > 0) {
+    variant = "destructive";
+    icon = <AlertCircle className="h-3 w-3" />;
+    text = `${stats.recentFailed} failed`;
+  } else if (stats.completed > 0) {
     variant = "secondary";
     icon = <CheckCircle className="h-3 w-3" />;
     text = `${stats.completed} completed`;
-  } else if (stats.failed > 0) {
-    variant = "destructive";
-    icon = <AlertCircle className="h-3 w-3" />;
-    text = `${stats.failed} failed`;
   }
 
   return (
@@ -74,7 +79,9 @@ export function ProcessingTooltip({ jobs, children }: ProcessingTooltipProps) {
     job.status === "pending" || 
     job.status === "processing" || 
     (job.status === "completed" && job.completedAt && 
-     new Date().getTime() - new Date(job.completedAt).getTime() < 5 * 60 * 1000) // Show completed for 5 minutes
+     new Date().getTime() - new Date(job.completedAt).getTime() < 5 * 60 * 1000) || // Show completed for 5 minutes
+    (job.status === "failed" && job.completedAt && 
+     new Date().getTime() - new Date(job.completedAt).getTime() < 10 * 60 * 1000) // Show failed for 10 minutes
   );
 
   if (activeJobs.length === 0) {
@@ -107,7 +114,15 @@ export function ProcessingTooltip({ jobs, children }: ProcessingTooltipProps) {
                     {job.url.includes('tiktok') ? 'TikTok' : 'Instagram'} Video
                   </div>
                   <div className="text-muted-foreground">
-                    {job.message} ({job.progress}%)
+                    {job.status === "failed" ? (
+                      <span className="text-red-600 font-medium">
+                        {job.error?.includes("Instagram post") ? 
+                          "Instagram post URLs not supported yet" : 
+                          job.error || job.message}
+                      </span>
+                    ) : (
+                      `${job.message} (${job.progress}%)`
+                    )}
                   </div>
                 </div>
               </div>

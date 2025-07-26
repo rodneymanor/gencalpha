@@ -190,10 +190,21 @@ class SimpleVideoQueue {
     } catch (error) {
       console.error("❌ [QUEUE] Job failed:", jobId, error);
 
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      
       job.status = "failed";
       job.progress = 100;
-      job.message = "Processing failed";
-      job.error = error instanceof Error ? error.message : "Unknown error";
+      // Provide user-friendly error messages
+      if (errorMessage.includes("Instagram post")) {
+        job.message = "Instagram post URLs not supported";
+        job.error = "Instagram post URLs are not supported yet. Please use Instagram reel URLs instead.";
+      } else if (errorMessage.includes("not supported") || errorMessage.includes("unsupported")) {
+        job.message = "URL format not supported";
+        job.error = errorMessage;
+      } else {
+        job.message = "Processing failed";
+        job.error = errorMessage;
+      }
       job.completedAt = new Date();
       this.jobs.set(jobId, job);
     } finally {

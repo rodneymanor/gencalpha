@@ -190,9 +190,9 @@ export class UnifiedVideoScraper {
     // For now, throw an error to indicate we need a different approach
     console.log(`❌ [UNIFIED_SCRAPER] Instagram post URLs are not yet supported`);
     throw new Error(
-      `Instagram post URLs (${url}) are not currently supported. ` +
-      `The system requires Instagram reel URLs or usernames. ` +
-      `This post format (/p/${shortcode}) needs a different scraping approach.`
+      `Instagram post URLs are not supported yet. ` +
+      `Please use Instagram reel URLs instead (look for /reel/ in the URL). ` +
+      `Post URLs with /p/ are not compatible with our current video processing system.`
     );
   }
 
@@ -318,6 +318,14 @@ export class UnifiedVideoScraper {
       new URL(url); // Basic URL format validation
     } catch {
       return { valid: false, message: 'Please enter a valid URL' };
+    }
+
+    // Check for Instagram post URLs specifically
+    if (url.includes('instagram.com') && url.match(/\/p\/[A-Za-z0-9_-]+/)) {
+      return { 
+        valid: false, 
+        message: 'Instagram post URLs are not supported yet. Please use Instagram reel URLs instead (look for /reel/ in the URL).' 
+      };
     }
 
     const platform = this.detectPlatform(url);
