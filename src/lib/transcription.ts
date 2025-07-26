@@ -7,11 +7,19 @@ export async function transcribeVideoFile(file: File, baseUrl?: string): Promise
   const formData = new FormData();
   formData.append("video", file);
 
-  // Use absolute URL for server-side calls, relative for client-side
-  const url = baseUrl ? `${baseUrl}/api/video/transcribe` : "/api/video/transcribe";
+  // Use internal endpoint for server-side calls, user endpoint for client-side
+  const url = baseUrl ? `${baseUrl}/api/internal/video/transcribe` : "/api/video/transcribe";
+
+  const headers: HeadersInit = {};
+  
+  // Add internal secret for server-side calls
+  if (baseUrl && process.env.INTERNAL_API_SECRET) {
+    headers["x-internal-secret"] = process.env.INTERNAL_API_SECRET;
+  }
 
   const response = await fetch(url, {
     method: "POST",
+    headers,
     body: formData,
   });
 

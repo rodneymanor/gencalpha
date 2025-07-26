@@ -386,8 +386,11 @@ function startBackgroundTranscription(
       const formData = new FormData();
       formData.append("video", blob, videoData.filename);
 
-      const response = await fetch(`${baseUrl}/api/video/transcribe`, {
+      const response = await fetch(`${baseUrl}/api/internal/video/transcribe`, {
         method: "POST",
+        headers: {
+          "x-internal-secret": process.env.INTERNAL_API_SECRET || "",
+        },
         body: formData,
       });
 

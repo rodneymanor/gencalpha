@@ -207,9 +207,12 @@ function startBackgroundTranscription(
         headers["x-api-key"] = apiKey;
       }
 
-      const response = await fetch(buildInternalUrl("/api/video/transcribe"), {
+      const response = await fetch(buildInternalUrl("/api/internal/video/transcribe"), {
         method: "POST",
-        headers,
+        headers: {
+          ...headers,
+          "x-internal-secret": process.env.INTERNAL_API_SECRET || "",
+        },
         body: JSON.stringify({
           videoData,
           videoId,

@@ -16,35 +16,34 @@ export function FloatingActionButton() {
       {/* Backdrop glow effect */}
       <div 
         className={cn(
-          "fixed bottom-6 h-16 w-16 rounded-xl blur-sm transition-all duration-300 ease-in-out",
+          "fixed bottom-6 h-16 w-16 rounded-lg blur-sm transition-all duration-300 ease-in-out",
           isPanelOpen 
-            ? "right-[23rem] sm:right-[24rem] z-20" 
-            : "right-6 z-20"
+            ? "right-[21rem] sm:right-[22rem] z-[60]" 
+            : "right-6 z-[60]"
         )}
-        style={{ backgroundColor: '#8e24cb', opacity: 0.2 }}
+        style={{ backgroundColor: '#000000', opacity: 0.2 }}
       />
       
       {/* Main button */}
       <Button
         size="icon"
         className={cn(
-          "fixed bottom-6 h-14 w-14 rounded-xl transition-all duration-300 ease-in-out",
-          "text-white border-2 border-white/20 hover:border-white/30",
-          "shadow-lg hover:shadow-xl backdrop-blur-sm",
+          "fixed bottom-6 h-14 w-14 rounded-lg transition-all duration-300 ease-in-out",
+          "text-white border-0 shadow-lg hover:shadow-xl backdrop-blur-sm",
           "hover:scale-105 active:scale-95",
           isPanelOpen 
-            ? "right-[23rem] sm:right-[24rem] rounded-r-none border-r-0 z-30" 
-            : "right-6 z-50"
+            ? "right-[21rem] sm:right-[22rem] z-[70]" 
+            : "right-6 z-[70]"
         )}
         style={{ 
-          backgroundColor: '#8e24cb',
-          boxShadow: '0 10px 15px -3px rgba(142, 36, 203, 0.25), 0 4px 6px -2px rgba(142, 36, 203, 0.1)'
+          backgroundColor: '#000000',
+          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.25), 0 4px 6px -2px rgba(0, 0, 0, 0.1)'
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = '#7a1fb5';
+          e.currentTarget.style.backgroundColor = '#1a1a1a';
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = '#8e24cb';
+          e.currentTarget.style.backgroundColor = '#000000';
         }}
         onClick={() => openPanel()}
       >
