@@ -362,8 +362,18 @@ function startBackgroundTranscription(
 ) {
   // Use setTimeout to ensure response is sent before starting background work
   setTimeout(async () => {
+    let hasCompleted = false;
+    
     try {
       console.log("🎙️ [INTERNAL_BACKGROUND] Starting transcription for video:", videoId);
+      
+      // Set a timeout to prevent infinite processing
+      const timeoutId = setTimeout(() => {
+        if (!hasCompleted) {
+          console.error("⏱️ [INTERNAL_BACKGROUND] Transcription timeout after 5 minutes for video:", videoId);
+          updateVideoTranscriptionStatus(videoId, "failed").catch(console.error);
+        }
+      }, 5 * 60 * 1000); // 5 minute timeout
 
       // Convert buffer array back to proper format for transcription
       const buffer = Buffer.from(videoData.buffer);
@@ -371,15 +381,19 @@ function startBackgroundTranscription(
       const formData = new FormData();
       formData.append("video", blob, videoData.filename);
 
-      const response = await fetch(`${baseUrl}/api/video/transcribe`, {
+      const response = await fetch(`${baseUrl}/api/internal/video/transcribe`, {
         method: "POST",
+        headers: {
+          "x-internal-secret": process.env.INTERNAL_API_SECRET || "",
+        },
         body: formData,
       });
 
       if (!response.ok) {
-        console.error("❌ [INTERNAL_BACKGROUND] Transcription failed:", response.status);
+        const errorText = await response.text();
+        console.error("❌ [INTERNAL_BACKGROUND] Transcription failed:", response.status, errorText);
         await updateVideoTranscriptionStatus(videoId, "failed");
-        return;
+        return; // Exit immediately on failure - no retry
       }
 
       const { transcript } = await response.json();
@@ -394,7 +408,10 @@ function startBackgroundTranscription(
       // 🔍 Analyze script to extract Hook / Bridge / Nugget / WTA components
       const analysisRes = await fetch(`${baseUrl}/api/video/analyze-script`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "x-internal-secret": process.env.INTERNAL_API_SECRET || "",
+        },
         body: JSON.stringify({ transcript }),
       });
 
@@ -426,8 +443,14 @@ function startBackgroundTranscription(
 
       // Real-time update hook (WebSocket, etc.) could be invoked here
       console.log("📡 [INTERNAL_BACKGROUND] Transcription + analysis ready for video:", videoId);
+      
+      // Mark as completed and clear timeout
+      hasCompleted = true;
+      clearTimeout(timeoutId);
     } catch (error) {
       console.error("❌ [INTERNAL_BACKGROUND] Transcription error:", error);
+      hasCompleted = true;
+      clearTimeout(timeoutId);
       await updateVideoTranscriptionStatus(videoId, "failed");
     }
   }, 100);

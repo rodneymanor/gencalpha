@@ -6,6 +6,8 @@ import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ProcessingBadge, ProcessingTooltip } from "@/components/ui/processing-badge";
+import { useVideoProcessing } from "@/contexts/video-processing-context";
 
 import { AddVideoDialog } from "./_components/add-video-dialog";
 import { CollectionsProvider } from "./_components/collections-context";
@@ -14,12 +16,14 @@ import { CollectionsSidebar } from "./_components/collections-sidebar";
 import { CreateCollectionDialog } from "./_components/create-collection-dialog";
 import { VideoGrid } from "./_components/video-grid";
 import { VideoInsightsDialog } from "./_components/video-insights-dialog";
+import { VideoProcessingProvider } from "@/contexts/video-processing-context";
 
 function CollectionsContent() {
   const [selectedCollectionId, setSelectedCollectionId] = useState<string>("all-videos");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isAddVideoDialogOpen, setIsAddVideoDialogOpen] = useState(false);
   const { state } = useCollections();
+  const { jobs } = useVideoProcessing();
 
   // Get the selected collection data
   const selectedCollection =
@@ -35,10 +39,17 @@ function CollectionsContent() {
             <p className="text-muted-foreground">Organize and manage your video content</p>
           </div>
           <div className="flex gap-3">
-            <Button onClick={() => setIsAddVideoDialogOpen(true)} variant="outline" className="gap-2">
-              <Plus className="h-4 w-4" />
-              Add Video
-            </Button>
+            <ProcessingTooltip jobs={jobs}>
+              <div className="relative">
+                <Button onClick={() => setIsAddVideoDialogOpen(true)} variant="outline" className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Add Video
+                </Button>
+                <div className="absolute -top-2 -right-2">
+                  <ProcessingBadge jobs={jobs} />
+                </div>
+              </div>
+            </ProcessingTooltip>
             <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2">
               <Plus className="h-4 w-4" />
               New Collection
@@ -93,8 +104,10 @@ function CollectionsContent() {
 
 export default function CollectionsPage() {
   return (
-    <CollectionsProvider>
-      <CollectionsContent />
-    </CollectionsProvider>
+    <VideoProcessingProvider>
+      <CollectionsProvider>
+        <CollectionsContent />
+      </CollectionsProvider>
+    </VideoProcessingProvider>
   );
 }
