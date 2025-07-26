@@ -116,16 +116,13 @@ export async function POST(request: NextRequest) {
       // Stream directly from the scraped video URL
       console.log("🌊 [VIDEO_PROCESS] Streaming directly from scraped video URL");
       const { streamToBunnyFromUrl } = await import("@/lib/bunny-stream");
-      const iframeUrl = await streamToBunnyFromUrl(
-        scrapedData.videoUrl,
-        `${scrapedData.platform}-${Date.now()}.mp4`
-      );
-      
+      const iframeUrl = await streamToBunnyFromUrl(scrapedData.videoUrl, `${scrapedData.platform}-${Date.now()}.mp4`);
+
       if (iframeUrl) {
         // Extract GUID from iframe URL for thumbnail upload
         const { extractVideoIdFromIframeUrl } = await import("@/lib/bunny-stream");
         const videoGuid = extractVideoIdFromIframeUrl(iframeUrl);
-        
+
         streamResult = {
           success: true,
           iframeUrl,
@@ -157,11 +154,11 @@ export async function POST(request: NextRequest) {
       console.log("🖼️ [VIDEO_PROCESS] Step 2.5: Uploading custom thumbnail...");
       try {
         const thumbnailSuccess = await uploadBunnyThumbnailWithRetry(
-          streamResult.guid, 
+          streamResult.guid,
           downloadResult.data.thumbnailUrl,
-          2 // Max 2 retries for thumbnails
+          2, // Max 2 retries for thumbnails
         );
-        
+
         if (thumbnailSuccess) {
           console.log("✅ [VIDEO_PROCESS] Custom thumbnail uploaded successfully");
         } else {
@@ -214,8 +211,8 @@ export async function POST(request: NextRequest) {
       addResult.videoId,
       collectionId || "all-videos",
       downloadResult.data.platform,
-
       downloadResult.data.additionalMetadata || {},
+      streamResult, // Pass stream result to use Bunny CDN URL
     );
 
     console.log("✅ [VIDEO_PROCESS] Complete workflow successful!");
@@ -372,27 +369,47 @@ function startBackgroundTranscription(
   videoId: string,
   collectionId: string,
   platform: string,
-
   additionalMetadata: any = {},
+  streamResult: any = null,
 ) {
   // Use setTimeout to ensure response is sent before starting background work
   setTimeout(async () => {
     try {
       console.log("🎙️ [BACKGROUND] Starting transcription for video:", videoId);
 
-      // Convert buffer array back to proper format for transcription
-      const buffer = Buffer.from(videoData.buffer);
-      const blob = new Blob([buffer], { type: videoData.mimeType });
-      const formData = new FormData();
-      formData.append("video", blob, videoData.filename);
+      // Use Bunny CDN URL for transcription if available (most efficient)
+      let response;
+      const bunnyVideoUrl = streamResult?.directUrl || streamResult?.iframeUrl;
 
-      const response = await fetch(`${baseUrl}/api/internal/video/transcribe`, {
-        method: "POST",
-        headers: {
-          "x-internal-secret": process.env.INTERNAL_API_SECRET || "",
-        },
-        body: formData,
-      });
+      if (bunnyVideoUrl) {
+        console.log("🌐 [BACKGROUND] Using Bunny CDN URL for transcription:", bunnyVideoUrl);
+        response = await fetch(`${baseUrl}/api/internal/video/transcribe`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-internal-secret": process.env.INTERNAL_API_SECRET || "",
+          },
+          body: JSON.stringify({
+            videoUrl: bunnyVideoUrl,
+            platform: platform,
+          }),
+        });
+      } else {
+        console.log("📁 [BACKGROUND] Using file-based transcription fallback");
+        // Convert buffer array back to proper format for transcription
+        const buffer = Buffer.from(videoData.buffer);
+        const blob = new Blob([buffer], { type: videoData.mimeType });
+        const formData = new FormData();
+        formData.append("video", blob, videoData.filename);
+
+        response = await fetch(`${baseUrl}/api/internal/video/transcribe`, {
+          method: "POST",
+          headers: {
+            "x-internal-secret": process.env.INTERNAL_API_SECRET || "",
+          },
+          body: formData,
+        });
+      }
 
       if (!response.ok) {
         console.error("❌ [BACKGROUND] Transcription failed:", response.status);

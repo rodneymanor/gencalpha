@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { uploadToBunnyStream, generateBunnyThumbnailUrl, uploadBunnyThumbnailWithRetry } from "@/lib/bunny-stream";
-import { getAdminAuth, getAdminDb, isAdminInitialized } from "@/lib/firebase-admin";
+import { getAdminDb, isAdminInitialized } from "@/lib/firebase-admin";
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,10 +12,7 @@ export async function POST(request: NextRequest) {
     const internalSecret = request.headers.get("x-internal-secret");
     if (!internalSecret || internalSecret !== process.env.INTERNAL_API_SECRET) {
       console.error("❌ [INTERNAL_VIDEO] Unauthorized internal request");
-      return NextResponse.json(
-        { error: "Unauthorized - Invalid internal secret" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized - Invalid internal secret" }, { status: 401 });
     }
 
     console.log("✅ [INTERNAL_VIDEO] Internal request authorized");
@@ -28,10 +25,7 @@ export async function POST(request: NextRequest) {
     const { videoUrl, collectionId, userId, title, thumbnailUrl, scrapedData } = await request.json();
 
     if (!userId) {
-      return NextResponse.json(
-        { error: "userId is required for internal processing" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "userId is required for internal processing" }, { status: 400 });
     }
 
     const baseUrl = getBaseUrl(request);
@@ -88,7 +82,7 @@ export async function POST(request: NextRequest) {
             error: "Failed to download video",
             details: downloadResult.error,
           },
-          { status: 500 }
+          { status: 500 },
         );
       }
     }
@@ -103,16 +97,13 @@ export async function POST(request: NextRequest) {
       // Stream directly from the scraped video URL
       console.log("🌊 [INTERNAL_VIDEO] Streaming directly from scraped video URL");
       const { streamToBunnyFromUrl } = await import("@/lib/bunny-stream");
-      const iframeUrl = await streamToBunnyFromUrl(
-        scrapedData.videoUrl,
-        `${scrapedData.platform}-${Date.now()}.mp4`
-      );
-      
+      const iframeUrl = await streamToBunnyFromUrl(scrapedData.videoUrl, `${scrapedData.platform}-${Date.now()}.mp4`);
+
       if (iframeUrl) {
         // Extract GUID from iframe URL for thumbnail upload
         const { extractVideoIdFromIframeUrl } = await import("@/lib/bunny-stream");
         const videoGuid = extractVideoIdFromIframeUrl(iframeUrl);
-        
+
         streamResult = {
           success: true,
           iframeUrl,
@@ -133,7 +124,7 @@ export async function POST(request: NextRequest) {
           error: "Failed to stream video to CDN",
           details: streamResult.error || "Failed to upload to Bunny CDN",
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -146,11 +137,11 @@ export async function POST(request: NextRequest) {
       console.log("🆔 [INTERNAL_VIDEO] Video GUID:", streamResult.guid);
       try {
         const thumbnailSuccess = await uploadBunnyThumbnailWithRetry(
-          streamResult.guid, 
+          streamResult.guid,
           downloadResult.data.thumbnailUrl,
-          2 // Max 2 retries for thumbnails
+          2, // Max 2 retries for thumbnails
         );
-        
+
         if (thumbnailSuccess) {
           console.log("✅ [INTERNAL_VIDEO] Custom thumbnail uploaded successfully");
         } else {
@@ -191,7 +182,7 @@ export async function POST(request: NextRequest) {
           error: "Failed to add video to collection",
           details: addResult.error,
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -205,6 +196,7 @@ export async function POST(request: NextRequest) {
       downloadResult.data.platform,
       downloadResult.data.additionalMetadata || {},
       scrapedData, // Pass scraped data for URL-based transcription
+      streamResult, // Pass stream result to use Bunny CDN URL
     );
 
     console.log("✅ [INTERNAL_VIDEO] Complete internal workflow successful!");
@@ -225,7 +217,7 @@ export async function POST(request: NextRequest) {
         error: "Internal video processing failed",
         details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -363,26 +355,32 @@ function startBackgroundTranscription(
   platform: string,
   additionalMetadata: any = {},
   scrapedData: any = null,
+  streamResult: any = null,
 ) {
   // Use setTimeout to ensure response is sent before starting background work
   setTimeout(async () => {
     let hasCompleted = false;
-    
-    try {
-      console.log("🎙️ [INTERNAL_BACKGROUND] Starting transcription for video:", videoId);
-      
-      // Set a timeout to prevent infinite processing
-      const timeoutId = setTimeout(() => {
+
+    // Set a timeout to prevent infinite processing
+    const timeoutId = setTimeout(
+      () => {
         if (!hasCompleted) {
           console.error("⏱️ [INTERNAL_BACKGROUND] Transcription timeout after 5 minutes for video:", videoId);
           updateVideoTranscriptionStatus(videoId, "failed").catch(console.error);
         }
-      }, 5 * 60 * 1000); // 5 minute timeout
+      },
+      5 * 60 * 1000,
+    ); // 5 minute timeout
 
-      // Use direct video URL transcription if available (more efficient)
+    try {
+      console.log("🎙️ [INTERNAL_BACKGROUND] Starting transcription for video:", videoId);
+
+      // Use Bunny CDN URL for transcription (most efficient - video is already uploaded)
       let response;
-      if (scrapedData?.videoUrl) {
-        console.log("🌐 [INTERNAL_BACKGROUND] Using direct URL transcription");
+      const bunnyVideoUrl = streamResult.directUrl || streamResult.iframeUrl;
+
+      if (bunnyVideoUrl) {
+        console.log("🌐 [INTERNAL_BACKGROUND] Using Bunny CDN URL for transcription:", bunnyVideoUrl);
         response = await fetch(`${baseUrl}/api/internal/video/transcribe`, {
           method: "POST",
           headers: {
@@ -390,8 +388,8 @@ function startBackgroundTranscription(
             "x-internal-secret": process.env.INTERNAL_API_SECRET || "",
           },
           body: JSON.stringify({
-            videoUrl: scrapedData.videoUrl,
-            platform: platform,
+            videoUrl: bunnyVideoUrl,
+            platform: platform, // Use already-known platform
           }),
         });
       } else {
@@ -430,7 +428,7 @@ function startBackgroundTranscription(
       // 🔍 Analyze script to extract Hook / Bridge / Nugget / WTA components
       const analysisRes = await fetch(`${baseUrl}/api/video/analyze-script`, {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
           "x-internal-secret": process.env.INTERNAL_API_SECRET || "",
         },
@@ -465,7 +463,7 @@ function startBackgroundTranscription(
 
       // Real-time update hook (WebSocket, etc.) could be invoked here
       console.log("📡 [INTERNAL_BACKGROUND] Transcription + analysis ready for video:", videoId);
-      
+
       // Mark as completed and clear timeout
       hasCompleted = true;
       clearTimeout(timeoutId);
