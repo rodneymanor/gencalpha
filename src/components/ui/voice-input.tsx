@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Button } from "@/components/ui/button";
+
 import { Mic, MicOff, Square } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface VoiceInputProps {
@@ -34,7 +36,7 @@ export function VoiceInput({ onTranscription, onError, className, disabled }: Vo
       mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: "audio/wav" });
         await processAudio(audioBlob);
-        
+
         // Clean up the stream
         stream.getTracks().forEach((track) => track.stop());
       };
@@ -60,10 +62,10 @@ export function VoiceInput({ onTranscription, onError, className, disabled }: Vo
   const processAudio = async (audioBlob: Blob) => {
     try {
       console.log("🔄 [VOICE] Processing audio...");
-      
+
       // Convert blob to base64 for API transmission
       const base64Audio = await blobToBase64(audioBlob);
-      
+
       // Send to our API endpoint for transcription
       const response = await fetch("/api/transcribe/voice", {
         method: "POST",
@@ -81,7 +83,7 @@ export function VoiceInput({ onTranscription, onError, className, disabled }: Vo
       }
 
       const data = await response.json();
-      
+
       if (data.success && data.transcription) {
         console.log("✅ [VOICE] Transcription successful");
         onTranscription(data.transcription);
@@ -115,7 +117,7 @@ export function VoiceInput({ onTranscription, onError, className, disabled }: Vo
 
   const handleClick = () => {
     if (disabled) return;
-    
+
     if (isRecording) {
       stopRecording();
     } else {

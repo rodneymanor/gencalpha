@@ -427,7 +427,7 @@ export function extractVideoIdFromIframeUrl(iframeUrl: string): string | null {
 export async function uploadBunnyThumbnailWithRetry(
   videoGuid: string,
   thumbnailUrl: string,
-  maxRetries: number = 3
+  maxRetries: number = 3,
 ): Promise<boolean> {
   console.log(`🖼️ [BUNNY_THUMBNAIL] Starting thumbnail upload for video: ${videoGuid}`);
   console.log(`🔗 [BUNNY_THUMBNAIL] Source thumbnail URL: ${thumbnailUrl}`);
@@ -440,7 +440,8 @@ export async function uploadBunnyThumbnailWithRetry(
       console.log("📥 [BUNNY_THUMBNAIL] Downloading thumbnail from source...");
       const thumbnailResponse = await fetch(thumbnailUrl, {
         headers: {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
         },
       });
 
@@ -456,7 +457,7 @@ export async function uploadBunnyThumbnailWithRetry(
       // Step 2: Upload thumbnail to Bunny CDN
       console.log("📤 [BUNNY_THUMBNAIL] Uploading to Bunny CDN...");
       const uploadUrl = `https://video.bunnycdn.com/library/${process.env.BUNNY_STREAM_LIBRARY_ID}/videos/${videoGuid}/thumbnail`;
-      
+
       const uploadResponse = await fetch(uploadUrl, {
         method: "POST",
         headers: {
@@ -469,31 +470,30 @@ export async function uploadBunnyThumbnailWithRetry(
       if (!uploadResponse.ok) {
         const errorText = await uploadResponse.text();
         console.error(`❌ [BUNNY_THUMBNAIL] Upload failed (${uploadResponse.status}): ${errorText}`);
-        
+
         if (attempt === maxRetries) return false;
-        
+
         // Wait before retrying (exponential backoff)
         const waitTime = 1000 * Math.pow(2, attempt - 1);
         console.log(`⏳ [BUNNY_THUMBNAIL] Waiting ${waitTime}ms before retry...`);
-        await new Promise(resolve => setTimeout(resolve, waitTime));
+        await new Promise((resolve) => setTimeout(resolve, waitTime));
         continue;
       }
 
       console.log("✅ [BUNNY_THUMBNAIL] Thumbnail uploaded successfully!");
       return true;
-
     } catch (error) {
       console.error(`❌ [BUNNY_THUMBNAIL] Attempt ${attempt} failed:`, error);
-      
+
       if (attempt === maxRetries) {
         console.error("❌ [BUNNY_THUMBNAIL] All retry attempts exhausted");
         return false;
       }
-      
+
       // Wait before retrying
       const waitTime = 1000 * Math.pow(2, attempt - 1);
       console.log(`⏳ [BUNNY_THUMBNAIL] Waiting ${waitTime}ms before retry...`);
-      await new Promise(resolve => setTimeout(resolve, waitTime));
+      await new Promise((resolve) => setTimeout(resolve, waitTime));
     }
   }
 

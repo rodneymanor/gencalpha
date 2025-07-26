@@ -1,14 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Button } from "@/components/ui/button";
+
 import { Loader2, Clock, CheckCircle, XCircle, RefreshCw, ExternalLink } from "lucide-react";
-import { cn } from "@/lib/utils";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { useVideoProcessing } from "@/contexts/video-processing-context";
 import type { VideoProcessingJob } from "@/lib/simple-video-queue";
+import { cn } from "@/lib/utils";
 
 interface VideoProcessingPlaceholderProps {
   job: VideoProcessingJob;
@@ -17,11 +19,11 @@ interface VideoProcessingPlaceholderProps {
   onRemove?: () => void;
 }
 
-export function VideoProcessingPlaceholder({ 
-  job, 
+export function VideoProcessingPlaceholder({
+  job,
   className,
   onRetry,
-  onRemove 
+  onRemove
 }: VideoProcessingPlaceholderProps) {
   const { jobs } = useVideoProcessing();
   const [currentJob, setCurrentJob] = useState(job);
@@ -83,7 +85,7 @@ export function VideoProcessingPlaceholder({
     const now = Date.now();
     const time = date.getTime();
     const diff = now - time;
-    
+
     if (diff < 60000) return "Just now";
     if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
     return `${Math.floor(diff / 3600000)}h ago`;
@@ -95,7 +97,7 @@ export function VideoProcessingPlaceholder({
         <div className="flex items-start gap-3">
           {/* Status Icon */}
           <div className="mt-1">{getStatusIcon()}</div>
-          
+
           {/* Content */}
           <div className="flex-1 min-w-0">
             {/* Header */}
@@ -104,8 +106,8 @@ export function VideoProcessingPlaceholder({
                 <h3 className="font-medium text-sm truncate">
                   {currentJob.result?.title || "Instagram Video"}
                 </h3>
-                <Badge 
-                  variant="secondary" 
+                <Badge
+                  variant="secondary"
                   className={cn(
                     "text-xs",
                     currentJob.status === "processing" && "bg-blue-100 text-blue-700",

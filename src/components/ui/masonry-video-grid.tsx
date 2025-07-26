@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+
 import { Play, Star, StarOff, MoreHorizontal, Eye, Trash2, Copy, Move } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +15,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/auth-context";
-import { RBACClientService } from "@/core/auth/rbac-client";
 import { useRBAC } from "@/hooks/use-rbac";
 import { Video, CollectionsService } from "@/lib/collections";
 import { cn } from "@/lib/utils";
@@ -49,7 +49,7 @@ export function MasonryVideoGrid({
   useEffect(() => {
     const updateColumns = () => {
       if (!containerRef.current) return;
-      
+
       const width = containerRef.current.offsetWidth;
       if (width < 480) setColumns(1);
       else if (width < 768) setColumns(2);
@@ -71,13 +71,13 @@ export function MasonryVideoGrid({
       // Find shortest column
       const shortestColumnIndex = columnHeights.indexOf(Math.min(...columnHeights));
       columnArrays[shortestColumnIndex].push(video);
-      
+
       // Estimate height based on aspect ratio and content
       const baseHeight = 280; // Base height for 9:16 aspect ratio
       const titleHeight = Math.ceil((video.title?.length || 0) / 30) * 20; // Rough title height
       const metricHeight = video.metrics ? 24 : 0; // Height for metrics
       const estimatedHeight = baseHeight + titleHeight + metricHeight;
-      
+
       columnHeights[shortestColumnIndex] += estimatedHeight + 16; // Add gap
     });
 

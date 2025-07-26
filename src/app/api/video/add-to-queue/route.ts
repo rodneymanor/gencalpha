@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { UnifiedVideoScraper } from "@/lib/unified-video-scraper";
 import { videoQueue } from "@/lib/simple-video-queue";
+import { UnifiedVideoScraper } from "@/lib/unified-video-scraper";
 
 interface AddToQueueRequest {
   videoUrl: string;
@@ -102,7 +102,11 @@ export async function GET() {
     ],
     supportedPlatforms: {
       tiktok: ["https://www.tiktok.com/@user/video/123", "https://vm.tiktok.com/ABC123", "https://tiktok.com/t/ABC123"],
-      instagram: ["https://www.instagram.com/reel/ABC123", "https://www.instagram.com/p/ABC123", "https://www.instagram.com/tv/ABC123"],
+      instagram: [
+        "https://www.instagram.com/reel/ABC123",
+        "https://www.instagram.com/p/ABC123",
+        "https://www.instagram.com/tv/ABC123",
+      ],
     },
   });
 }

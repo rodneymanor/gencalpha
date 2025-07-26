@@ -1,11 +1,12 @@
 "use client";
 
 import React from "react";
+
 import { X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { TweetStyleComposer } from "@/components/writing-panel/tweet-style-composer";
+import { cn } from "@/lib/utils";
 
 interface SlideOutPanelProps {
   isOpen: boolean;
@@ -23,7 +24,7 @@ export function SlideOutPanel({ isOpen, onClose }: SlideOutPanelProps) {
           onClick={onClose}
         />
       )}
-      
+
       {/* Panel */}
       <div
         className={cn(
@@ -36,8 +37,8 @@ export function SlideOutPanel({ isOpen, onClose }: SlideOutPanelProps) {
         {isOpen && (
           <>
             <div className="absolute -left-[2px] bottom-6 h-14 w-4 bg-background border-l border-t border-b rounded-l-xl" />
-            <div 
-              className="absolute -left-1 bottom-6 h-14 w-2" 
+            <div
+              className="absolute -left-1 bottom-6 h-14 w-2"
               style={{ backgroundColor: '#526af9' }}
             />
           </>

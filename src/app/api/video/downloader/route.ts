@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { scrapeVideoUrl, UnifiedVideoScraper, type UnifiedVideoResult } from "@/lib/unified-video-scraper";
+import { scrapeVideoUrl, UnifiedVideoScraper } from "@/lib/unified-video-scraper";
 
 export async function POST(request: NextRequest) {
   console.log("📥 [DOWNLOADER] Starting unified video download service...");
@@ -22,10 +22,7 @@ export async function POST(request: NextRequest) {
     const validation = UnifiedVideoScraper.validateUrlWithMessage(decodedUrl);
     if (!validation.valid) {
       console.error("❌ [DOWNLOADER] Invalid URL:", validation.message);
-      return NextResponse.json(
-        { error: validation.message },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: validation.message }, { status: 400 });
     }
 
     console.log("🎯 [DOWNLOADER] Platform detected:", validation.platform);

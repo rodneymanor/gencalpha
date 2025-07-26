@@ -208,7 +208,7 @@ async function callTranscribeService(videoData: ArrayBuffer, videoUrl?: string):
   try {
     const response = await fetch(buildInternalUrl(`/api/internal/video/transcribe`), {
       method: "POST",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
         "x-internal-secret": process.env.INTERNAL_API_SECRET || "",
       },

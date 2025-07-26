@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
+
 import { X, ChevronDown, ChevronUp, Check } from "lucide-react";
 
+import { MagicCard } from "@/components/magicui/magic-card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { MagicCard } from "@/components/magicui/magic-card";
-import { ProcessingNotificationBadge } from "@/components/ui/processing-notification-badge";
 import { cn } from "@/lib/utils";
 
 interface OnboardingTask {
@@ -58,8 +58,8 @@ export function OnboardingProgress({ className }: OnboardingProgressProps) {
   const maxPoints = tasks.reduce((sum, task) => sum + task.points, 0);
 
   const toggleTask = (taskId: string) => {
-    setTasks(prev => 
-      prev.map(task => 
+    setTasks(prev =>
+      prev.map(task =>
         task.id === taskId ? { ...task, completed: !task.completed } : task
       )
     );
@@ -69,7 +69,7 @@ export function OnboardingProgress({ className }: OnboardingProgressProps) {
 
   return (
     <div className={cn("p-4 md:p-6", className)}>
-      <MagicCard 
+      <MagicCard
         className="bg-card border rounded-lg p-6"
         gradientSize={300}
         gradientColor="#ffffff"
@@ -119,9 +119,9 @@ export function OnboardingProgress({ className }: OnboardingProgressProps) {
         {/* Progress Bar - Full Width */}
         {!isCollapsed && (
           <div className="mt-4">
-            <Progress 
-              value={progressPercentage} 
-              className="h-2 w-full [&>*]:!bg-[#555864] !bg-[#555864]/20" 
+            <Progress
+              value={progressPercentage}
+              className="h-2 w-full [&>*]:!bg-[#555864] !bg-[#555864]/20"
             />
           </div>
         )}
@@ -142,9 +142,9 @@ export function OnboardingProgress({ className }: OnboardingProgressProps) {
                       ? "text-white border-2"
                       : "border-muted-foreground/30 hover:border-[#008a26]/50"
                   )}
-                  style={task.completed ? { 
-                    backgroundColor: '#008a26', 
-                    borderColor: '#008a26' 
+                  style={task.completed ? {
+                    backgroundColor: '#008a26',
+                    borderColor: '#008a26'
                   } : {}}
                 >
                   {task.completed && <Check className="h-3 w-3" />}

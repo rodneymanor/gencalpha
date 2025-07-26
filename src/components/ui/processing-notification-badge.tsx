@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+
+import { Loader2, CheckCircle, XCircle, Clock, X } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,9 +12,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Progress } from "@/components/ui/progress";
-import { Loader2, CheckCircle, XCircle, Clock, X } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { useVideoProcessing } from "@/contexts/video-processing-context";
+import { cn } from "@/lib/utils";
 
 interface ProcessingNotificationBadgeProps {
   className?: string;
@@ -21,11 +23,11 @@ export function ProcessingNotificationBadge({ className }: ProcessingNotificatio
   const { jobs, isPolling } = useVideoProcessing();
   const [open, setOpen] = useState(false);
 
-  const activeJobs = jobs.filter(job => 
+  const activeJobs = jobs.filter(job =>
     job.status === "pending" || job.status === "processing"
   );
 
-  const recentlyCompleted = jobs.filter(job => 
+  const recentlyCompleted = jobs.filter(job =>
     job.status === "completed" || job.status === "failed"
   );
 
@@ -84,10 +86,10 @@ export function ProcessingNotificationBadge({ className }: ProcessingNotificatio
           ) : (
             <CheckCircle className="w-4 h-4 text-green-500" />
           )}
-          
+
           {totalNotifications > 0 && (
-            <Badge 
-              variant="destructive" 
+            <Badge
+              variant="destructive"
               className="absolute -top-1 -right-1 h-4 w-4 p-0 text-xs flex items-center justify-center"
             >
               {totalNotifications}
@@ -95,9 +97,9 @@ export function ProcessingNotificationBadge({ className }: ProcessingNotificatio
           )}
         </Button>
       </PopoverTrigger>
-      
-      <PopoverContent 
-        className="w-80 p-0" 
+
+      <PopoverContent
+        className="w-80 p-0"
         align="end"
         side="bottom"
         sideOffset={8}
@@ -166,8 +168,8 @@ export function ProcessingNotificationBadge({ className }: ProcessingNotificatio
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {job.status === "completed" 
-                      ? "Successfully added to collection!" 
+                    {job.status === "completed"
+                      ? "Successfully added to collection!"
                       : job.error || "Processing failed"
                     }
                   </p>
@@ -185,7 +187,7 @@ export function ProcessingNotificationBadge({ className }: ProcessingNotificatio
         {/* Summary Footer */}
         <div className="p-3 bg-muted/50 text-center">
           <p className="text-xs text-muted-foreground">
-            {hasActiveJobs 
+            {hasActiveJobs
               ? `Processing typically takes 30-60 seconds`
               : "All videos processed successfully!"
             }

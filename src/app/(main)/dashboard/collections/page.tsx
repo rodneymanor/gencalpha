@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProcessingBadge, ProcessingTooltip } from "@/components/ui/processing-badge";
 import { useVideoProcessing } from "@/contexts/video-processing-context";
+import { VideoProcessingProvider } from "@/contexts/video-processing-context";
 
 import { AddVideoDialog } from "./_components/add-video-dialog";
 import { CollectionsProvider } from "./_components/collections-context";
@@ -16,7 +17,6 @@ import { CollectionsSidebar } from "./_components/collections-sidebar";
 import { CreateCollectionDialog } from "./_components/create-collection-dialog";
 import { VideoGrid } from "./_components/video-grid";
 import { VideoInsightsDialog } from "./_components/video-insights-dialog";
-import { VideoProcessingProvider } from "@/contexts/video-processing-context";
 
 function CollectionsContent() {
   const [selectedCollectionId, setSelectedCollectionId] = useState<string>("all-videos");

@@ -146,7 +146,7 @@ class SimpleVideoQueue {
       const videoData = await scrapeVideoUrl(job.url);
 
       if (!videoData) {
-        throw new Error(`Failed to extract video data from ${videoData?.platform || 'unknown platform'}`);
+        throw new Error(`Failed to extract video data from ${videoData?.platform || "unknown platform"}`);
       }
 
       console.log(`✅ [QUEUE] Scraped ${videoData.platform} video by @${videoData.author}`);
@@ -191,7 +191,7 @@ class SimpleVideoQueue {
       console.error("❌ [QUEUE] Job failed:", jobId, error);
 
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      
+
       job.status = "failed";
       job.progress = 100;
       // Provide user-friendly error messages

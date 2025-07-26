@@ -11,7 +11,7 @@ export async function transcribeVideoFile(file: File, baseUrl?: string): Promise
   const url = baseUrl ? `${baseUrl}/api/internal/video/transcribe` : "/api/video/transcribe";
 
   const headers: HeadersInit = {};
-  
+
   // Add internal secret for server-side calls
   if (baseUrl && process.env.INTERNAL_API_SECRET) {
     headers["x-internal-secret"] = process.env.INTERNAL_API_SECRET;

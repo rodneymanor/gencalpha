@@ -82,54 +82,54 @@ export class UnifiedVideoScraper {
   private async scrapeInstagram(url: string, options: ScraperOptions = {}): Promise<UnifiedVideoResult> {
     console.log("📸 [UNIFIED_SCRAPER] Scraping Instagram URL...");
 
-    // Only block /p/ post URLs, allow /reel/ to go to existing reel scraper
+    // Only block /p/ post URLs, allow /reel/ to go to new reel downloader
     if (url.includes('/p/')) {
       const shortcode = url.match(/\/p\/([A-Za-z0-9_-]+)/)?.[1] || 'unknown';
       console.log(`📝 [UNIFIED_SCRAPER] Detected Instagram post with shortcode: ${shortcode}`);
       return await this.scrapeInstagramPost(url, shortcode);
     }
 
-    // For reel URLs and other formats, use the existing reel scraper
-
-    // Fall back to username-based scraping for other URL formats
-    const response = await fetch(`${this.baseUrl}/api/apify/instagram/reel`, {
+    // For reel URLs, use the new dedicated reel downloader
+    console.log("🎬 [UNIFIED_SCRAPER] Using single reel downloader for URL:", url);
+    
+    const response = await fetch(`${this.baseUrl}/api/apify/instagram/reel-downloader`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ url }),
     });
 
     if (!response.ok) {
-      throw new Error("Error processing Instagram video. Please try again.");
+      const errorData = await response.json().catch(() => ({ error: "API request failed" }));
+      throw new Error(errorData.error || "Error processing Instagram video. Please try again.");
     }
 
     const apiResult = await response.json();
 
-    if (!apiResult.success || !apiResult.data || apiResult.data.length === 0) {
-      throw new Error("Error processing Instagram video. Please try again.");
+    if (!apiResult.success || !apiResult.data) {
+      throw new Error(apiResult.error || "Error processing Instagram video. Please try again.");
     }
 
-    const instagramData = apiResult.data[0]; // First result
+    const instagramData = apiResult.data; // Single result from downloader
 
     return {
       platform: "instagram",
-      shortCode: instagramData.shortCode || this.extractShortcode(url) || "unknown",
-      videoUrl: instagramData.videoUrl || instagramData.videoUrlBackup || "",
-      thumbnailUrl: instagramData.thumbnailUrl || instagramData.imageUrl || instagramData.displayUrl || "",
-      title: instagramData.caption || `Video by @${instagramData.ownerUsername}`,
-      author: instagramData.ownerUsername || "unknown",
+      shortCode: instagramData.shortcode || this.extractShortcode(url) || "unknown",
+      videoUrl: instagramData.videoUrl || "",
+      thumbnailUrl: instagramData.thumbnailUrl || instagramData.displayUrl || "",
+      title: instagramData.caption || `Video by @${instagramData.username}`,
+      author: instagramData.username || "unknown",
       description: instagramData.caption || "",
-      hashtags: instagramData.hashtags || [],
+      hashtags: [], // Extract from caption if needed
       metrics: {
         likes: instagramData.likesCount || 0,
-        views: instagramData.videoViewCount || 0,
+        views: instagramData.viewsCount || 0,
         comments: instagramData.commentsCount || 0,
         shares: 0, // Instagram doesn't provide shares in API
       },
       metadata: {
-        duration: instagramData.videoDurationSeconds,
+        duration: instagramData.duration,
         timestamp: instagramData.timestamp,
-        location: instagramData.location?.name,
-        isVerified: false, // Not available in current Apify response
+        isVerified: false, // Not available in current response
       },
       rawData: instagramData,
     };

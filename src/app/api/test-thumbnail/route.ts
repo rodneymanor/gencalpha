@@ -7,10 +7,7 @@ export async function POST(request: NextRequest) {
     const { videoId, thumbnailUrl } = await request.json();
 
     if (!videoId || !thumbnailUrl) {
-      return NextResponse.json(
-        { error: "videoId and thumbnailUrl are required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "videoId and thumbnailUrl are required" }, { status: 400 });
     }
 
     console.log("🧪 [TEST_THUMBNAIL] Testing thumbnail upload");
@@ -28,11 +25,11 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("❌ [TEST_THUMBNAIL] Error:", error);
     return NextResponse.json(
-      { 
-        error: "Thumbnail upload test failed", 
-        details: error instanceof Error ? error.message : "Unknown error" 
+      {
+        error: "Thumbnail upload test failed",
+        details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -5,9 +5,8 @@ import { useMemo } from "react";
 import { Clock, CheckCircle, AlertCircle } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-
 import type { VideoProcessingJob } from "@/lib/simple-video-queue";
+import { cn } from "@/lib/utils";
 
 interface ProcessingBadgeProps {
   jobs: VideoProcessingJob[];
@@ -19,12 +18,12 @@ export function ProcessingBadge({ jobs, className }: ProcessingBadgeProps) {
     const processing = jobs.filter(job => job.status === "pending" || job.status === "processing").length;
     const completed = jobs.filter(job => job.status === "completed").length;
     const failed = jobs.filter(job => job.status === "failed").length;
-    const recentFailed = jobs.filter(job => 
-      job.status === "failed" && 
-      job.completedAt && 
+    const recentFailed = jobs.filter(job =>
+      job.status === "failed" &&
+      job.completedAt &&
       new Date().getTime() - new Date(job.completedAt).getTime() < 10 * 60 * 1000 // Recent failures within 10 minutes
     ).length;
-    
+
     return { processing, completed, failed, recentFailed, total: jobs.length };
   }, [jobs]);
 
@@ -53,8 +52,8 @@ export function ProcessingBadge({ jobs, className }: ProcessingBadgeProps) {
   }
 
   return (
-    <Badge 
-      variant={variant} 
+    <Badge
+      variant={variant}
       className={cn(
         "gap-1 text-xs font-medium animate-pulse",
         variant === "default" && "bg-blue-500 text-white",
@@ -75,12 +74,12 @@ interface ProcessingTooltipProps {
 }
 
 export function ProcessingTooltip({ jobs, children }: ProcessingTooltipProps) {
-  const activeJobs = jobs.filter(job => 
-    job.status === "pending" || 
-    job.status === "processing" || 
-    (job.status === "completed" && job.completedAt && 
+  const activeJobs = jobs.filter(job =>
+    job.status === "pending" ||
+    job.status === "processing" ||
+    (job.status === "completed" && job.completedAt &&
      new Date().getTime() - new Date(job.completedAt).getTime() < 5 * 60 * 1000) || // Show completed for 5 minutes
-    (job.status === "failed" && job.completedAt && 
+    (job.status === "failed" && job.completedAt &&
      new Date().getTime() - new Date(job.completedAt).getTime() < 10 * 60 * 1000) // Show failed for 10 minutes
   );
 
@@ -91,10 +90,10 @@ export function ProcessingTooltip({ jobs, children }: ProcessingTooltipProps) {
   return (
     <div className="relative group">
       {children}
-      
+
       {/* Tooltip */}
-      <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 -translate-y-full 
-                      opacity-0 group-hover:opacity-100 transition-opacity duration-200 
+      <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 -translate-y-full
+                      opacity-0 group-hover:opacity-100 transition-opacity duration-200
                       bg-popover border rounded-md shadow-md p-3 min-w-64 z-50
                       pointer-events-none">
         <div className="space-y-2">
@@ -116,8 +115,8 @@ export function ProcessingTooltip({ jobs, children }: ProcessingTooltipProps) {
                   <div className="text-muted-foreground">
                     {job.status === "failed" ? (
                       <span className="text-red-600 font-medium">
-                        {job.error?.includes("Instagram post") ? 
-                          "Instagram post URLs not supported yet" : 
+                        {job.error?.includes("Instagram post") ?
+                          "Instagram post URLs not supported yet" :
                           job.error || job.message}
                       </span>
                     ) : (
@@ -134,10 +133,10 @@ export function ProcessingTooltip({ jobs, children }: ProcessingTooltipProps) {
             )}
           </div>
         </div>
-        
+
         {/* Tooltip arrow */}
-        <div className="absolute top-full left-1/2 transform -translate-x-1/2 
-                        w-0 h-0 border-l-4 border-r-4 border-t-4 
+        <div className="absolute top-full left-1/2 transform -translate-x-1/2
+                        w-0 h-0 border-l-4 border-r-4 border-t-4
                         border-l-transparent border-r-transparent border-t-border" />
       </div>
     </div>

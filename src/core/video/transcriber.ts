@@ -100,22 +100,23 @@ export const VideoTranscriber = {
   async transcribeFromUrl(url: string, platform: Platform): Promise<TranscriptionResult | null> {
     try {
       console.log(`🌐 [VideoTranscriber] Starting URL-based transcription for: ${url.substring(0, 100)}...`);
-      
+
       // Download video from URL
       console.log("⬇️ [VideoTranscriber] Downloading video from URL...");
       const response = await fetch(url, {
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        }
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        },
       });
-      
+
       if (!response.ok) {
         throw new Error(`Failed to fetch video: ${response.status} ${response.statusText}`);
       }
-      
+
       const arrayBuffer = await response.arrayBuffer();
       console.log(`📦 [VideoTranscriber] Video downloaded: ${arrayBuffer.byteLength} bytes`);
-      
+
       // Create VideoData object
       const videoData: VideoData = {
         buffer: arrayBuffer,
@@ -123,13 +124,13 @@ export const VideoTranscriber = {
         mimeType: "video/mp4",
         filename: `${platform}-${Date.now()}.mp4`,
       };
-      
+
       // Use existing transcription logic
       return await transcribeVideoData(videoData, platform);
     } catch (error) {
       console.error("❌ [VideoTranscriber] URL transcription error:", error);
       console.log("🔄 [VideoTranscriber] Using fallback transcription due to URL download error");
-      
+
       // Return fallback transcription so video can still be added to collection
       return createFallbackTranscription(platform);
     }

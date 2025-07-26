@@ -1,9 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
+
 import Image from 'next/image';
-import { AvatarPlaceholder } from './avatar-placeholder';
+
 import { cn } from '@/lib/utils';
+
+import { AvatarPlaceholder } from './avatar-placeholder';
 
 interface SafeImageProps {
   src: string;
@@ -41,10 +44,10 @@ export function SafeImage({
         />
       );
     }
-    
+
     // Generic fallback
     return (
-      <div 
+      <div
         className={cn(
           'bg-muted flex items-center justify-center rounded-full',
           className

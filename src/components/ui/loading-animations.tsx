@@ -1,15 +1,15 @@
 "use client";
 
-import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Card Grid Loading Animation (for video collections, voices, etc.)
-export function CardGridLoading({ 
-  count = 6, 
+export function CardGridLoading({
+  count = 6,
   showBorder = true,
-  columns = 3 
-}: { 
-  count?: number; 
+  columns = 3
+}: {
+  count?: number;
   showBorder?: boolean;
   columns?: number;
 }) {

@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { cn } from '@/lib/utils';
 
 interface AvatarPlaceholderProps {
@@ -8,11 +9,11 @@ interface AvatarPlaceholderProps {
   className?: string;
 }
 
-export function AvatarPlaceholder({ 
-  username, 
-  platform = 'tiktok', 
-  size = 64, 
-  className 
+export function AvatarPlaceholder({
+  username,
+  platform = 'tiktok',
+  size = 64,
+  className
 }: AvatarPlaceholderProps) {
   const initials = username.charAt(0).toUpperCase();
   const colors = {
@@ -21,7 +22,7 @@ export function AvatarPlaceholder({
       text: '#FFFFFF'
     },
     instagram: {
-      bg: '#E4405F', 
+      bg: '#E4405F',
       text: '#FFFFFF'
     }
   };
@@ -29,7 +30,7 @@ export function AvatarPlaceholder({
   const color = colors[platform];
 
   return (
-    <div 
+    <div
       className={cn(
         'flex items-center justify-center rounded-full font-semibold text-white',
         className

@@ -12,10 +12,7 @@ export async function POST(request: NextRequest) {
     const internalSecret = request.headers.get("x-internal-secret");
     if (!internalSecret || internalSecret !== process.env.INTERNAL_API_SECRET) {
       console.error("❌ [INTERNAL_TRANSCRIBE] Unauthorized internal request");
-      return NextResponse.json(
-        { error: "Unauthorized - Invalid internal secret" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized - Invalid internal secret" }, { status: 401 });
     }
 
     console.log("✅ [INTERNAL_TRANSCRIBE] Internal request authorized");
@@ -34,7 +31,7 @@ export async function POST(request: NextRequest) {
         error: "Failed to transcribe video",
         details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

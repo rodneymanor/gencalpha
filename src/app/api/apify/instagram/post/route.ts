@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ApifyClient, APIFY_ACTORS } from "@/lib/apify";
 
 export interface InstagramPostData {
   id: string;
@@ -56,10 +55,12 @@ function mapToInstagramPost(item: any): InstagramPostData {
     ownerUsername: item.ownerUsername ?? item.owner?.username ?? item.user?.username ?? "unknown",
     ownerFullName: item.ownerFullName ?? item.owner?.full_name ?? item.user?.full_name,
     hashtags: extractHashtagsFromCaption(item.caption ?? item.caption_text ?? ""),
-    location: item.location ? {
-      name: item.location.name ?? "",
-      id: item.location.id ?? "",
-    } : undefined,
+    location: item.location
+      ? {
+          name: item.location.name ?? "",
+          id: item.location.id ?? "",
+        }
+      : undefined,
   };
 }
 
@@ -70,20 +71,20 @@ function extractHashtagsFromCaption(caption: string): string[] {
 
 async function scrapeInstagramPost(url: string, shortcode: string): Promise<InstagramPostData> {
   console.log(`📸 [INSTAGRAM_POST] Scraping post with shortcode: ${shortcode}`);
-  
+
   // For now, return a clear indication that this format is not supported
   // This will allow the error to bubble up with a clear message
   throw new Error(
     `Instagram post format not supported yet. ` +
-    `URL: ${url} with shortcode: ${shortcode}. ` +
-    `Please use Instagram reel URLs or provide a username for profile scraping.`
+      `URL: ${url} with shortcode: ${shortcode}. ` +
+      `Please use Instagram reel URLs or provide a username for profile scraping.`,
   );
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body: InstagramPostRequest = await request.json();
-    
+
     console.log("🎯 Instagram Post API called with:", { url: body.url, shortcode: body.shortcode });
 
     if (!body.url || !body.shortcode) {
@@ -93,7 +94,7 @@ export async function POST(request: NextRequest) {
           error: "Both url and shortcode are required",
           timestamp: new Date().toISOString(),
         } satisfies InstagramPostResponse,
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -106,7 +107,7 @@ export async function POST(request: NextRequest) {
     };
 
     console.log(`✅ Successfully scraped Instagram post: ${body.shortcode}`);
-    
+
     return NextResponse.json(response);
   } catch (error) {
     console.error("❌ Instagram post scraping failed:", error);
