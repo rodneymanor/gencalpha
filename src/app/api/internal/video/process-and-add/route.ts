@@ -1,7 +1,7 @@
 // Internal video processing endpoint - bypasses user authentication for background processing
 import { NextRequest, NextResponse } from "next/server";
 
-import { uploadToBunnyStream, generateBunnyThumbnailUrl } from "@/lib/bunny-stream";
+import { uploadToBunnyStream, generateBunnyThumbnailUrl, uploadBunnyThumbnailWithRetry } from "@/lib/bunny-stream";
 import { getAdminAuth, getAdminDb, isAdminInitialized } from "@/lib/firebase-admin";
 
 export async function POST(request: NextRequest) {
@@ -139,8 +139,30 @@ export async function POST(request: NextRequest) {
 
     console.log("✅ [INTERNAL_VIDEO] Streaming successful");
 
-    // Step 2.5: Custom thumbnail handling (future enhancement)
-    console.log("ℹ️ [INTERNAL_VIDEO] Using default Bunny CDN thumbnail generation");
+    // Step 2.5: Upload custom thumbnail if available
+    if (downloadResult.data.thumbnailUrl && streamResult.guid) {
+      console.log("🖼️ [INTERNAL_VIDEO] Step 2.5: Uploading custom thumbnail...");
+      console.log("🔗 [INTERNAL_VIDEO] Thumbnail URL:", downloadResult.data.thumbnailUrl);
+      console.log("🆔 [INTERNAL_VIDEO] Video GUID:", streamResult.guid);
+      try {
+        const thumbnailSuccess = await uploadBunnyThumbnailWithRetry(
+          streamResult.guid, 
+          downloadResult.data.thumbnailUrl,
+          2 // Max 2 retries for thumbnails
+        );
+        
+        if (thumbnailSuccess) {
+          console.log("✅ [INTERNAL_VIDEO] Custom thumbnail uploaded successfully");
+        } else {
+          console.log("⚠️ [INTERNAL_VIDEO] Custom thumbnail upload failed, using default");
+        }
+      } catch (error) {
+        console.error("❌ [INTERNAL_VIDEO] Thumbnail upload error:", error);
+        // Continue processing even if thumbnail fails
+      }
+    } else {
+      console.log("ℹ️ [INTERNAL_VIDEO] No custom thumbnail URL provided, using default");
+    }
 
     // Step 3: Add to collection with userId
     console.log("💾 [INTERNAL_VIDEO] Step 3: Adding to collection...");

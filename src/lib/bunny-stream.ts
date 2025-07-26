@@ -416,3 +416,86 @@ export function extractVideoIdFromIframeUrl(iframeUrl: string): string | null {
     return null;
   }
 }
+
+/**
+ * Upload a custom thumbnail to Bunny CDN for a video
+ * @param videoGuid - The video GUID in Bunny Stream
+ * @param thumbnailUrl - URL of the thumbnail to upload
+ * @param maxRetries - Maximum number of retry attempts
+ * @returns Promise<boolean> - True if successful, false otherwise
+ */
+export async function uploadBunnyThumbnailWithRetry(
+  videoGuid: string,
+  thumbnailUrl: string,
+  maxRetries: number = 3
+): Promise<boolean> {
+  console.log(`🖼️ [BUNNY_THUMBNAIL] Starting thumbnail upload for video: ${videoGuid}`);
+  console.log(`🔗 [BUNNY_THUMBNAIL] Source thumbnail URL: ${thumbnailUrl}`);
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`🔄 [BUNNY_THUMBNAIL] Attempt ${attempt}/${maxRetries}`);
+
+      // Step 1: Download the thumbnail from the source URL
+      console.log("📥 [BUNNY_THUMBNAIL] Downloading thumbnail from source...");
+      const thumbnailResponse = await fetch(thumbnailUrl, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        },
+      });
+
+      if (!thumbnailResponse.ok) {
+        console.error(`❌ [BUNNY_THUMBNAIL] Failed to download thumbnail: ${thumbnailResponse.status}`);
+        if (attempt === maxRetries) return false;
+        continue;
+      }
+
+      const thumbnailBuffer = await thumbnailResponse.arrayBuffer();
+      console.log(`📦 [BUNNY_THUMBNAIL] Downloaded thumbnail: ${thumbnailBuffer.byteLength} bytes`);
+
+      // Step 2: Upload thumbnail to Bunny CDN
+      console.log("📤 [BUNNY_THUMBNAIL] Uploading to Bunny CDN...");
+      const uploadUrl = `https://video.bunnycdn.com/library/${process.env.BUNNY_STREAM_LIBRARY_ID}/videos/${videoGuid}/thumbnail`;
+      
+      const uploadResponse = await fetch(uploadUrl, {
+        method: "POST",
+        headers: {
+          AccessKey: process.env.BUNNY_STREAM_API_KEY ?? "",
+          "Content-Type": "image/jpeg",
+        },
+        body: thumbnailBuffer,
+      });
+
+      if (!uploadResponse.ok) {
+        const errorText = await uploadResponse.text();
+        console.error(`❌ [BUNNY_THUMBNAIL] Upload failed (${uploadResponse.status}): ${errorText}`);
+        
+        if (attempt === maxRetries) return false;
+        
+        // Wait before retrying (exponential backoff)
+        const waitTime = 1000 * Math.pow(2, attempt - 1);
+        console.log(`⏳ [BUNNY_THUMBNAIL] Waiting ${waitTime}ms before retry...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+        continue;
+      }
+
+      console.log("✅ [BUNNY_THUMBNAIL] Thumbnail uploaded successfully!");
+      return true;
+
+    } catch (error) {
+      console.error(`❌ [BUNNY_THUMBNAIL] Attempt ${attempt} failed:`, error);
+      
+      if (attempt === maxRetries) {
+        console.error("❌ [BUNNY_THUMBNAIL] All retry attempts exhausted");
+        return false;
+      }
+      
+      // Wait before retrying
+      const waitTime = 1000 * Math.pow(2, attempt - 1);
+      console.log(`⏳ [BUNNY_THUMBNAIL] Waiting ${waitTime}ms before retry...`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+  }
+
+  return false;
+}
