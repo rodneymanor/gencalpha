@@ -326,6 +326,8 @@ async function createBunnyVideoObject(filename: string): Promise<string | null> 
 }
 
 async function fetchSourceVideo(sourceUrl: string): Promise<Response | null> {
+  console.log(`🔍 [BUNNY_STREAM] Fetching source video from: ${sourceUrl.substring(0, 100)}...`);
+  
   const sourceResponse = await fetch(sourceUrl, {
     headers: {
       "User-Agent":
@@ -340,6 +342,16 @@ async function fetchSourceVideo(sourceUrl: string): Promise<Response | null> {
 
   if (!sourceResponse.body) {
     console.error("❌ [BUNNY_STREAM] No response body from source");
+    return null;
+  }
+
+  // Validate content type to ensure we're getting video data
+  const contentType = sourceResponse.headers.get("content-type");
+  console.log(`🔍 [BUNNY_STREAM] Content-Type: ${contentType}`);
+  
+  if (contentType && !contentType.startsWith("video/")) {
+    console.error(`❌ [BUNNY_STREAM] Invalid content type: ${contentType} (expected video/*)`);
+    console.error(`❌ [BUNNY_STREAM] URL may be pointing to thumbnail instead of video: ${sourceUrl.substring(0, 100)}...`);
     return null;
   }
 

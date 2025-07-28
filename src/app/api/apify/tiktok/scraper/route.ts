@@ -32,11 +32,22 @@ async function scrapeTikTokGeneral(input: TikTokScraperRequest): Promise<unknown
 
   console.log("🎯 TikTok Scraper called with input:", JSON.stringify(input, null, 2));
 
-  // Build the input according to clockworks~tiktok-scraper schema
+  // Build the input according to clockworks~tiktok-scraper schema with proper defaults
   const apifyInput: Record<string, unknown> = {
-    proxyConfiguration: {
-      useApifyProxy: true,
-    },
+    excludePinnedPosts: false,
+    proxyCountryCode: "None",
+    resultsPerPage: input.resultsPerPage ?? 100,
+    scrapeRelatedVideos: false,
+    shouldDownloadAvatars: true,
+    shouldDownloadCovers: true,
+    shouldDownloadMusicCovers: false,
+    shouldDownloadSlideshowImages: false,
+    shouldDownloadSubtitles: false,
+    shouldDownloadVideos: true,
+    profileScrapeSections: ["videos"],
+    profileSorting: "latest",
+    searchSection: "",
+    maxProfilesPerQuery: 10,
   };
 
   // Add profiles if provided
@@ -51,7 +62,7 @@ async function scrapeTikTokGeneral(input: TikTokScraperRequest): Promise<unknown
     console.log("🏷️ Added hashtags:", input.hashtags);
   }
 
-  // Try postURLs parameter for video URLs
+  // Add video URLs as postURLs parameter
   if (input.videoUrls && input.videoUrls.length > 0) {
     apifyInput.postURLs = input.videoUrls;
     console.log("🎬 Added video URLs as postURLs:", input.videoUrls);
@@ -63,7 +74,7 @@ async function scrapeTikTokGeneral(input: TikTokScraperRequest): Promise<unknown
     console.log("🔍 Added search queries:", input.searchQueries);
   }
 
-  // Add results per page
+  // Override results per page if specifically provided
   if (input.resultsPerPage) {
     apifyInput.resultsPerPage = input.resultsPerPage;
     console.log("📄 Results per page:", input.resultsPerPage);

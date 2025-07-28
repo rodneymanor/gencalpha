@@ -219,20 +219,29 @@ export class UnifiedVideoScraper {
 
     const tiktokData = apiResult.data[0]; // First result
 
-    // Extract video URL from subtitleLinks (TikTok's video download link)
+    // Extract video URL from videoMeta.downloadAddr (primary) with fallbacks
     const videoUrl =
-      tiktokData.videoMeta?.subtitleLinks?.[0]?.downloadLink || tiktokData.videoUrl || tiktokData.playAddr || "";
+      tiktokData["videoMeta.downloadAddr"] ||
+      tiktokData.videoMeta?.downloadAddr ||
+      tiktokData.videoMeta?.subtitleLinks?.[0]?.downloadLink ||
+      tiktokData.videoUrl ||
+      tiktokData.playAddr ||
+      "";
+
+    // Extract thumbnail URL from videoMeta.coverUrl with fallbacks
+    const thumbnailUrl =
+      tiktokData["videoMeta.coverUrl"] ||
+      tiktokData.videoMeta?.coverUrl ||
+      tiktokData.covers?.[0] ||
+      tiktokData.dynamicCover ||
+      tiktokData.originCover ||
+      "";
 
     return {
       platform: "tiktok",
       shortCode: tiktokData.id ?? "unknown",
       videoUrl,
-      thumbnailUrl:
-        tiktokData.videoMeta?.coverUrl ??
-        tiktokData.covers?.[0] ??
-        tiktokData.dynamicCover ??
-        tiktokData.originCover ??
-        "",
+      thumbnailUrl,
       title: tiktokData.text ?? tiktokData.desc ?? tiktokData.title ?? `TikTok by @${tiktokData.authorMeta?.name}`,
       author: tiktokData.authorMeta?.name ?? tiktokData.author?.uniqueId ?? tiktokData.author?.nickname ?? "unknown",
       description: tiktokData.text ?? tiktokData.desc ?? tiktokData.title ?? "",
@@ -246,7 +255,12 @@ export class UnifiedVideoScraper {
         saves: tiktokData.collectCount ?? tiktokData.stats?.collectCount ?? 0,
       },
       metadata: {
-        duration: tiktokData.videoMeta?.duration ?? tiktokData.video?.duration ?? tiktokData.musicMeta?.duration ?? 0,
+        duration:
+          tiktokData["videoMeta.duration"] ??
+          tiktokData.videoMeta?.duration ??
+          tiktokData.video?.duration ??
+          tiktokData.musicMeta?.duration ??
+          0,
         timestamp: tiktokData.createTime
           ? new Date(tiktokData.createTime * 1000).toISOString()
           : tiktokData.createTimeISO,

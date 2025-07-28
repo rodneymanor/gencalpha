@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 
-import { Zap, FileText, Copy, CheckCircle, Loader2 } from "lucide-react";
+import { Zap, FileText, Copy, CheckCircle, Loader2, User, ExternalLink, Calendar, Clock } from "lucide-react";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,33 +17,53 @@ import { cn } from "@/lib/utils";
 import { VideoInsightsService } from "@/lib/video-insights-service";
 
 import { ScriptComponents } from "./video-insights-components";
-import { MetadataTab } from "./video-metadata-components";
 import { VideoPreviewWithMetrics } from "./video-preview-with-metrics";
 
-interface DailyVideoInsightsDialogProps {
+interface VideoInsightsDialogProps {
   video: Video | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onGenerateHooks?: (video: Video) => void;
+  onGenerateTranscript?: (video: Video) => void;
+  onRewriteScript?: (video: Video) => void;
 }
 
-// Main insights tab with hooks and transcript
+interface MainInsightsTabProps {
+  video: Video;
+  copiedText: string;
+  onCopy: (text: string, label: string) => void;
+  onGenerateHooks?: (video: Video) => void;
+  onGenerateTranscript?: (video: Video) => void;
+}
+
+interface StickyActionButtonsProps {
+  video: Video;
+  onRewriteScript?: (video: Video) => void;
+}
+
 function MainInsightsTab({
   video,
   copiedText,
   onCopy,
-}: {
-  video: Video;
-  copiedText: string;
-  onCopy: (text: string, label: string) => void;
-}) {
+  onGenerateHooks,
+  onGenerateTranscript,
+}: MainInsightsTabProps) {
   const handleGenerateHooks = () => {
-    console.log("🎬 Generate Hooks for video:", video.title);
-    console.log("🎬 Video transcript:", video.transcript);
+    if (onGenerateHooks) {
+      onGenerateHooks(video);
+    } else {
+      console.log("🎬 Generate Hooks for video:", video.title);
+      console.log("🎬 Video transcript:", video.transcript);
+    }
   };
 
   const handleGenerateTranscript = () => {
-    console.log("🎤 Generate Transcript for video:", video.title);
-    console.log("🎤 Video URL:", video.originalUrl);
+    if (onGenerateTranscript) {
+      onGenerateTranscript(video);
+    } else {
+      console.log("🎤 Generate Transcript for video:", video.title);
+      console.log("🎤 Video URL:", video.originalUrl);
+    }
   };
 
   return (
@@ -64,7 +85,7 @@ function MainInsightsTab({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="bg-muted/50 flex min-h-[80px] items-center rounded-lg p-4">
+          <div className="bg-muted/50 flex min-h-20 items-center rounded-lg p-4">
             <p className="text-sm leading-relaxed">
               {video.components?.hook || "No hook available. Generate one using the button above."}
             </p>
@@ -118,49 +139,57 @@ function MainInsightsTab({
   );
 }
 
-// Sticky action buttons component for bottom
-function StickyActionButtons({ video }: { video: Video }) {
+function StickyActionButtons({ video, onRewriteScript }: StickyActionButtonsProps) {
   const handleRewriteScript = () => {
-    console.log("✏️ Rewrite Script for video:", video.title);
-    console.log("✏️ Video transcript:", video.transcript);
+    if (onRewriteScript) {
+      onRewriteScript(video);
+    } else {
+      console.log("✏️ Rewrite Script for video:", video.title);
+      console.log("✏️ Video transcript:", video.transcript);
+    }
   };
 
-  const formatNumber = (num: number): string => {
-    if (num >= 1000000) {
-      return (num / 1000000).toFixed(1) + "M";
-    } else if (num >= 1000) {
-      return (num / 1000).toFixed(1) + "K";
-    }
-    return num.toString();
+  const formatDuration = (seconds: number): string => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
   return (
     <div className="bg-background sticky bottom-0 border-t px-6 py-4">
       <div className="flex items-center justify-between">
-        {/* Video Metrics */}
-        {video.metrics && (
-          <div className="flex items-center gap-6 text-sm">
+        <div className="flex items-center gap-6 text-sm">
+          {video.metadata?.author && (
             <div className="flex items-center gap-2">
-              <span className="font-semibold">{formatNumber(video.metrics.views)}</span>
-              <span className="text-muted-foreground">views</span>
+              <User className="h-4 w-4 text-muted-foreground" />
+              <span className="text-muted-foreground">Author:</span>
+              <span className="font-medium">{video.metadata.author}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="font-semibold">{formatNumber(video.metrics.likes)}</span>
-              <span className="text-muted-foreground">likes</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="font-semibold">{formatNumber(video.metrics.comments)}</span>
-              <span className="text-muted-foreground">comments</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="font-semibold">{formatNumber(video.metrics.shares)}</span>
-              <span className="text-muted-foreground">shares</span>
-            </div>
+          )}
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <span className="text-muted-foreground">Added:</span>
+            <span className="font-medium">{new Date(video.addedAt).toLocaleDateString()}</span>
           </div>
-        )}
-
-        {/* Action Buttons */}
+          {video.duration && (
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-muted-foreground" />
+              <span className="text-muted-foreground">Duration:</span>
+              <span className="font-medium">{formatDuration(video.duration)}</span>
+            </div>
+          )}
+        </div>
+        
         <div className="flex gap-3">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="gap-2"
+            onClick={() => window.open(video.originalUrl, '_blank')}
+          >
+            <ExternalLink className="h-4 w-4" />
+            View Original
+          </Button>
           <Button onClick={handleRewriteScript} className="gap-2" disabled={!video.transcript}>
             <FileText className="h-4 w-4" />
             Rewrite Script
@@ -174,7 +203,7 @@ function StickyActionButtons({ video }: { video: Video }) {
   );
 }
 
-export function DailyVideoInsightsDialog({ video, open, onOpenChange }: DailyVideoInsightsDialogProps) {
+export function VideoInsightsDialog({ video, open, onOpenChange, onGenerateHooks, onGenerateTranscript, onRewriteScript }: VideoInsightsDialogProps) {
   const { user } = useAuth();
   const [copiedText, setCopiedText] = useState<string>("");
   const [enhancedVideo, setEnhancedVideo] = useState<Video | null>(null);
@@ -221,6 +250,15 @@ export function DailyVideoInsightsDialog({ video, open, onOpenChange }: DailyVid
   // Use enhanced video data if available, otherwise fallback to original
   const displayVideo = enhancedVideo || video;
 
+  const formatNumber = (num: number): string => {
+    if (num >= 1000000) {
+      return (num / 1000000).toFixed(1) + "M";
+    } else if (num >= 1000) {
+      return (num / 1000).toFixed(1) + "K";
+    }
+    return num.toString();
+  };
+
   // Enhanced debug logging for video data structure
   console.log("🎬 [Video Insights Dialog] Complete video object:", {
     id: displayVideo.id,
@@ -257,13 +295,28 @@ export function DailyVideoInsightsDialog({ video, open, onOpenChange }: DailyVid
         </DialogHeader>
         <div className="flex h-full min-h-0">
           {/* Fixed Video Column */}
-          <div className="flex h-[600px] w-[400px] max-w-[400px] min-w-[400px] items-center justify-center bg-black">
+          <div className="relative flex h-[600px] w-96 max-w-96 min-w-96 items-center justify-center bg-black">
             {isLoadingInsights ? (
               <div className="flex h-full w-full items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-white" />
               </div>
             ) : (
-              <VideoPreviewWithMetrics video={displayVideo} showMetrics={false} />
+              <>
+                <VideoPreviewWithMetrics video={displayVideo} showMetrics={false} />
+                <div className="absolute top-4 left-4">
+                  <Badge
+                    className={cn(
+                      displayVideo.platform.toLowerCase() === "tiktok"
+                        ? "bg-black text-white"
+                        : displayVideo.platform.toLowerCase() === "instagram"
+                          ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+                          : "bg-red-600 text-white",
+                    )}
+                  >
+                    {displayVideo.platform}
+                  </Badge>
+                </div>
+              </>
             )}
           </div>
 
@@ -271,20 +324,43 @@ export function DailyVideoInsightsDialog({ video, open, onOpenChange }: DailyVid
           <div className="bg-background flex h-full min-h-0 flex-1 flex-col">
             {/* Header with video info */}
             <div className="flex-shrink-0 border-b px-6 py-4">
-              <div className="flex items-center gap-3">
-                <Badge
-                  className={cn(
-                    displayVideo.platform.toLowerCase() === "tiktok"
-                      ? "bg-black text-white"
-                      : displayVideo.platform.toLowerCase() === "instagram"
-                        ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
-                        : "bg-red-600 text-white",
-                  )}
-                >
-                  {displayVideo.platform}
-                </Badge>
-                <h2 className="truncate text-lg font-semibold">{displayVideo.title}</h2>
-                {isLoadingInsights && <Loader2 className="text-muted-foreground h-4 w-4 animate-spin" />}
+              <div className="flex items-center gap-6">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage 
+                      src={displayVideo.metadata?.author ? `https://unavatar.io/instagram/${displayVideo.metadata.author}` : undefined} 
+                      alt={displayVideo.metadata?.author || "Creator"} 
+                    />
+                    <AvatarFallback>
+                      <User className="h-4 w-4" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col">
+                    <span className="font-semibold text-sm">{displayVideo.metadata?.author || "Unknown Creator"}</span>
+                    <span className="text-muted-foreground text-xs">{displayVideo.platform}</span>
+                  </div>
+                  {isLoadingInsights && <Loader2 className="text-muted-foreground h-4 w-4 animate-spin" />}
+                </div>
+                {displayVideo.metrics && (
+                  <div className="flex items-center gap-4 text-sm">
+                    <div className="flex items-center gap-1">
+                      <span className="font-semibold">{formatNumber(displayVideo.metrics.views)}</span>
+                      <span className="text-muted-foreground">views</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="font-semibold">{formatNumber(displayVideo.metrics.likes)}</span>
+                      <span className="text-muted-foreground">likes</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="font-semibold">{formatNumber(displayVideo.metrics.comments)}</span>
+                      <span className="text-muted-foreground">comments</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="font-semibold">{formatNumber(displayVideo.metrics.shares)}</span>
+                      <span className="text-muted-foreground">shares</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -292,7 +368,7 @@ export function DailyVideoInsightsDialog({ video, open, onOpenChange }: DailyVid
             <Tabs defaultValue="insights" className="flex min-h-0 flex-1 flex-col">
               {/* Tab List - Fixed Height */}
               <div className="bg-muted/30 flex-shrink-0 border-b px-6 py-4">
-                <TabsList className="bg-background grid w-full grid-cols-3 border shadow-sm">
+                <TabsList className="bg-background grid w-full grid-cols-2 border">
                   <TabsTrigger
                     value="insights"
                     className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium"
@@ -305,34 +381,30 @@ export function DailyVideoInsightsDialog({ video, open, onOpenChange }: DailyVid
                   >
                     Script Components
                   </TabsTrigger>
-                  <TabsTrigger
-                    value="metadata"
-                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium"
-                  >
-                    Metadata
-                  </TabsTrigger>
                 </TabsList>
               </div>
 
               {/* Scrollable Tab Contents */}
               <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">
                 <TabsContent value="insights" className="mt-0">
-                  <MainInsightsTab video={displayVideo} copiedText={copiedText} onCopy={copyToClipboard} />
+                  <MainInsightsTab 
+                    video={displayVideo} 
+                    copiedText={copiedText} 
+                    onCopy={copyToClipboard}
+                    onGenerateHooks={onGenerateHooks}
+                    onGenerateTranscript={onGenerateTranscript}
+                  />
                 </TabsContent>
 
                 <TabsContent value="script" className="mt-0">
                   <ScriptComponents video={displayVideo} copiedText={copiedText} onCopy={copyToClipboard} />
-                </TabsContent>
-
-                <TabsContent value="metadata" className="mt-0">
-                  <MetadataTab video={displayVideo} />
                 </TabsContent>
               </div>
             </Tabs>
 
             {/* Sticky Footer - Always Visible */}
             <div className="flex-shrink-0">
-              <StickyActionButtons video={displayVideo} />
+              <StickyActionButtons video={displayVideo} onRewriteScript={onRewriteScript} />
             </div>
           </div>
         </div>
@@ -340,3 +412,6 @@ export function DailyVideoInsightsDialog({ video, open, onOpenChange }: DailyVid
     </Dialog>
   );
 }
+
+// Backward compatibility export
+export const DailyVideoInsightsDialog = VideoInsightsDialog;

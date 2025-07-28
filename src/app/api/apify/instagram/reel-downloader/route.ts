@@ -19,17 +19,24 @@ export interface InstagramReelDownloadData {
 function mapToInstagramReelDownload(item: unknown): InstagramReelDownloadData {
   const data = item as any;
 
-  // Map RapidAPI Instagram response format - select smallest video file to reduce size
+  // Map RapidAPI Instagram response format - select medium quality video (good for display/transcription)
   const videoVersions = data.video_versions ?? [];
   let videoUrl = "";
 
   if (videoVersions.length > 0) {
-    // Sort by width to get smallest resolution (smallest file size)
+    // Sort by width and select medium quality (avoid thumbnails but don't need highest quality)
     const sortedVersions = videoVersions.sort((a: any, b: any) => (a.width ?? 0) - (b.width ?? 0));
-    videoUrl = sortedVersions[0]?.url ?? "";
+    
+    // Skip very small versions (likely thumbnails < 300px) but don't need the largest
+    const validVersions = sortedVersions.filter((v: any) => (v.width ?? 0) >= 300);
+    const selectedVersion = validVersions.length > 0 ? validVersions[0] : sortedVersions[sortedVersions.length - 1];
+    
+    videoUrl = selectedVersion?.url ?? "";
     console.log(
-      `📱 Selected smallest video version: ${sortedVersions[0]?.width ?? 0}x${sortedVersions[0]?.height ?? 0} from ${videoVersions.length} available versions`,
+      `📱 Selected medium quality video: ${selectedVersion?.width ?? 0}x${selectedVersion?.height ?? 0} from ${videoVersions.length} available versions`,
     );
+    console.log(`🔍 [INSTAGRAM] Selected video URL: ${videoUrl.substring(0, 100)}...`);
+    console.log(`🔍 [INSTAGRAM] Available versions: ${videoVersions.map((v: any) => `${v.width}x${v.height}`).join(', ')}`);
   }
 
   const thumbnailUrl = data.image_versions2?.candidates?.[0]?.url ?? "";
