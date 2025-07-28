@@ -90,7 +90,7 @@ async function attemptUpload(
 ): Promise<{ cdnUrl: string; filename: string } | null> {
   console.log(`🔄 [BUNNY] Attempt ${attempt}/${maxRetries}`);
 
-  const timeout = 60000 + 30000 * (attempt - 1); // 60s, 90s, 120s
+  const timeout = 120000 + 60000 * (attempt - 1); // 120s, 180s, 240s
   console.log(`⏱️ [BUNNY] Using timeout: ${timeout}ms`);
 
   // Step 1: Create video object
@@ -160,8 +160,9 @@ async function performRetryLoop(
       }
 
       if (attempt < MAX_RETRIES) {
-        console.log(`⏳ [BUNNY] Waiting ${2000 * attempt}ms before retry...`);
-        await new Promise((resolve) => setTimeout(resolve, 2000 * attempt));
+        const backoffDelay = Math.min(30000, 2000 * Math.pow(2, attempt - 1)); // Exponential backoff, max 30s
+        console.log(`⏳ [BUNNY] Waiting ${backoffDelay}ms before retry (exponential backoff)...`);
+        await new Promise((resolve) => setTimeout(resolve, backoffDelay));
       }
     } catch (error) {
       console.error(`❌ [BUNNY] Attempt ${attempt} failed:`, error);
@@ -171,8 +172,18 @@ async function performRetryLoop(
         return null;
       }
 
-      console.log(`⏳ [BUNNY] Waiting ${3000 * attempt}ms before retry...`);
-      await new Promise((resolve) => setTimeout(resolve, 3000 * attempt));
+      const backoffDelay = Math.min(60000, 3000 * Math.pow(2, attempt - 1)); // Exponential backoff, max 60s
+      console.log(`⏳ [BUNNY] Waiting ${backoffDelay}ms before retry (exponential backoff)...`);
+      console.log(`🔍 [BUNNY] Error details for monitoring:`, {
+        attempt,
+        maxRetries: MAX_RETRIES,
+        errorType: error.constructor.name,
+        errorMessage: error.message,
+        timestamp: new Date().toISOString(),
+        bufferSize: arrayBuffer.byteLength,
+        filename
+      });
+      await new Promise((resolve) => setTimeout(resolve, backoffDelay));
     }
   }
 
@@ -384,14 +395,14 @@ async function uploadToBunny(videoGuid: string, body: ReadableStream): Promise<b
       body,
       // @ts-expect-error - duplex is supported in Node.js fetch
       duplex: "half",
-      signal: AbortSignal.timeout(60000), // 60 second timeout
+      signal: AbortSignal.timeout(180000), // 180 second timeout for streaming
     },
   );
 
   return uploadResponse.ok;
 }
 
-async function streamVideoToBunny(sourceUrl: string, videoGuid: string, maxRetries: number = 2): Promise<boolean> {
+async function streamVideoToBunny(sourceUrl: string, videoGuid: string, maxRetries: number = 3): Promise<boolean> {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       console.log(`🌊 [BUNNY_STREAM] Streaming video data... (attempt ${attempt}/${maxRetries})`);
@@ -405,8 +416,9 @@ async function streamVideoToBunny(sourceUrl: string, videoGuid: string, maxRetri
       if (!uploadSuccess) {
         console.error(`❌ [BUNNY_STREAM] Upload failed (attempt ${attempt})`);
         if (attempt < maxRetries) {
-          console.log(`🔄 [BUNNY_STREAM] Retrying in 2 seconds...`);
-          await new Promise((resolve) => setTimeout(resolve, 2000));
+          const retryDelay = Math.min(10000, 2000 * Math.pow(2, attempt - 1)); // Exponential backoff, max 10s
+          console.log(`🔄 [BUNNY_STREAM] Retrying in ${retryDelay}ms (exponential backoff)...`);
+          await new Promise((resolve) => setTimeout(resolve, retryDelay));
           continue;
         }
         return false;
@@ -417,8 +429,18 @@ async function streamVideoToBunny(sourceUrl: string, videoGuid: string, maxRetri
     } catch (error) {
       console.error(`❌ [BUNNY_STREAM] Stream error (attempt ${attempt}):`, error);
       if (attempt < maxRetries) {
-        console.log(`🔄 [BUNNY_STREAM] Retrying in 2 seconds...`);
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        const retryDelay = Math.min(15000, 3000 * Math.pow(2, attempt - 1)); // Exponential backoff, max 15s
+        console.log(`🔄 [BUNNY_STREAM] Retrying in ${retryDelay}ms (exponential backoff)...`);
+        console.log(`🔍 [BUNNY_STREAM] Error monitoring details:`, {
+          attempt,
+          maxRetries,
+          errorType: error.constructor.name,
+          errorMessage: error.message,
+          sourceUrl: sourceUrl.substring(0, 100) + '...',
+          videoGuid,
+          timestamp: new Date().toISOString()
+        });
+        await new Promise((resolve) => setTimeout(resolve, retryDelay));
         continue;
       }
       return false;
