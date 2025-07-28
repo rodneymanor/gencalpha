@@ -394,7 +394,7 @@ function startBackgroundTranscription(
             platform: platform,
           }),
         });
-      } else {
+      } else if (videoData && videoData.buffer) {
         console.log("📁 [BACKGROUND] Using file-based transcription fallback");
         // Convert buffer array back to proper format for transcription
         const buffer = Buffer.from(videoData.buffer);
@@ -409,6 +409,10 @@ function startBackgroundTranscription(
           },
           body: formData,
         });
+      } else {
+        console.log("⚠️ [BACKGROUND] No video URL or buffer available - skipping transcription");
+        await updateVideoTranscriptionStatus(videoId, "failed");
+        return;
       }
 
       if (!response.ok) {

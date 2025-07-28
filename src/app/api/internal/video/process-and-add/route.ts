@@ -370,14 +370,13 @@ function startBackgroundTranscription(
     try {
       console.log("🎙️ [INTERNAL_BACKGROUND] Starting transcription for video:", videoId);
 
-      // ALWAYS use file-based transcription to avoid infinite loops
-      // Don't use Bunny CDN URLs as they trigger re-download cycles
-      console.log("📁 [INTERNAL_BACKGROUND] Using file-based transcription to avoid loops");
+      console.log("🎙️ [INTERNAL_BACKGROUND] Attempting transcription...");
       
       let response;
       
       if (videoData && videoData.buffer) {
-        // Convert buffer array back to proper format for transcription
+        // Use file-based transcription with buffer
+        console.log("📁 [INTERNAL_BACKGROUND] Using file-based transcription with buffer");
         const buffer = Buffer.from(videoData.buffer);
         const blob = new Blob([buffer], { type: videoData.mimeType });
         const formData = new FormData();
@@ -391,36 +390,57 @@ function startBackgroundTranscription(
           body: formData,
         });
       } else {
-        // If no video data available (streaming case), skip transcription to avoid loops
-        console.log("⚠️ [INTERNAL_BACKGROUND] No video buffer available (streaming case) - using metadata for transcription");
+        // Try URL-based transcription with direct MP4 URL
+        const bunnyVideoUrl = streamResult?.directUrl || streamResult?.iframeUrl;
         
-        // For TikTok/Instagram, use the already extracted metadata as "transcription"
-        const contentDescription = additionalMetadata?.description || scrapedData?.description || "";
-        const videoCaption = scrapedData?.title || additionalMetadata?.title || "";
-        const combinedContent = [videoCaption, contentDescription].filter(Boolean).join(". ");
-        
-        // Mark transcription as completed using existing content
-        await updateVideoTranscription(videoId, {
-          transcript: combinedContent || "Video content processed successfully",
-          components: {
-            hook: videoCaption || "Engaging video content",
-            bridge: "Social media video", 
-            nugget: contentDescription || "Video ready for viewing",
-            wta: "Check video for full content"
-          },
-          contentMetadata: {
-            platform,
-            author: additionalMetadata?.author ?? scrapedData?.author ?? "Unknown",
-            description: contentDescription,
-            source: "social_media",
-            hashtags: additionalMetadata?.hashtags ?? scrapedData?.hashtags ?? [],
-          },
-          visualContext: `${platform} video processed successfully`,
-        });
-        
-        hasCompleted = true;
-        clearTimeout(timeoutId);
-        return;
+        if (bunnyVideoUrl) {
+          console.log("🌐 [INTERNAL_BACKGROUND] Using URL-based transcription with direct MP4 URL");
+          console.log("🔗 [INTERNAL_BACKGROUND] Transcription URL:", bunnyVideoUrl);
+          
+          response = await fetch(`${baseUrl}/api/internal/video/transcribe`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-internal-secret": process.env.INTERNAL_API_SECRET || "",
+            },
+            body: JSON.stringify({
+              videoUrl: bunnyVideoUrl,
+              videoId: videoId,
+              collectionId: collectionId,
+              platform: platform,
+            }),
+          });
+        } else {
+          console.log("⚠️ [INTERNAL_BACKGROUND] No video URL available - using metadata for transcription");
+          
+          // Fallback to metadata-based transcription
+          const contentDescription = additionalMetadata?.description || scrapedData?.description || "";
+          const videoCaption = scrapedData?.title || additionalMetadata?.title || "";
+          const combinedContent = [videoCaption, contentDescription].filter(Boolean).join(". ");
+          
+          // Mark transcription as completed using existing content
+          await updateVideoTranscription(videoId, {
+            transcript: combinedContent || "Video content processed successfully",
+            components: {
+              hook: videoCaption || "Engaging video content",
+              bridge: "Social media video", 
+              nugget: contentDescription || "Video ready for viewing",
+              wta: "Check video for full content"
+            },
+            contentMetadata: {
+              platform,
+              author: additionalMetadata?.author ?? scrapedData?.author ?? "Unknown",
+              description: contentDescription,
+              source: "social_media",
+              hashtags: additionalMetadata?.hashtags ?? scrapedData?.hashtags ?? [],
+            },
+            visualContext: `${platform} video processed successfully`,
+          });
+          
+          hasCompleted = true;
+          clearTimeout(timeoutId);
+          return;
+        }
       }
 
       if (!response.ok) {
