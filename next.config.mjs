@@ -38,6 +38,12 @@ const nextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'api.apify.com',
+        port: '',
+        pathname: '/v2/key-value-stores/**',
+      },
     ],
   },
   transpilePackages: [
