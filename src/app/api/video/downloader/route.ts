@@ -95,21 +95,51 @@ export async function POST(request: NextRequest) {
  */
 async function downloadVideoBuffer(videoUrl: string): Promise<ArrayBuffer> {
   console.log("⬇️ [DOWNLOADER] Downloading video from:", videoUrl);
-
-  const response = await fetch(videoUrl);
-
-  if (!response.ok) {
-    throw new Error(`Failed to download video: ${response.status} ${response.statusText}`);
+  
+  // Check if this is an Apify URL (key-value store)
+  if (videoUrl.includes('api.apify.com/v2/key-value-stores')) {
+    console.log("🔍 [DOWNLOADER] Detected Apify key-value store URL, fetching directly");
   }
 
+  const response = await fetch(videoUrl, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    }
+  });
+
+  console.log(`🔍 [DOWNLOADER] Response status: ${response.status}`);
+  console.log(`🔍 [DOWNLOADER] Response headers:`, Object.fromEntries(response.headers.entries()));
+
+  if (!response.ok) {
+    const responseText = await response.text();
+    console.error(`❌ [DOWNLOADER] Failed response body:`, responseText);
+    throw new Error(`Failed to download video: ${response.status} ${response.statusText} - ${responseText}`);
+  }
+
+  const contentType = response.headers.get("content-type");
   const contentLength = response.headers.get("content-length");
+  
+  console.log(`📋 [DOWNLOADER] Content-Type: ${contentType}`);
+  console.log(`📋 [DOWNLOADER] Content-Length: ${contentLength}`);
+
   if (contentLength) {
     const sizeMB = Math.round((parseInt(contentLength) / 1024 / 1024) * 100) / 100;
     console.log(`📦 [DOWNLOADER] Video size: ${sizeMB}MB`);
   }
 
+  // Verify we're getting video content
+  if (contentType && !contentType.includes('video') && !contentType.includes('application/octet-stream')) {
+    console.warn(`⚠️ [DOWNLOADER] Unexpected content type: ${contentType}`);
+  }
+
   const arrayBuffer = await response.arrayBuffer();
   console.log(`✅ [DOWNLOADER] Video buffer downloaded: ${arrayBuffer.byteLength} bytes`);
+
+  // Verify buffer contains video data (basic check)
+  if (arrayBuffer.byteLength < 1000) {
+    console.error(`❌ [DOWNLOADER] Buffer too small (${arrayBuffer.byteLength} bytes), likely not a video file`);
+    throw new Error(`Downloaded file too small: ${arrayBuffer.byteLength} bytes`);
+  }
 
   return arrayBuffer;
 }
