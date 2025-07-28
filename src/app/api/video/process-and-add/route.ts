@@ -392,6 +392,7 @@ function startBackgroundTranscription(
           body: JSON.stringify({
             videoUrl: bunnyVideoUrl,
             platform: platform,
+            useDirectUrl: true, // Use direct URL processing instead of downloading
           }),
         });
       } else if (videoData && videoData.buffer) {

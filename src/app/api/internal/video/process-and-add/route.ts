@@ -407,6 +407,7 @@ function startBackgroundTranscription(
               videoUrl: bunnyVideoUrl,
               videoId: videoId,
               collectionId: collectionId,
+              useDirectUrl: true, // Use direct URL processing instead of downloading
               platform: platform,
             }),
           });
