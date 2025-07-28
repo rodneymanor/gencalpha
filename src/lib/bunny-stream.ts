@@ -109,12 +109,18 @@ async function attemptUpload(
     return null;
   }
 
-  // Step 3: Construct iframe embed URL for Bunny Stream
-  const cdnUrl = `https://iframe.mediadelivery.net/embed/${libraryId}/${videoGuid}`;
-  console.log("🎯 [BUNNY] Iframe embed URL constructed:", cdnUrl);
+  // Step 3: Construct URLs for Bunny Stream
+  const iframeUrl = `https://iframe.mediadelivery.net/embed/${libraryId}/${videoGuid}`;
+  const hostname = process.env.BUNNY_CDN_HOSTNAME || '';
+  const cleanHostname = hostname.startsWith('vz-') ? hostname : `vz-${hostname}`;
+  const directUrl = `https://${cleanHostname}/${videoGuid}/play_720p.mp4`;
+  
+  console.log("🎯 [BUNNY] Iframe embed URL constructed:", iframeUrl);
+  console.log("🎯 [BUNNY] Direct MP4 URL constructed:", directUrl);
 
   return {
-    cdnUrl,
+    cdnUrl: iframeUrl,
+    directUrl: directUrl,
     filename: videoGuid,
   };
 }
@@ -256,7 +262,7 @@ export async function streamToBunnyFromUrl(
   filename: string,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _mimeType: string = "video/mp4",
-): Promise<string | null> {
+): Promise<{ iframeUrl: string; directUrl: string } | null> {
   try {
     console.log("🌊 [BUNNY_STREAM] Starting direct stream from URL to Bunny CDN...");
     console.log("🔗 [BUNNY_STREAM] Source URL:", videoUrl.substring(0, 100) + "...");
@@ -284,17 +290,23 @@ export async function streamToBunnyFromUrl(
     }
 
     const iframeUrl = `https://iframe.mediadelivery.net/embed/${process.env.BUNNY_STREAM_LIBRARY_ID}/${videoGuid}`;
+    const hostname = process.env.BUNNY_CDN_HOSTNAME || '';
+  const cleanHostname = hostname.startsWith('vz-') ? hostname : `vz-${hostname}`;
+  const directUrl = `https://${cleanHostname}/${videoGuid}/play_720p.mp4`;
+    
     console.log("✅ [BUNNY_STREAM] Direct stream completed successfully");
     console.log("🎯 [BUNNY_STREAM] Complete Iframe URL:", iframeUrl);
+    console.log("🎯 [BUNNY_STREAM] Direct MP4 URL:", directUrl);
     console.log("🔍 [BUNNY_STREAM] URL validation:", {
-      fullUrl: iframeUrl,
+      iframeUrl: iframeUrl,
+      directUrl: directUrl,
       urlLength: iframeUrl.length,
       libraryId: process.env.BUNNY_STREAM_LIBRARY_ID,
       guid: videoGuid,
       expectedFormat: `https://iframe.mediadelivery.net/embed/${process.env.BUNNY_STREAM_LIBRARY_ID}/${videoGuid}`,
     });
 
-    return iframeUrl;
+    return { iframeUrl, directUrl };
   } catch (error) {
     console.error("❌ [BUNNY_STREAM] Direct stream error:", error);
     return null;

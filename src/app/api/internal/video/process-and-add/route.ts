@@ -92,17 +92,17 @@ export async function POST(request: NextRequest) {
       // Stream directly from the scraped video URL
       console.log("🌊 [INTERNAL_VIDEO] Streaming directly from scraped video URL");
       const { streamToBunnyFromUrl } = await import("@/lib/bunny-stream");
-      const iframeUrl = await streamToBunnyFromUrl(scrapedData.videoUrl, `${scrapedData.platform}-${Date.now()}.mp4`);
+      const streamResponse = await streamToBunnyFromUrl(scrapedData.videoUrl, `${scrapedData.platform}-${Date.now()}.mp4`);
 
-      if (iframeUrl) {
+      if (streamResponse) {
         // Extract GUID from iframe URL for thumbnail upload
         const { extractVideoIdFromIframeUrl } = await import("@/lib/bunny-stream");
-        const videoGuid = extractVideoIdFromIframeUrl(iframeUrl);
+        const videoGuid = extractVideoIdFromIframeUrl(streamResponse.iframeUrl);
 
         streamResult = {
           success: true,
-          iframeUrl,
-          directUrl: iframeUrl,
+          iframeUrl: streamResponse.iframeUrl,
+          directUrl: streamResponse.directUrl,
           guid: videoGuid,
         };
       } else {

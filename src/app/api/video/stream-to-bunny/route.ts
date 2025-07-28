@@ -64,9 +64,9 @@ export async function POST(request: NextRequest) {
     const filename = `instagram-${shortcode}.mp4`;
 
     // Stream directly to Bunny CDN
-    const cdnUrl = await streamToBunnyFromUrl(videoUrl, filename);
+    const streamResponse = await streamToBunnyFromUrl(videoUrl, filename);
 
-    if (!cdnUrl) {
+    if (!streamResponse) {
       console.error("❌ [STREAM_TO_BUNNY] Failed to stream to Bunny CDN");
       return NextResponse.json({ error: "Failed to stream video to CDN" }, { status: 500 });
     }
@@ -76,7 +76,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       platform,
-      cdnUrl,
+      iframeUrl: streamResponse.iframeUrl,
+      directUrl: streamResponse.directUrl,
       filename,
       metrics,
       additionalMetadata,

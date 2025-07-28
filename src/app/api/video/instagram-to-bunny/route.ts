@@ -99,9 +99,9 @@ export async function POST(request: NextRequest) {
     // Step 3: Stream video directly to Bunny CDN (using low quality for speed)
     console.log("🌊 [INSTAGRAM_TO_BUNNY] Streaming to Bunny CDN...");
     const filename = `instagram-${shortcode}.mp4`;
-    const bunnyIframeUrl = await streamToBunnyFromUrl(videoData.lowQualityUrl, filename);
+    const streamResponse = await streamToBunnyFromUrl(videoData.lowQualityUrl, filename);
 
-    if (!bunnyIframeUrl) {
+    if (!streamResponse) {
       console.error("❌ [INSTAGRAM_TO_BUNNY] Failed to stream to Bunny CDN");
       return NextResponse.json({ error: "Failed to upload video to CDN" }, { status: 500 });
     }
@@ -115,7 +115,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       video: {
-        iframeUrl: bunnyIframeUrl,
+        iframeUrl: streamResponse.iframeUrl,
+        directUrl: streamResponse.directUrl,
         thumbnailUrl: videoData.thumbnailUrl,
         filename,
         platform: "instagram",
