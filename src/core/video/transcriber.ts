@@ -101,35 +101,52 @@ export const VideoTranscriber = {
     try {
       console.log(`🌐 [VideoTranscriber] Starting URL-based transcription for: ${url.substring(0, 100)}...`);
 
-      // Download video from URL
-      console.log("⬇️ [VideoTranscriber] Downloading video from URL...");
-      const response = await fetch(url, {
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-        },
+      // Send URL directly to transcription API instead of downloading
+      console.log("🚀 [VideoTranscriber] Sending URL to Gemini for direct processing...");
+
+      // Use localhost for server-side transcription calls
+      const baseUrl = process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : `http://localhost:${process.env.PORT ?? 3001}`;
+
+      const headers: HeadersInit = {
+        "Content-Type": "application/json",
+      };
+
+      // Add internal secret for server-side calls
+      if (process.env.INTERNAL_API_SECRET) {
+        headers["x-internal-secret"] = process.env.INTERNAL_API_SECRET;
+      }
+
+      const response = await fetch(`${baseUrl}/api/internal/video/transcribe`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          videoUrl: url,
+          platform: platform,
+          useDirectUrl: true, // Flag to indicate URL should be processed directly
+        }),
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch video: ${response.status} ${response.statusText}`);
+        throw new Error(`Failed to transcribe from URL: ${response.status} ${response.statusText}`);
       }
 
-      const arrayBuffer = await response.arrayBuffer();
-      console.log(`📦 [VideoTranscriber] Video downloaded: ${arrayBuffer.byteLength} bytes`);
+      const result = await response.json();
+      console.log("✅ [VideoTranscriber] URL-based transcription completed successfully");
 
-      // Create VideoData object
-      const videoData: VideoData = {
-        buffer: arrayBuffer,
-        size: arrayBuffer.byteLength,
-        mimeType: "video/mp4",
-        filename: `${platform}-${Date.now()}.mp4`,
+      return {
+        success: result.success,
+        transcript: result.transcript,
+        platform: result.platform,
+        components: result.components,
+        contentMetadata: result.contentMetadata,
+        visualContext: result.visualContext,
+        transcriptionMetadata: result.transcriptionMetadata,
       };
-
-      // Use existing transcription logic
-      return await transcribeVideoData(videoData, platform);
     } catch (error) {
       console.error("❌ [VideoTranscriber] URL transcription error:", error);
-      console.log("🔄 [VideoTranscriber] Using fallback transcription due to URL download error");
+      console.log("🔄 [VideoTranscriber] Using fallback transcription due to URL processing error");
 
       // Return fallback transcription so video can still be added to collection
       return createFallbackTranscription(platform);
@@ -219,8 +236,8 @@ export function formatFileSize(bytes: number): string {
   const sizes = ["Bytes", "KB", "MB", "GB"] as const;
   const i = Math.floor(Math.log(bytes) / Math.log(k));
 
-  const size = sizes[i];
-  if (!size) return "0 Bytes";
+  // eslint-disable-next-line security/detect-object-injection
+  const size = sizes[i] ?? "Bytes";
 
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + size;
 }
@@ -292,5 +309,5 @@ export function analyzeTranscriptComponents(transcript: string): {
  */
 export function extractHashtags(text: string): string[] {
   const hashtagRegex = /#[\w\u0590-\u05ff]+/g;
-  return text.match(hashtagRegex) || [];
+  return text.match(hashtagRegex) ?? [];
 }
