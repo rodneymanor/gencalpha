@@ -1,15 +1,21 @@
 // Internal transcription endpoint - bypasses user authentication for background processing
+import fs from "fs";
+import path from "path";
+
 import { NextRequest, NextResponse } from "next/server";
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, GoogleAIFileManager } from "@google/generative-ai";
 
 import { detectPlatform } from "@/core/video/platform-detector";
 import { VideoTranscriber } from "@/core/video/transcriber";
 
-// Function to transcribe video directly from URL using Gemini
+// Function to transcribe video from URL using Gemini with proper file upload
 async function transcribeVideoFromUrl(url: string, platform: "tiktok" | "instagram" | "youtube" | "unknown") {
+  let tempFilePath: string | null = null;
+  let uploadedFile: any = null;
+
   try {
-    console.log("🌐 [GEMINI] Sending video URL directly to Gemini for transcription:", url);
+    console.log("🌐 [GEMINI] Starting video transcription from URL:", url);
 
     // Check if API key is configured
     if (!process.env.GEMINI_API_KEY) {
@@ -17,11 +23,66 @@ async function transcribeVideoFromUrl(url: string, platform: "tiktok" | "instagr
       return null;
     }
 
-    // Initialize Gemini AI
+    // Step 1: Download video from URL
+    console.log("⬇️ [GEMINI] Downloading video from CDN...");
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to download video: ${response.status} ${response.statusText}`);
+    }
+
+    const videoBuffer = await response.arrayBuffer();
+    console.log(`📦 [GEMINI] Video downloaded: ${videoBuffer.byteLength} bytes`);
+
+    // Step 2: Save to temporary file
+    const tempDir = "/tmp";
+    const fileName = `video_${Date.now()}_${Math.random().toString(36).substring(2, 11)}.mp4`;
+    tempFilePath = path.join(tempDir, fileName);
+
+    // Ensure temp directory exists
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    fs.writeFileSync(tempFilePath, Buffer.from(videoBuffer));
+    console.log(`💾 [GEMINI] Video saved to temp file: ${tempFilePath}`);
+
+    // Step 3: Upload to Gemini Files API
+    console.log("📤 [GEMINI] Uploading video to Gemini Files API...");
+    const fileManager = new GoogleAIFileManager(process.env.GEMINI_API_KEY);
+
+    const uploadResult = await fileManager.uploadFile(tempFilePath, {
+      mimeType: "video/mp4",
+      displayName: `${platform}-video-${Date.now()}`,
+    });
+
+    uploadedFile = uploadResult.file;
+    console.log(`✅ [GEMINI] Video uploaded successfully: ${uploadedFile.uri}`);
+
+    // Step 4: Wait for processing if needed
+    let file = uploadedFile;
+    while (file.state === "PROCESSING") {
+      console.log("⏳ [GEMINI] Waiting for video processing...");
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      file = await fileManager.getFile(file.name);
+    }
+
+    if (file.state === "FAILED") {
+      throw new Error("Video processing failed on Gemini side");
+    }
+
+    console.log("🎬 [GEMINI] Video processing completed, starting transcription...");
+
+    // Step 5: Transcribe using the uploaded file
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    // Create the prompt for transcription and analysis
     const prompt = `Please analyze this video and provide:
 1. A complete word-for-word transcription of all spoken content
 2. Identify the following components in the script:
@@ -47,96 +108,102 @@ Return the response in this exact JSON format:
   "visualContext": "brief description of visual elements"
 }`;
 
-    // For videos from URLs, we need to use file URI format
     const result = await model.generateContent([
       {
         fileData: {
-          mimeType: "video/mp4",
-          fileUri: url,
+          fileUri: file.uri, // Use the Google-hosted URI
+          mimeType: file.mimeType,
         },
       },
       { text: prompt },
     ]);
 
-    const response = result.response;
-    const text = response.text();
+    const responseText = result.response.text();
+    console.log("📄 [GEMINI] Received transcription response");
 
     // Parse the JSON response
     let parsedResponse;
     try {
-      // Extract JSON from the response (Gemini might wrap it in markdown code blocks)
-      const jsonMatch = text.match(/```json\n?([\s\S]*?)\n?```/) ?? text.match(/\{[\s\S]*\}/);
-      const jsonText = jsonMatch ? (jsonMatch[1] ?? jsonMatch[0]) : text;
+      const jsonMatch = responseText.match(/```json\n?([\s\S]*?)\n?```/) ?? responseText.match(/\{[\s\S]*\}/);
+      const jsonText = jsonMatch ? (jsonMatch[1] ?? jsonMatch[0]) : responseText;
       parsedResponse = JSON.parse(jsonText);
     } catch (parseError) {
       console.error("❌ [GEMINI] Failed to parse JSON response:", parseError);
-      console.log("📄 [GEMINI] Raw response:", text);
+      console.log("📄 [GEMINI] Raw response:", responseText);
 
       // Fallback: return basic transcription
       return {
         success: true,
-        transcript: text,
+        transcript: responseText,
         platform: platform,
-        components: {
-          hook: "",
-          bridge: "",
-          nugget: "",
-          wta: "",
-        },
+        components: { hook: "", bridge: "", nugget: "", wta: "" },
         contentMetadata: {
           platform: platform,
           author: "Unknown",
           description: "Video transcribed successfully",
-          source: "direct_url",
+          source: "gemini_file_upload",
           hashtags: [],
         },
         visualContext: "",
         transcriptionMetadata: {
-          method: "gemini_direct_url",
-          fileSize: 0,
-          fileName: `${platform}-direct-url`,
+          method: "gemini_file_upload",
+          fileSize: videoBuffer.byteLength,
+          fileName: `${platform}-file-upload`,
           processedAt: new Date().toISOString(),
         },
       };
     }
 
-    console.log("✅ [GEMINI] Direct URL transcription successful");
+    console.log("✅ [GEMINI] Transcription completed successfully");
 
-    // Format the response according to our interface
     return {
       success: true,
       transcript: parsedResponse.transcript ?? "",
       platform: platform,
-      components: parsedResponse.components ?? {
-        hook: "",
-        bridge: "",
-        nugget: "",
-        wta: "",
-      },
+      components: parsedResponse.components ?? { hook: "", bridge: "", nugget: "", wta: "" },
       contentMetadata: {
         platform: platform,
         author: parsedResponse.contentMetadata?.author ?? "Unknown",
         description: parsedResponse.contentMetadata?.description ?? "",
-        source: "direct_url",
+        source: "gemini_file_upload",
         hashtags: parsedResponse.contentMetadata?.hashtags ?? [],
       },
       visualContext: parsedResponse.visualContext ?? "",
       transcriptionMetadata: {
-        method: "gemini_direct_url",
-        fileSize: 0,
-        fileName: `${platform}-direct-url`,
+        method: "gemini_file_upload",
+        fileSize: videoBuffer.byteLength,
+        fileName: `${platform}-file-upload`,
         processedAt: new Date().toISOString(),
       },
     };
   } catch (error) {
-    console.error("❌ [GEMINI] Direct URL transcription failed:", error);
+    console.error("❌ [GEMINI] Video transcription failed:", error);
     if (error instanceof Error) {
       console.error("📄 [GEMINI] Error details:", error.message);
-      if (error.message.includes("API key")) {
-        console.error("🔑 [GEMINI] Please ensure GEMINI_API_KEY is properly configured");
-      }
     }
     return null;
+  } finally {
+    // Cleanup: Delete temporary file
+    if (tempFilePath && fs.existsSync(tempFilePath)) {
+      try {
+        // eslint-disable-next-line security/detect-non-literal-fs-filename
+        fs.unlinkSync(tempFilePath);
+        console.log("🗑️ [GEMINI] Temporary file cleaned up");
+      } catch (cleanupError) {
+        console.error("⚠️ [GEMINI] Failed to cleanup temp file:", cleanupError);
+      }
+    }
+
+    // Cleanup: Delete uploaded file from Gemini
+    if (uploadedFile) {
+      try {
+        const fileManager = new GoogleAIFileManager(process.env.GEMINI_API_KEY!);
+        await fileManager.deleteFile(uploadedFile.name);
+        console.log("🗑️ [GEMINI] Uploaded file cleaned up from Gemini");
+      } catch (cleanupError) {
+        console.error("⚠️ [GEMINI] Failed to cleanup uploaded file:", cleanupError);
+      }
+    }
   }
 }
 
