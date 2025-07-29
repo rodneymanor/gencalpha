@@ -1,52 +1,147 @@
 // Internal transcription endpoint - bypasses user authentication for background processing
 import { NextRequest, NextResponse } from "next/server";
 
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
 import { detectPlatform } from "@/core/video/platform-detector";
 import { VideoTranscriber } from "@/core/video/transcriber";
 
 // Function to transcribe video directly from URL using Gemini
-async function transcribeVideoFromUrl(url: string, platform: string) {
+async function transcribeVideoFromUrl(url: string, platform: "tiktok" | "instagram" | "youtube" | "unknown") {
   try {
     console.log("🌐 [GEMINI] Sending video URL directly to Gemini for transcription:", url);
 
-    // Here you would call your actual Gemini API with the URL
-    // For now, returning a mock response to test the flow
-    const mockResult = {
+    // Check if API key is configured
+    if (!process.env.GEMINI_API_KEY) {
+      console.error("❌ [GEMINI] GEMINI_API_KEY not configured in environment variables");
+      return null;
+    }
+
+    // Initialize Gemini AI
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    // Create the prompt for transcription and analysis
+    const prompt = `Please analyze this video and provide:
+1. A complete word-for-word transcription of all spoken content
+2. Identify the following components in the script:
+   - Hook: The opening line/statement that grabs attention
+   - Bridge: The transition from hook to main content
+   - Nugget: The main value/content/teaching point
+   - WTA (What To Action): The call to action at the end
+
+Return the response in this exact JSON format:
+{
+  "transcript": "full transcript here",
+  "components": {
+    "hook": "identified hook text",
+    "bridge": "identified bridge text",
+    "nugget": "identified nugget text",
+    "wta": "identified call to action"
+  },
+  "contentMetadata": {
+    "author": "speaker name if identifiable",
+    "description": "brief content description",
+    "hashtags": ["relevant", "hashtags"]
+  },
+  "visualContext": "brief description of visual elements"
+}`;
+
+    // For videos from URLs, we need to use file URI format
+    const result = await model.generateContent([
+      {
+        fileData: {
+          mimeType: "video/mp4",
+          fileUri: url,
+        },
+      },
+      { text: prompt },
+    ]);
+
+    const response = result.response;
+    const text = response.text();
+
+    // Parse the JSON response
+    let parsedResponse;
+    try {
+      // Extract JSON from the response (Gemini might wrap it in markdown code blocks)
+      const jsonMatch = text.match(/```json\n?([\s\S]*?)\n?```/) ?? text.match(/\{[\s\S]*\}/);
+      const jsonText = jsonMatch ? (jsonMatch[1] ?? jsonMatch[0]) : text;
+      parsedResponse = JSON.parse(jsonText);
+    } catch (parseError) {
+      console.error("❌ [GEMINI] Failed to parse JSON response:", parseError);
+      console.log("📄 [GEMINI] Raw response:", text);
+
+      // Fallback: return basic transcription
+      return {
+        success: true,
+        transcript: text,
+        platform: platform,
+        components: {
+          hook: "",
+          bridge: "",
+          nugget: "",
+          wta: "",
+        },
+        contentMetadata: {
+          platform: platform,
+          author: "Unknown",
+          description: "Video transcribed successfully",
+          source: "direct_url",
+          hashtags: [],
+        },
+        visualContext: "",
+        transcriptionMetadata: {
+          method: "gemini_direct_url",
+          fileSize: 0,
+          fileName: `${platform}-direct-url`,
+          processedAt: new Date().toISOString(),
+        },
+      };
+    }
+
+    console.log("✅ [GEMINI] Direct URL transcription successful");
+
+    // Format the response according to our interface
+    return {
       success: true,
-      transcript: "Mock transcript from direct URL processing with Gemini",
+      transcript: parsedResponse.transcript ?? "",
       platform: platform,
-      components: {
-        hook: "Mock hook from URL",
-        bridge: "Mock bridge from URL",
-        nugget: "Mock nugget from URL",
-        wta: "Mock WTA from URL",
+      components: parsedResponse.components ?? {
+        hook: "",
+        bridge: "",
+        nugget: "",
+        wta: "",
       },
       contentMetadata: {
         platform: platform,
-        author: "Mock Author",
-        description: "Mock description from URL processing",
+        author: parsedResponse.contentMetadata?.author ?? "Unknown",
+        description: parsedResponse.contentMetadata?.description ?? "",
         source: "direct_url",
-        hashtags: ["#mock", "#url"],
+        hashtags: parsedResponse.contentMetadata?.hashtags ?? [],
       },
-      visualContext: "Mock visual context from URL",
+      visualContext: parsedResponse.visualContext ?? "",
       transcriptionMetadata: {
-        method: "direct_url_gemini",
+        method: "gemini_direct_url",
         fileSize: 0,
         fileName: `${platform}-direct-url`,
         processedAt: new Date().toISOString(),
       },
     };
-
-    console.log("✅ [GEMINI] Direct URL transcription successful");
-    return mockResult;
   } catch (error) {
     console.error("❌ [GEMINI] Direct URL transcription failed:", error);
+    if (error instanceof Error) {
+      console.error("📄 [GEMINI] Error details:", error.message);
+      if (error.message.includes("API key")) {
+        console.error("🔑 [GEMINI] Please ensure GEMINI_API_KEY is properly configured");
+      }
+    }
     return null;
   }
 }
 
 // Function to transcribe by downloading video first (legacy approach)
-async function transcribeByDownload(url: string, platform: string) {
+async function transcribeByDownload(url: string, platform: "tiktok" | "instagram" | "youtube" | "unknown") {
   try {
     console.log("⬇️ [DOWNLOAD] Downloading video from URL for transcription:", url);
 
@@ -83,7 +178,7 @@ async function transcribeByDownload(url: string, platform: string) {
 }
 
 // Create fallback transcription when processing fails
-function createFallbackTranscription(platform: string) {
+function createFallbackTranscription(platform: "tiktok" | "instagram" | "youtube" | "unknown") {
   return {
     success: true,
     transcript:
@@ -145,7 +240,7 @@ export async function POST(request: NextRequest) {
 }
 
 async function handleCdnTranscription(request: NextRequest) {
-  const { videoUrl, platform, useDirectUrl } = await request.json();
+  const { videoUrl, platform } = await request.json();
 
   if (!videoUrl) {
     return NextResponse.json({ error: "No video URL provided" }, { status: 400 });
@@ -155,38 +250,34 @@ async function handleCdnTranscription(request: NextRequest) {
 
   const detectedPlatform = platform ?? detectPlatform(videoUrl).platform;
 
-  // If useDirectUrl flag is set, send URL directly to Gemini
-  if (useDirectUrl) {
-    console.log("🚀 [INTERNAL_TRANSCRIBE] Processing URL directly with Gemini...");
-    const result = await transcribeVideoFromUrl(videoUrl, detectedPlatform);
+  // Always try direct URL transcription first
+  console.log("🚀 [INTERNAL_TRANSCRIBE] Processing URL directly with Gemini...");
+  const result = await transcribeVideoFromUrl(videoUrl, detectedPlatform);
 
-    if (!result) {
-      return NextResponse.json({ error: "Failed to transcribe video from URL" }, { status: 500 });
-    }
-
+  if (result) {
     console.log("✅ [INTERNAL_TRANSCRIBE] Direct URL transcription completed successfully");
     return NextResponse.json(result);
   }
 
-  // Fallback to existing download-based transcription (this will download the video)
-  console.log("⬇️ [INTERNAL_TRANSCRIBE] Using download-based transcription as fallback...");
-  const result = await transcribeByDownload(videoUrl, detectedPlatform);
+  // Fallback to download-based transcription if direct URL fails
+  console.log("⬇️ [INTERNAL_TRANSCRIBE] Direct URL failed, trying download-based transcription...");
+  const downloadResult = await transcribeByDownload(videoUrl, detectedPlatform);
 
-  if (!result) {
-    console.log("🔄 [INTERNAL_TRANSCRIBE] Download failed, using fallback transcription");
+  if (!downloadResult) {
+    console.log("🔄 [INTERNAL_TRANSCRIBE] Both methods failed, using fallback transcription");
     const fallbackResult = createFallbackTranscription(detectedPlatform);
     return NextResponse.json(fallbackResult);
   }
 
-  console.log("✅ [INTERNAL_TRANSCRIBE] CDN transcription completed successfully");
+  console.log("✅ [INTERNAL_TRANSCRIBE] Download-based transcription completed successfully");
   return NextResponse.json({
     success: true,
-    transcript: result.transcript,
-    platform: result.platform,
-    components: result.components,
-    contentMetadata: result.contentMetadata,
-    visualContext: result.visualContext,
-    transcriptionMetadata: result.transcriptionMetadata,
+    transcript: downloadResult.transcript,
+    platform: downloadResult.platform,
+    components: downloadResult.components,
+    contentMetadata: downloadResult.contentMetadata,
+    visualContext: downloadResult.visualContext,
+    transcriptionMetadata: downloadResult.transcriptionMetadata,
   });
 }
 
