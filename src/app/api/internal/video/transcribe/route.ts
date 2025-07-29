@@ -4,7 +4,8 @@ import path from "path";
 
 import { NextRequest, NextResponse } from "next/server";
 
-import { GoogleGenerativeAI, GoogleAIFileManager } from "@google/generative-ai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleAIFileManager } from "@google/generative-ai/server";
 
 import { detectPlatform } from "@/core/video/platform-detector";
 import { VideoTranscriber } from "@/core/video/transcriber";
