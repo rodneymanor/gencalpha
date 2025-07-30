@@ -41,15 +41,51 @@ export async function POST(request: NextRequest) {
     console.log("📥 [INTERNAL_VIDEO] Step 1: Processing video...");
     let downloadResult: any;
 
-    if (scrapedData) {
-      console.log("🔄 [INTERNAL_VIDEO] Using pre-scraped data to avoid re-download");
-      // Use the pre-scraped data from the queue
+    if (scrapedData?.videoUrl) {
+      console.log("🔄 [INTERNAL_VIDEO] Downloading video from scraped Apify URL for transcription buffer");
+      // Download the video from Apify storage to get buffer for transcription
+      downloadResult = await downloadVideo(baseUrl, scrapedData.videoUrl);
+      
+      if (downloadResult.success) {
+        // Merge scraped metadata with downloaded video data (including metrics!)
+        downloadResult.data = {
+          ...downloadResult.data,
+          platform: scrapedData.platform,
+          metrics: scrapedData.metrics || {}, // ✅ Extract metrics from scraped data
+          additionalMetadata: {
+            author: scrapedData.author,
+            description: scrapedData.description,
+            hashtags: scrapedData.hashtags,
+            duration: scrapedData.metadata?.duration || 0,
+            timestamp: scrapedData.metadata?.timestamp,
+          },
+          thumbnailUrl: scrapedData.thumbnailUrl || thumbnailUrl,
+          metadata: {
+            ...(downloadResult.data.metadata || {}),
+            originalUrl: decodedUrl,
+            platform: scrapedData.platform,
+            shortCode: scrapedData.metadata?.shortCode || scrapedData.shortCode || "unknown",
+            thumbnailUrl: scrapedData.thumbnailUrl || thumbnailUrl,
+          },
+        };
+      } else {
+        return NextResponse.json(
+          {
+            error: "Failed to download video from scraped URL",
+            details: downloadResult.error,
+          },
+          { status: 500 },
+        );
+      }
+    } else if (scrapedData) {
+      console.log("🔄 [INTERNAL_VIDEO] Using pre-scraped metadata (no video URL available)");
+      // Use the pre-scraped data from the queue when no video URL available
       downloadResult = {
         success: true,
         data: {
           platform: scrapedData.platform,
-          videoData: null, // No buffer needed for direct streaming
-          metrics: scrapedData.metrics || {},
+          videoData: null, // No buffer available
+          metrics: scrapedData.metrics || {}, // ✅ Extract metrics from scraped data
           additionalMetadata: {
             author: scrapedData.author,
             description: scrapedData.description,
@@ -375,20 +411,43 @@ function startBackgroundTranscription(
       let response;
       
       if (videoData && videoData.buffer) {
-        // Use file-based transcription with buffer
-        console.log("📁 [INTERNAL_BACKGROUND] Using file-based transcription with buffer");
-        const buffer = Buffer.from(videoData.buffer);
-        const blob = new Blob([buffer], { type: videoData.mimeType });
-        const formData = new FormData();
-        formData.append("video", blob, videoData.filename);
-
+        // Use buffer-based transcription (no re-download needed!)
+        console.log("📁 [INTERNAL_BACKGROUND] Using buffer-based transcription with original video data");
+        
         response = await fetch(`${baseUrl}/api/internal/video/transcribe`, {
           method: "POST",
           headers: {
+            "Content-Type": "application/json",
             "x-internal-secret": process.env.INTERNAL_API_SECRET || "",
           },
-          body: formData,
+          body: JSON.stringify({
+            videoBuffer: Array.from(new Uint8Array(videoData.buffer)),
+            platform: platform,
+            useBuffer: true
+          }),
         });
+      } else if (scrapedData) {
+        // For scraped data without buffer, use original URL for transcription
+        console.log("📁 [INTERNAL_BACKGROUND] Scraped data detected, using original URL for transcription");
+        console.log("🔗 [INTERNAL_BACKGROUND] Original URL:", additionalMetadata?.originalUrl);
+        
+        const originalUrl = additionalMetadata?.originalUrl;
+        if (originalUrl) {
+          response = await fetch(`${baseUrl}/api/internal/video/transcribe`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-internal-secret": process.env.INTERNAL_API_SECRET || "",
+            },
+            body: JSON.stringify({
+              videoUrl: originalUrl,
+              platform: platform,
+            }),
+          });
+        } else {
+          console.log("⚠️ [INTERNAL_BACKGROUND] No original URL available for transcription");
+          response = null;
+        }
       } else {
         // Try URL-based transcription with direct MP4 URL
         const bunnyVideoUrl = streamResult?.directUrl || streamResult?.iframeUrl;
@@ -442,6 +501,12 @@ function startBackgroundTranscription(
           clearTimeout(timeoutId);
           return;
         }
+      }
+
+      if (!response) {
+        console.error("❌ [INTERNAL_BACKGROUND] No transcription response received");
+        await updateVideoTranscriptionStatus(videoId, "failed");
+        return;
       }
 
       if (!response.ok) {

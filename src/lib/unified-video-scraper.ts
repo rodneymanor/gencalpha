@@ -170,7 +170,6 @@ export class UnifiedVideoScraper {
               shares: 0,
             },
             metadata: {
-              shortCode: shortcode,
               timestamp: instagramData.timestamp,
               location: instagramData.location?.name,
             },
@@ -338,6 +337,30 @@ export class UnifiedVideoScraper {
       return { valid: false, message: "Please enter a valid URL" };
     }
 
+    // Check if it's an Apify storage URL (contains video file from scraping)
+    const isApifyStorageUrl = url.includes('api.apify.com/v2/key-value-stores/') && url.includes('/records/video-');
+    
+    if (isApifyStorageUrl) {
+      console.log("🔍 [UNIFIED_SCRAPER] Detected Apify storage URL for direct video download");
+      return { valid: true, platform: "apify_storage" };
+    }
+
+    // Check if it's a direct Instagram CDN video URL (already scraped)
+    const isInstagramCdnUrl = url.includes('scontent-') && url.includes('.cdninstagram.com') && url.includes('.mp4');
+    
+    if (isInstagramCdnUrl) {
+      console.log("🔍 [UNIFIED_SCRAPER] Detected Instagram CDN URL for direct video download");
+      return { valid: true, platform: "instagram_cdn" };
+    }
+
+    // Check if it's a direct TikTok CDN video URL (already scraped)
+    const isTikTokCdnUrl = (url.includes('tiktokcdn.com') || url.includes('tiktokv.com') || url.includes('muscdn.com')) && url.includes('.mp4');
+    
+    if (isTikTokCdnUrl) {
+      console.log("🔍 [UNIFIED_SCRAPER] Detected TikTok CDN URL for direct video download");
+      return { valid: true, platform: "tiktok_cdn" };
+    }
+
     // Check for Instagram post URLs specifically
     if (url.includes("instagram.com") && url.match(/\/p\/[A-Za-z0-9_-]+/)) {
       return {
@@ -352,7 +375,7 @@ export class UnifiedVideoScraper {
     if (platform === "unsupported") {
       return {
         valid: false,
-        message: "Only TikTok and Instagram video URLs are supported",
+        message: "Only TikTok, Instagram, and Apify storage video URLs are supported",
       };
     }
 

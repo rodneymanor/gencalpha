@@ -8,7 +8,6 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { GoogleAIFileManager } from "@google/generative-ai/server";
 
 import { detectPlatform } from "@/core/video/platform-detector";
-import { VideoTranscriber } from "@/core/video/transcriber";
 
 // Function to transcribe video from URL using Gemini with proper file upload
 async function transcribeVideoFromUrl(url: string, platform: "tiktok" | "instagram" | "youtube" | "unknown") {
@@ -28,9 +27,8 @@ async function transcribeVideoFromUrl(url: string, platform: "tiktok" | "instagr
     console.log("⬇️ [GEMINI] Downloading video from CDN...");
     const response = await fetch(url, {
       headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-      },
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
     });
 
     if (!response.ok) {
@@ -59,12 +57,13 @@ async function transcribeVideoFromUrl(url: string, platform: "tiktok" | "instagr
     const fileManager = new GoogleAIFileManager(process.env.GEMINI_API_KEY);
 
     const uploadResult = await fileManager.uploadFile(tempFilePath, {
-      mimeType: "video/mp4",
-      displayName: `${platform}-video-${Date.now()}`,
+      mimeType: 'video/mp4',
+      displayName: `test-video-${Date.now()}`
     });
 
     uploadedFile = uploadResult.file;
     console.log(`✅ [GEMINI] Video uploaded successfully: ${uploadedFile.uri}`);
+    console.log(`🔍 [GEMINI] File state: ${uploadedFile.state}, MIME: ${uploadedFile.mimeType}, Size: ${uploadedFile.sizeBytes} bytes`);
 
     // Step 4: Wait for processing if needed
     let file = uploadedFile;
@@ -82,7 +81,7 @@ async function transcribeVideoFromUrl(url: string, platform: "tiktok" | "instagr
 
     // Step 5: Transcribe using the uploaded file
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
 
     const prompt = `Please analyze this video and provide:
 1. A complete word-for-word transcription of all spoken content
@@ -179,10 +178,7 @@ Return the response in this exact JSON format:
     };
   } catch (error) {
     console.error("❌ [GEMINI] Video transcription failed:", error);
-    if (error instanceof Error) {
-      console.error("📄 [GEMINI] Error details:", error.message);
-    }
-    return null;
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   } finally {
     // Cleanup: Delete temporary file
     if (tempFilePath && fs.existsSync(tempFilePath)) {
@@ -207,43 +203,183 @@ Return the response in this exact JSON format:
     }
   }
 }
+// Buffer transcription function that reuses the existing upload logic
+async function transcribeVideoFromBuffer(videoBuffer: ArrayBuffer, platform: "tiktok" | "instagram" | "youtube" | "unknown") {
+  let tempFilePath: string | null = null;
+  let uploadedFile: any = null;
 
-// Function to transcribe by downloading video first (legacy approach)
-async function transcribeByDownload(url: string, platform: "tiktok" | "instagram" | "youtube" | "unknown") {
   try {
-    console.log("⬇️ [DOWNLOAD] Downloading video from URL for transcription:", url);
+    console.log("🌐 [GEMINI] Starting video transcription from buffer data");
+    console.log(`📦 [GEMINI] Video buffer size: ${videoBuffer.byteLength} bytes`);
 
-    const response = await fetch(url, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-      },
-    });
-
-    if (!response.ok) {
-      console.error(`❌ [DOWNLOAD] Failed to fetch video: ${response.status} ${response.statusText}`);
-      throw new Error(`Failed to fetch video: ${response.status} ${response.statusText}`);
+    // Check if API key is configured
+    if (!process.env.GEMINI_API_KEY) {
+      console.error("❌ [GEMINI] GEMINI_API_KEY not configured in environment variables");
+      return null;
     }
 
-    const arrayBuffer = await response.arrayBuffer();
-    console.log(`📦 [DOWNLOAD] Video downloaded: ${arrayBuffer.byteLength} bytes`);
+    // Step 1: Save buffer to temporary file
+    const tempDir = "/tmp";
+    const fileName = `video_${Date.now()}_${Math.random().toString(36).substring(2, 11)}.mp4`;
+    tempFilePath = path.join(tempDir, fileName);
 
-    // Create VideoData object and use existing transcription logic
-    const videoData = {
-      buffer: arrayBuffer,
-      size: arrayBuffer.byteLength,
-      mimeType: "video/mp4",
-      filename: `${platform}-${Date.now()}.mp4`,
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+
+    fs.writeFileSync(tempFilePath, Buffer.from(videoBuffer));
+    console.log(`💾 [GEMINI] Video saved to temp file: ${tempFilePath}`);
+
+    // Step 2: Upload to Gemini Files API
+    console.log("📤 [GEMINI] Uploading video to Gemini Files API...");
+    const fileManager = new GoogleAIFileManager(process.env.GEMINI_API_KEY);
+
+    const uploadResult = await fileManager.uploadFile(tempFilePath, {
+      mimeType: 'video/mp4',
+      displayName: `buffer-video-${Date.now()}`
+    });
+
+    uploadedFile = uploadResult.file;
+    console.log(`✅ [GEMINI] Video uploaded successfully: ${uploadedFile.uri}`);
+
+    // Step 3: Wait for processing if needed
+    let file = uploadedFile;
+    while (file.state === "PROCESSING") {
+      console.log("⏳ [GEMINI] Waiting for video processing...");
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      file = await fileManager.getFile(file.name);
+    }
+
+    if (file.state === "FAILED") {
+      throw new Error("Video processing failed on Gemini side");
+    }
+
+    console.log("🎬 [GEMINI] Video processing completed, starting transcription...");
+
+    // Step 4: Transcribe using the uploaded file
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+
+    const prompt = `Please analyze this video and provide:
+1. A complete word-for-word transcription of all spoken content
+2. Identify the following components in the script:
+   - Hook: The opening line/statement that grabs attention
+   - Bridge: The transition from hook to main content
+   - Nugget: The main value/content/teaching point
+   - WTA (What To Action): The call to action at the end
+
+Return the response in this exact JSON format:
+{
+  "transcript": "full transcript here",
+  "components": {
+    "hook": "identified hook text",
+    "bridge": "identified bridge text",
+    "nugget": "identified nugget text",
+    "wta": "identified call to action"
+  },
+  "contentMetadata": {
+    "author": "speaker name if identifiable",
+    "description": "brief content description",
+    "hashtags": ["relevant", "hashtags"]
+  },
+  "visualContext": "brief description of visual elements"
+}`;
+
+    const result = await model.generateContent([
+      {
+        fileData: {
+          fileUri: file.uri,
+          mimeType: file.mimeType,
+        },
+      },
+      { text: prompt },
+    ]);
+
+    const responseText = result.response.text();
+    console.log("📄 [GEMINI] Received transcription response");
+
+    // Parse the JSON response
+    let parsedResponse;
+    try {
+      const jsonMatch = responseText.match(/```json\n?([\s\S]*?)\n?```/) ?? responseText.match(/\{[\s\S]*\}/);
+      const jsonText = jsonMatch ? (jsonMatch[1] ?? jsonMatch[0]) : responseText;
+      parsedResponse = JSON.parse(jsonText);
+    } catch (parseError) {
+      console.error("❌ [GEMINI] Failed to parse JSON response:", parseError);
+      console.log("📄 [GEMINI] Raw response:", responseText);
+
+      // Fallback: return basic transcription
+      return {
+        success: true,
+        transcript: responseText,
+        platform: platform,
+        components: { hook: "", bridge: "", nugget: "", wta: "" },
+        contentMetadata: {
+          platform: platform,
+          author: "Unknown",
+          description: "Video transcribed successfully",
+          source: "gemini_buffer_upload",
+          hashtags: [],
+        },
+        visualContext: "",
+        transcriptionMetadata: {
+          method: "gemini_buffer_upload",
+          fileSize: videoBuffer.byteLength,
+          fileName: `${platform}-buffer-upload`,
+          processedAt: new Date().toISOString(),
+        },
+      };
+    }
+
+    console.log("✅ [GEMINI] Transcription completed successfully");
+
+    return {
+      success: true,
+      transcript: parsedResponse.transcript ?? "",
+      platform: platform,
+      components: parsedResponse.components ?? { hook: "", bridge: "", nugget: "", wta: "" },
+      contentMetadata: {
+        platform: platform,
+        author: parsedResponse.contentMetadata?.author ?? "Unknown",
+        description: parsedResponse.contentMetadata?.description ?? "",
+        source: "gemini_buffer_upload",
+        hashtags: parsedResponse.contentMetadata?.hashtags ?? [],
+      },
+      visualContext: parsedResponse.visualContext ?? "",
+      transcriptionMetadata: {
+        method: "gemini_buffer_upload",
+        fileSize: videoBuffer.byteLength,
+        fileName: `${platform}-buffer-upload`,
+        processedAt: new Date().toISOString(),
+      },
     };
-
-    const result = await VideoTranscriber.transcribe(videoData, platform);
-    console.log("✅ [DOWNLOAD] Download-based transcription completed");
-    return result;
   } catch (error) {
-    console.error("❌ [DOWNLOAD] Download-based transcription failed:", error);
-    return null;
+    console.error("❌ [GEMINI] Video transcription failed:", error);
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  } finally {
+    // Cleanup: Delete temporary file
+    if (tempFilePath && fs.existsSync(tempFilePath)) {
+      try {
+        fs.unlinkSync(tempFilePath);
+        console.log("🗑️ [GEMINI] Temporary file cleaned up");
+      } catch (cleanupError) {
+        console.error("⚠️ [GEMINI] Failed to cleanup temp file:", cleanupError);
+      }
+    }
+
+    // Cleanup: Delete uploaded file from Gemini
+    if (uploadedFile) {
+      try {
+        const fileManager = new GoogleAIFileManager(process.env.GEMINI_API_KEY!);
+        await fileManager.deleteFile(uploadedFile.name);
+        console.log("🗑️ [GEMINI] Uploaded file cleaned up from Gemini");
+      } catch (cleanupError) {
+        console.error("⚠️ [GEMINI] Failed to cleanup uploaded file:", cleanupError);
+      }
+    }
   }
 }
+
 
 // Create fallback transcription when processing fails
 function createFallbackTranscription(platform: "tiktok" | "instagram" | "youtube" | "unknown") {
@@ -308,87 +444,49 @@ export async function POST(request: NextRequest) {
 }
 
 async function handleCdnTranscription(request: NextRequest) {
-  const { videoUrl, platform } = await request.json();
+  const { videoUrl, platform, videoBuffer, useBuffer } = await request.json();
 
-  if (!videoUrl) {
-    return NextResponse.json({ error: "No video URL provided" }, { status: 400 });
+  // Prefer using video buffer data (no re-download needed!)
+  if (useBuffer && videoBuffer) {
+    console.log("🚀 [INTERNAL_TRANSCRIBE] Using provided video buffer (no re-download needed)");
+    
+    const detectedPlatform = platform ?? "unknown";
+    
+    // Convert the buffer data back to ArrayBuffer and use buffer transcription
+    const buffer = new Uint8Array(videoBuffer).buffer;
+    
+    const result = await transcribeVideoFromBuffer(buffer, detectedPlatform);
+    
+    if (result) {
+      console.log("✅ [INTERNAL_TRANSCRIBE] Buffer-based transcription completed successfully");
+      return NextResponse.json(result);
+    }
+  }
+  
+  // Fallback to URL-based transcription (less reliable due to Bunny.net URLs)
+  if (videoUrl) {
+    console.log("🌐 [INTERNAL_TRANSCRIBE] No buffer provided, falling back to URL download:", videoUrl);
+    
+    const detectedPlatform = platform ?? detectPlatform(videoUrl).platform;
+    const result = await transcribeVideoFromUrl(videoUrl, detectedPlatform);
+    
+    if (result) {
+      console.log("✅ [INTERNAL_TRANSCRIBE] URL-based transcription completed successfully");
+      return NextResponse.json(result);
+    }
   }
 
-  console.log("🌐 [INTERNAL_TRANSCRIBE] Transcribing CDN-hosted video:", videoUrl);
-
-  const detectedPlatform = platform ?? detectPlatform(videoUrl).platform;
-
-  // Always try direct URL transcription first
-  console.log("🚀 [INTERNAL_TRANSCRIBE] Processing URL directly with Gemini...");
-  const result = await transcribeVideoFromUrl(videoUrl, detectedPlatform);
-
-  if (result) {
-    console.log("✅ [INTERNAL_TRANSCRIBE] Direct URL transcription completed successfully");
-    return NextResponse.json(result);
+  if (!videoUrl && !videoBuffer) {
+    return NextResponse.json({ error: "No video URL or buffer provided" }, { status: 400 });
   }
 
-  // Fallback to download-based transcription if direct URL fails
-  console.log("⬇️ [INTERNAL_TRANSCRIBE] Direct URL failed, trying download-based transcription...");
-  const downloadResult = await transcribeByDownload(videoUrl, detectedPlatform);
-
-  if (!downloadResult) {
-    console.log("🔄 [INTERNAL_TRANSCRIBE] Both methods failed, using fallback transcription");
-    const fallbackResult = createFallbackTranscription(detectedPlatform);
-    return NextResponse.json(fallbackResult);
-  }
-
-  console.log("✅ [INTERNAL_TRANSCRIBE] Download-based transcription completed successfully");
-  return NextResponse.json({
-    success: true,
-    transcript: downloadResult.transcript,
-    platform: downloadResult.platform,
-    components: downloadResult.components,
-    contentMetadata: downloadResult.contentMetadata,
-    visualContext: downloadResult.visualContext,
-    transcriptionMetadata: downloadResult.transcriptionMetadata,
-  });
+  // If all methods fail, use fallback
+  console.log("⚠️ [INTERNAL_TRANSCRIBE] All transcription methods failed, using fallback");
+  const detectedPlatform = platform ?? "unknown";
+  const fallbackResult = createFallbackTranscription(detectedPlatform);
+  return NextResponse.json(fallbackResult);
 }
 
 async function handleFileTranscription(request: NextRequest) {
-  const formData = await request.formData();
-  const videoFile = formData.get("video") as File;
-
-  if (!videoFile) {
-    return NextResponse.json({ error: "No video file provided" }, { status: 400 });
-  }
-
-  console.log("📁 [INTERNAL_TRANSCRIBE] Processing uploaded video file:", videoFile.name);
-
-  // Detect platform from filename if possible
-  const detectedPlatform = detectPlatform(videoFile.name);
-  console.log("🔍 [PLATFORM] Analyzing URL for platform detection:", videoFile.name);
-  if (detectedPlatform.platform === "unknown") {
-    console.log("⚠️ [PLATFORM] Platform unknown for URL:", videoFile.name);
-  }
-
-  // Convert file to video data for transcription
-  const arrayBuffer = await videoFile.arrayBuffer();
-  const videoData = {
-    buffer: arrayBuffer,
-    size: videoFile.size,
-    mimeType: videoFile.type,
-    filename: videoFile.name,
-  };
-
-  const result = await VideoTranscriber.transcribe(videoData, detectedPlatform.platform);
-
-  if (!result) {
-    return NextResponse.json({ error: "Failed to transcribe video file" }, { status: 500 });
-  }
-
-  console.log("✅ [INTERNAL_TRANSCRIBE] File transcription completed successfully");
-  return NextResponse.json({
-    success: true,
-    transcript: result.transcript,
-    platform: result.platform,
-    components: result.components,
-    contentMetadata: result.contentMetadata,
-    visualContext: result.visualContext,
-    transcriptionMetadata: result.transcriptionMetadata,
-  });
+  return NextResponse.json({ error: "File upload transcription not implemented yet" }, { status: 501 });
 }

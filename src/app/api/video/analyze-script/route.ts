@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
@@ -53,32 +53,36 @@ export async function POST(request: NextRequest) {
 }
 
 async function analyzeScriptComponents(transcript: string): Promise<ScriptComponents | null> {
-  try {
-    console.log("🤖 [SCRIPT_ANALYSIS] Analyzing script components with AI...");
+  const maxRetries = 3;
+  const baseDelay = 1000; // 1 second
 
-    const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
-      safetySettings: [
-        {
-          category: "HARM_CATEGORY_HARASSMENT",
-          threshold: "BLOCK_NONE",
-        },
-        {
-          category: "HARM_CATEGORY_HATE_SPEECH",
-          threshold: "BLOCK_NONE",
-        },
-        {
-          category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-          threshold: "BLOCK_NONE",
-        },
-        {
-          category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-          threshold: "BLOCK_NONE",
-        },
-      ],
-    });
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`🤖 [SCRIPT_ANALYSIS] Analyzing script components with AI... (attempt ${attempt}/${maxRetries})`);
 
-    const prompt = `Analyze this video transcript and break it down into these four essential script components:
+      const model = genAI.getGenerativeModel({
+        model: "gemini-2.5-flash-lite",
+        safetySettings: [
+          {
+            category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+            threshold: HarmBlockThreshold.BLOCK_NONE,
+          },
+          {
+            category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+            threshold: HarmBlockThreshold.BLOCK_NONE,
+          },
+          {
+            category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+            threshold: HarmBlockThreshold.BLOCK_NONE,
+          },
+          {
+            category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+            threshold: HarmBlockThreshold.BLOCK_NONE,
+          },
+        ],
+      });
+
+      const prompt = `Analyze this video transcript and break it down into these four essential script components:
 
 1. **HOOK** (Attention-Grabbing Opener): Extract or identify the part that captures attention within the first 3-5 seconds. If not clear, create an optimized hook based on the content.
 
@@ -99,45 +103,67 @@ Respond with ONLY a valid JSON object in this exact format (no additional text):
   "wta": "The call to action or concluding thought"
 }`;
 
-    const result = await model.generateContent([{ text: prompt }]);
-    const responseText = result.response.text().trim();
+      const result = await model.generateContent([{ text: prompt }]);
+      const responseText = result.response.text().trim();
 
-    console.log("📄 [SCRIPT_ANALYSIS] Raw response length:", responseText.length, "characters");
+      console.log("📄 [SCRIPT_ANALYSIS] Raw response length:", responseText.length, "characters");
 
-    try {
-      // Clean and parse JSON response
-      let jsonString = responseText;
+      try {
+        // Clean and parse JSON response
+        let jsonString = responseText;
 
-      // Remove markdown code blocks if present
-      jsonString = jsonString.replace(/```json\s*/, "").replace(/```\s*$/, "");
+        // Remove markdown code blocks if present
+        jsonString = jsonString.replace(/```json\s*/, "").replace(/```\s*$/, "");
 
-      // Find JSON object boundaries
-      const firstBrace = jsonString.indexOf("{");
-      const lastBrace = jsonString.lastIndexOf("}");
+        // Find JSON object boundaries
+        const firstBrace = jsonString.indexOf("{");
+        const lastBrace = jsonString.lastIndexOf("}");
 
-      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-        jsonString = jsonString.substring(firstBrace, lastBrace + 1);
+        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+          jsonString = jsonString.substring(firstBrace, lastBrace + 1);
+        }
+
+        const components = JSON.parse(jsonString) as ScriptComponents;
+
+        console.log("✅ [SCRIPT_ANALYSIS] Successfully parsed script components");
+        console.log("📊 [SCRIPT_ANALYSIS] Components extracted:", Object.keys(components));
+
+        return components;
+      } catch (parseError) {
+        console.log("⚠️ [SCRIPT_ANALYSIS] JSON parsing failed, using fallback:", parseError);
+
+        // Return fallback components
+        return {
+          hook: "Unable to extract hook from content",
+          bridge: "Unable to extract bridge from content",
+          nugget: "Unable to extract golden nugget from content",
+          wta: "Unable to extract WTA from content",
+        };
       }
-
-      const components = JSON.parse(jsonString) as ScriptComponents;
-
-      console.log("✅ [SCRIPT_ANALYSIS] Successfully parsed script components");
-      console.log("📊 [SCRIPT_ANALYSIS] Components extracted:", Object.keys(components));
-
-      return components;
-    } catch (parseError) {
-      console.log("⚠️ [SCRIPT_ANALYSIS] JSON parsing failed, using fallback:", parseError);
-
-      // Return fallback components
-      return {
-        hook: "Unable to extract hook from content",
-        bridge: "Unable to extract bridge from content",
-        nugget: "Unable to extract golden nugget from content",
-        wta: "Unable to extract WTA from content",
-      };
+    } catch (error) {
+      console.error(`❌ [SCRIPT_ANALYSIS] AI analysis error (attempt ${attempt}/${maxRetries}):`, error);
+      
+      // Check if it's a service overload error
+      const isOverloadError = error instanceof Error && 
+        (error.message.includes('overloaded') || 
+         error.message.includes('503') || 
+         error.message.includes('Service Unavailable'));
+      
+      if (isOverloadError && attempt < maxRetries) {
+        const delay = baseDelay * Math.pow(2, attempt - 1); // Exponential backoff
+        console.log(`⏳ [SCRIPT_ANALYSIS] Model overloaded, retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+      
+      if (attempt === maxRetries) {
+        console.error("❌ [SCRIPT_ANALYSIS] All retry attempts failed");
+        return null;
+      }
     }
-  } catch (error) {
-    console.error("❌ [SCRIPT_ANALYSIS] AI analysis error:", error);
-    return null;
   }
+  
+  // If we get here, all attempts failed
+  console.error("❌ [SCRIPT_ANALYSIS] All retry attempts exhausted");
+  return null;
 }

@@ -1,0 +1,17 @@
+{
+  "contents": [
+    {
+      "parts": [
+        {
+          "file_data": {
+            "file_uri": "https://vz-8416c36e-556.b-cdn.net/80aaf797-5e72-4a28-893e-e1931e218158/play_720p.mp4?download=1",
+            "mime_type": "video/mp4"
+          }
+        },
+        {
+          "text": "Transcribe the audio from this video."
+        }
+      ]
+    }
+  ]
+}

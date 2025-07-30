@@ -27,6 +27,17 @@ export async function POST(request: NextRequest) {
 
     console.log("🎯 [DOWNLOADER] Platform detected:", validation.platform);
 
+    // Handle direct video URLs (skip scraping, just download)
+    if (validation.platform === "apify_storage") {
+      console.log("📦 [DOWNLOADER] Processing Apify storage URL directly");
+      return await handleApifyStorageDownload(decodedUrl);
+    }
+
+    if (validation.platform === "instagram_cdn" || validation.platform === "tiktok_cdn") {
+      console.log(`📦 [DOWNLOADER] Processing ${validation.platform} URL directly`);
+      return await handleDirectVideoDownload(decodedUrl, validation.platform);
+    }
+
     // Use the new unified scraper to get video data
     const videoData = await scrapeVideoUrl(decodedUrl);
 
@@ -56,7 +67,7 @@ export async function POST(request: NextRequest) {
       platform: videoData.platform,
       videoData: {
         buffer: Array.from(new Uint8Array(videoBuffer)),
-        size: videoBuffer.length,
+        size: videoBuffer.byteLength,
         mimeType: "video/mp4",
         filename: `${videoData.platform}-${videoData.shortCode}.mp4`,
       },
@@ -142,4 +153,117 @@ async function downloadVideoBuffer(videoUrl: string): Promise<ArrayBuffer> {
   }
 
   return arrayBuffer;
+}
+
+/**
+ * Handle direct download from Apify storage URL
+ */
+async function handleApifyStorageDownload(url: string) {
+  try {
+    console.log("📦 [APIFY] Downloading video from Apify storage:", url);
+    
+    const videoBuffer = await downloadVideoBuffer(url);
+    
+    // Extract platform and metadata from the Apify URL
+    const urlParts = url.split('/');
+    const filename = urlParts[urlParts.length - 1] || 'apify-video';
+    const platformMatch = filename.match(/video-(\w+)-/);
+    const detectedPlatform = platformMatch ? platformMatch[1] : 'unknown';
+
+    return NextResponse.json({
+      success: true,
+      platform: detectedPlatform,
+      videoData: {
+        buffer: Array.from(new Uint8Array(videoBuffer)),
+        size: videoBuffer.byteLength,
+        mimeType: "video/mp4",
+        filename: `${filename}.mp4`,
+      },
+      metrics: {
+        downloadSpeed: "direct_storage",
+        fileSize: videoBuffer.byteLength,
+        duration: 0 // Not available from storage URL
+      },
+      additionalMetadata: {
+        author: "unknown", // Will be populated from scraped data
+        description: "",
+        hashtags: [],
+        duration: 0,
+        timestamp: undefined,
+      },
+      thumbnailUrl: "", // Will be populated from scraped data
+      metadata: {
+        originalUrl: url,
+        platform: detectedPlatform,
+        downloadedAt: new Date().toISOString(),
+        shortCode: filename,
+        method: "apify_storage"
+      },
+    });
+  } catch (error) {
+    console.error("❌ [APIFY] Storage download failed:", error);
+    return NextResponse.json(
+      {
+        error: "Failed to download from Apify storage",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
+    );
+  }
+}
+
+/**
+ * Handle direct download from CDN video URL (Instagram/TikTok)
+ */
+async function handleDirectVideoDownload(url: string, platform: string) {
+  try {
+    console.log(`📦 [${platform.toUpperCase()}] Downloading video from CDN:`, url);
+    
+    const videoBuffer = await downloadVideoBuffer(url);
+    
+    // Extract basic info from URL
+    const urlParts = url.split('/');
+    const filename = urlParts[urlParts.length - 1]?.split('?')[0] || 'cdn-video';
+    const platformName = platform.replace('_cdn', '');
+
+    return NextResponse.json({
+      success: true,
+      platform: platformName,
+      videoData: {
+        buffer: Array.from(new Uint8Array(videoBuffer)),
+        size: videoBuffer.byteLength,
+        mimeType: "video/mp4",
+        filename: `${platformName}-${Date.now()}.mp4`,
+      },
+      metrics: {
+        downloadSpeed: "direct_cdn",
+        fileSize: videoBuffer.byteLength,
+        duration: 0 // Not available from CDN URL
+      },
+      additionalMetadata: {
+        author: "unknown", // Will be populated from scraped data if available
+        description: "",
+        hashtags: [],
+        duration: 0,
+        timestamp: undefined,
+      },
+      thumbnailUrl: "", // Will be populated from scraped data if available
+      metadata: {
+        originalUrl: url,
+        platform: platformName,
+        downloadedAt: new Date().toISOString(),
+        shortCode: filename,
+        method: "direct_cdn"
+      },
+    });
+  } catch (error) {
+    console.error(`❌ [${platform.toUpperCase()}] CDN download failed:`, error);
+    return NextResponse.json(
+      {
+        error: `Failed to download from ${platform} CDN`,
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
+    );
+  }
 }

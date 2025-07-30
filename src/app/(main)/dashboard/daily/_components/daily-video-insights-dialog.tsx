@@ -250,7 +250,10 @@ export function VideoInsightsDialog({ video, open, onOpenChange, onGenerateHooks
   // Use enhanced video data if available, otherwise fallback to original
   const displayVideo = enhancedVideo || video;
 
-  const formatNumber = (num: number): string => {
+  const formatNumber = (num: number | undefined): string => {
+    if (num === undefined || num === null || isNaN(num)) {
+      return "0";
+    }
     if (num >= 1000000) {
       return (num / 1000000).toFixed(1) + "M";
     } else if (num >= 1000) {
