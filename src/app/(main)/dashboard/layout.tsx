@@ -3,7 +3,7 @@ import { ReactNode } from "react";
 import { DashboardWrapper } from "@/app/(main)/dashboard/_components/dashboard-wrapper";
 import { AppSidebar } from "@/app/(main)/dashboard/_components/sidebar/app-sidebar";
 import { FloatingActionButton } from "@/components/ui/floating-action-button";
-import { OnboardingProgress } from "@/components/ui/onboarding-progress";
+// import removed: OnboardingProgress
 import { ProcessingNotificationBadge } from "@/components/ui/processing-notification-badge";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { ScriptPanelProvider } from "@/contexts/script-panel-context";
@@ -48,12 +48,12 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
             <div className="h-full">
               <div className="mx-auto max-w-6xl">
                 <div className="relative">
-                  <OnboardingProgress />
+                  
                   <div className="absolute top-6 right-6">
                     <ProcessingNotificationBadge />
                   </div>
                 </div>
-                <div className="px-4 pb-4 md:px-6 md:pb-6">{children}</div>
+                <div className="px-4 pb-4 pt-6 md:px-6 md:pb-6 md:pt-8">{children}</div>
               </div>
             </div>
             <FloatingActionButton />
