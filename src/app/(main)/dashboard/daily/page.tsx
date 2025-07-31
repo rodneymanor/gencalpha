@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 
 import { ContentIdeasGrid } from "./_components/content-ideas-grid";
-import { PersonalizationDialog } from "./_components/personalization-dialog";
+import { OnboardingFAB } from "./_components/onboarding-fab";
 import { ViralVideosMasonry } from "./_components/viral-videos-masonry";
 
 export const metadata: Metadata = {
@@ -22,7 +22,8 @@ export default function DailyPage() {
         </div>
         <div className="flex items-center justify-between">
           <h2 className="text-primary text-lg font-semibold md:text-xl">Short form Inspiration For You!</h2>
-          <PersonalizationDialog />
+          {/* Onboarding FAB */}
+          <OnboardingFAB />
         </div>
       </div>
 
