@@ -4,7 +4,7 @@ import { Zap, FileText, Instagram, Youtube, Globe, MessageSquare, Mic, Copy, Che
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 import type { Idea } from "./types";
 
@@ -24,7 +24,7 @@ const getSourceIcon = (source: string) => {
     blog: <Globe className="h-4 w-4" />,
     voice: <Mic className="h-4 w-4" />,
   };
-  return iconMap[source as keyof typeof iconMap] || <FileText className="h-4 w-4" />;
+  return iconMap[source as keyof typeof iconMap] ?? <FileText className="h-4 w-4" />;
 };
 
 const getSourceColor = (source: string) => {
@@ -86,6 +86,9 @@ export function IdeaDetailDialog({
               {idea.wordCount} words • {formatDate(idea.createdAt)}
             </div>
           </div>
+          <DialogDescription className="sr-only">
+            View and manage idea details, generate hooks, or convert to script
+          </DialogDescription>
         </DialogHeader>
 
         {/* Scrollable Content Area */}

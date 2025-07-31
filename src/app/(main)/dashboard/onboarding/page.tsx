@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 
-import { OnboardingQuestionnaire } from "./_components/onboarding-questionnaire";
+import { OnboardingWizard } from "./_components/onboarding-wizard";
 
 export const metadata: Metadata = {
   title: "Onboarding | Studio Admin",
@@ -11,7 +11,7 @@ export default function OnboardingPage() {
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <div className="w-full max-w-2xl">
-        <OnboardingQuestionnaire />
+        <OnboardingWizard />
       </div>
     </div>
   );

@@ -3,7 +3,7 @@ import React from "react";
 import { Import, FileText } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -42,6 +42,9 @@ export function ImportDialog({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Add New Idea</DialogTitle>
+          <DialogDescription>
+            Import content from social media or create a manual note for your idea inbox
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">

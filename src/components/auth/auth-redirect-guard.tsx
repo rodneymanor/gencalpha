@@ -1,31 +1,34 @@
 "use client";
 
 import { useEffect } from "react";
-
 import { useRouter } from "next/navigation";
 
 import { useAuth } from "@/contexts/auth-context";
 
 interface AuthRedirectGuardProps {
   children: React.ReactNode;
+  /** Optional fallback component while auth state is initializing */
+  fallback?: React.ReactNode;
 }
 
-export function AuthRedirectGuard({ children }: AuthRedirectGuardProps) {
-  const { user } = useAuth();
+// Used on auth pages – sends authenticated users away but waits until auth finished bootstrapping.
+export function AuthRedirectGuard({ children, fallback }: AuthRedirectGuardProps) {
+  const { user, initializing } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (user) {
-      // Redirect to dashboard if already authenticated
+    if (!initializing && user) {
       router.push("/dashboard/daily");
     }
-  }, [user, router]);
+  }, [initializing, user, router]);
 
-  // Show nothing if authenticated (redirect will happen)
+  if (initializing) {
+    return fallback ? <>{fallback}</> : null;
+  }
+
   if (user) {
     return null;
   }
 
-  // Render auth pages if not authenticated
   return <>{children}</>;
 }

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Content Creator Onboarding - ViralScope</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Progress Bar -->
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <span class="progress-text" id="progressText">Step 1 of 7</span>
+        </div>
+
+        <!-- Step 1: Welcome -->
+        <div class="step active" id="step-welcome">
+            <div class="step-content">
+                <div class="welcome-hero">
+                    <h1>🚀 Welcome to ViralScope</h1>
+                    <p class="hero-subtitle">Your AI-powered shortform video content discovery platform</p>
+                    <div class="feature-list">
+                        <div class="feature-item">
+                            <span class="feature-icon">🎯</span>
+                            <span>Discover viral content in your niche</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">📈</span>
+                            <span>Track trending hashtags and topics</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">✨</span>
+                            <span>Get personalized content suggestions</span>
+                        </div>
+                    </div>
+                    <button class="btn btn--primary btn--lg" onclick="nextStep()">Get Started</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Content Type Selection -->
+        <div class="step" id="step-content_type">
+            <div class="step-content">
+                <h2>What type of content do you create?</h2>
+                <p class="step-description">Select all that apply to help us understand your content style</p>
+                <div class="selection-grid" id="contentTypeGrid">
+                    <!-- Content types will be populated by JavaScript -->
+                </div>
+                <div class="step-navigation">
+                    <button class="btn btn--outline" onclick="prevStep()">Back</button>
+                    <button class="btn btn--primary" onclick="nextStep()" id="contentTypeNext" disabled>Continue</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Main Topics -->
+        <div class="step" id="step-topics">
+            <div class="step-content">
+                <h2>Choose your main content topics</h2>
+                <p class="step-description">Select up to 5 topics that best represent your content focus</p>
+                <div class="selection-grid" id="mainTopicsGrid">
+                    <!-- Main topics will be populated by JavaScript -->
+                </div>
+                <div class="step-navigation">
+                    <button class="btn btn--outline" onclick="prevStep()">Back</button>
+                    <button class="btn btn--primary" onclick="nextStep()" id="mainTopicsNext" disabled>Continue</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: Subtopics -->
+        <div class="step" id="step-subtopics">
+            <div class="step-content">
+                <h2>Refine your interests</h2>
+                <p class="step-description">Select specific subtopics within your chosen areas</p>
+                <div id="subtopicsContainer">
+                    <!-- Subtopics will be populated by JavaScript -->
+                </div>
+                <div class="step-navigation">
+                    <button class="btn btn--outline" onclick="prevStep()">Back</button>
+                    <button class="btn btn--primary" onclick="nextStep()" id="subtopicsNext" disabled>Continue</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5: Custom Topics -->
+        <div class="step" id="step-custom">
+            <div class="step-content">
+                <h2>Add your unique niches</h2>
+                <p class="step-description">Add any custom topics or niches that aren't covered above (optional)</p>
+                <div class="custom-input-section">
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="customTopicInput" placeholder="Enter a custom topic or niche">
+                        <button class="btn btn--secondary" onclick="addCustomTopic()">Add Topic</button>
+                    </div>
+                    <div class="custom-topics-list" id="customTopicsList">
+                        <!-- Custom topics will appear here -->
+                    </div>
+                </div>
+                <div class="step-navigation">
+                    <button class="btn btn--outline" onclick="prevStep()">Back</button>
+                    <button class="btn btn--primary" onclick="nextStep()">Continue</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 6: Platform Selection -->
+        <div class="step" id="step-platforms">
+            <div class="step-content">
+                <h2>Where do you create content?</h2>
+                <p class="step-description">Select your primary platforms for optimized recommendations</p>
+                <div class="platform-grid" id="platformGrid">
+                    <!-- Platforms will be populated by JavaScript -->
+                </div>
+                <div class="step-navigation">
+                    <button class="btn btn--outline" onclick="prevStep()">Back</button>
+                    <button class="btn btn--primary" onclick="nextStep()" id="platformNext" disabled>Continue</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 7: Summary -->
+        <div class="step" id="step-summary">
+            <div class="step-content">
+                <h2>🎉 You're all set!</h2>
+                <p class="step-description">Here's your personalized content discovery setup</p>
+                
+                <div class="summary-section">
+                    <h3>Your Content Profile</h3>
+                    <div class="summary-card">
+                        <div class="summary-item">
+                            <strong>Content Types:</strong>
+                            <div class="tag-list" id="summaryContentTypes"></div>
+                        </div>
+                        <div class="summary-item">
+                            <strong>Main Topics:</strong>
+                            <div class="tag-list" id="summaryMainTopics"></div>
+                        </div>
+                        <div class="summary-item">
+                            <strong>Platforms:</strong>
+                            <div class="tag-list" id="summaryPlatforms"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="summary-section">
+                    <h3>Recommended Hashtags</h3>
+                    <div class="hashtag-strategy" id="hashtagStrategy">
+                        <!-- Hashtag recommendations will be populated -->
+                    </div>
+                </div>
+
+                <div class="summary-section">
+                    <h3>Your Personalized Dashboard Preview</h3>
+                    <div class="dashboard-preview">
+                        <div class="preview-item">
+                            <span class="preview-icon">📊</span>
+                            <div>
+                                <strong>Trending Content</strong>
+                                <p>Discover viral videos in your niches</p>
+                            </div>
+                        </div>
+                        <div class="preview-item">
+                            <span class="preview-icon">🏷️</span>
+                            <div>
+                                <strong>Hashtag Tracker</strong>
+                                <p>Monitor performance of your tags</p>
+                            </div>
+                        </div>
+                        <div class="preview-item">
+                            <span class="preview-icon">💡</span>
+                            <div>
+                                <strong>Content Ideas</strong>
+                                <p>AI-generated suggestions for your next video</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step-navigation">
+                    <button class="btn btn--outline" onclick="prevStep()">Back</button>
+                    <button class="btn btn--primary btn--lg" onclick="completeOnboarding()">Start Creating!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

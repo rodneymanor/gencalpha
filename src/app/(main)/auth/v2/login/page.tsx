@@ -1,7 +1,9 @@
-import Link from "next/link";
+"use client";
 
+import Link from "next/link";
 import { Globe } from "lucide-react";
 
+import { AuthRedirectGuard } from "@/components/auth/auth-redirect-guard";
 import { APP_CONFIG } from "@/config/app-config";
 
 import { LoginForm } from "../../_components/login-form";
@@ -9,7 +11,7 @@ import { GoogleButton } from "../../_components/social-auth/google-button";
 
 export default function LoginV2() {
   return (
-    <>
+    <AuthRedirectGuard>
       <div className="mx-auto flex w-full flex-col justify-center space-y-8 sm:w-[350px]">
         <div className="space-y-2 text-center">
           <h1 className="text-3xl font-medium">Login to your account</h1>
@@ -40,6 +42,6 @@ export default function LoginV2() {
           ENG
         </div>
       </div>
-    </>
+    </AuthRedirectGuard>
   );
 }

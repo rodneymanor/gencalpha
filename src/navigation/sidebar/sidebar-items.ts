@@ -1,4 +1,4 @@
-import { Calendar, Settings, Wand2, BookOpen, Video, ListTodo, type LucideIcon } from "lucide-react";
+import { Calendar, Wand2, BookOpen, Video, ListTodo, Palette, type LucideIcon } from "lucide-react";
 
 export interface NavSubItem {
   title: string;
@@ -60,9 +60,9 @@ export const sidebarItems: NavGroup[] = [
         isNew: true,
       },
       {
-        title: "Onboarding",
-        url: "/dashboard/onboarding",
-        icon: Settings,
+        title: "Brand",
+        url: "/dashboard/brand",
+        icon: Palette,
       },
     ],
   },

@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import { Settings, Search, Check, X, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -148,6 +148,9 @@ export function PersonalizationDialog() {
       <DialogContent className="max-h-[80vh] max-w-4xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Personalize Your Content Experience</DialogTitle>
+          <DialogDescription>
+            Customize your content feed by selecting topics and following specific accounts
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-8">
