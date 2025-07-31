@@ -196,6 +196,8 @@ export async function POST(request: NextRequest) {
       directUrl: streamResult.directUrl,
       guid: streamResult.guid,
       thumbnailUrl: streamResult.thumbnailUrl || downloadResult.data.thumbnailUrl,
+      caption: downloadResult.data.additionalMetadata?.caption || downloadResult.data.additionalMetadata?.description || "",
+      hashtags: downloadResult.data.additionalMetadata?.hashtags || [],
       metrics: downloadResult.data.metrics || {},
       metadata: {
         ...(downloadResult.data.metadata || {}),

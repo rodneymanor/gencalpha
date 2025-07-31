@@ -54,6 +54,8 @@ export interface Video {
   platform: string;
   thumbnailUrl: string;
   title: string;
+  caption?: string; // The actual caption/description text
+  hashtags?: string[]; // Array of hashtags extracted from caption
   transcript?: string;
   components?: VideoComponents;
   visualContext?: string;

@@ -75,6 +75,7 @@ export async function POST(request: NextRequest) {
       additionalMetadata: {
         author: videoData.author,
         description: videoData.description,
+        caption: videoData.description, // Use description as caption for consistency
         hashtags: videoData.hashtags,
         duration: videoData.metadata.duration || 0,
         timestamp: videoData.metadata.timestamp,
