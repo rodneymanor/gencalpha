@@ -54,16 +54,28 @@ export function AppSidebar({ layoutPreferences, ...props }: AppSidebarProps) {
   const sidebarRef = useRef<HTMLDivElement>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout>();
   const initializedRef = useRef(false);
-  const [isPinned, setIsPinned] = useState(false);
+  const [isPinned, setIsPinned] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("sidebar_pinned") === "true";
+    }
+    return false;
+  });
 
   // Set initial collapsed state only once
   useEffect(() => {
     if (!initializedRef.current) {
-      console.log("🔍 [Sidebar] Setting initial collapsed state");
-      setOpen(false);
+      console.log("🔍 [Sidebar] Setting initial state based on pin preference");
+      setOpen(isPinned);
       initializedRef.current = true;
     }
-  }, []); // Run only once on mount
+  }, [isPinned, setOpen]); // Sync sidebar open state with pin preference
+
+  // Persist pin state to localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("sidebar_pinned", String(isPinned));
+    }
+  }, [isPinned]);
 
   // Set up hover listeners
   useEffect(() => {
