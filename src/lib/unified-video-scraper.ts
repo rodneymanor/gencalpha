@@ -77,59 +77,103 @@ export class UnifiedVideoScraper {
   }
 
   /**
-   * Scrape Instagram video using appropriate endpoint based on URL format
+   * Scrape Instagram video using the new RapidAPI shortcode endpoint
    */
   private async scrapeInstagram(url: string, options: ScraperOptions = {}): Promise<UnifiedVideoResult> {
-    console.log("📸 [UNIFIED_SCRAPER] Scraping Instagram URL...");
+    console.log("📸 [UNIFIED_SCRAPER] Scraping Instagram URL with RapidAPI shortcode endpoint...");
 
-    // Only block /p/ post URLs, allow /reel/ to go to new reel downloader
-    if (url.includes('/p/')) {
-      const shortcode = url.match(/\/p\/([A-Za-z0-9_-]+)/)?.[1] || 'unknown';
-      console.log(`📝 [UNIFIED_SCRAPER] Detected Instagram post with shortcode: ${shortcode}`);
-      return await this.scrapeInstagramPost(url, shortcode);
+    // Extract shortcode from Instagram URL - much simpler approach
+    const shortcode = this.extractShortcode(url);
+    if (!shortcode) {
+      throw new Error("Could not extract shortcode from Instagram URL");
     }
 
-    // For reel URLs, use the new dedicated reel downloader
-    console.log("🎬 [UNIFIED_SCRAPER] Using single reel downloader for URL:", url);
-    
-    const response = await fetch(`${this.baseUrl}/api/apify/instagram/reel-downloader`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url }),
+    console.log(`🔍 [UNIFIED_SCRAPER] Extracted Instagram shortcode: ${shortcode}`);
+
+    // Call the RapidAPI Instagram endpoint using shortcode
+    const response = await fetch(`https://instagram-api-fast-reliable-data-scraper.p.rapidapi.com/post?shortcode=${shortcode}`, {
+      method: "GET",
+      headers: {
+        'x-rapidapi-host': 'instagram-api-fast-reliable-data-scraper.p.rapidapi.com',
+        'x-rapidapi-key': process.env.RAPIDAPI_KEY || ''
+      }
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: "API request failed" }));
-      throw new Error(errorData.error || "Error processing Instagram video. Please try again.");
+      const errorText = await response.text();
+      console.error("❌ [UNIFIED_SCRAPER] RapidAPI request failed:", response.status, errorText);
+      throw new Error(`Instagram API request failed: ${response.status} ${response.statusText}`);
     }
 
-    const apiResult = await response.json();
+    const instagramData = await response.json();
+    console.log("✅ [UNIFIED_SCRAPER] Instagram data retrieved successfully");
 
-    if (!apiResult.success || !apiResult.data) {
-      throw new Error(apiResult.error || "Error processing Instagram video. Please try again.");
+    // Extract video URL with improved size optimization
+    let videoUrl = "";
+    let selectionMethod = "";
+    
+    // Process Instagram video versions - prioritize dash manifest for smallest size
+    const standardVersions = instagramData.video_versions || [];
+    const dashVersions = instagramData.video_dash_manifest?.video_versions || [];
+    
+    // Combine all available versions, with dash versions first (usually smaller)
+    const allVersions = [...dashVersions, ...standardVersions];
+    
+    console.log('📹 [UNIFIED_SCRAPER] Available standard video versions:',
+      standardVersions.map((v: any) => `${v.width}x${v.height} (${v.bandwidth} bandwidth, ${(v.width || 0) * (v.height || 0)} pixels)`));
+    
+    console.log('📹 [UNIFIED_SCRAPER] Available dash video versions:',
+      dashVersions.map((v: any) => `${v.width}x${v.height} (${v.bandwidth} bandwidth, ${(v.width || 0) * (v.height || 0)} pixels)`));
+
+    let selectedVersion: any = null;
+    
+    if (allVersions.length > 0) {
+      // Sort by bandwidth (lowest first) to get the smallest file
+      // Dash versions are prioritized since they're typically much smaller
+      const sortedVersions = allVersions.sort((a: any, b: any) => (a.bandwidth || 0) - (b.bandwidth || 0));
+      selectedVersion = sortedVersions[0];
+      
+      const versionSource = dashVersions.includes(selectedVersion) ? 'dash manifest' : 'standard';
+      console.log(`📹 [UNIFIED_SCRAPER] Selected smallest version from ${versionSource}: ${selectedVersion.width}x${selectedVersion.height} (bandwidth: ${selectedVersion.bandwidth}, ${(selectedVersion.width || 0) * (selectedVersion.height || 0)} pixels)`);
+      
+      videoUrl = selectedVersion?.url || "";
+      selectionMethod = `${versionSource} (${selectedVersion.width}x${selectedVersion.height}, ${selectedVersion.bandwidth} bandwidth)`;
     }
-
-    const instagramData = apiResult.data; // Single result from downloader
+    
+    // Log what data is available for debugging
+    console.log('📊 [UNIFIED_SCRAPER] Instagram data structure analysis:');
+    console.log('  - standard video_versions:', standardVersions.length, 'found');
+    console.log('  - dash video_versions:', dashVersions.length, 'found');
+    console.log('  - video_dash_manifest:', instagramData.video_dash_manifest ? 'available' : 'not found');
+    console.log('  - Selection method:', selectionMethod);
+    
+    // Extract thumbnail URL
+    const thumbnailUrl = instagramData.image_versions2?.candidates?.[0]?.url || "";
+    
+    // Extract hashtags from caption
+    const caption = instagramData.caption?.text || "";
+    const hashtags = this.extractHashtagsFromText(caption);
 
     return {
       platform: "instagram",
-      shortCode: instagramData.shortcode || this.extractShortcode(url) || "unknown",
-      videoUrl: instagramData.videoUrl || "",
-      thumbnailUrl: instagramData.thumbnailUrl || instagramData.displayUrl || "",
-      title: instagramData.caption || `Video by @${instagramData.username}`,
-      author: instagramData.username || "unknown",
-      description: instagramData.caption || "",
-      hashtags: [], // Extract from caption if needed
+      shortCode: instagramData.code || shortcode,
+      videoUrl,
+      thumbnailUrl,
+      title: caption || `Video by @${instagramData.user?.username}`,
+      author: instagramData.user?.username || "unknown",
+      description: caption,
+      hashtags,
       metrics: {
-        likes: instagramData.likesCount || 0,
-        views: instagramData.viewsCount || 0,
-        comments: instagramData.commentsCount || 0,
-        shares: 0, // Instagram doesn't provide shares in API
+        likes: instagramData.like_count || 0,
+        views: instagramData.play_count || 0,
+        comments: instagramData.comment_count || 0,
+        shares: instagramData.reshare_count || 0,
       },
       metadata: {
-        duration: instagramData.duration,
-        timestamp: instagramData.timestamp,
-        isVerified: false, // Not available in current response
+        duration: instagramData.video_duration || 0,
+        timestamp: instagramData.taken_at ? new Date(instagramData.taken_at * 1000).toISOString() : undefined,
+        isVerified: instagramData.user?.is_verified || false,
+        followerCount: 0, // Not available in this endpoint
       },
       rawData: instagramData,
     };
@@ -310,6 +354,64 @@ export class UnifiedVideoScraper {
   private extractShortcode(url: string): string | null {
     const match = url.match(/\/(p|reel|reels|tv)\/([A-Za-z0-9_-]+)/);
     return match ? match[2] : null;
+  }
+
+  /**
+   * Extract Instagram media ID from URL - converts shortcode to media ID
+   */
+  private extractInstagramMediaId(url: string): string | null {
+    // Try to extract shortcode first
+    const shortcode = this.extractShortcode(url);
+    if (!shortcode) return null;
+
+    // If URL already contains the media ID format (number_number), extract it
+    const mediaIdMatch = url.match(/\/([0-9]+_[0-9]+)/);
+    if (mediaIdMatch) {
+      return mediaIdMatch[1];
+    }
+
+    // Convert shortcode to media ID using base62 decoding
+    try {
+      const mediaId = this.shortcodeToMediaId(shortcode);
+      return mediaId;
+    } catch (error) {
+      console.error("❌ [UNIFIED_SCRAPER] Failed to convert shortcode to media ID:", error);
+      return null;
+    }
+  }
+
+  /**
+   * Convert Instagram shortcode to media ID using base62 decoding
+   */
+  private shortcodeToMediaId(shortcode: string): string {
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+    let decoded = 0;
+    
+    for (let i = 0; i < shortcode.length; i++) {
+      const char = shortcode[i];
+      const index = alphabet.indexOf(char);
+      if (index === -1) {
+        throw new Error(`Invalid character in shortcode: ${char}`);
+      }
+      decoded = decoded * 64 + index;
+    }
+    
+    // Instagram media IDs are typically in format: {decoded}_user_id
+    // Since we don't have the user ID, we'll try to use the shortcode directly
+    // or use a fallback approach
+    
+    // For now, return just the decoded number as string
+    // In practice, you might need additional logic to construct the full media ID
+    return decoded.toString();
+  }
+
+  /**
+   * Extract hashtags from text content
+   */
+  private extractHashtagsFromText(text: string): string[] {
+    const hashtagRegex = /#([a-zA-Z0-9_]+)/g;
+    const matches = text.match(hashtagRegex);
+    return matches ? matches.map(tag => tag.substring(1)) : [];
   }
 
   /**
