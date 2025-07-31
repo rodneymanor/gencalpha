@@ -111,7 +111,7 @@ function MainInsightsTab({
             <div className="bg-muted/20 h-60 overflow-y-auto rounded-lg p-4 text-sm leading-relaxed">
               {video.transcript}
             </div>
-            {video.visualContext && (
+            {false && (
               <>
                 <Separator className="my-4" />
                 <div>
