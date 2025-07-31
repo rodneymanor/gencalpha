@@ -2,14 +2,13 @@
 
 import { useState, useEffect } from "react";
 
-import { Zap, FileText, Copy, CheckCircle, Loader2, User, ExternalLink, Calendar, Clock } from "lucide-react";
+import { Zap, FileText, Copy, CheckCircle, Loader2, User, ExternalLink } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/auth-context";
 import { Video } from "@/lib/collections";
@@ -111,15 +110,6 @@ function MainInsightsTab({
             <div className="bg-muted/20 h-60 overflow-y-auto rounded-lg p-4 text-sm leading-relaxed">
               {video.transcript}
             </div>
-            {false && (
-              <>
-                <Separator className="my-4" />
-                <div>
-                  <h4 className="mb-2 font-semibold">Visual Context</h4>
-                  <p className="text-muted-foreground text-sm leading-relaxed">{video.visualContext}</p>
-                </div>
-              </>
-            )}
           </CardContent>
         </Card>
       ) : (
@@ -140,6 +130,15 @@ function MainInsightsTab({
 }
 
 function StickyActionButtons({ video, onRewriteScript }: StickyActionButtonsProps) {
+  const caption: string | undefined = (video as any).caption;
+  const hashtags: string[] | undefined = (video as any).hashtags;
+
+  const copyHashtagsToClipboard = () => {
+    if (hashtags && hashtags.length > 0) {
+      navigator.clipboard.writeText(hashtags.map((t) => `#${t}`).join(" "));
+    }
+  };
+
   const handleRewriteScript = () => {
     if (onRewriteScript) {
       onRewriteScript(video);
@@ -149,43 +148,44 @@ function StickyActionButtons({ video, onRewriteScript }: StickyActionButtonsProp
     }
   };
 
-  const formatDuration = (seconds: number): string => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
+  const profileImageSrc = video.metadata?.author ? `https://unavatar.io/instagram/${video.metadata.author}` : undefined;
 
   return (
     <div className="bg-background sticky bottom-0 border-t px-6 py-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-6 text-sm">
-          {video.metadata?.author && (
-            <div className="flex items-center gap-2">
-              <User className="h-4 w-4 text-muted-foreground" />
-              <span className="text-muted-foreground">Author:</span>
-              <span className="font-medium">{video.metadata.author}</span>
-            </div>
-          )}
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground">Added:</span>
-            <span className="font-medium">{new Date(video.addedAt).toLocaleDateString()}</span>
-          </div>
-          {video.duration && (
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              <span className="text-muted-foreground">Duration:</span>
-              <span className="font-medium">{formatDuration(video.duration)}</span>
-            </div>
-          )}
-        </div>
-        
+      <div className="flex items-start justify-between">
+        {/* Post header */}
         <div className="flex gap-3">
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Avatar className="h-10 w-10">
+            <AvatarImage src={profileImageSrc} alt={video.metadata?.author ?? "Creator"} />
+            <AvatarFallback>
+              <User className="h-4 w-4" />
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col">
+            <span className="font-semibold text-sm">{video.metadata?.author ?? "Unknown Creator"}</span>
+            {caption && <span className="text-sm">{caption}</span>}
+            {hashtags && hashtags.length > 0 && (
+              <div className="mt-1 flex flex-wrap gap-2">
+                {hashtags.map((tag) => (
+                  <span
+                    key={tag}
+                    onClick={copyHashtagsToClipboard}
+                    className="cursor-pointer text-primary hover:underline"
+                  >
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+        {/* Action buttons */}
+        <div className="flex gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
             className="gap-2"
-            onClick={() => window.open(video.originalUrl, '_blank')}
+            onClick={() => window.open(video.originalUrl, "_blank")}
           >
             <ExternalLink className="h-4 w-4" />
             View Original
@@ -202,6 +202,7 @@ function StickyActionButtons({ video, onRewriteScript }: StickyActionButtonsProp
     </div>
   );
 }
+
 
 export function VideoInsightsDialog({ video, open, onOpenChange, onGenerateHooks, onGenerateTranscript, onRewriteScript }: VideoInsightsDialogProps) {
   const { user } = useAuth();
