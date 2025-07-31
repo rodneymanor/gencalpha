@@ -1,4 +1,4 @@
-import { Calendar, Wand2, BookOpen, Video, ListTodo, Palette, type LucideIcon } from "lucide-react";
+import { Calendar, Wand2, BookOpen, Video, ListTodo, Palette, MessageCircle, type LucideIcon } from "lucide-react";
 
 export interface NavSubItem {
   title: string;
@@ -57,6 +57,12 @@ export const sidebarItems: NavGroup[] = [
         title: "Queue",
         url: "/dashboard/q",
         icon: ListTodo,
+        isNew: true,
+      },
+      {
+        title: "Script Chat",
+        url: "/dashboard/script-chat",
+        icon: MessageCircle,
         isNew: true,
       },
       {
