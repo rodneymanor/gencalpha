@@ -7,6 +7,7 @@ import { FloatingActionButton } from "@/components/ui/floating-action-button";
 import { ProcessingNotificationBadge } from "@/components/ui/processing-notification-badge";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { ScriptPanelProvider } from "@/contexts/script-panel-context";
+import { users } from "@/data/users";
 import { cn } from "@/lib/utils";
 import { getPreference } from "@/server/server-actions";
 import {
@@ -17,6 +18,12 @@ import {
   type SidebarCollapsible,
   type ContentLayout,
 } from "@/types/preferences/layout";
+
+// Local components
+import { AccountSwitcher } from "./_components/sidebar/account-switcher";
+import { LayoutControls } from "./_components/sidebar/layout-controls";
+import { SearchDialog } from "./_components/sidebar/search-dialog";
+import { ThemeSwitcher } from "./_components/sidebar/theme-switcher";
 
 export default async function Layout({ children }: Readonly<{ children: ReactNode }>) {
   const [sidebarVariant, sidebarCollapsible, contentLayout] = await Promise.all([
@@ -45,15 +52,26 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
               "max-[113rem]:peer-data-[variant=inset]:!mr-2 min-[101rem]:peer-data-[variant=inset]:peer-data-[state=collapsed]:!mr-auto",
             )}
           >
+            <header className="flex h-12 shrink-0 items-center gap-2 border-b transition-[width,height]">
+              <div className="flex w-full items-center justify-between px-4 lg:px-6">
+                <div className="flex items-center gap-2">
+                  <SearchDialog />
+                </div>
+                <div className="flex items-center gap-2">
+                  <LayoutControls {...layoutPreferences} />
+                  <ThemeSwitcher />
+                  <AccountSwitcher users={users} />
+                </div>
+              </div>
+            </header>
             <div className="h-full">
               <div className="mx-auto max-w-6xl">
                 <div className="relative">
-                  
                   <div className="absolute top-6 right-6">
                     <ProcessingNotificationBadge />
                   </div>
                 </div>
-                <div className="px-4 pb-4 pt-6 md:px-6 md:pb-6 md:pt-8">{children}</div>
+                <div className="px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6">{children}</div>
               </div>
             </div>
             <FloatingActionButton />
