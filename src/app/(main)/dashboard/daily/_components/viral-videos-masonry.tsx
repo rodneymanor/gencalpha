@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 
 import { Play, Settings } from "lucide-react";
 
+import { BrandSettingsSummaryModal } from "@/components/ui/brand-settings-summary-modal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MasonryVideoGrid } from "@/components/ui/masonry-video-grid";
@@ -11,6 +12,7 @@ import { OnboardingWizardModal } from "@/components/ui/onboarding-wizard-modal";
 import { useAuth } from "@/contexts/auth-context";
 import { RBACClientService } from "@/core/auth/rbac-client";
 import { Video } from "@/lib/collections";
+import { ClientOnboardingService } from "@/lib/services/client-onboarding-service";
 
 import { DailyVideoInsightsDialog } from "./daily-video-insights-dialog";
 
@@ -25,6 +27,8 @@ export function ViralVideosMasonry({ className }: ViralVideosMasonryProps) {
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const [isInsightsDialogOpen, setIsInsightsDialogOpen] = useState(false);
   const [showBrandSettings, setShowBrandSettings] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<boolean | null>(null);
 
   const loadAllVideos = useCallback(async () => {
     if (!user?.uid) return;
@@ -56,8 +60,31 @@ export function ViralVideosMasonry({ className }: ViralVideosMasonryProps) {
   useEffect(() => {
     if (user?.uid) {
       loadAllVideos();
+      checkOnboardingStatus();
     }
   }, [user?.uid, loadAllVideos]);
+
+  const checkOnboardingStatus = async () => {
+    try {
+      const onboardingData = await ClientOnboardingService.getSelections();
+      setHasCompletedOnboarding(!!onboardingData);
+    } catch (error) {
+      console.error("Failed to check onboarding status:", error);
+      setHasCompletedOnboarding(false);
+    }
+  };
+
+  const handleBrandSettingsClick = async () => {
+    if (hasCompletedOnboarding === null) {
+      await checkOnboardingStatus();
+    }
+
+    if (hasCompletedOnboarding) {
+      setShowBrandSettings(true);
+    } else {
+      setShowOnboarding(true);
+    }
+  };
 
   const handleVideoClick = (video: Video) => {
     setSelectedVideo(video);
@@ -87,12 +114,7 @@ export function ViralVideosMasonry({ className }: ViralVideosMasonryProps) {
               <p className="text-muted-foreground mt-1">Discover trending content from all your collections</p>
             </div>
             <div className="flex items-center gap-3">
-              <Button
-                onClick={() => setShowBrandSettings(true)}
-                variant="outline"
-                size="sm"
-                className="gap-2"
-              >
+              <Button onClick={handleBrandSettingsClick} variant="outline" size="sm" className="gap-2">
                 <Settings className="h-4 w-4" />
                 Brand Settings
               </Button>
@@ -123,11 +145,16 @@ export function ViralVideosMasonry({ className }: ViralVideosMasonryProps) {
         onOpenChange={setIsInsightsDialogOpen}
       />
 
-      <OnboardingWizardModal
-        open={showBrandSettings}
-        onOpenChange={setShowBrandSettings}
-        mode="edit"
+      <BrandSettingsSummaryModal
+        isOpen={showBrandSettings}
+        onClose={() => setShowBrandSettings(false)}
+        onEdit={() => {
+          setShowBrandSettings(false);
+          setShowOnboarding(true);
+        }}
       />
+
+      <OnboardingWizardModal open={showOnboarding} onOpenChange={setShowOnboarding} mode="edit" />
     </div>
   );
 }
