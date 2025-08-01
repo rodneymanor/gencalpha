@@ -8,7 +8,9 @@ import { NextRequest, NextResponse } from "next/server";
  */
 export async function POST(request: NextRequest) {
   try {
-    const { interest, limit = 10 } = await request.json();
+    const { interest, limit = 10, robotId: incomingRobotId } = await request.json();
+
+    const robotId = incomingRobotId ?? process.env.BROWSE_AI_ROBOT_ID;
 
     if (!interest) {
       return NextResponse.json({ error: "`interest` is required" }, { status: 400 });
@@ -21,7 +23,7 @@ export async function POST(request: NextRequest) {
     const recRes = await fetch(`${baseUrl}/api/inspiration/fetch-recommendations`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ interest, limit }),
+      body: JSON.stringify({ interest, limit, robotId }),
     });
 
     const recJson = await recRes.json();

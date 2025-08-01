@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     const robot = robotId || process.env.BROWSE_AI_ROBOT_ID;
 
     if (!robot) {
-      return NextResponse.json({ error: "Browse AI robot ID not configured" }, { status: 500 });
+      return NextResponse.json({ error: "Browse AI robot ID not provided" }, { status: 400 });
     }
 
     // 1. Trigger Browse AI robot
