@@ -6,17 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-interface Idea {
-  id: string;
-  title: string;
-  content: string;
-  source: "instagram" | "tiktok" | "youtube" | "blog" | "manual" | "voice";
-  sourceUrl?: string;
-  excerpt: string;
-  createdAt: string;
-  wordCount: number;
-  tags: string[];
-}
+import type { Idea } from "./types";
 
 interface IdeaTableProps {
   ideas: Idea[];
