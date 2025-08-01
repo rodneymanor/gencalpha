@@ -8,8 +8,16 @@ import { NextRequest, NextResponse } from "next/server";
  */
 export async function POST(request: NextRequest) {
   try {
-    const { interest, limit = 10, robotId: incomingRobotId } = await request.json();
+    const {
+      interest: bodyInterest,
+      hashtag,
+      limit: bodyLimit,
+      max_videos,
+      robotId: incomingRobotId,
+    } = await request.json();
 
+    const interest = bodyInterest ?? hashtag;
+    const limit = bodyLimit ?? max_videos ?? 10;
     const robotId = incomingRobotId ?? process.env.BROWSE_AI_ROBOT_ID;
 
     if (!interest) {
