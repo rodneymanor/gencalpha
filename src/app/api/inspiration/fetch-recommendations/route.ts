@@ -12,9 +12,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "`interest` is required" }, { status: 400 });
     }
 
-    const apiKey = process.env.BROWSE_AI_API_KEY ||
+    const apiKey = process.env.BROWSE_AI_API_KEY ??
       "9ee4ab75-87bc-4324-a08e-72bc069c4697:06f085de-7569-435d-ae05-da6a0bba1ba5";
-    const robot = robotId || process.env.BROWSE_AI_ROBOT_ID;
+    const robot = robotId ?? process.env.BROWSE_AI_ROBOT_ID;
 
     if (!robot) {
       return NextResponse.json({ error: "Browse AI robot ID not provided" }, { status: 400 });
@@ -31,8 +31,8 @@ export async function POST(request: NextRequest) {
       },
       body: JSON.stringify({
         inputParameters: {
-          keyword: interest,
-          limit,
+          hashtag: interest,
+          max_videos: limit,
         },
       }),
     });
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     }
 
     const triggerJson = await triggerRes.json();
-    const taskId = triggerJson.result?.id || triggerJson.id;
+    const taskId = triggerJson.result?.id ?? triggerJson.id;
     console.log(`🤖 [BrowseAI][${reqId}] TaskId`, taskId);
 
     // 2. Poll for completion (max 10 attempts, 30 s interval)
