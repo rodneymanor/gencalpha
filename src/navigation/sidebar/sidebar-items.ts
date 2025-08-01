@@ -65,11 +65,6 @@ export const sidebarItems: NavGroup[] = [
         icon: MessageCircle,
         isNew: true,
       },
-      {
-        title: "Brand",
-        url: "/dashboard/brand",
-        icon: Palette,
-      },
     ],
   },
 ];

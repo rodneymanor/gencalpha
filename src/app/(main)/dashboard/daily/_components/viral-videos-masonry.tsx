@@ -2,10 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react";
 
-import { Play } from "lucide-react";
+import { Play, Settings } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MasonryVideoGrid } from "@/components/ui/masonry-video-grid";
+import { OnboardingWizardModal } from "@/components/ui/onboarding-wizard-modal";
 import { useAuth } from "@/contexts/auth-context";
 import { RBACClientService } from "@/core/auth/rbac-client";
 import { Video } from "@/lib/collections";
@@ -22,6 +24,7 @@ export function ViralVideosMasonry({ className }: ViralVideosMasonryProps) {
   const [loading, setLoading] = useState(true);
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const [isInsightsDialogOpen, setIsInsightsDialogOpen] = useState(false);
+  const [showBrandSettings, setShowBrandSettings] = useState(false);
 
   const loadAllVideos = useCallback(async () => {
     if (!user?.uid) return;
@@ -83,9 +86,20 @@ export function ViralVideosMasonry({ className }: ViralVideosMasonryProps) {
               <CardTitle className="text-2xl">Viral Video Inspiration</CardTitle>
               <p className="text-muted-foreground mt-1">Discover trending content from all your collections</p>
             </div>
-            <div className="text-muted-foreground flex items-center gap-2 text-sm">
-              <Play className="h-4 w-4" />
-              <span>{videos.length} videos</span>
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={() => setShowBrandSettings(true)}
+                variant="outline"
+                size="sm"
+                className="gap-2"
+              >
+                <Settings className="h-4 w-4" />
+                Brand Settings
+              </Button>
+              <div className="text-muted-foreground flex items-center gap-2 text-sm">
+                <Play className="h-4 w-4" />
+                <span>{videos.length} videos</span>
+              </div>
             </div>
           </div>
         </CardHeader>
@@ -107,6 +121,12 @@ export function ViralVideosMasonry({ className }: ViralVideosMasonryProps) {
         video={selectedVideo}
         open={isInsightsDialogOpen}
         onOpenChange={setIsInsightsDialogOpen}
+      />
+
+      <OnboardingWizardModal
+        open={showBrandSettings}
+        onOpenChange={setShowBrandSettings}
+        mode="edit"
       />
     </div>
   );

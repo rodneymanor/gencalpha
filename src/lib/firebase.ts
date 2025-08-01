@@ -18,8 +18,18 @@ const firebaseConfig = {
 const hasValidConfig =
   process.env.NEXT_PUBLIC_FIREBASE_API_KEY && process.env.NEXT_PUBLIC_FIREBASE_API_KEY !== "demo-api-key";
 
+console.log("🔥 [Firebase] Configuration status:");
+console.log("🔥 [Firebase] Has valid config:", hasValidConfig);
+console.log("🔥 [Firebase] API Key exists:", !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
+console.log("🔥 [Firebase] API Key is demo:", process.env.NEXT_PUBLIC_FIREBASE_API_KEY === "demo-api-key");
+console.log("🔥 [Firebase] Project ID:", process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID);
+
 const app = hasValidConfig ? (getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]) : null;
 const auth = hasValidConfig && app ? getAuth(app) : null;
 const db = hasValidConfig && app ? getFirestore(app) : null;
+
+console.log("🔥 [Firebase] App initialized:", !!app);
+console.log("🔥 [Firebase] Auth initialized:", !!auth);
+console.log("🔥 [Firebase] Firestore initialized:", !!db);
 
 export { auth, db };

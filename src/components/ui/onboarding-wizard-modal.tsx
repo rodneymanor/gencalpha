@@ -642,13 +642,26 @@ const StepSummary = ({ back, selections }: StepProps) => {
   const completeOnboarding = async () => {
     setIsCompleting(true);
     try {
+      console.log("🔄 Starting onboarding save process...");
+      console.log("📝 Selections to save:", selections);
+      
       await ClientOnboardingService.saveSelections(selections);
+      
+      console.log("✅ Onboarding selections saved successfully!");
+      
       // Close the modal after saving
       setTimeout(() => {
         window.location.reload();
       }, 500);
     } catch (error) {
-      console.error("Failed to save onboarding selections", error);
+      console.error("❌ Failed to save onboarding selections", error);
+      console.error("Error details:", {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        name: error instanceof Error ? error.name : typeof error
+      });
+      // Don't reload if there's an error, so user can see the issue
+      setIsCompleting(false);
     }
   };
 
@@ -870,10 +883,45 @@ const STEP_COMPONENTS: Record<StepKey, (p: StepProps) => JSX.Element> = {
 
 // Main Component -----------------------------------------------------------------------------
 
-export function OnboardingWizardModal() {
-  const [open, setOpen] = useState(true);
-  const [current, setCurrent] = useState<StepKey>("welcome");
+interface OnboardingWizardModalProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  mode?: 'onboarding' | 'edit';
+}
+
+export function OnboardingWizardModal({
+  open: externalOpen,
+  onOpenChange,
+  mode = 'onboarding'
+}: OnboardingWizardModalProps = {}) {
+  const [internalOpen, setInternalOpen] = useState(true);
+  const [current, setCurrent] = useState<StepKey>(mode === 'edit' ? "content_type" : "welcome");
   const [selections, setSelections] = useState<OnboardingSelections>(DEFAULT_SELECTIONS);
+  const [loading, setLoading] = useState(mode === 'edit');
+
+  // Use external open state if provided, otherwise use internal
+  const isOpen = externalOpen !== undefined ? externalOpen : internalOpen;
+  const setIsOpen = onOpenChange || setInternalOpen;
+
+  // Load existing selections in edit mode
+  useEffect(() => {
+    if (mode === 'edit' && isOpen) {
+      loadExistingSelections();
+    }
+  }, [mode, isOpen]);
+
+  const loadExistingSelections = async () => {
+    try {
+      setLoading(true);
+      // For now, we'll just load empty selections and skip the API call
+      // You can implement ClientOnboardingService.getSelections() later
+      console.log('Loading existing selections for edit mode...');
+    } catch (error) {
+      console.error('Failed to load existing selections:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const stepIndex = steps.indexOf(current);
   const progress = ((stepIndex + 1) / steps.length) * 100;
@@ -890,8 +938,23 @@ export function OnboardingWizardModal() {
 
   const Step = STEP_COMPONENTS[current];
 
+  if (loading) {
+    return (
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="w-[95vw] sm:max-w-md">
+          <div className="flex items-center justify-center p-8">
+            <div className="text-center space-y-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              <p className="text-muted-foreground">Loading your brand settings...</p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="w-[95vw] sm:max-w-3xl md:max-w-4xl lg:max-w-5xl xl:max-w-6xl p-0 overflow-hidden">
         <DialogHeader className="sr-only">
           <DialogTitle>Onboarding Wizard - Step {stepIndex + 1} of {steps.length}</DialogTitle>
