@@ -39,38 +39,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to fetch recommendations", details: recJson }, { status: 500 });
     }
 
-    const recommendations: Array<{ url?: string; videoUrl?: string }> = recJson.data || [];
-
-    // Extract video URLs (naively tries both url & videoUrl fields)
-    const videoUrls = recommendations
-      .map((item) => item.url || item.videoUrl)
-      .filter(Boolean) as string[];
-
-    if (videoUrls.length === 0) {
-      return NextResponse.json({ success: true, videos: [], processedResults: [] });
-    }
-
-    // Step 2: Process videos SEQUENTIALLY to avoid rate limits
-    const requestId = Math.random().toString(36).substring(2,9);
-    console.log(`🎬 [Orchestrator][${requestId}] Processing ${videoUrls.length} videos sequentially`);
-    const processedResults: Array<{ videoUrl: string; ok: boolean; json: any }> = [];
-    for (const videoUrl of videoUrls) {
-      try {
-        console.log(`🎬 [Orchestrator][${requestId}] ⏳ Processing`, videoUrl);
-        const resp = await fetch(`${baseUrl}/api/process-video`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ videoUrl }),
-        });
-        const json = await resp.json();
-        processedResults.push({ videoUrl, ok: resp.ok, json });
-        console.log(`🎬 [Orchestrator][${requestId}] ✅ Finished`, { videoUrl, ok: resp.ok });
-      } catch (err: any) {
-        processedResults.push({ videoUrl, ok: false, json: { error: err?.message ?? "unknown" } });
-      }
-    }
-
-    return NextResponse.json({ success: true, videos: recommendations, processedResults });
+    // recommendations will be processed asynchronously via webhook
+    return NextResponse.json({ success: true, queued: true, taskId: recJson.taskId ?? undefined });
   } catch (error) {
     console.error("[inspiration-orchestrator]", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

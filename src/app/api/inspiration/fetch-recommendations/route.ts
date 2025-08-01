@@ -34,6 +34,7 @@ export async function POST(request: NextRequest) {
           hashtag: interest,
           max_videos: limit,
         },
+        webhookUrl: `${new URL("../browseai-webhook", request.url).origin}/api/inspiration/browseai-webhook`
       }),
     });
 
