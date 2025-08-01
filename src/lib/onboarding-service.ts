@@ -7,6 +7,7 @@ export interface OnboardingSelections {
   subtopics: string[];
   customTopics: string[];
   platforms: string[];
+  specificInterest?: string;
 }
 
 const DEFAULT_SELECTIONS: OnboardingSelections = {
@@ -15,6 +16,7 @@ const DEFAULT_SELECTIONS: OnboardingSelections = {
   subtopics: [],
   customTopics: [],
   platforms: [],
+  specificInterest: undefined,
 };
 
 /**

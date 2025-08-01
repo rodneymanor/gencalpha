@@ -3,7 +3,7 @@
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { SheetClose, SheetTitle } from "@/components/ui/sheet";
+
 import { ReactNode } from "react";
 
 interface PanelHeaderProps {
@@ -16,12 +16,9 @@ interface PanelHeaderProps {
 export function PanelHeader({ title, onClose, className, children }: PanelHeaderProps) {
   return (
     <div className={cn("flex items-center justify-between border-b p-6", className)}>
-      <SheetTitle asChild>
-        <h2 className="text-lg font-semibold leading-none">{title}</h2>
-      </SheetTitle>
+      <h2 className="text-lg font-semibold leading-none">{title}</h2>
       {children ?? (
-        <SheetClose asChild>
-          <Button
+        <Button
             variant="ghost"
             size="icon"
             onClick={onClose}
@@ -30,7 +27,7 @@ export function PanelHeader({ title, onClose, className, children }: PanelHeader
           >
             <X className="h-4 w-4" />
           </Button>
-        </SheetClose>
+        
       )}
     </div>
   );

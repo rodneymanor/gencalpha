@@ -223,6 +223,7 @@ export interface OnboardingSelections {
   subtopics: string[];
   customTopics: string[];
   platforms: string[];
+  specificInterest?: string;
 }
 
 const DEFAULT_SELECTIONS: OnboardingSelections = {
@@ -231,6 +232,7 @@ const DEFAULT_SELECTIONS: OnboardingSelections = {
   subtopics: [],
   customTopics: [],
   platforms: [],
+  specificInterest: undefined,
 };
 
 // Steps config
@@ -430,7 +432,25 @@ const StepSubtopics = ({ next, back, selections, updateSelections }: StepProps) 
     const updated = current.includes(subtopic)
       ? current.filter(s => s !== subtopic)
       : [...current, subtopic];
-    updateSelections({ subtopics: updated });
+    
+    // Auto-assign specific interest based on subtopic selection
+    let specificInterest = selections.specificInterest;
+    if (subtopic === "AI & Future Tech") {
+      if (updated.includes(subtopic)) {
+        // User selected AI & Future Tech - set aitools as specific interest
+        specificInterest = 'aitools';
+      } else {
+        // User deselected AI & Future Tech - clear specific interest if it was aitools
+        if (selections.specificInterest === 'aitools') {
+          specificInterest = undefined;
+        }
+      }
+    }
+    
+    updateSelections({
+      subtopics: updated,
+      specificInterest: specificInterest
+    });
   };
 
   const isSelected = (subtopic: string) => selections.subtopics.includes(subtopic);
@@ -751,6 +771,17 @@ const StepSummary = ({ back, selections }: StepProps) => {
                   })}
                 </div>
               </div>
+
+              {selections.specificInterest && (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">Specific Interest:</p>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="default">
+                      {selections.specificInterest}
+                    </Badge>
+                  </div>
+                </div>
+              )}
             </div>
           </Card>
 
@@ -942,6 +973,9 @@ export function OnboardingWizardModal({
     return (
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="w-[95vw] sm:max-w-md">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Loading Brand Settings</DialogTitle>
+          </DialogHeader>
           <div className="flex items-center justify-center p-8">
             <div className="text-center space-y-4">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>

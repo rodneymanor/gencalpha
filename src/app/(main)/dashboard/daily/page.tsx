@@ -1,8 +1,8 @@
 import { Metadata } from "next";
 
-import { ContentIdeasGrid } from "./_components/content-ideas-grid";
-import { OnboardingFAB } from "./_components/onboarding-fab";
-import { ViralVideosMasonry } from "./_components/viral-videos-masonry";
+import { ManusPrompt } from "@/components/manus-prompt";
+
+import { PersonalizedVideoFeed } from "./_components/personalized-video-feed";
 
 export const metadata: Metadata = {
   title: "Daily | Studio Admin",
@@ -12,29 +12,19 @@ export const metadata: Metadata = {
 export default function DailyPage() {
   return (
     <div className="space-y-8">
+      {/* Manus Prompt */}
+      <ManusPrompt />
+
       {/* Header Section */}
       <div className="mx-auto max-w-7xl space-y-4">
-        <div className="space-y-2">
-          <h1 className="text-foreground text-2xl font-bold tracking-tight md:text-3xl">
-            Use the relevant Inspiration for your content.
-          </h1>
-          <p className="text-muted-foreground text-base md:text-lg">Short-form scripts. Human tone. AI speed.</p>
-        </div>
         <div className="flex items-center justify-between">
           <h2 className="text-primary text-lg font-semibold md:text-xl">Short form Inspiration For You!</h2>
-          {/* Onboarding FAB */}
-          <OnboardingFAB />
         </div>
       </div>
 
-      {/* Viral Videos Masonry Grid */}
+      {/* Personalized Inspiration Feed */}
       <div className="mx-auto max-w-7xl">
-        <ViralVideosMasonry />
-      </div>
-
-      {/* Content Ideas Grid */}
-      <div className="mx-auto max-w-7xl">
-        <ContentIdeasGrid />
+        <PersonalizedVideoFeed />
       </div>
     </div>
   );

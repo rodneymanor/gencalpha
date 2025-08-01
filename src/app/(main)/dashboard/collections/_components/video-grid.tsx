@@ -243,7 +243,6 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
                 </div>
 
                 <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/80 to-transparent p-3">
-                  <h3 className="mb-1 line-clamp-2 text-sm font-medium text-white">{video.title}</h3>
                   {video.metrics && (
                     <div className="flex items-center gap-3 text-xs text-white/80">
                       {video.metrics.views > 0 && (

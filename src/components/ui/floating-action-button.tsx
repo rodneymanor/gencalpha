@@ -1,20 +1,18 @@
 "use client";
 
 import { useState } from "react";
-
 import { Pencil } from "lucide-react";
 
-import { SlideOutPanel } from "@/components/ui/slide-out-panel";
-import { useScriptPanel } from "@/contexts/script-panel-context";
 import { cn } from "@/lib/utils";
+import { useResizableLayout } from "@/contexts/resizable-layout-context";
 
 interface PenFabProps {
-  onClick?: () => void
-  className?: string
+  onClick?: () => void;
+  className?: string;
 }
 
 export function PenFab({ onClick, className }: PenFabProps) {
-  const [isHovered, setIsHovered] = useState(false)
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <button
@@ -24,7 +22,7 @@ export function PenFab({ onClick, className }: PenFabProps) {
         isHovered ? "scale-110" : "",
         className,
       )}
-      aria-label="Edit"
+      aria-label="Open writing panel"
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -44,19 +42,11 @@ export function PenFab({ onClick, className }: PenFabProps) {
         />
       </div>
     </button>
-  )
+  );
 }
 
 export function FloatingActionButton() {
-  const { isPanelOpen, openPanel, closePanel } = useScriptPanel();
+  const { toggleWritingPanel } = useResizableLayout();
 
-  return (
-    <>
-      <PenFab onClick={() => openPanel()} />
-      <SlideOutPanel
-        isOpen={isPanelOpen}
-        onClose={() => closePanel()}
-      />
-    </>
-  );
+  return <PenFab onClick={toggleWritingPanel} />;
 }
