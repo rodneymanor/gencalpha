@@ -42,25 +42,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, videos: [], processedResults: [] });
     }
 
-    // Step 2: Process videos in parallel
-    const processingPromises = videoUrls.map((videoUrl) =>
-      fetch(`${baseUrl}/api/process-video`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ videoUrl }),
-      })
-        .then(async (r) => ({ ok: r.ok, json: await r.json() }))
-        .catch((err) => ({ ok: false, json: { error: err?.message ?? "unknown" } }))
-    );
-
-    const settled = await Promise.allSettled(processingPromises);
-
-    const processedResults = settled.map((res, idx) => {
-      if (res.status === "fulfilled") {
-        return { videoUrl: videoUrls[idx], ...res.value };
+    // Step 2: Process videos SEQUENTIALLY to avoid rate limits
+    const processedResults: Array<{ videoUrl: string; ok: boolean; json: any }> = [];
+    for (const videoUrl of videoUrls) {
+      try {
+        const resp = await fetch(`${baseUrl}/api/process-video`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ videoUrl }),
+        });
+        const json = await resp.json();
+        processedResults.push({ videoUrl, ok: resp.ok, json });
+      } catch (err: any) {
+        processedResults.push({ videoUrl, ok: false, json: { error: err?.message ?? "unknown" } });
       }
-      return { videoUrl: videoUrls[idx], ok: false, json: { error: res.reason } };
-    });
+    }
 
     return NextResponse.json({ success: true, videos: recommendations, processedResults });
   } catch (error) {
