@@ -21,6 +21,8 @@ export async function POST(request: NextRequest) {
     }
 
     // 1. Trigger Browse AI robot
+    const reqId = Math.random().toString(36).substring(2, 9);
+    console.log(`🤖 [BrowseAI][${reqId}] Triggering robot`, { robot, interest, limit });
     const triggerRes = await fetch(`https://api.browse.ai/v2/robots/${robot}/tasks`, {
       method: "POST",
       headers: {
@@ -35,6 +37,7 @@ export async function POST(request: NextRequest) {
       }),
     });
 
+    console.log(`🤖 [BrowseAI][${reqId}] Trigger response status`, triggerRes.status);
     if (!triggerRes.ok) {
       const text = await triggerRes.text();
       return NextResponse.json({ error: "Failed to trigger Browse AI task", details: text }, { status: 500 });
@@ -42,6 +45,7 @@ export async function POST(request: NextRequest) {
 
     const triggerJson = await triggerRes.json();
     const taskId = triggerJson.result?.id || triggerJson.id;
+    console.log(`🤖 [BrowseAI][${reqId}] TaskId`, taskId);
 
     // 2. Poll for completion (max 10 attempts, 30 s interval)
     const poll = async () => {
@@ -54,6 +58,7 @@ export async function POST(request: NextRequest) {
     let attempts = 0;
     let taskData: any = null;
     while (attempts < 10) {
+      console.log(`🤖 [BrowseAI][${reqId}] Poll attempt ${attempts + 1}`);
       await new Promise((r) => setTimeout(r, 30_000));
       taskData = await poll();
       if (taskData.result?.status === "successful" || taskData.result?.status === "failed") {
@@ -62,12 +67,14 @@ export async function POST(request: NextRequest) {
       attempts += 1;
     }
 
+    console.log(`🤖 [BrowseAI][${reqId}] Final status`, taskData?.result?.status);
     if (taskData?.result?.status !== "successful") {
       return NextResponse.json({ error: "Browse AI task did not complete successfully" }, { status: 500 });
     }
 
     const capturedData = taskData.result?.capturedData ?? taskData.result?.output ?? [];
 
+    console.log(`🤖 [BrowseAI][${reqId}] Captured items`, capturedData.length);
     return NextResponse.json({ success: true, data: capturedData });
   } catch (error) {
     console.error("[fetch-recommendations]", error);

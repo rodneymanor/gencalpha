@@ -43,9 +43,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Step 2: Process videos SEQUENTIALLY to avoid rate limits
+    const requestId = Math.random().toString(36).substring(2,9);
+    console.log(`🎬 [Orchestrator][${requestId}] Processing ${videoUrls.length} videos sequentially`);
     const processedResults: Array<{ videoUrl: string; ok: boolean; json: any }> = [];
     for (const videoUrl of videoUrls) {
       try {
+        console.log(`🎬 [Orchestrator][${requestId}] ⏳ Processing`, videoUrl);
         const resp = await fetch(`${baseUrl}/api/process-video`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -53,6 +56,7 @@ export async function POST(request: NextRequest) {
         });
         const json = await resp.json();
         processedResults.push({ videoUrl, ok: resp.ok, json });
+        console.log(`🎬 [Orchestrator][${requestId}] ✅ Finished`, { videoUrl, ok: resp.ok });
       } catch (err: any) {
         processedResults.push({ videoUrl, ok: false, json: { error: err?.message ?? "unknown" } });
       }
