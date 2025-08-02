@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const username = searchParams.get("username");
+  const username = searchParams.get("username") ?? undefined;
   const usernames = searchParams.get("usernames")?.split(",");
   const includeDetails = searchParams.get("includeDetails") === "true";
   const resultsLimit = searchParams.get("resultsLimit") ? parseInt(searchParams.get("resultsLimit")!) : undefined;

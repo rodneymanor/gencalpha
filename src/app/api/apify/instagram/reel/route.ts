@@ -161,9 +161,9 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const url = searchParams.get("url");
+  const url = searchParams.get("url") ?? undefined;
   const urls = searchParams.get("urls")?.split(",");
-  const username = searchParams.get("username");
+  const username = searchParams.get("username") ?? undefined;
   const resultsLimit = searchParams.get("resultsLimit") ? parseInt(searchParams.get("resultsLimit")!) : undefined;
   const downloadVideo = searchParams.get("downloadVideo") === "true";
 

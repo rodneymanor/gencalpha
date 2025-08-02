@@ -94,7 +94,7 @@ function processResults(results: PromiseSettledResult<APIRequest>[]): {
 
       if (apiResult && (apiResult as { success: boolean }).success) {
         successfulRequests++;
-        const apiData = (apiResult as { data: unknown[] }).data;
+        const apiData = (apiResult as { data: any[] }).data;
 
         data[platform][type] = apiData;
 
@@ -238,7 +238,7 @@ export async function POST(request: NextRequest) {
     Object.assign(errors, processErrors);
 
     const response: BatchResponse = {
-      success: successfulRequests > 0,
+      success: stats.successful > 0,
       data,
       errors: Object.keys(errors).length > 0 ? errors : undefined,
       timestamp: new Date().toISOString(),

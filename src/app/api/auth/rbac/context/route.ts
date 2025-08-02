@@ -4,8 +4,9 @@ import { RBACService } from "@/core/auth/rbac";
 import { isAdminInitialized } from "@/lib/firebase-admin";
 
 export async function POST(request: NextRequest) {
+  let userId: string | undefined;
   try {
-    const { userId } = await request.json();
+    ({ userId } = await request.json());
 
     if (!userId) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });

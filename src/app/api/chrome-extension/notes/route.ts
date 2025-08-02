@@ -30,15 +30,15 @@ async function trackVoiceNoteTokenUsage(userId: string, usage: VoiceNoteTokenUsa
     const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
     const userStatsRef = adminDb.collection("user_voice_stats").doc(`${userId}_${currentMonth}`);
 
-    await adminDb.runTransaction(async (transaction) => {
-      const doc = await transaction.get(userStatsRef);
+    await adminDb.runTransaction(async (transaction: FirebaseFirestore.Transaction) => {
+      const doc = (await transaction.get(userStatsRef)) as unknown as FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData>;
 
       if (doc.exists) {
         const data = doc.data();
         transaction.update(userStatsRef, {
-          totalTokens: (data?.totalTokens || 0) + usage.totalTokens,
-          totalNotes: (data?.totalNotes || 0) + 1,
-          totalAudioDuration: (data?.totalAudioDuration || 0) + (usage.audioDuration || 0),
+          totalTokens: (data?.totalTokens ?? 0) + usage.totalTokens,
+          totalNotes: (data?.totalNotes ?? 0) + 1,
+          totalAudioDuration: (data?.totalAudioDuration ?? 0) + (usage.audioDuration ?? 0),
           lastUsedAt: usage.timestamp,
         });
       } else {
@@ -47,7 +47,7 @@ async function trackVoiceNoteTokenUsage(userId: string, usage: VoiceNoteTokenUsa
           month: currentMonth,
           totalTokens: usage.totalTokens,
           totalNotes: 1,
-          totalAudioDuration: usage.audioDuration || 0,
+          totalAudioDuration: usage.audioDuration ?? 0,
           firstUsedAt: usage.timestamp,
           lastUsedAt: usage.timestamp,
           createdAt: new Date().toISOString(),
@@ -134,7 +134,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<NotesRespo
     // Parse query parameters
     const { searchParams } = new URL(request.url);
     const noteId = searchParams.get("noteId");
-    const limit = Math.min(parseInt(searchParams.get("limit") || "50"), 100);
+    const limit = Math.min(parseInt(searchParams.get("limit") ?? "50"), 100);
     const type = searchParams.get("type") as ChromeNote["type"] | null;
     const search = searchParams.get("search");
     const tagsParam = searchParams.get("tags");
@@ -200,7 +200,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<NotesRespo
     }
 
     const snapshot = await query.get();
-    let notes: ChromeNote[] = snapshot.docs.map((doc) => ({
+    let notes: ChromeNote[] = snapshot.docs.map((doc: FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>) => ({
       id: doc.id,
       ...doc.data(),
     })) as ChromeNote[];
@@ -306,9 +306,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<NotesResp
       try {
         await trackVoiceNoteTokenUsage(userId, {
           noteId: docRef.id,
-          service: metadata.voiceMetadata.transcriptionService || "gemini",
-          inputTokens: metadata.voiceMetadata.inputTokens || 0,
-          outputTokens: metadata.voiceMetadata.outputTokens || 0,
+          service: metadata.voiceMetadata.transcriptionService ?? "gemini",
+          inputTokens: metadata.voiceMetadata.inputTokens ?? 0,
+          outputTokens: metadata.voiceMetadata.outputTokens ?? 0,
           totalTokens: metadata.voiceMetadata.totalTokens,
           audioDuration: metadata.voiceMetadata.originalAudioDuration,
           language: metadata.voiceMetadata.language,
