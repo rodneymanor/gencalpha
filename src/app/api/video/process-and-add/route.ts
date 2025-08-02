@@ -1,8 +1,8 @@
+/* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 // Production-ready video processing and collection addition endpoint
 import { NextRequest, NextResponse } from "next/server";
 
-import { uploadToBunnyStream, uploadBunnyThumbnailWithRetry } from "@/lib/bunny-stream";
-import { generateBunnyThumbnailUrl } from "@/lib/bunny-stream";
+import { uploadToBunnyStream, uploadBunnyThumbnailWithRetry, generateBunnyThumbnailUrl } from "@/lib/bunny-stream";
 import { getAdminAuth, getAdminDb, isAdminInitialized } from "@/lib/firebase-admin";
 
 export async function POST(request: NextRequest) {
@@ -14,37 +14,44 @@ export async function POST(request: NextRequest) {
       throw new Error("Firebase Admin SDK not initialized - check environment variables");
     }
 
-    // Extract and verify user authentication
-    const authHeader = request.headers.get("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json(
-        {
-          error: "Unauthorized - Missing or invalid authorization header",
-        },
-        { status: 401 },
-      );
-    }
+    // Internal secret bypass or Firebase auth
+    const internalSecret = request.headers.get("x-internal-secret");
+    let userId: string | undefined;
 
-    const idToken = authHeader.split("Bearer ")[1];
-    let userId: string;
-
-    try {
-      const adminAuth = getAdminAuth();
-      if (!adminAuth) {
-        throw new Error("Admin auth not available");
+    if (internalSecret && internalSecret === process.env.INTERNAL_API_SECRET) {
+      userId = "internal-service";
+      console.log("✅ [VIDEO_PROCESS] Internal secret authentication");
+    } else {
+      // Extract and verify user authentication via Firebase ID token
+      const authHeader = request.headers.get("Authorization");
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return NextResponse.json(
+          {
+            error: "Unauthorized - Missing or invalid authorization header",
+          },
+          { status: 401 },
+        );
       }
 
-      const decodedToken = await adminAuth.verifyIdToken(idToken);
-      userId = decodedToken.uid;
-      console.log("✅ [VIDEO_PROCESS] User authenticated:", userId);
-    } catch (authError) {
-      console.error("❌ [VIDEO_PROCESS] Authentication failed:", authError);
-      return NextResponse.json(
-        {
-          error: "Unauthorized - Invalid token",
-        },
-        { status: 401 },
-      );
+      const idToken = authHeader.split("Bearer ")[1];
+      try {
+        const adminAuth = getAdminAuth();
+        if (!adminAuth) {
+          throw new Error("Admin auth not available");
+        }
+
+        const decodedToken = await adminAuth.verifyIdToken(idToken);
+        userId = decodedToken.uid;
+        console.log("✅ [VIDEO_PROCESS] User authenticated:", userId);
+      } catch (authError) {
+        console.error("❌ [VIDEO_PROCESS] Authentication failed:", authError);
+        return NextResponse.json(
+          {
+            error: "Unauthorized - Invalid token",
+          },
+          { status: 401 },
+        );
+      }
     }
 
     const { videoUrl, collectionId, title, thumbnailUrl, scrapedData } = await request.json();
@@ -116,7 +123,10 @@ export async function POST(request: NextRequest) {
       // Stream directly from the scraped video URL
       console.log("🌊 [VIDEO_PROCESS] Streaming directly from scraped video URL");
       const { streamToBunnyFromUrl } = await import("@/lib/bunny-stream");
-      const streamResponse = await streamToBunnyFromUrl(scrapedData.videoUrl, `${scrapedData.platform}-${Date.now()}.mp4`);
+      const streamResponse = await streamToBunnyFromUrl(
+        scrapedData.videoUrl,
+        `${scrapedData.platform}-${Date.now()}.mp4`,
+      );
 
       if (streamResponse) {
         // Extract GUID from iframe URL for thumbnail upload
