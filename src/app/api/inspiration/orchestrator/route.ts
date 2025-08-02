@@ -8,13 +8,19 @@ import { NextRequest, NextResponse } from "next/server";
  * Returns both raw recommendations and processing statuses.
  */
 export async function POST(request: NextRequest) {
-  // 🔒 Simple in-memory cooldown to prevent duplicate triggers every 30 min
-  const now = Date.now();
-  const last = (globalThis as any).__inspLastRun ?? 0;
-  if (now - last < 30 * 60_000) {
-    return NextResponse.json({ success: false, skipped: true, reason: "cooldown" });
+  const urlObj = new URL(request.url);
+  const bypassCooldown = urlObj.searchParams.has("nocooldown");
+  const devMode = process.env.NODE_ENV !== "production";
+
+  // 🔒 Simple in-memory cooldown to prevent duplicate triggers every 30 min (prod only)
+  if (!devMode && !bypassCooldown) {
+    const now = Date.now();
+    const last = (globalThis as any).__inspLastRun ?? 0;
+    if (now - last < 30 * 60_000) {
+      return NextResponse.json({ success: false, skipped: true, reason: "cooldown" });
+    }
+    (globalThis as any).__inspLastRun = now;
   }
-  (globalThis as any).__inspLastRun = now;
   try {
     const {
       interest: bodyInterest,
@@ -84,7 +90,7 @@ export async function POST(request: NextRequest) {
       if (!videoUrl) continue;
       try {
         console.log(`🎬 [Orchestrator][${requestId}] ⏳ Processing`, videoUrl);
-        const resp = await fetch(`${baseUrl}/api/video/process-and-add`, {
+        const resp = await fetch(`${baseUrl}/api/daily/add-video`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -94,6 +100,7 @@ export async function POST(request: NextRequest) {
           body: JSON.stringify({
             videoUrl,
             title: rec.title ?? "",
+            interest,
             scrapedData: rec,
           }),
         });
