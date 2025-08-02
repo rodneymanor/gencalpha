@@ -72,13 +72,21 @@ export function PersonalizedVideoFeed({ trigger }: PersonalizedVideoFeedProps) {
         }
 
         // 2. Trigger orchestrator
-        const orchestratorRes = await fetch("/api/inspiration/orchestrator", {
+        const devUrl =
+          process.env.NODE_ENV !== "production"
+            ? "/api/inspiration/orchestrator?nocooldown=1"
+            : "/api/inspiration/orchestrator";
+        const orchestratorRes = await fetch(devUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ interest: interestTerm }),
         });
 
         const data = await orchestratorRes.json();
+        if (data.skipped && data.reason === "cooldown") {
+          alert("You recently fetched inspiration. Please wait 30 minutes before trying again.");
+          return;
+        }
         if (data.success) {
           setVideos(data.processedResults ?? []);
         }
