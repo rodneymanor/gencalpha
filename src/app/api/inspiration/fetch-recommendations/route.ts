@@ -60,8 +60,8 @@ export async function POST(request: NextRequest) {
         }
 
         return await statusRes.json();
-      } catch (error) {
-        console.error(`🤖 [BrowseAI][${reqId}] Poll error:`, error);
+      } catch (err) {
+        console.error(`🤖 [BrowseAI][${reqId}] Poll error:`, err);
         return null;
       }
     };
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     let taskData: any = null;
 
     while (attempts < 10) {
-      console.log(`🤖 [BrowseAI][${reqId}] Poll attempt ${attempts + 1}/10`);
+      console.log(`🤖 [BrowseAI][${reqId}] Poll attempt ${attempts + 1}`);
       await new Promise((r) => setTimeout(r, 30_000));
 
       taskData = await poll();
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      // Detailed logging for debugging
+      // Log full response for visibility
       console.log(`🤖 [BrowseAI][${reqId}] Full response:`, JSON.stringify(taskData, null, 2));
 
       const status = taskData?.result?.status ?? taskData?.status;
@@ -93,8 +93,7 @@ export async function POST(request: NextRequest) {
     }
 
     const finalStatus = taskData?.result?.status ?? taskData?.status ?? "unknown";
-    console.log(`🤖 [BrowseAI][${reqId}] Final status`, finalStatus);
-
+    console.log(`🤖 [BrowseAI][${reqId}] Final status:`, finalStatus);
     if (finalStatus !== "successful") {
       return NextResponse.json(
         {
@@ -107,16 +106,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Robust data extraction
     const capturedData =
       taskData?.result?.capturedData ?? taskData?.result?.capturedLists ?? taskData?.result?.output ?? [];
 
     console.log(
-      `🤖 [BrowseAI][${reqId}] Extracted`,
+      `🤖 [BrowseAI][${reqId}] Extracted data:`,
       Array.isArray(capturedData) ? capturedData.length : "non-array",
-      "items",
     );
-
     return NextResponse.json({ success: true, data: capturedData });
   } catch (error) {
     console.error("[fetch-recommendations]", error);
