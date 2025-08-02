@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 /**
- * Fetch personalized video recommendations from Browse AI
+ * Fetch personalized video recommendations from Browse AI (TikTok hashtag extractor)
  * Expects JSON body: { interest: string; limit?: number; robotId?: string }
  */
 export async function POST(request: NextRequest) {
@@ -20,11 +20,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Browse AI robot ID not provided" }, { status: 400 });
     }
 
+    // Convert interest to hashtag format (remove spaces, special chars)
+    const hashtag = interest
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "") // Remove all non-alphanumeric chars
+      .substring(0, 50); // Limit length
+
+    if (!hashtag) {
+      return NextResponse.json({ error: "Unable to create valid hashtag from interest" }, { status: 400 });
+    }
+
     // 1. Trigger Browse AI robot
     const reqId = Math.random().toString(36).substring(2, 9);
     const requestPayload = {
       inputParameters: {
-        query: interest,
+        hashtag: hashtag,
+        max_videos: Math.min(limit, 200), // Robot has max limit of 200
       },
     };
     console.log(`🤖 [BrowseAI][${reqId}] Triggering robot`, { robot, interest, limit });
