@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
     // Step 2: Process videos sequentially using the new video/process-and-add workflow
     const authHeader = request.headers.get("Authorization") ?? undefined;
     const requestId = Math.random().toString(36).substring(2, 9);
-    console.log(`🎬 [Orchestrator][${requestId}] Processing ${videoUrls.length} videos via process-and-add`);
+    console.log(`🎬 [Orchestrator][${requestId}] Processing ${videoUrls.length} videos via daily/add-video`);
     const processedResults: Array<{ videoUrl: string; ok: boolean; json: any }> = [];
 
     for (const rec of recommendations as Array<any>) {
