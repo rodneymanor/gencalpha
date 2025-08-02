@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 /**
- * Fetch personalized video recommendations from Browse AI (TikTok hashtag extractor)
+ * Fetch personalized video recommendations from Browse AI
  * Expects JSON body: { interest: string; limit?: number; robotId?: string }
  */
 export async function POST(request: NextRequest) {
@@ -20,40 +20,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Browse AI robot ID not provided" }, { status: 400 });
     }
 
-    // Convert interest to hashtag format (remove spaces, special chars)
-    const hashtag = interest
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, "") // Remove all non-alphanumeric chars
-      .substring(0, 50); // Limit length
-
-    if (!hashtag) {
-      return NextResponse.json({ error: "Unable to create valid hashtag from interest" }, { status: 400 });
-    }
-
     // 1. Trigger Browse AI robot
     const reqId = Math.random().toString(36).substring(2, 9);
-    const requestPayload = {
-      inputParameters: {
-        hashtag: hashtag,
-        max_videos: Math.min(limit, 200), // Robot has max limit of 200
-      },
-    };
     console.log(`🤖 [BrowseAI][${reqId}] Triggering robot`, { robot, interest, limit });
-    console.log(`🤖 [BrowseAI][${reqId}] Request payload:`, JSON.stringify(requestPayload, null, 2));
-
     const triggerRes = await fetch(`https://api.browse.ai/v2/robots/${robot}/tasks`, {
       method: "POST",
       headers: {
-        "x-api-key": apiKey,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(requestPayload),
+      body: JSON.stringify({
+        inputParameters: {
+          hashtag: interest,
+          max_videos: limit,
+        },
+      }),
     });
 
     console.log(`🤖 [BrowseAI][${reqId}] Trigger response status`, triggerRes.status);
     if (!triggerRes.ok) {
       const text = await triggerRes.text();
-      console.error(`🤖 [BrowseAI][${reqId}] Error response:`, text);
       return NextResponse.json({ error: "Failed to trigger Browse AI task", details: text }, { status: 500 });
     }
 
@@ -61,33 +47,35 @@ export async function POST(request: NextRequest) {
     const taskId = triggerJson.result?.id ?? triggerJson.id;
     console.log(`🤖 [BrowseAI][${reqId}] TaskId`, taskId);
 
-    // 2. Quick check - try once with short timeout, then return task ID for async processing
-    try {
-      await new Promise((r) => setTimeout(r, 5000)); // Wait 5 seconds
+    // 2. Poll for completion (max 10 attempts, 30 s interval)
+    const poll = async () => {
       const statusRes = await fetch(`https://api.browse.ai/v2/tasks/${taskId}`, {
-        headers: { "x-api-key": apiKey },
+        headers: { Authorization: `Bearer ${apiKey}` },
       });
-      const taskData = await statusRes.json();
+      return statusRes.json();
+    };
 
-      console.log(`🤖 [BrowseAI][${reqId}] Quick check status`, taskData?.result?.status);
-
-      if (taskData?.result?.status === "successful") {
-        const capturedData = taskData.result?.capturedData ?? taskData.result?.output ?? [];
-        console.log(`🤖 [BrowseAI][${reqId}] Captured items`, capturedData.length);
-        return NextResponse.json({ success: true, data: capturedData });
+    let attempts = 0;
+    let taskData: any = null;
+    while (attempts < 10) {
+      console.log(`🤖 [BrowseAI][${reqId}] Poll attempt ${attempts + 1}`);
+      await new Promise((r) => setTimeout(r, 30_000));
+      taskData = await poll();
+      if (taskData.result?.status === "successful" || taskData.result?.status === "failed") {
+        break;
       }
-    } catch (pollError) {
-      console.log(`🤖 [BrowseAI][${reqId}] Poll error (continuing):`, pollError);
+      attempts += 1;
     }
 
-    // Return task ID for async processing
-    console.log(`🤖 [BrowseAI][${reqId}] Task initiated, returning task ID for async processing`);
-    return NextResponse.json({
-      success: true,
-      taskId,
-      message: "Task initiated - check back later for results",
-      data: [], // Return empty array as fallback
-    });
+    console.log(`🤖 [BrowseAI][${reqId}] Final status`, taskData?.result?.status);
+    if (taskData?.result?.status !== "successful") {
+      return NextResponse.json({ error: "Browse AI task did not complete successfully" }, { status: 500 });
+    }
+
+    const capturedData = taskData.result?.capturedData ?? taskData.result?.output ?? [];
+
+    console.log(`🤖 [BrowseAI][${reqId}] Captured items`, capturedData.length);
+    return NextResponse.json({ success: true, data: capturedData });
   } catch (error) {
     console.error("[fetch-recommendations]", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
