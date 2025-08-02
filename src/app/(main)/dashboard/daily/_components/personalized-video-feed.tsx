@@ -26,9 +26,9 @@ interface ProcessedVideo {
 
 interface PersonalizedVideoFeedProps {
   /**
-   * Changing this value forces the component to refetch recommendations.
+   * When set, the component will fetch new recommendations.
    */
-  trigger?: number;
+  trigger: number | null;
 }
 
 export function PersonalizedVideoFeed({ trigger }: PersonalizedVideoFeedProps) {
@@ -40,7 +40,13 @@ export function PersonalizedVideoFeed({ trigger }: PersonalizedVideoFeedProps) {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [brandSettingsOpen, setBrandSettingsOpen] = useState(false);
 
+  const busyRef = React.useRef(false);
+
   useEffect(() => {
+    if (trigger === null) return; // no manual trigger yet
+    if (busyRef.current) return; // already fetching
+
+    busyRef.current = true;
     // eslint-disable-next-line complexity
     const loadFeed = async () => {
       setLoading(true);
@@ -80,13 +86,28 @@ export function PersonalizedVideoFeed({ trigger }: PersonalizedVideoFeedProps) {
         console.error("[PersonalizedVideoFeed]", error);
       } finally {
         setLoading(false);
+        busyRef.current = false;
       }
     };
 
-    loadFeed();
+    let cancelled = false;
+    loadFeed().finally(() => {
+      if (cancelled) busyRef.current = false;
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [trigger]);
 
   // --- RENDER STATES ----------------------------------------------------
+  if (trigger === null) {
+    return (
+      <div className="text-muted-foreground flex items-center justify-center py-12 text-center">
+        <p>Press the fetch button to load your personalized inspiration.</p>
+      </div>
+    );
+  }
   if (loading) {
     return (
       <div className="grid grid-cols-4 gap-4">

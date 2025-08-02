@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { PersonalizedVideoFeed } from "./personalized-video-feed";
 
 export function DailyInspirationSection() {
-  const [trigger, setTrigger] = useState<number>(() => Date.now());
+  const [trigger, setTrigger] = useState<number | null>(null);
 
   return (
     <div className="space-y-4">

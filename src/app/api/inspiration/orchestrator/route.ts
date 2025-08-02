@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -7,6 +8,13 @@ import { NextRequest, NextResponse } from "next/server";
  * Returns both raw recommendations and processing statuses.
  */
 export async function POST(request: NextRequest) {
+  // 🔒 Simple in-memory cooldown to prevent duplicate triggers every 30 min
+  const now = Date.now();
+  const last = (globalThis as any).__inspLastRun ?? 0;
+  if (now - last < 30 * 60_000) {
+    return NextResponse.json({ success: false, skipped: true, reason: "cooldown" });
+  }
+  (globalThis as any).__inspLastRun = now;
   try {
     const {
       interest: bodyInterest,
@@ -79,6 +87,7 @@ export async function POST(request: NextRequest) {
           headers: {
             "Content-Type": "application/json",
             ...(authHeader ? { Authorization: authHeader } : {}),
+            "x-internal-secret": process.env.INTERNAL_API_SECRET ?? "",
           },
           body: JSON.stringify({
             videoUrl,
