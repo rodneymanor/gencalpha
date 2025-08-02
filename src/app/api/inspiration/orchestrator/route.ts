@@ -39,10 +39,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to fetch recommendations", details: recJson }, { status: 500 });
     }
 
-    const recommendations: Array<{ url?: string; videoUrl?: string }> = recJson.data ?? [];
+    let recommendations: any = recJson.data ?? [];
 
-    // Extract video URLs (naively tries both url & videoUrl fields)
-    const videoUrls = recommendations.map((item) => item.url ?? item.videoUrl).filter(Boolean) as string[];
+    // If Browse AI returned an object (e.g., capturedLists) instead of an array, flatten it
+    if (!Array.isArray(recommendations)) {
+      const list = recommendations?.Links ?? Object.values(recommendations)[0];
+      if (Array.isArray(list)) {
+        recommendations = list.map((row: any) => ({
+          url: row["Video Link"] ?? row.url ?? row.link ?? undefined,
+          title: row.Description ?? undefined,
+        }));
+      } else {
+        recommendations = [];
+      }
+    }
+
+    // Extract video URLs
+    const videoUrls = (recommendations as Array<{ url?: string; videoUrl?: string }>)
+      .map((item) => item.url ?? item.videoUrl)
+      .filter(Boolean) as string[];
 
     if (videoUrls.length === 0) {
       return NextResponse.json({ success: true, videos: [], processedResults: [] });
