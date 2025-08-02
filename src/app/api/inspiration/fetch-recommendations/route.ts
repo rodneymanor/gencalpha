@@ -48,52 +48,25 @@ export async function POST(request: NextRequest) {
     const taskId = triggerJson.result?.id ?? triggerJson.id;
     console.log(`🤖 [BrowseAI][${reqId}] TaskId`, taskId);
 
-    // 2. Poll for completion (max 10 attempts, 30 s interval)
-    const poll = async () => {
-      try {
-        const statusRes = await fetch(`https://api.browse.ai/v2/tasks/${taskId}`, {
-          headers: { Authorization: `Bearer ${apiKey}` },
-        });
-
-        if (!statusRes.ok) {
-          console.error(`🤖 [BrowseAI][${reqId}] HTTP Error:`, statusRes.status, statusRes.statusText);
-          return null;
-        }
-
-        return await statusRes.json();
-      } catch (err) {
-        console.error(`🤖 [BrowseAI][${reqId}] Poll error:`, err);
-        return null;
-      }
+    // 2. Lightweight polling – call the same endpoint used in the working curl
+    const fetchStatus = async () => {
+      const res = await fetch(`https://api.browse.ai/v2/robots/${robot}/tasks/${taskId}`, {
+        headers: { Authorization: `Bearer ${apiKey}` },
+      });
+      if (!res.ok) return null;
+      return await res.json();
     };
 
-    let attempts = 0;
     let taskData: any = null;
-
-    while (attempts < 10) {
-      console.log(`🤖 [BrowseAI][${reqId}] Poll attempt ${attempts + 1}`);
-      await new Promise((r) => setTimeout(r, 30_000));
-
-      taskData = await poll();
-      if (!taskData) {
-        attempts += 1;
-        continue;
-      }
-
-      // Log full response for visibility
-      console.log(`🤖 [BrowseAI][${reqId}] Full response:`, JSON.stringify(taskData, null, 2));
-
-      const status = taskData?.result?.status ?? taskData?.status;
-      console.log(`🤖 [BrowseAI][${reqId}] Task status:`, status);
-
-      if (status === "successful" || status === "failed") {
-        break;
-      }
-
-      attempts += 1;
+    for (let attempt = 0; attempt < 8; attempt++) {
+      await new Promise((r) => setTimeout(r, 20_000)); // 20-s interval, ~2.5 min max
+      taskData = await fetchStatus();
+      const status = taskData?.result?.status;
+      console.log(`🤖 [BrowseAI][${reqId}] Attempt ${attempt + 1} – status: ${status}`);
+      if (status === "successful" || status === "failed") break;
     }
 
-    const finalStatus = taskData?.result?.status ?? taskData?.status ?? "unknown";
+    const finalStatus = taskData?.result?.status ?? "unknown";
     console.log(`🤖 [BrowseAI][${reqId}] Final status:`, finalStatus);
     if (finalStatus !== "successful") {
       return NextResponse.json(
@@ -101,7 +74,6 @@ export async function POST(request: NextRequest) {
           error: "Browse AI task did not complete successfully",
           status: finalStatus,
           details: taskData,
-          attempts,
         },
         { status: 500 },
       );
