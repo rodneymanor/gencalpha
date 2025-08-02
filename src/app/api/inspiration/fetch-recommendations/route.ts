@@ -31,7 +31,8 @@ export async function POST(request: NextRequest) {
       },
       body: JSON.stringify({
         inputParameters: {
-          hashtag: interest,
+          // Browse AI expects a hashtag without spaces or special chars
+          hashtag: interest.replace(/[^a-zA-Z0-9]/g, "").toLowerCase(),
           max_videos: limit,
         },
       }),
@@ -54,14 +55,8 @@ export async function POST(request: NextRequest) {
           headers: { Authorization: `Bearer ${apiKey}` },
         });
 
-        // Browse AI may respond with 403/404 while the task is still being provisioned
-        if (statusRes.status === 403 || statusRes.status === 404) {
-          console.warn(`⏳ [BrowseAI][${reqId}] Task still processing – HTTP ${statusRes.status}`);
-          return { processing: true } as any;
-        }
-
         if (!statusRes.ok) {
-          console.error(`❌ [BrowseAI][${reqId}] HTTP Error:`, statusRes.status, statusRes.statusText);
+          console.error(`🤖 [BrowseAI][${reqId}] HTTP Error:`, statusRes.status, statusRes.statusText);
           return null;
         }
 
