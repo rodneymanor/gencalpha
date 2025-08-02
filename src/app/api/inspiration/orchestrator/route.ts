@@ -63,17 +63,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, videos: [], processedResults: [] });
     }
 
-    // Step 2: Process videos SEQUENTIALLY to avoid rate limits
+    // Step 2: Process videos sequentially using the new video/process-and-add workflow
+    const authHeader = request.headers.get("Authorization") ?? undefined;
     const requestId = Math.random().toString(36).substring(2, 9);
-    console.log(`🎬 [Orchestrator][${requestId}] Processing ${videoUrls.length} videos sequentially`);
+    console.log(`🎬 [Orchestrator][${requestId}] Processing ${videoUrls.length} videos via process-and-add`);
     const processedResults: Array<{ videoUrl: string; ok: boolean; json: any }> = [];
-    for (const videoUrl of videoUrls) {
+
+    for (const rec of recommendations as Array<any>) {
+      const videoUrl = rec.url ?? rec.videoUrl;
+      if (!videoUrl) continue;
       try {
         console.log(`🎬 [Orchestrator][${requestId}] ⏳ Processing`, videoUrl);
-        const resp = await fetch(`${baseUrl}/api/process-video`, {
+        const resp = await fetch(`${baseUrl}/api/video/process-and-add`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ videoUrl }),
+          headers: {
+            "Content-Type": "application/json",
+            ...(authHeader ? { Authorization: authHeader } : {}),
+          },
+          body: JSON.stringify({
+            videoUrl,
+            title: rec.title ?? "",
+            scrapedData: rec,
+          }),
         });
         const json = await resp.json();
         processedResults.push({ videoUrl, ok: resp.ok, json });
