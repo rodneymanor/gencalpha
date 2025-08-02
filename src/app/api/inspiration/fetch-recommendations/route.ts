@@ -49,35 +49,74 @@ export async function POST(request: NextRequest) {
 
     // 2. Poll for completion (max 10 attempts, 30 s interval)
     const poll = async () => {
-      const statusRes = await fetch(`https://api.browse.ai/v2/tasks/${taskId}`, {
-        headers: { Authorization: `Bearer ${apiKey}` },
-      });
-      return statusRes.json();
+      try {
+        const statusRes = await fetch(`https://api.browse.ai/v2/tasks/${taskId}`, {
+          headers: { Authorization: `Bearer ${apiKey}` },
+        });
+
+        if (!statusRes.ok) {
+          console.error(`🤖 [BrowseAI][${reqId}] HTTP Error:`, statusRes.status, statusRes.statusText);
+          return null;
+        }
+
+        return await statusRes.json();
+      } catch (error) {
+        console.error(`🤖 [BrowseAI][${reqId}] Poll error:`, error);
+        return null;
+      }
     };
 
     let attempts = 0;
     let taskData: any = null;
+
     while (attempts < 10) {
-      console.log(`🤖 [BrowseAI][${reqId}] Poll attempt ${attempts + 1}`);
+      console.log(`🤖 [BrowseAI][${reqId}] Poll attempt ${attempts + 1}/10`);
       await new Promise((r) => setTimeout(r, 30_000));
+
       taskData = await poll();
-      if (
-        ["successful", "success"].includes(taskData.result?.status as string) ||
-        taskData.result?.status === "failed"
-      ) {
+      if (!taskData) {
+        attempts += 1;
+        continue;
+      }
+
+      // Detailed logging for debugging
+      console.log(`🤖 [BrowseAI][${reqId}] Full response:`, JSON.stringify(taskData, null, 2));
+
+      const status = taskData?.result?.status ?? taskData?.status;
+      console.log(`🤖 [BrowseAI][${reqId}] Task status:`, status);
+
+      if (status === "successful" || status === "failed") {
         break;
       }
+
       attempts += 1;
     }
 
-    console.log(`🤖 [BrowseAI][${reqId}] Final status`, taskData?.result?.status);
-    if (!["successful", "success"].includes(taskData?.result?.status as string)) {
-      return NextResponse.json({ error: "Browse AI task did not complete successfully" }, { status: 500 });
+    const finalStatus = taskData?.result?.status ?? taskData?.status ?? "unknown";
+    console.log(`🤖 [BrowseAI][${reqId}] Final status`, finalStatus);
+
+    if (finalStatus !== "successful") {
+      return NextResponse.json(
+        {
+          error: "Browse AI task did not complete successfully",
+          status: finalStatus,
+          details: taskData,
+          attempts,
+        },
+        { status: 500 },
+      );
     }
 
-    const capturedData = taskData.result?.capturedData ?? taskData.result?.output ?? [];
+    // Robust data extraction
+    const capturedData =
+      taskData?.result?.capturedData ?? taskData?.result?.capturedLists ?? taskData?.result?.output ?? [];
 
-    console.log(`🤖 [BrowseAI][${reqId}] Captured items`, capturedData.length);
+    console.log(
+      `🤖 [BrowseAI][${reqId}] Extracted`,
+      Array.isArray(capturedData) ? capturedData.length : "non-array",
+      "items",
+    );
+
     return NextResponse.json({ success: true, data: capturedData });
   } catch (error) {
     console.error("[fetch-recommendations]", error);
