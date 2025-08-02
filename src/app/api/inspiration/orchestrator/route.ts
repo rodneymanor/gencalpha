@@ -11,7 +11,7 @@ async function pollBrowseAITask(taskId: string, apiKey: string, maxAttempts = 20
         ? `https://api.browse.ai/v2/tasks/${taskId}?teamId=${teamId}`
         : `https://api.browse.ai/v2/tasks/${taskId}`;
       const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${apiKey}` },
+        headers: { "x-api-key": apiKey },
       });
 
       // Browse AI sometimes returns 403/404 for a task that is still

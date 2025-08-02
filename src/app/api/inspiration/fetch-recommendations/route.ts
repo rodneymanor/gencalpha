@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     const triggerRes = await fetch(`https://api.browse.ai/v2/robots/${robot}/tasks`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        "x-api-key": apiKey,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(requestPayload),
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     try {
       await new Promise((r) => setTimeout(r, 5000)); // Wait 5 seconds
       const statusRes = await fetch(`https://api.browse.ai/v2/tasks/${taskId}`, {
-        headers: { Authorization: `Bearer ${apiKey}` },
+        headers: { "x-api-key": apiKey },
       });
       const taskData = await statusRes.json();
 
