@@ -61,14 +61,17 @@ export async function POST(request: NextRequest) {
       console.log(`🤖 [BrowseAI][${reqId}] Poll attempt ${attempts + 1}`);
       await new Promise((r) => setTimeout(r, 30_000));
       taskData = await poll();
-      if (taskData.result?.status === "successful" || taskData.result?.status === "failed") {
+      if (
+        ["successful", "success"].includes(taskData.result?.status as string) ||
+        taskData.result?.status === "failed"
+      ) {
         break;
       }
       attempts += 1;
     }
 
     console.log(`🤖 [BrowseAI][${reqId}] Final status`, taskData?.result?.status);
-    if (taskData?.result?.status !== "successful") {
+    if (!["successful", "success"].includes(taskData?.result?.status as string)) {
       return NextResponse.json({ error: "Browse AI task did not complete successfully" }, { status: 500 });
     }
 
