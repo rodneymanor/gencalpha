@@ -56,6 +56,8 @@ export async function POST(request: NextRequest) {
         recommendations = list.map((row: any) => ({
           url: row["Video Link"] ?? row.url ?? row.link ?? undefined,
           title: row.Description ?? undefined,
+          platform: "tiktok",
+          author: row.Username ?? undefined,
         }));
       } else {
         recommendations = [];

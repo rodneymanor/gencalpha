@@ -186,8 +186,8 @@ export async function POST(request: NextRequest) {
     console.log("💾 [VIDEO_PROCESS] Step 3: Adding to collection...");
     const videoData = {
       originalUrl: decodedUrl,
-      title: title || `Video from ${downloadResult.data.platform}`,
-      platform: downloadResult.data.platform,
+      title: title || `Video from ${downloadResult.data.platform ?? "tiktok"}`,
+      platform: downloadResult.data.platform ?? "tiktok",
       iframeUrl: streamResult.iframeUrl,
       directUrl: streamResult.directUrl,
       guid: streamResult.guid,
