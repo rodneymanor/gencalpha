@@ -1,9 +1,8 @@
-"use server";
-
 import { Metadata } from "next";
 
-import { DailyInspirationSection } from "@/app/(main)/dashboard/daily/_components/daily-inspiration-section";
 import { ManusPrompt } from "@/components/manus-prompt";
+
+import { DailyInspirationSection } from "./_components/daily-inspiration-section";
 
 export const metadata: Metadata = {
   title: "Daily | Studio Admin",
