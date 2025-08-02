@@ -1,13 +1,14 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { ClientOnboardingService } from "@/lib/services/client-onboarding-service";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
+
 import { Play } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { OnboardingWizardModal } from "@/components/ui/onboarding-wizard-modal";
+
 import { BrandSettingsSummaryModal } from "@/components/ui/brand-settings-summary-modal";
+import { Button } from "@/components/ui/button";
+import { OnboardingWizardModal } from "@/components/ui/onboarding-wizard-modal";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ClientOnboardingService } from "@/lib/services/client-onboarding-service";
 
 interface ProcessedVideo {
   videoUrl?: string;
@@ -23,7 +24,14 @@ interface ProcessedVideo {
   };
 }
 
-export function PersonalizedVideoFeed() {
+interface PersonalizedVideoFeedProps {
+  /**
+   * Changing this value forces the component to refetch recommendations.
+   */
+  trigger?: number;
+}
+
+export function PersonalizedVideoFeed({ trigger }: PersonalizedVideoFeedProps) {
   const [loading, setLoading] = useState(true);
   const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null);
   const [videos, setVideos] = useState<ProcessedVideo[]>([]);
@@ -33,7 +41,9 @@ export function PersonalizedVideoFeed() {
   const [brandSettingsOpen, setBrandSettingsOpen] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line complexity
     const loadFeed = async () => {
+      setLoading(true);
       try {
         // 1. Check onboarding completion
         const selections = await ClientOnboardingService.getSelections();
@@ -74,7 +84,7 @@ export function PersonalizedVideoFeed() {
     };
 
     loadFeed();
-  }, []);
+  }, [trigger]);
 
   // --- RENDER STATES ----------------------------------------------------
   if (loading) {
@@ -90,7 +100,7 @@ export function PersonalizedVideoFeed() {
   if (!onboardingComplete) {
     return (
       <div className="flex flex-col items-center justify-center space-y-4 py-12 text-center">
-        <p className="max-w-md text-muted-foreground">
+        <p className="text-muted-foreground max-w-md">
           Finish setting up your brand preferences to receive personalized inspiration videos.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-4">
@@ -109,7 +119,7 @@ export function PersonalizedVideoFeed() {
 
   if (videos.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center space-y-4 py-12 text-center text-muted-foreground">
+      <div className="text-muted-foreground flex flex-col items-center justify-center space-y-4 py-12 text-center">
         <p>No personalized videos found. Try adjusting your interests.</p>
         <div className="flex flex-wrap items-center justify-center gap-4">
           <Button onClick={() => setBrandSettingsOpen(true)}>Check Brand Settings</Button>
@@ -120,7 +130,11 @@ export function PersonalizedVideoFeed() {
 
         {/* Modals */}
         <OnboardingWizardModal open={wizardOpen} onOpenChange={setWizardOpen} mode="edit" />
-        <BrandSettingsSummaryModal isOpen={brandSettingsOpen} onClose={() => setBrandSettingsOpen(false)} onEdit={() => setWizardOpen(true)} />
+        <BrandSettingsSummaryModal
+          isOpen={brandSettingsOpen}
+          onClose={() => setBrandSettingsOpen(false)}
+          onEdit={() => setWizardOpen(true)}
+        />
       </div>
     );
   }
@@ -129,10 +143,7 @@ export function PersonalizedVideoFeed() {
     <>
       <div className="grid grid-cols-4 gap-4">
         {videos.map((item, idx) => (
-          <div
-            key={idx}
-            className="group relative aspect-[9/16] cursor-pointer overflow-hidden rounded-lg bg-muted"
-          >
+          <div key={idx} className="group bg-muted relative aspect-[9/16] cursor-pointer overflow-hidden rounded-lg">
             {item.cdnUrls?.thumbnail ? (
               <img
                 src={item.cdnUrls.thumbnail}
@@ -140,8 +151,8 @@ export function PersonalizedVideoFeed() {
                 className="h-full w-full object-cover transition-transform group-hover:scale-105"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-muted-foreground/10">
-                <Play className="h-8 w-8 text-primary" />
+              <div className="bg-muted-foreground/10 flex h-full w-full items-center justify-center">
+                <Play className="text-primary h-8 w-8" />
               </div>
             )}
 
@@ -156,7 +167,11 @@ export function PersonalizedVideoFeed() {
 
       {/* Hidden modals for in-grid edits */}
       <OnboardingWizardModal open={wizardOpen} onOpenChange={setWizardOpen} mode="edit" />
-      <BrandSettingsSummaryModal isOpen={brandSettingsOpen} onClose={() => setBrandSettingsOpen(false)} onEdit={() => setWizardOpen(true)} />
+      <BrandSettingsSummaryModal
+        isOpen={brandSettingsOpen}
+        onClose={() => setBrandSettingsOpen(false)}
+        onEdit={() => setWizardOpen(true)}
+      />
     </>
   );
 }

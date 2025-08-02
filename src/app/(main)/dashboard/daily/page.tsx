@@ -1,8 +1,9 @@
+"use server";
+
 import { Metadata } from "next";
 
+import { DailyInspirationSection } from "@/app/(main)/dashboard/daily/_components/daily-inspiration-section";
 import { ManusPrompt } from "@/components/manus-prompt";
-
-import { PersonalizedVideoFeed } from "./_components/personalized-video-feed";
 
 export const metadata: Metadata = {
   title: "Daily | Studio Admin",
@@ -15,16 +16,9 @@ export default function DailyPage() {
       {/* Manus Prompt */}
       <ManusPrompt />
 
-      {/* Header Section */}
+      {/* Personalized Inspiration Section */}
       <div className="mx-auto max-w-7xl space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-primary text-lg font-semibold md:text-xl">Short form Inspiration For You!</h2>
-        </div>
-      </div>
-
-      {/* Personalized Inspiration Feed */}
-      <div className="mx-auto max-w-7xl">
-        <PersonalizedVideoFeed />
+        <DailyInspirationSection />
       </div>
     </div>
   );
