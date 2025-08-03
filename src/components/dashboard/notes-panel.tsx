@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+
 import { Plus, StickyNote, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -38,7 +39,7 @@ export function NotesPanel() {
       <CardHeader className="flex flex-row items-center justify-between border-b p-4">
         <div className="flex items-center gap-2 font-semibold">
           <StickyNote className="h-4 w-4" />
-          <CardTitle className="text-base">Notes Panel</CardTitle>
+          <CardTitle className="text-base">Idea Inbox</CardTitle>
         </div>
         <Button variant="ghost" size="icon" onClick={toggleNotesPanel} aria-label="Close notes panel">
           <X className="h-4 w-4" />
@@ -52,21 +53,19 @@ export function NotesPanel() {
             onKeyDown={(e) => {
               if (e.key === "Enter") addNote();
             }}
-            placeholder="Add a note and press Enter"
+            placeholder="Add an idea and press Enter"
           />
           <Button variant="outline" size="icon" onClick={addNote} aria-label="Add note">
             <Plus className="h-4 w-4" />
           </Button>
         </div>
         <ScrollArea className="flex-1">
-          {notes.length === 0 && (
-            <p className="text-sm text-muted-foreground">No notes yet. Add one above!</p>
-          )}
+          {notes.length === 0 && <p className="text-muted-foreground text-sm">No ideas yet. Add one above!</p>}
           <ul className="space-y-2 pt-2">
             {notes.map((note) => (
               <li key={note.id} className="rounded-md border p-3">
                 <p className="font-medium">{note.title}</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-muted-foreground text-xs">
                   {note.createdAt.toLocaleDateString()} {note.createdAt.toLocaleTimeString()}
                 </p>
               </li>

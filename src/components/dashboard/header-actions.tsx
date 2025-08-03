@@ -54,10 +54,10 @@ export default function HeaderActions({
       <button
         className="hover:bg-accent text-foreground outline-border relative hidden h-8 min-w-16 items-center justify-center gap-1.5 rounded-full bg-transparent px-3 text-sm font-medium whitespace-nowrap outline outline-1 -outline-offset-1 transition-colors hover:opacity-90 active:opacity-80 sm:flex"
         onClick={toggleNotesPanel}
-        aria-label="Toggle notes panel"
+        aria-label="Toggle idea inbox panel"
       >
         <FileText className="size-[18px]" />
-        Notes
+        Ideas
       </button>
 
       {/* Credits Section */}
