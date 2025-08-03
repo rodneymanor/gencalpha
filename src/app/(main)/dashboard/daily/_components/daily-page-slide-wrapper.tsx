@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import { motion } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 import { ManusPrompt } from "@/components/manus-prompt";
 import { Button } from "@/components/ui/button";
@@ -51,6 +51,21 @@ export default function DailyPageSlideWrapper() {
         }}
         className="bg-background fixed inset-0 z-20 overflow-y-auto"
       >
+        {/* Return button at the top */}
+        <div className="bg-background/80 sticky top-0 z-30 border-b backdrop-blur-sm">
+          <div className="flex justify-center py-4">
+            <Button
+              variant="ghost"
+              size="lg"
+              className="text-muted-foreground hover:text-foreground gap-2 transition-colors"
+              onClick={() => setShowContent(false)}
+            >
+              <ChevronUp className="h-4 w-4" />
+              Back to Script Input
+            </Button>
+          </div>
+        </div>
+
         <div className="min-h-screen space-y-8 p-6">
           <div className="mx-auto max-w-7xl space-y-4">
             <DailyInspirationSection />
