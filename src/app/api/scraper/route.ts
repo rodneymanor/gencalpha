@@ -3,6 +3,26 @@ import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
 import * as cheerio from "cheerio";
 
+interface ScrapeRequest {
+  url: string;
+  selectors?: Record<string, string>;
+}
+
+interface ScrapeResponse {
+  success: boolean;
+  data?: {
+    url: string;
+    title: string;
+    headings: string[];
+    paragraphs: string[];
+    allText: string;
+    extractedAt: string;
+    customSelectors?: Record<string, string[]>;
+  };
+  error?: string;
+  details?: string;
+}
+
 // Enhanced SPA detection
 function detectSPAContent($: cheerio.CheerioAPI, html: string): boolean {
   // Look for SPA indicators
@@ -294,26 +314,6 @@ async function intelligentScraping(url: string): Promise<ScrapeResponse> {
 
   console.log("❌ All methods failed");
   return { success: false, error: "All scraping methods failed" };
-}
-
-interface ScrapeRequest {
-  url: string;
-  selectors?: Record<string, string>;
-}
-
-interface ScrapeResponse {
-  success: boolean;
-  data?: {
-    url: string;
-    title: string;
-    headings: string[];
-    paragraphs: string[];
-    allText: string;
-    extractedAt: string;
-    customSelectors?: Record<string, string[]>;
-  };
-  error?: string;
-  details?: string;
 }
 
 // Helper function to clean text content
