@@ -1,8 +1,6 @@
 import { Metadata } from "next";
 
-import { ManusPrompt } from "@/components/manus-prompt";
-
-import { DailyInspirationSection } from "./_components/daily-inspiration-section";
+import DailyPageSlideWrapper from "./_components/daily-page-slide-wrapper";
 
 export const metadata: Metadata = {
   title: "Daily | Studio Admin",
@@ -10,15 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function DailyPage() {
-  return (
-    <div className="space-y-8">
-      {/* Manus Prompt */}
-      <ManusPrompt />
-
-      {/* Personalized Inspiration Section */}
-      <div className="mx-auto max-w-7xl space-y-4">
-        <DailyInspirationSection />
-      </div>
-    </div>
-  );
+  return <DailyPageSlideWrapper />;
 }
