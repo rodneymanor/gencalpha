@@ -149,7 +149,7 @@ async function tryBrowserlessService(url: string): Promise<ScrapeResponse["data"
     console.log("🌐 Trying browserless service for:", url);
 
     const browserlessUrl = process.env.BROWSERLESS_URL ?? "https://chrome.browserless.io/content";
-    const browserlessToken = process.env.BROWSERLESS_TOKEN;
+    const browserlessToken = process.env.BROWSERLESS_API_KEY;
 
     if (!browserlessToken) {
       console.log("⚠️ No browserless token configured");
