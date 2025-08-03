@@ -88,7 +88,7 @@ These serve as the fallback; there is no separate default.css file. */
   --chart-3: oklch(0.7705 0.207 333.4382);
   --chart-4: oklch(0.9311 0.1539 134.4839);
   --chart-5: oklch(0.9275 0.0096 119.5861);
-  --sidebar: oklch(1 0 0);
+  --sidebar: oklch(0.9826 0.0034 174.4849);
   --sidebar-foreground: oklch(0 0 0);
   --sidebar-primary: oklch(0 0 0);
   --sidebar-primary-foreground: oklch(1 0 0);
