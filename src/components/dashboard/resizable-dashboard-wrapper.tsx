@@ -68,7 +68,6 @@ export function ResizableDashboardWrapper({ children, className }: ResizableDash
       {/* Optional Writing panel (right side) */}
       {showWritingPanel && (
         <>
-          <PanelResizeHandle className="w-2 cursor-col-resize bg-border transition-colors hover:bg-primary/30" />
           <Panel defaultSize={writingPanelSize} minSize={10} maxSize={30} order={2} className="border-l">
             <WritingPanel />
           </Panel>
@@ -78,7 +77,6 @@ export function ResizableDashboardWrapper({ children, className }: ResizableDash
       {/* Optional Notes panel */}
       {showNotesPanel && (
         <>
-          <PanelResizeHandle className="w-2 cursor-col-resize bg-border transition-colors hover:bg-primary/30" />
           <Panel defaultSize={notesPanelSize} minSize={10} maxSize={30} order={3} className="border-l">
             <NotesPanel />
           </Panel>
@@ -88,7 +86,6 @@ export function ResizableDashboardWrapper({ children, className }: ResizableDash
       {/* Optional Chatbot panel (outermost right) */}
       {showChatbotPanel && (
         <>
-          <PanelResizeHandle className="w-2 cursor-col-resize bg-border transition-colors hover:bg-primary/30" />
           <Panel defaultSize={chatbotPanelSize} minSize={10} maxSize={30} order={4} className="border-l">
             <ChatbotPanel
               initialPrompt={chatbotInitialPrompt}

@@ -34,8 +34,8 @@ export function PersonaSelector({
           onClick={() => onPersonaChange(key)}
           className={cn(
             "rounded-full px-4 py-1 text-xs font-medium transition-all",
-            selectedPersona === key 
-              ? "bg-primary text-primary-foreground shadow-sm" 
+            selectedPersona === key
+              ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
               : "hover:bg-accent hover:text-accent-foreground"
           )}
           title={tooltip}

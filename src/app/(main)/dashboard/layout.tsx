@@ -56,7 +56,7 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
                 "max-[113rem]:peer-data-[variant=inset]:!mr-2 min-[101rem]:peer-data-[variant=inset]:peer-data-[state=collapsed]:!mr-auto",
               )}
             >
-              <header className="flex h-12 shrink-0 items-center gap-2 border-b transition-[width,height]">
+              {/* <header className="flex h-12 shrink-0 items-center gap-2 border-b transition-[width,height]">
                 <div className="flex w-full items-center justify-between px-4 lg:px-6">
                   <div className="flex items-center gap-2">
                     <HeaderTitle />
@@ -65,7 +65,7 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
                     <HeaderActions />
                   </div>
                 </div>
-              </header>
+              </header> */}
               <div className="h-full">
                 <ResizableDashboardWrapper>
                   <div className="mx-auto max-w-6xl">

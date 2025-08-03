@@ -31,8 +31,6 @@ import { type NavGroup, type NavMainItem } from "@/navigation/sidebar/sidebar-it
 
 interface NavMainProps {
   readonly items: readonly NavGroup[];
-  readonly isPinned?: boolean;
-  readonly onPinToggle?: () => void;
 }
 
 const IsComingSoon = () => (
@@ -145,7 +143,7 @@ const NavItemCollapsed = ({
   );
 };
 
-export function NavMain({ items, isPinned = false, onPinToggle }: NavMainProps) {
+export function NavMain({ items }: NavMainProps) {
   const path = usePathname();
   const { state, isMobile } = useSidebar();
   const { openPanel } = useScriptPanel();
@@ -166,7 +164,7 @@ export function NavMain({ items, isPinned = false, onPinToggle }: NavMainProps) 
       <SidebarGroup>
         <SidebarGroupContent className="flex flex-col gap-2">
           <SidebarMenu>
-            <SidebarMenuItem className="flex items-center gap-2">
+            <SidebarMenuItem>
               <SidebarMenuButton
                 tooltip="Write a Script"
                 onClick={openPanel}
@@ -175,18 +173,6 @@ export function NavMain({ items, isPinned = false, onPinToggle }: NavMainProps) 
                 <Pencil className="rotate-[-15deg]" />
                 <span>Write a Script</span>
               </SidebarMenuButton>
-              <Button
-                size="icon"
-                className={cn(
-                  "h-9 w-9 shrink-0 transition-colors group-data-[collapsible=icon]:opacity-0",
-                  isPinned ? "bg-primary text-primary-foreground hover:bg-primary/90" : "variant-outline",
-                )}
-                variant={isPinned ? "default" : "outline"}
-                onClick={onPinToggle}
-              >
-                <Pin className={cn("transition-transform", isPinned && "rotate-45")} />
-                <span className="sr-only">{isPinned ? "Unpin sidebar" : "Pin sidebar"}</span>
-              </Button>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroupContent>

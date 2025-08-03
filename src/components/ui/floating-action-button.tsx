@@ -46,7 +46,7 @@ export function PenFab({ onClick, className }: PenFabProps) {
 }
 
 export function FloatingActionButton() {
-  const { toggleWritingPanel } = useResizableLayout();
+  const { toggleChatbotPanel } = useResizableLayout();
 
-  return <PenFab onClick={toggleWritingPanel} />;
+  return <PenFab onClick={toggleChatbotPanel} />;
 }

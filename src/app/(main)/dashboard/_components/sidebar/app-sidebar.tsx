@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { PanelLeft } from "lucide-react";
+
 import {
   Sidebar,
   SidebarContent,
@@ -28,23 +30,30 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   };
 }
 
-function SidebarLogo() {
+function SidebarLogo({ isPinned, onPinToggle }: { isPinned: boolean; onPinToggle: () => void }) {
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
 
   return (
     <SidebarMenuButton asChild className="!h-12">
-      <a href="#" className="flex w-full items-center justify-start">
+      <a href="#" className="flex w-full items-center justify-between">
         {isCollapsed ? (
           // Show "G" when collapsed
           <span className="text-foreground text-2xl font-bold">G</span>
         ) : (
-          // Show full "Gen.C" when expanded
-          <div className="flex items-center gap-1">
-            <span className="text-foreground text-xl font-bold">Gen</span>
-            <div className="h-2 w-2 rounded-full bg-yellow-400"></div>
-            <span className="text-foreground text-xl font-bold">C</span>
-          </div>
+          <>
+            {/* Logo on the left */}
+            <div className="flex items-center gap-1">
+              <span className="text-foreground text-xl font-bold">Gen</span>
+              <div className="h-2 w-2 rounded-full bg-yellow-400"></div>
+              <span className="text-foreground text-xl font-bold">C</span>
+            </div>
+            {/* PanelLeft icon on the right */}
+            <PanelLeft
+              className={`h-4 w-4 cursor-pointer transition-colors ${isPinned ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+              onClick={onPinToggle}
+            />
+          </>
         )}
       </a>
     </SidebarMenuButton>
@@ -141,13 +150,13 @@ export function AppSidebar({ layoutPreferences, ...props }: AppSidebarProps) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarLogo />
+            <SidebarLogo isPinned={isPinned} onPinToggle={handlePinToggle} />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent className="flex flex-col">
         <div className="flex-1 overflow-auto">
-          <NavMain items={sidebarItems} isPinned={isPinned} onPinToggle={handlePinToggle} />
+          <NavMain items={sidebarItems} />
         </div>
       </SidebarContent>
       <SidebarFooter>
