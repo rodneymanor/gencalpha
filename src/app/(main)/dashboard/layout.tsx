@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 
 import { DashboardWrapper } from "@/app/(main)/dashboard/_components/dashboard-wrapper";
 import { AppSidebar } from "@/app/(main)/dashboard/_components/sidebar/app-sidebar";
-import { PanelControls } from "@/components/dashboard/panel-controls";
+import HeaderActions from "@/components/dashboard/header-actions";
 import { ResizableDashboardWrapper } from "@/components/dashboard/resizable-dashboard-wrapper";
 import { FloatingActionButton } from "@/components/ui/floating-action-button";
 // import removed: OnboardingProgress
@@ -10,7 +10,6 @@ import { ProcessingNotificationBadge } from "@/components/ui/processing-notifica
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { ResizableLayoutProvider } from "@/contexts/resizable-layout-context";
 import { ScriptPanelProvider } from "@/contexts/script-panel-context";
-import { users } from "@/data/users";
 import { cn } from "@/lib/utils";
 import { getPreference } from "@/server/server-actions";
 import {
@@ -24,7 +23,6 @@ import {
 
 // Local components
 import { HeaderTitle } from "./_components/header-title";
-import { AccountSwitcher } from "./_components/sidebar/account-switcher";
 
 export default async function Layout({ children }: Readonly<{ children: ReactNode }>) {
   const [sidebarVariant, sidebarCollapsible, contentLayout] = await Promise.all([
@@ -64,7 +62,7 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
                     <HeaderTitle />
                   </div>
                   <div className="flex items-center gap-2">
-                    <PanelControls />
+                    <HeaderActions />
                   </div>
                 </div>
               </header>
