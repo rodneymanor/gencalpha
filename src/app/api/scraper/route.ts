@@ -85,32 +85,60 @@ export async function POST(request: NextRequest) {
 
     console.log('🌐 Starting scrape for:', body.url);
 
-    // Configure axios with proper headers and timeout
+    // Configure axios with more realistic browser headers
     const axiosConfig = {
       timeout: 30000, // 30 seconds
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
         'Connection': 'keep-alive',
         'Upgrade-Insecure-Requests': '1',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',
+        'Sec-Fetch-User': '?1',
+        'Cache-Control': 'max-age=0',
       },
       maxRedirects: 5,
       validateStatus: (status: number) => status < 400,
     };
 
-    // Fetch the webpage
+    // Fetch the webpage with retry logic
     let response;
-    try {
-      response = await axios.get(body.url, axiosConfig);
-    } catch (error: any) {
-      console.error('❌ Axios error:', error.message);
+    let lastError;
+    
+    const maxRetries = 3;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`🔄 Attempt ${attempt}/${maxRetries} for: ${body.url}`);
+        response = await axios.get(body.url, axiosConfig);
+        break; // Success, exit retry loop
+      } catch (error: any) {
+        lastError = error;
+        console.error(`❌ Attempt ${attempt} failed:`, error.message);
+        
+        // Don't retry for certain errors
+        if (error.response?.status === 404 || error.response?.status === 403) {
+          break;
+        }
+        
+        // Wait before retrying (except on last attempt)
+        if (attempt < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        }
+      }
+    }
+    
+    // Handle final error if all retries failed
+    if (!response && lastError) {
+      console.error('❌ All retry attempts failed:', lastError.message);
       
-      if (error.code === 'ENOTFOUND') {
+      if (lastError.code === 'ENOTFOUND') {
         return NextResponse.json(
-          { 
-            success: false, 
+          {
+            success: false,
             error: 'Website not found',
             details: 'Could not resolve the domain name'
           },
@@ -118,10 +146,10 @@ export async function POST(request: NextRequest) {
         );
       }
       
-      if (error.code === 'ETIMEDOUT') {
+      if (lastError.code === 'ETIMEDOUT') {
         return NextResponse.json(
-          { 
-            success: false, 
+          {
+            success: false,
             error: 'Request timeout',
             details: 'The website took too long to respond'
           },
@@ -129,33 +157,44 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      if (error.response?.status === 403) {
+      if (lastError.response?.status === 403) {
         return NextResponse.json(
-          { 
-            success: false, 
+          {
+            success: false,
             error: 'Access forbidden',
-            details: 'The website blocked our request'
+            details: 'The website blocked our request. Try a different URL or check if the site has anti-bot protection.'
           },
           { status: 403 }
         );
       }
 
-      if (error.response?.status === 404) {
+      if (lastError.response?.status === 404) {
         return NextResponse.json(
-          { 
-            success: false, 
+          {
+            success: false,
             error: 'Page not found',
-            details: 'The requested page does not exist'
+            details: 'The requested page does not exist. Please check the URL.'
           },
           { status: 404 }
         );
       }
 
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Failed to fetch webpage',
-          details: error.message
+          details: lastError.message
+        },
+        { status: 500 }
+      );
+    }
+
+    if (!response) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Failed to fetch webpage',
+          details: 'No response received from the server'
         },
         { status: 500 }
       );

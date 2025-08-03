@@ -12,18 +12,19 @@ interface AuthGuardProps {
 }
 
 export function AuthGuard({ children, fallback }: AuthGuardProps) {
-  const { user, initializing } = useAuth();
+  const { user, initializing, isBackgroundVerifying } = useAuth();
   const router = useRouter();
 
-  // Only redirect AFTER the auth system has finished initializing.
+  // Only redirect AFTER the auth system has finished initializing and background verification.
   useEffect(() => {
-    if (!initializing && !user) {
+    const ready = !initializing && !isBackgroundVerifying;
+    if (ready && !user) {
       router.push("/auth/v2/login");
     }
-  }, [initializing, user, router]);
+  }, [initializing, isBackgroundVerifying, user, router]);
 
-  // While Firebase / auth context is bootstrapping, show the fallback (or nothing)
-  if (initializing) {
+  // While Firebase / auth context is bootstrapping or verifying cache, show the fallback (or nothing)
+  if (initializing || isBackgroundVerifying) {
     return fallback ? <>{fallback}</> : null;
   }
 

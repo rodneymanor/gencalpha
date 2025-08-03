@@ -19,6 +19,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/auth-context";
+import { useVideoProcessing } from "@/contexts/video-processing-context";
 
 import { useCollections } from "./collections-context";
 
@@ -52,6 +53,7 @@ interface AddVideoDialogProps {
 export function AddVideoDialog({ open, onOpenChange, selectedCollectionId = "all-videos" }: AddVideoDialogProps) {
   const { state } = useCollections();
   const { user } = useAuth();
+  const { startPolling } = useVideoProcessing();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<FormData>({
@@ -90,6 +92,7 @@ export function AddVideoDialog({ open, onOpenChange, selectedCollectionId = "all
       if (result.success) {
         // Show success message with processing info
         console.log("✅ Video added to queue:", result.job.id);
+        startPolling(); // kick off polling once the job is queued
 
         // Close dialog immediately - user will see progress in notification badge
         form.reset();

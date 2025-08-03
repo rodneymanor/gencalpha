@@ -8,6 +8,8 @@ interface VideoProcessingContextType {
   jobs: VideoProcessingJob[];
   refreshJobs: () => Promise<void>;
   isPolling: boolean;
+  /* Manually start polling when needed */
+  startPolling: () => void;
 }
 
 const VideoProcessingContext = createContext<VideoProcessingContextType | undefined>(undefined);
@@ -15,6 +17,7 @@ const VideoProcessingContext = createContext<VideoProcessingContextType | undefi
 export function VideoProcessingProvider({ children }: { children: React.ReactNode }) {
   const [jobs, setJobs] = useState<VideoProcessingJob[]>([]);
   const [isPolling, setIsPolling] = useState(false);
+  const [shouldPoll, setShouldPoll] = useState(false);
 
   const fetchJobs = useCallback(async () => {
     try {
@@ -34,8 +37,18 @@ export function VideoProcessingProvider({ children }: { children: React.ReactNod
     await fetchJobs();
   }, [fetchJobs]);
 
-  // Smart polling logic - only poll when there are active jobs
+  // Manually trigger polling when a component or action needs it
+  const startPolling = useCallback(() => {
+    setShouldPoll(true);
+  }, []);
+
+  // Smart polling logic - only runs when polling is enabled
   useEffect(() => {
+    if (!shouldPoll) {
+      setIsPolling(false);
+      return;
+    }
+
     const activeJobs = jobs.filter((job) => job.status === "pending" || job.status === "processing");
 
     let interval: NodeJS.Timeout | null = null;
@@ -57,13 +70,15 @@ export function VideoProcessingProvider({ children }: { children: React.ReactNod
         console.log("🛑 Cleaned up polling interval");
       }
     };
-  }, [jobs.length, fetchJobs]); // Include fetchJobs since it's stable (memoized)
+  }, [shouldPoll, jobs, fetchJobs]); // Include fetchJobs since it's stable (memoized)
 
-  // Initial fetch on mount
+  // Initial fetch – only when polling has been requested
   useEffect(() => {
-    console.log("🚀 VideoProcessingContext: Initial fetch");
-    fetchJobs();
-  }, [fetchJobs]); // Include fetchJobs dependency
+    if (shouldPoll) {
+      console.log("🚀 VideoProcessingContext: Initial fetch");
+      fetchJobs();
+    }
+  }, [shouldPoll, fetchJobs]); // Run when polling starts
 
   // Log polling status changes
   useEffect(() => {
@@ -79,8 +94,9 @@ export function VideoProcessingProvider({ children }: { children: React.ReactNod
       jobs,
       refreshJobs,
       isPolling,
+      startPolling,
     }),
-    [jobs, refreshJobs, isPolling],
+    [jobs, refreshJobs, isPolling, startPolling],
   );
 
   return <VideoProcessingContext.Provider value={value}>{children}</VideoProcessingContext.Provider>;

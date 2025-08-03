@@ -28,10 +28,10 @@ interface ScrapeResult {
 }
 
 const testUrls = [
-  'https://blog.vercel.com/introducing-next-js-15',
-  'https://techcrunch.com',
-  'https://www.bbc.com/news',
-  'https://medium.com/@user/sample-article'
+  'https://example.com',
+  'https://httpbin.org/html',
+  'https://news.ycombinator.com',
+  'https://github.com/vercel/next.js'
 ];
 
 const formatJsonExample = () => {
