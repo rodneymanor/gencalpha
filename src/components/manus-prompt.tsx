@@ -2,8 +2,9 @@
 
 import React from "react";
 
-import { BarChart3, FileText, Globe, Image as ImageIcon, Mic, MoreHorizontal, Send, Smile, Table } from "lucide-react";
+import { ArrowUp, BarChart3, FileText, Globe, Image as ImageIcon, MoreHorizontal, Table } from "lucide-react";
 
+import HelpNotificationsButtons from "@/components/help-notifications-buttons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -63,22 +64,12 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
 
           {/* Controls */}
           <div className="flex items-center gap-2 px-3">
-            <div className="bg-muted flex h-8 items-center gap-1 rounded-full border p-0.5">
-              <Button variant="ghost" size="icon">
-                <Smile className="size-4" />
-              </Button>
-              <Button variant="ghost" size="icon">
-                <Mic className="size-4" />
-              </Button>
-              <Button variant="ghost" size="icon">
-                <ImageIcon className="size-4" />
-              </Button>
-            </div>
+            <HelpNotificationsButtons />
 
             <span className="flex-1" />
 
-            <Button disabled variant="ghost" size="icon">
-              <Send className="size-4" />
+            <Button disabled className="bg-muted hover:bg-muted/80 size-9 rounded-full">
+              <ArrowUp className="size-4" />
             </Button>
           </div>
         </div>
