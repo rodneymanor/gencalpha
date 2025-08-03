@@ -2,6 +2,46 @@ import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 
+// Fallback using Gemini API for protected URLs
+async function tryGeminiFallback(url: string): Promise<string | null> {
+  try {
+    const geminiResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent', {
+      method: 'POST',
+      headers: {
+        'x-goog-api-key': process.env.GEMINI_API_KEY || 'AIzaSyDoGxioO33UxmUeQywDnd9Omt6IrbtzwqY',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: `Extract and summarize the main content from this web page: ${url}`
+          }]
+        }],
+        tools: [{
+          url_context: {}
+        }]
+      })
+    });
+
+    const data = await geminiResponse.json();
+    if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
+      const geminiText = data.candidates[0].content.parts[0].text;
+      
+      // Check if Gemini successfully retrieved content
+      if (!geminiText.includes('unable to access') && !geminiText.includes('cannot access')) {
+        console.log('✨ Gemini fallback successful for:', url);
+        return geminiText;
+      }
+    }
+    
+    console.log('❌ Gemini fallback also failed for:', url);
+    return null;
+  } catch (error) {
+    console.error('💥 Gemini fallback error:', error);
+    return null;
+  }
+}
+
 interface ScrapeRequest {
   url: string;
   selectors?: Record<string, string>;
@@ -157,12 +197,37 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // Try Gemini fallback for 403 errors
       if (lastError.response?.status === 403) {
+        console.log('🤖 Trying Gemini fallback for blocked URL:', body.url);
+        const geminiContent = await tryGeminiFallback(body.url);
+        
+        if (geminiContent) {
+          const result: ScrapeResponse = {
+            success: true,
+            data: {
+              url: body.url,
+              title: 'Content extracted via AI',
+              headings: [],
+              paragraphs: geminiContent.split('\n').filter(p => p.trim().length > 20),
+              allText: geminiContent,
+              extractedAt: new Date().toISOString(),
+            }
+          };
+
+          console.log('🎉 Gemini fallback successful:', {
+            url: body.url,
+            contentLength: geminiContent.length
+          });
+
+          return NextResponse.json(result);
+        }
+
         return NextResponse.json(
           {
             success: false,
             error: 'Access forbidden',
-            details: 'The website blocked our request. Try a different URL or check if the site has anti-bot protection.'
+            details: 'The website blocked our request and AI fallback also failed. Try a different URL or check if the site has anti-bot protection.'
           },
           { status: 403 }
         );

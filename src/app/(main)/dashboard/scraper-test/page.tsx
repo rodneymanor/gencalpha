@@ -31,7 +31,7 @@ const testUrls = [
   'https://example.com',
   'https://httpbin.org/html',
   'https://news.ycombinator.com',
-  'https://github.com/vercel/next.js'
+  'https://www.perplexity.ai/discover/you/apple-quietly-builds-chatgpt-r-a2yCjtUNRk2oXmDg2snOWQ'
 ];
 
 const formatJsonExample = () => {
