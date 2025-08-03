@@ -16,7 +16,7 @@ const PERSONAS: Array<{ key: PersonaType; label: string; tooltip?: string }> = [
   { key: "MiniBuddy", label: "MiniBuddy" },
   { key: "StoryBuddy", label: "StoryBuddy" },
   { key: "HookBuddy", label: "HookBuddy" },
-  { key: "MVBB", label: "MVBB", tooltip: "MiniValueBombBuddy" },
+  { key: "MVBB", label: "Value Bomb", tooltip: "MiniValueBombBuddy" },
 ];
 
 export function PersonaSelector({ 
