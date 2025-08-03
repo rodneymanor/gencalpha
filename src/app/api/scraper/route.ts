@@ -314,6 +314,76 @@ async function tryBrowserQL(url: string): Promise<ScrapeResponse["data"] | null>
   }
 }
 
+// Steel browser with anti-detection
+async function trySteel(url: string): Promise<ScrapeResponse["data"] | null> {
+  try {
+    console.log("🚀 Trying Steel browser for:", url);
+
+    const steelApiKey = process.env.STEEL_API_KEY;
+    if (!steelApiKey) {
+      console.log("⚠️ No Steel API key configured");
+      return null;
+    }
+
+    // Create a new session with anti-detection
+    const sessionResponse = await axios.post(
+      "https://api.steel.dev/v1/sessions",
+      {
+        solve_captcha: true,
+        user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+        proxy_country: "US",
+        stealth: true,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${steelApiKey}`,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    const sessionId = sessionResponse.data.id;
+
+    // Navigate to the page with full rendering
+    await axios.post(
+      `https://api.steel.dev/v1/sessions/${sessionId}/navigate`,
+      {
+        url: url,
+        wait_for: "networkidle",
+      },
+      {
+        headers: { Authorization: `Bearer ${steelApiKey}` },
+      },
+    );
+
+    // Extract content as markdown (optimized for AI processing)
+    const contentResponse = await axios.get(`https://api.steel.dev/v1/sessions/${sessionId}/content`, {
+      headers: { Authorization: `Bearer ${steelApiKey}` },
+      params: { format: "markdown" },
+    });
+
+    const content = contentResponse.data.content;
+
+    if (content && content.length > 500) {
+      console.log("✅ Steel successful, content length:", content.length);
+
+      return {
+        url,
+        title: "Content extracted via Steel",
+        headings: [],
+        paragraphs: content.split("\n").filter((p: string) => p.trim().length > 20),
+        allText: content,
+        extractedAt: new Date().toISOString(),
+      };
+    }
+
+    return null;
+  } catch (error: any) {
+    console.error("💥 Steel error:", error.response?.data ?? error.message);
+    return null;
+  }
+}
+
 // Browserless service fallback
 async function tryBrowserlessService(url: string): Promise<ScrapeResponse["data"] | null> {
   try {
@@ -485,21 +555,28 @@ async function tryGeminiFallback(url: string): Promise<string | null> {
 async function intelligentScraping(url: string): Promise<ScrapeResponse> {
   console.log("🚀 Starting intelligent scraping for:", url);
 
-  // 1. Try BrowserQL first (best for protected sites)
+  // 1. Try BrowserQL first (best for Cloudflare protected sites)
   const browserQLResult = await tryBrowserQL(url);
   if (browserQLResult && browserQLResult.allText.length > 500) {
     console.log("✅ BrowserQL scraping successful");
     return { success: true, data: browserQLResult };
   }
 
-  // 2. Try enhanced static scraping with better selectors
+  // 2. Try Steel browser (excellent for anti-bot detection and captcha solving)
+  const steelResult = await trySteel(url);
+  if (steelResult && steelResult.allText.length > 500) {
+    console.log("✅ Steel scraping successful");
+    return { success: true, data: steelResult };
+  }
+
+  // 3. Try enhanced static scraping with better selectors
   const staticResult = await tryEnhancedStaticScraping(url);
   if (staticResult && staticResult.allText.length > 500) {
     console.log("✅ Static scraping successful");
     return { success: true, data: staticResult };
   }
 
-  // 3. Try AI fallback
+  // 4. Try AI fallback
   console.log("🤖 Trying AI fallback...");
   const aiResult = await tryGeminiFallback(url);
   if (aiResult) {
@@ -517,7 +594,7 @@ async function intelligentScraping(url: string): Promise<ScrapeResponse> {
     };
   }
 
-  // 4. Try external browser service as final fallback
+  // 5. Try external browser service as final fallback
   console.log("🌐 Trying browserless service...");
   const browserlessResult = await tryBrowserlessService(url);
   if (browserlessResult) {
