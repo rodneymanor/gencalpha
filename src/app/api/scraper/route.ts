@@ -180,6 +180,140 @@ function extractEnhancedMainContent($: cheerio.CheerioAPI): string {
   return cleanText($("body").text());
 }
 
+// BrowserQL with Cloudflare bypass
+async function tryBrowserQL(url: string): Promise<ScrapeResponse["data"] | null> {
+  try {
+    console.log("🚀 Trying BrowserQL with Cloudflare bypass for:", url);
+
+    const browserQLToken = process.env.BROWSERLESS_API_KEY;
+    if (!browserQLToken) {
+      console.log("⚠️ No BrowserQL token configured");
+      return null;
+    }
+
+    const browserQLQuery = {
+      query: `mutation ExtractPageTextWithCloudflareBypass($url: String!) {
+        goto(url: $url, waitUntil: networkIdle) {
+          status
+        }
+        checkForChallenge: waitForSelector(
+          selector: "[data-cf-beacon], .cf-turnstile, a[href*=\\"cloudflare.com\\"], body:contains(\\"Verifying you are human\\"), body:contains(\\"Just a moment\\")"
+          timeout: 5000
+        ) {
+          time
+        }
+        solveChallenge: if(
+          selector: "[data-cf-beacon], .cf-turnstile, a[href*=\\"cloudflare.com\\"], body:contains(\\"Verifying you are human\\"), body:contains(\\"Just a moment\\")"
+        ) {
+          verify(type: cloudflare, timeout: 45000) {
+            found
+            solved
+            time
+          }
+        }
+        waitAfterSolve: waitForSelector(selector: "body", timeout: 10000) {
+          time
+        }
+        extractText: text(visible: true) {
+          text
+        }
+        extractStructured: mapSelector(
+          selector: "p, h1, h2, h3, h4, h5, h6, article, section, div[class*=\\"content\\"], div[class*=\\"text\\"], span[class*=\\"text\\"]"
+        ) {
+          content: innerText
+          htmlContent: innerHTML
+          elementId: id
+          cssClasses: class
+        }
+      }`,
+      variables: { url },
+    };
+
+    const response = await axios.post("https://production-sfo.browserless.io/chrome/bql", browserQLQuery, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${browserQLToken}`,
+      },
+      params: {
+        token: browserQLToken,
+      },
+      timeout: 90000, // 90 seconds timeout for Cloudflare solving
+    });
+
+    if (response.data?.data) {
+      const { extractText, extractStructured, goto, solveChallenge } = response.data.data;
+
+      // Log Cloudflare challenge results
+      if (solveChallenge?.verify) {
+        console.log("🔐 Cloudflare challenge:", {
+          found: solveChallenge.verify.found,
+          solved: solveChallenge.verify.solved,
+          time: solveChallenge.verify.time,
+        });
+      }
+
+      // Check if we got substantial content
+      if (extractText?.text && extractText.text.length > 500) {
+        // Extract headings and paragraphs from structured data
+        const headings: string[] = [];
+        const paragraphs: string[] = [];
+
+        extractStructured?.forEach((element: any) => {
+          const content = element.content?.trim();
+          if (content && content.length > 0) {
+            // Determine if it's likely a heading based on CSS classes or content length
+            const hasHeadingClass = element.cssClasses?.some(
+              (cls: string) =>
+                cls.includes("heading") || cls.includes("title") || cls.includes("h1") || cls.includes("h2"),
+            );
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const isHeading = (hasHeadingClass ?? false) || content.length < 100;
+
+            if (isHeading && content.length < 200) {
+              headings.push(cleanText(content));
+            } else if (content.length > 20) {
+              paragraphs.push(cleanText(content));
+            }
+          }
+        });
+
+        const title = headings[0] || "Content extracted via BrowserQL";
+        const allText = cleanText(extractText.text);
+
+        console.log("✅ BrowserQL successful:", {
+          status: goto.status,
+          contentLength: allText.length,
+          headingsCount: headings.length,
+          paragraphsCount: paragraphs.length,
+        });
+
+        return {
+          url,
+          title,
+          headings,
+          paragraphs,
+          allText,
+          extractedAt: new Date().toISOString(),
+        };
+      } else {
+        console.log("❌ BrowserQL returned insufficient content");
+        return null;
+      }
+    }
+
+    console.log("❌ BrowserQL returned empty response");
+    return null;
+  } catch (error: any) {
+    console.error("💥 BrowserQL error:", {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      message: error.message,
+    });
+    return null;
+  }
+}
+
 // Browserless service fallback
 async function tryBrowserlessService(url: string): Promise<ScrapeResponse["data"] | null> {
   try {
@@ -351,14 +485,21 @@ async function tryGeminiFallback(url: string): Promise<string | null> {
 async function intelligentScraping(url: string): Promise<ScrapeResponse> {
   console.log("🚀 Starting intelligent scraping for:", url);
 
-  // 1. Try enhanced static scraping with better selectors
+  // 1. Try BrowserQL first (best for protected sites)
+  const browserQLResult = await tryBrowserQL(url);
+  if (browserQLResult && browserQLResult.allText.length > 500) {
+    console.log("✅ BrowserQL scraping successful");
+    return { success: true, data: browserQLResult };
+  }
+
+  // 2. Try enhanced static scraping with better selectors
   const staticResult = await tryEnhancedStaticScraping(url);
   if (staticResult && staticResult.allText.length > 500) {
     console.log("✅ Static scraping successful");
     return { success: true, data: staticResult };
   }
 
-  // 2. Skip Playwright entirely - go straight to AI
+  // 3. Try AI fallback
   console.log("🤖 Trying AI fallback...");
   const aiResult = await tryGeminiFallback(url);
   if (aiResult) {
@@ -376,7 +517,7 @@ async function intelligentScraping(url: string): Promise<ScrapeResponse> {
     };
   }
 
-  // 3. Try external browser service as final fallback
+  // 4. Try external browser service as final fallback
   console.log("🌐 Trying browserless service...");
   const browserlessResult = await tryBrowserlessService(url);
   if (browserlessResult) {
