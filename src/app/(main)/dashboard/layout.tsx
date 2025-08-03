@@ -25,8 +25,6 @@ import {
 // Local components
 import { HeaderTitle } from "./_components/header-title";
 import { AccountSwitcher } from "./_components/sidebar/account-switcher";
-import { LayoutControls } from "./_components/sidebar/layout-controls";
-import { ThemeSwitcher } from "./_components/sidebar/theme-switcher";
 
 export default async function Layout({ children }: Readonly<{ children: ReactNode }>) {
   const [sidebarVariant, sidebarCollapsible, contentLayout] = await Promise.all([
@@ -67,8 +65,6 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
                   </div>
                   <div className="flex items-center gap-2">
                     <PanelControls />
-                    <LayoutControls {...layoutPreferences} />
-                    <ThemeSwitcher />
                   </div>
                 </div>
               </header>

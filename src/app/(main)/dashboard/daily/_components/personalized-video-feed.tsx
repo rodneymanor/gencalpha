@@ -40,6 +40,48 @@ export function PersonalizedVideoFeed({ trigger }: PersonalizedVideoFeedProps) {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [brandSettingsOpen, setBrandSettingsOpen] = useState(false);
 
+  /* ------------------------------------------------------------------
+   * INITIAL FETCH - Load existing videos from Firestore so that users
+   * immediately see content if it already exists in the database.
+   * ------------------------------------------------------------------ */
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadExisting = async () => {
+      try {
+        const res = await fetch("/api/daily/list-videos");
+        const data = await res.json();
+        // eslint-disable-next-line no-console
+        console.log("[PersonalizedVideoFeed] /api/daily/list-videos", { status: res.status, ok: res.ok, data });
+        if (!cancelled && res.ok && data.success) {
+          const mapped = (data.videos ?? []).map((v: any) => ({
+            ...v,
+            cdnUrls: {
+              thumbnail: v.thumbnailUrl ?? v.cdnUrls?.thumbnail,
+              iframe: v.iframeUrl ?? v.cdnUrls?.iframe,
+              direct: v.directUrl ?? v.cdnUrls?.direct,
+            },
+          }));
+          setVideos(mapped);
+          if (mapped.length > 0) {
+            setOnboardingComplete(true);
+          }
+        }
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error("[PersonalizedVideoFeed] initial load failed", err);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    loadExisting();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const busyRef = React.useRef(false);
 
   useEffect(() => {
@@ -88,7 +130,15 @@ export function PersonalizedVideoFeed({ trigger }: PersonalizedVideoFeedProps) {
           return;
         }
         if (data.success) {
-          setVideos(data.processedResults ?? []);
+          // `processedResults` items have shape { videoUrl, ok, json }
+          const processed = (data.processedResults ?? [])
+            .filter((r: any) => r.ok && r.json)
+            .map((r: any) => ({
+              ...r.json.video,
+              cdnUrls: r.json.cdnUrls,
+              videoUrl: r.videoUrl ?? r.json.video?.videoUrl,
+            }));
+          setVideos(processed);
         }
       } catch (error) {
         console.error("[PersonalizedVideoFeed]", error);
@@ -109,7 +159,7 @@ export function PersonalizedVideoFeed({ trigger }: PersonalizedVideoFeedProps) {
   }, [trigger]);
 
   // --- RENDER STATES ----------------------------------------------------
-  if (trigger === null) {
+  if (trigger === null && videos.length === 0 && !loading) {
     return (
       <div className="text-muted-foreground flex items-center justify-center py-12 text-center">
         <p>Press the fetch button to load your personalized inspiration.</p>
@@ -173,9 +223,9 @@ export function PersonalizedVideoFeed({ trigger }: PersonalizedVideoFeedProps) {
       <div className="grid grid-cols-4 gap-4">
         {videos.map((item, idx) => (
           <div key={idx} className="group bg-muted relative aspect-[9/16] cursor-pointer overflow-hidden rounded-lg">
-            {item.cdnUrls?.thumbnail ? (
+            {(item.cdnUrls?.thumbnail ?? (item as any).thumbnailUrl) ? (
               <img
-                src={item.cdnUrls.thumbnail}
+                src={item.cdnUrls?.thumbnail ?? (item as any).thumbnailUrl}
                 alt={item.videoData?.title ?? "video"}
                 className="h-full w-full object-cover transition-transform group-hover:scale-105"
               />

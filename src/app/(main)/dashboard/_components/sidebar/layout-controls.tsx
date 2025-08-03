@@ -50,7 +50,6 @@ export function LayoutControls(props: LayoutControlsProps) {
       <PopoverTrigger asChild>
         <SidebarMenuButton size="default">
           <Settings className="h-4 w-4" />
-          <span>Settings</span>
         </SidebarMenuButton>
       </PopoverTrigger>
       <PopoverContent align="end">

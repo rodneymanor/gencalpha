@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
 }
 
 // Main processing workflow (runs in background)
-async function processVideoWorkflow(requestId: string, videoUrl: string) {
+export async function processVideoWorkflow(requestId: string, videoUrl: string) {
   const startTime = Date.now();
   
   try {
@@ -189,6 +189,8 @@ async function processVideoWorkflow(requestId: string, videoUrl: string) {
       cdnUrl: finalResult.cdnUrls.iframe,
       transcriptionSuccess: transcriptionResult.success
     });
+
+    return finalResult;
 
   } catch (error) {
     console.error(`❌ [${requestId}] Workflow failed:`, error);

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Ghostwriter | Studio Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../src/app/globals.css">
+    <style>
+      /* In case globals.css fails to load */
+      :root {
+        --background: oklch(0.9826 0.0034 174.4849);
+        --foreground: oklch(0 0 0);
+        --card: oklch(1 0 0);
+        --card-foreground: oklch(0 0 0);
+        --popover: oklch(0.99 0 0);
+        --popover-foreground: oklch(0 0 0);
+        --primary: oklch(0.3132 0 0);
+        --primary-foreground: oklch(1 0 0);
+        --secondary: oklch(0.94 0 0);
+        --secondary-foreground: oklch(0 0 0);
+        --muted: oklch(0.97 0 0);
+        --muted-foreground: oklch(0.44 0 0);
+        --accent: oklch(0.94 0 0);
+        --accent-foreground: oklch(0 0 0);
+        --destructive: oklch(0.63 0.19 23.03);
+        --destructive-foreground: oklch(1 0 0);
+        --border: oklch(0.92 0 0);
+        --input: oklch(0.94 0 0);
+        --ring: oklch(0 0 0);
+      }
+      .dark {
+        --background: oklch(0 0 0);
+        --foreground: oklch(1 0 0);
+        --card: oklch(0.14 0 0);
+        --card-foreground: oklch(1 0 0);
+        --popover: oklch(0.18 0 0);
+        --popover-foreground: oklch(1 0 0);
+        --primary: oklch(1 0 0);
+        --primary-foreground: oklch(0 0 0);
+        --secondary: oklch(0.25 0 0);
+        --secondary-foreground: oklch(1 0 0);
+        --muted: oklch(0.23 0 0);
+        --muted-foreground: oklch(0.72 0 0);
+        --accent: oklch(0.32 0 0);
+        --accent-foreground: oklch(1 0 0);
+        --destructive: oklch(0.69 0.2 23.91);
+        --destructive-foreground: oklch(0 0 0);
+        --border: oklch(0.26 0 0);
+        --input: oklch(0.32 0 0);
+        --ring: oklch(0.72 0 0);
+      }
+      body {
+          background-color: var(--background);
+          color: var(--foreground);
+      }
+    </style>
+</head>
+<body class="bg-background text-foreground">
+
+<div class="container mx-auto max-w-7xl p-6">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="mb-4 flex items-center gap-3">
+            <div class="rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 p-3">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-white"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+            </div>
+            <div>
+                <h1 class="text-3xl font-bold">AI Ghostwriter</h1>
+                <p class="text-muted-foreground">Generate viral content ideas based on your topics</p>
+            </div>
+        </div>
+
+        <!-- Stats and Actions -->
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="text-muted-foreground text-sm">0 ideas generated</div>
+                <div class="flex items-center gap-2">
+                    <span class="inline-flex items-center rounded-md bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground">beauty</span>
+                    <span class="inline-flex items-center rounded-md bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground">fitness</span>
+                    <span class="inline-flex items-center rounded-md bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground">travel</span>
+                </div>
+            </div>
+            <button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                Generating...
+            </button>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="mb-6">
+        <div class="grid w-full grid-cols-6 border-b">
+            <button class="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">All Ideas</button>
+            <button class="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-muted-foreground gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M2.5 2.5h3l4 4 4-4 4-4 3 3v3l-4 4-4-4-4 4v3l-3-3z"/></svg>
+                Trending
+            </button>
+            <button class="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-muted-foreground">Problems</button>
+            <button class="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-muted-foreground">Excuses</button>
+            <button class="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-muted-foreground">Questions</button>
+            <button class="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-muted-foreground">Saved</button>
+        </div>
+
+        <div class="mt-6">
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <!-- Skeleton Loader -->
+                <div class="rounded-lg border bg-card text-card-foreground shadow-sm animate-pulse">
+                    <div class="flex flex-col space-y-1.5 p-6">
+                        <div class="h-4 w-3/4 rounded bg-muted"></div>
+                        <div class="h-3 w-1/2 rounded bg-muted"></div>
+                    </div>
+                    <div class="p-6 pt-0">
+                        <div class="space-y-2">
+                            <div class="h-3 rounded bg-muted"></div>
+                            <div class="h-3 w-5/6 rounded bg-muted"></div>
+                            <div class="h-3 w-4/6 rounded bg-muted"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="rounded-lg border bg-card text-card-foreground shadow-sm animate-pulse">
+                    <div class="flex flex-col space-y-1.5 p-6">
+                        <div class="h-4 w-3/4 rounded bg-muted"></div>
+                        <div class="h-3 w-1/2 rounded bg-muted"></div>
+                    </div>
+                    <div class="p-6 pt-0">
+                        <div class="space-y-2">
+                            <div class="h-3 rounded bg-muted"></div>
+                            <div class="h-3 w-5/6 rounded bg-muted"></div>
+                            <div class="h-3 w-4/6 rounded bg-muted"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="rounded-lg border bg-card text-card-foreground shadow-sm animate-pulse">
+                    <div class="flex flex-col space-y-1.5 p-6">
+                        <div class="h-4 w-3/4 rounded bg-muted"></div>
+                        <div class="h-3 w-1/2 rounded bg-muted"></div>
+                    </div>
+                    <div class="p-6 pt-0">
+                        <div class="space-y-2">
+                            <div class="h-3 rounded bg-muted"></div>
+                            <div class="h-3 w-5/6 rounded bg-muted"></div>
+                            <div class="h-3 w-4/6 rounded bg-muted"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

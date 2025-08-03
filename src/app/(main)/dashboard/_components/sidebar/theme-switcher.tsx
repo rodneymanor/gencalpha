@@ -21,7 +21,6 @@ export function ThemeSwitcher() {
   return (
     <SidebarMenuButton size="default" onClick={handleValueChange}>
       {themeMode === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-      <span>Theme</span>
     </SidebarMenuButton>
   );
 }
