@@ -1,12 +1,14 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode, Dispatch, SetStateAction } from "react";
+import { createContext, useContext, useState, ReactNode, Dispatch, SetStateAction, useMemo } from "react";
 
 interface ResizableLayoutState {
   showWritingPanel: boolean;
   showNotesPanel: boolean;
+  showChatbotPanel: boolean;
   writingPanelSize: number; // percentage
   notesPanelSize: number; // percentage
+  chatbotPanelSize: number; // percentage
   mainContentSize: number; // percentage
 }
 
@@ -15,6 +17,7 @@ interface ResizableLayoutContextType {
   setState: Dispatch<SetStateAction<ResizableLayoutState>>;
   toggleWritingPanel: () => void;
   toggleNotesPanel: () => void;
+  toggleChatbotPanel: () => void;
   updatePanelSizes: (sizes: number[]) => void;
   resetLayout: () => void;
 }
@@ -24,8 +27,10 @@ const ResizableLayoutContext = createContext<ResizableLayoutContextType | undefi
 const DEFAULT_STATE: ResizableLayoutState = {
   showWritingPanel: false,
   showNotesPanel: false,
+  showChatbotPanel: false,
   writingPanelSize: 25,
   notesPanelSize: 25,
+  chatbotPanelSize: 25,
   mainContentSize: 50,
 };
 
@@ -35,7 +40,8 @@ export function ResizableLayoutProvider({ children }: { children: ReactNode }) {
   const toggleWritingPanel = () => {
     setState((prev) => {
       const nextShowWriting = !prev.showWritingPanel;
-      const main = nextShowWriting ? (prev.showNotesPanel ? 50 : 75) : prev.showNotesPanel ? 75 : 100;
+      const activePanels = [nextShowWriting, prev.showNotesPanel, prev.showChatbotPanel].filter(Boolean).length;
+      const main = activePanels === 0 ? 100 : activePanels === 1 ? 75 : 50;
       return { ...prev, showWritingPanel: nextShowWriting, mainContentSize: main };
     });
   };
@@ -43,26 +49,47 @@ export function ResizableLayoutProvider({ children }: { children: ReactNode }) {
   const toggleNotesPanel = () => {
     setState((prev) => {
       const nextShowNotes = !prev.showNotesPanel;
-      const main = nextShowNotes ? (prev.showWritingPanel ? 50 : 75) : prev.showWritingPanel ? 75 : 100;
+      const activePanels = [prev.showWritingPanel, nextShowNotes, prev.showChatbotPanel].filter(Boolean).length;
+      const main = activePanels === 0 ? 100 : activePanels === 1 ? 75 : 50;
       return { ...prev, showNotesPanel: nextShowNotes, mainContentSize: main };
     });
   };
 
+  const toggleChatbotPanel = () => {
+    setState((prev) => {
+      const nextShowChatbot = !prev.showChatbotPanel;
+      const activePanels = [prev.showWritingPanel, prev.showNotesPanel, nextShowChatbot].filter(Boolean).length;
+      const main = activePanels === 0 ? 100 : activePanels === 1 ? 75 : 50;
+      return { ...prev, showChatbotPanel: nextShowChatbot, mainContentSize: main };
+    });
+  };
+
   const updatePanelSizes = (sizes: number[]) => {
-    if (sizes.length !== 3) return; // expecting [writing, main, notes]
-    const [writing, main, notes] = sizes;
+    if (sizes.length < 3) return; // expecting [writing, main, notes, chatbot] or fewer
+    const [writing, main, notes, chatbot] = sizes;
     setState((prev) => ({
       ...prev,
       writingPanelSize: writing || prev.writingPanelSize,
       mainContentSize: main || prev.mainContentSize,
       notesPanelSize: notes || prev.notesPanelSize,
+      chatbotPanelSize: chatbot || prev.chatbotPanelSize,
     }));
   };
 
   const resetLayout = () => setState(DEFAULT_STATE);
 
+  const contextValue = useMemo(() => ({
+    state,
+    setState,
+    toggleWritingPanel,
+    toggleNotesPanel,
+    toggleChatbotPanel,
+    updatePanelSizes,
+    resetLayout
+  }), [state]);
+
   return (
-    <ResizableLayoutContext.Provider value={{ state, setState, toggleWritingPanel, toggleNotesPanel, updatePanelSizes, resetLayout }}>
+    <ResizableLayoutContext.Provider value={contextValue}>
       {children}
     </ResizableLayoutContext.Provider>
   );
