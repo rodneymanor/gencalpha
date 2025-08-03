@@ -50,15 +50,25 @@ async function tryEnhancedStaticScraping(url: string): Promise<ScrapeResponse["d
   try {
     console.log("🔍 Attempting enhanced static scraping for:", url);
 
+    // Rotate between multiple realistic user agents
+    const userAgents = [
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15",
+    ];
+
+    const randomUserAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
+
     const axiosConfig = {
       timeout: 30000,
       headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "User-Agent": randomUserAgent,
         Accept:
           "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
         "Accept-Language": "en-US,en;q=0.9",
         "Accept-Encoding": "gzip, deflate, br",
+        DNT: "1",
         Connection: "keep-alive",
         "Upgrade-Insecure-Requests": "1",
         "Sec-Fetch-Dest": "document",
@@ -66,10 +76,17 @@ async function tryEnhancedStaticScraping(url: string): Promise<ScrapeResponse["d
         "Sec-Fetch-Site": "none",
         "Sec-Fetch-User": "?1",
         "Cache-Control": "max-age=0",
+        // Add browser-specific headers
+        "sec-ch-ua": '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": '"Windows"',
       },
       maxRedirects: 5,
       validateStatus: (status: number) => status < 400,
     };
+
+    // Add random delay to avoid detection
+    await new Promise((resolve) => setTimeout(resolve, Math.random() * 2000 + 1000));
 
     const response = await axios.get(url, axiosConfig);
     const $ = cheerio.load(response.data);
@@ -184,9 +201,30 @@ async function tryBrowserlessService(url: string): Promise<ScrapeResponse["data"
           waitUntil: "networkidle0",
           timeout: 30000,
         },
+        // Add stealth mode options
+        options: {
+          args: [
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--disable-dev-shm-usage",
+            "--disable-accelerated-2d-canvas",
+            "--no-first-run",
+            "--no-zygote",
+            "--disable-gpu",
+            "--disable-blink-features=AutomationControlled",
+            "--disable-features=VizDisplayCompositor",
+          ],
+        },
         setExtraHTTPHeaders: {
           "User-Agent":
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+          "Accept-Language": "en-US,en;q=0.9",
+          "Accept-Encoding": "gzip, deflate, br",
+          DNT: "1",
+          "sec-ch-ua": '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+          "sec-ch-ua-mobile": "?0",
+          "sec-ch-ua-platform": '"Windows"',
         },
       },
       {
@@ -194,7 +232,7 @@ async function tryBrowserlessService(url: string): Promise<ScrapeResponse["data"
           Authorization: `Bearer ${browserlessToken}`,
           "Content-Type": "application/json",
         },
-        timeout: 45000,
+        timeout: 60000, // Increased timeout
       },
     );
 
@@ -214,12 +252,20 @@ async function tryBrowserlessService(url: string): Promise<ScrapeResponse["data"
           extractedAt: new Date().toISOString(),
         };
       }
+    } else {
+      console.log("❌ Browserless returned empty content");
+      return null;
     }
 
     console.log("❌ Browserless service failed or insufficient content");
     return null;
-  } catch (error) {
-    console.error("💥 Browserless service error:", error);
+  } catch (error: any) {
+    console.error("💥 Browserless service error:", {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      message: error.message,
+    });
     return null;
   }
 }
@@ -229,12 +275,18 @@ async function tryGeminiFallback(url: string): Promise<string | null> {
   try {
     console.log("🤖 Trying Gemini fallback for:", url);
 
+    const geminiApiKey = process.env.GEMINI_API_KEY;
+    if (!geminiApiKey) {
+      console.log("⚠️ No Gemini API key configured");
+      return null;
+    }
+
     const geminiResponse = await fetch(
       "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
       {
         method: "POST",
         headers: {
-          "x-goog-api-key": process.env.GEMINI_API_KEY ?? "AIzaSyDoGxioO33UxmUeQywDnd9Omt6IrbtzwqY",
+          "x-goog-api-key": geminiApiKey,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -242,32 +294,52 @@ async function tryGeminiFallback(url: string): Promise<string | null> {
             {
               parts: [
                 {
-                  text: `Extract and summarize the main content from this web page: ${url}`,
+                  text: `Please visit this webpage and extract the main article content: ${url}. Focus on the article title, main text content, and key points. If you cannot access the page, please explain why.`,
                 },
               ],
             },
           ],
-          tools: [
-            {
-              url_context: {},
-            },
-          ],
+          generationConfig: {
+            temperature: 0.1,
+            maxOutputTokens: 2048,
+          },
         }),
       },
     );
 
+    if (!geminiResponse.ok) {
+      console.error(`Gemini API error: ${geminiResponse.status} ${geminiResponse.statusText}`);
+      return null;
+    }
+
     const data = await geminiResponse.json();
+
     if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
       const geminiText = data.candidates[0].content.parts[0].text;
 
-      // Check if Gemini successfully retrieved content
-      if (!geminiText.includes("unable to access") && !geminiText.includes("cannot access")) {
+      // More sophisticated success detection
+      const failureIndicators = [
+        "unable to access",
+        "cannot access",
+        "403 forbidden",
+        "access denied",
+        "blocked",
+        "not available",
+        "error accessing",
+      ];
+
+      const hasFailure = failureIndicators.some((indicator) => geminiText.toLowerCase().includes(indicator));
+
+      if (!hasFailure && geminiText.length > 100) {
         console.log("✨ Gemini fallback successful for:", url);
         return geminiText;
+      } else {
+        console.log("❌ Gemini couldn't access content:", geminiText.substring(0, 200));
+        return null;
       }
     }
 
-    console.log("❌ Gemini fallback also failed for:", url);
+    console.log("❌ Gemini returned empty response");
     return null;
   } catch (error) {
     console.error("💥 Gemini fallback error:", error);
@@ -319,38 +391,6 @@ async function intelligentScraping(url: string): Promise<ScrapeResponse> {
 // Helper function to clean text content
 function cleanText(text: string): string {
   return text.replace(/\s+/g, " ").replace(/\n+/g, " ").trim();
-}
-
-// Helper function to extract main content with fallback selectors
-function extractMainContent($: cheerio.CheerioAPI): string {
-  const contentSelectors = [
-    "main",
-    ".main-content",
-    ".content",
-    ".post-content",
-    ".entry-content",
-    ".article-content",
-    "article",
-    ".post-body",
-    "#content",
-    ".container",
-  ];
-
-  for (const selector of contentSelectors) {
-    const content = $(selector).first();
-    if (content.length > 0) {
-      // Remove scripts, styles, and ads
-      content.find("script, style, .ad, .advertisement, .ads").remove();
-      const text = content.text();
-      if (text.length > 100) {
-        return cleanText(text);
-      }
-    }
-  }
-
-  // Fallback to body if no main content found
-  $("script, style, .ad, .advertisement, .ads, nav, header, footer").remove();
-  return cleanText($("body").text());
 }
 
 export async function POST(request: NextRequest) {
