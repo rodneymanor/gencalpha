@@ -10,6 +10,8 @@ interface ResizableLayoutState {
   notesPanelSize: number; // percentage
   chatbotPanelSize: number; // percentage
   mainContentSize: number; // percentage
+  chatbotInitialPrompt?: string;
+  chatbotInitialPersona?: string;
 }
 
 interface ResizableLayoutContextType {
@@ -17,7 +19,7 @@ interface ResizableLayoutContextType {
   setState: Dispatch<SetStateAction<ResizableLayoutState>>;
   toggleWritingPanel: () => void;
   toggleNotesPanel: () => void;
-  toggleChatbotPanel: () => void;
+  toggleChatbotPanel: (initialPrompt?: string, initialPersona?: string) => void;
   updatePanelSizes: (sizes: number[]) => void;
   resetLayout: () => void;
 }
@@ -55,12 +57,18 @@ export function ResizableLayoutProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const toggleChatbotPanel = () => {
+  const toggleChatbotPanel = (initialPrompt?: string, initialPersona?: string) => {
     setState((prev) => {
       const nextShowChatbot = !prev.showChatbotPanel;
       const activePanels = [prev.showWritingPanel, prev.showNotesPanel, nextShowChatbot].filter(Boolean).length;
       const main = activePanels === 0 ? 100 : activePanels === 1 ? 75 : 50;
-      return { ...prev, showChatbotPanel: nextShowChatbot, mainContentSize: main };
+      return {
+        ...prev,
+        showChatbotPanel: nextShowChatbot,
+        mainContentSize: main,
+        chatbotInitialPrompt: nextShowChatbot ? initialPrompt : undefined,
+        chatbotInitialPersona: nextShowChatbot ? initialPersona : undefined,
+      };
     });
   };
 

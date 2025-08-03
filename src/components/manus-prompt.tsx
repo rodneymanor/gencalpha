@@ -1,45 +1,55 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 
-import { ArrowUp, BarChart3, FileText, Globe, Image as ImageIcon, MoreHorizontal, Table } from "lucide-react";
+import { ArrowUp } from "lucide-react";
 
 import HelpNotificationsButtons from "@/components/help-notifications-buttons";
-import { Badge } from "@/components/ui/badge";
+import { PersonaSelector, PersonaType } from "@/components/chatbot/persona-selector";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { useResizableLayout } from "@/contexts/resizable-layout-context";
 import { cn } from "@/lib/utils";
-
-type QuickAction = {
-  label: string;
-  icon?: React.ComponentType<{ className?: string }>;
-  isNew?: boolean;
-};
 
 interface ManusPromptProps {
   greeting?: string;
   subtitle?: string;
   placeholder?: string;
-  actions?: QuickAction[];
   className?: string;
+  onSubmit?: (prompt: string, persona: PersonaType) => void;
 }
-
-const defaultActions: QuickAction[] = [
-  { label: "Image", icon: ImageIcon },
-  { label: "Slides", icon: FileText },
-  { label: "Webpage", icon: Globe },
-  { label: "Spreadsheet", icon: Table, isNew: true },
-  { label: "Visualization", icon: BarChart3 },
-  { label: "More", icon: MoreHorizontal },
-];
 
 export const ManusPrompt: React.FC<ManusPromptProps> = ({
   greeting = "Hello",
   subtitle = "What will you script today?",
   placeholder = "Give Gen.C a topic to script...",
-  actions = defaultActions,
   className,
+  onSubmit,
 }) => {
+  const [prompt, setPrompt] = useState("");
+  const [selectedPersona, setSelectedPersona] = useState<PersonaType>("MiniBuddy");
+  const { toggleChatbotPanel } = useResizableLayout();
+
+  const handleSubmit = () => {
+    if (!prompt.trim()) return;
+    
+    // Open the chatbot panel with the initial prompt and persona
+    toggleChatbotPanel(prompt.trim(), selectedPersona);
+    
+    // Call the optional onSubmit callback with the prompt and persona
+    onSubmit?.(prompt.trim(), selectedPersona);
+    
+    // Clear the input
+    setPrompt("");
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
+
   return (
     <div className={cn("mx-auto my-24 w-full max-w-3xl min-w-[390px] space-y-4 px-5 text-base", className)}>
       {/* Header */}
@@ -57,6 +67,9 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
           <div className="overflow-y-auto px-4">
             <Textarea
               rows={1}
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              onKeyDown={handleKeyDown}
               placeholder={placeholder}
               className="resize-none border-0 bg-transparent focus-visible:ring-0"
             />
@@ -68,26 +81,32 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
 
             <span className="flex-1" />
 
-            <Button disabled className="bg-muted hover:bg-muted/80 size-9 rounded-full">
+            <Button
+              onClick={handleSubmit}
+              disabled={!prompt.trim()}
+              className={cn(
+                "size-9 rounded-full transition-colors",
+                prompt.trim()
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                  : "bg-muted hover:bg-muted/80"
+              )}
+            >
               <ArrowUp className="size-4" />
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="flex flex-wrap items-center justify-center gap-2">
-        {actions.map(({ label, icon: Icon, isNew }) => (
-          <Button key={label} variant="outline" size="sm" className="h-9 rounded-full px-4 py-2">
-            {Icon && <Icon className="size-4" />}
-            <span>{label}</span>
-            {isNew && (
-              <Badge variant="outline" className="ml-2">
-                New
-              </Badge>
-            )}
-          </Button>
-        ))}
+      {/* Persona Selector */}
+      <div className="space-y-3">
+        <div className="text-center">
+          <span className="text-sm font-medium text-foreground">Choose your assistant:</span>
+        </div>
+        <PersonaSelector
+          selectedPersona={selectedPersona}
+          onPersonaChange={setSelectedPersona}
+          className="justify-center"
+        />
       </div>
     </div>
   );

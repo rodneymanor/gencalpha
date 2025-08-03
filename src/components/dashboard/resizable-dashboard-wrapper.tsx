@@ -16,7 +16,7 @@ interface ResizableDashboardWrapperProps {
 
 export function ResizableDashboardWrapper({ children, className }: ResizableDashboardWrapperProps) {
   const { state, updatePanelSizes } = useResizableLayout();
-  const { showWritingPanel, showNotesPanel, showChatbotPanel, writingPanelSize, mainContentSize, notesPanelSize, chatbotPanelSize } = state;
+  const { showWritingPanel, showNotesPanel, showChatbotPanel, writingPanelSize, mainContentSize, notesPanelSize, chatbotPanelSize, chatbotInitialPrompt, chatbotInitialPersona } = state;
 
   // Helper function to map panel sizes based on visible panels
   const mapPanelSizes = (sizes: number[], visiblePanels: string[]) => {
@@ -90,7 +90,10 @@ export function ResizableDashboardWrapper({ children, className }: ResizableDash
         <>
           <PanelResizeHandle className="w-2 cursor-col-resize bg-border transition-colors hover:bg-primary/30" />
           <Panel defaultSize={chatbotPanelSize} minSize={10} maxSize={30} order={4} className="border-l">
-            <ChatbotPanel />
+            <ChatbotPanel
+              initialPrompt={chatbotInitialPrompt}
+              initialPersona={chatbotInitialPersona as any}
+            />
           </Panel>
         </>
       )}

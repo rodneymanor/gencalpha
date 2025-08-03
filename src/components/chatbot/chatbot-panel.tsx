@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MessageSquare, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PanelHeader } from "@/components/ui/panel-header";
@@ -12,12 +12,14 @@ import { cn } from "@/lib/utils";
 interface ChatbotPanelProps {
   onClose?: () => void;
   className?: string;
+  initialPrompt?: string;
+  initialPersona?: PersonaType;
 }
 
-export function ChatbotPanel({ onClose, className }: ChatbotPanelProps) {
+export function ChatbotPanel({ onClose, className, initialPrompt, initialPersona }: ChatbotPanelProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedPersona, setSelectedPersona] = useState<PersonaType>("MiniBuddy");
+  const [selectedPersona, setSelectedPersona] = useState<PersonaType>(initialPersona || "MiniBuddy");
 
   const handleSendMessage = async (content: string) => {
     // Add user message
@@ -87,6 +89,13 @@ export function ChatbotPanel({ onClose, className }: ChatbotPanelProps) {
       setIsLoading(false);
     }
   };
+
+  // Process initial prompt when panel opens
+  useEffect(() => {
+    if (initialPrompt && initialPrompt.trim() && messages.length === 0) {
+      handleSendMessage(initialPrompt);
+    }
+  }, [initialPrompt, messages.length]);
 
   const handleClearChat = () => {
     setMessages([]);
