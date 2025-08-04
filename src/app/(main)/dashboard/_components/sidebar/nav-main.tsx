@@ -35,15 +35,25 @@ const IsComingSoon = () => (
   <span className="ml-auto rounded-md bg-gray-200 px-2 py-1 text-xs dark:text-gray-800">Soon</span>
 );
 
-const CustomDailyButton = ({ url, isActive }: { url: string; isActive: boolean }) => (
-  <SidebarMenuButton asChild isActive={isActive} tooltip="Daily">
-    <Link href={url} className="flex items-center justify-center">
-      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-black transition-colors hover:bg-gray-800">
+const CustomDailyButton = ({ url, isActive }: { url: string; isActive: boolean }) => {
+  const { state } = useSidebar();
+  const isCollapsed = state === "collapsed";
+
+  return (
+    <Link
+      href={url}
+      className={`relative flex items-center justify-center ${isCollapsed ? "h-8 w-8" : "h-8 w-full"} group`}
+      data-tooltip="Daily"
+    >
+      <div
+        className={`flex items-center justify-center rounded-full bg-black transition-all duration-200 hover:scale-105 hover:bg-gray-800 ${isCollapsed ? "h-8 w-8" : "mr-auto h-8 w-8"} shadow-lg hover:shadow-xl`}
+      >
         <Plus className="h-4 w-4 text-white" />
       </div>
+      {!isCollapsed && <span className="text-sidebar-foreground ml-2 text-sm font-medium">Daily</span>}
     </Link>
-  </SidebarMenuButton>
-);
+  );
+};
 
 const NavItemExpanded = ({
   item,
@@ -70,7 +80,10 @@ const NavItemExpanded = ({
               <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
             </SidebarMenuButton>
           ) : item.isCustomButton && item.title === "Daily" ? (
-            <CustomDailyButton url={item.url} isActive={isActive(item.url)} />
+            // Custom Daily button - render outside of SidebarMenuButton to avoid standard styling
+            <div className="flex w-full">
+              <CustomDailyButton url={item.url} isActive={isActive(item.url)} />
+            </div>
           ) : (
             <SidebarMenuButton
               asChild
@@ -196,23 +209,24 @@ export function NavMain({ items }: NavMainProps) {
                 if (state === "collapsed" && !isMobile) {
                   // If no subItems, just render the button as a link
                   if (!item.subItems) {
-                    return (
+                    return item.isCustomButton && item.title === "Daily" ? (
+                      // Render custom Daily button outside SidebarMenuItem to avoid padding constraints
+                      <div key={item.title} className="flex items-center justify-center p-0">
+                        <CustomDailyButton url={item.url} isActive={isItemActive(item.url)} />
+                      </div>
+                    ) : (
                       <SidebarMenuItem key={item.title}>
-                        {item.isCustomButton && item.title === "Daily" ? (
-                          <CustomDailyButton url={item.url} isActive={isItemActive(item.url)} />
-                        ) : (
-                          <SidebarMenuButton
-                            asChild
-                            aria-disabled={item.comingSoon}
-                            tooltip={item.title}
-                            isActive={isItemActive(item.url)}
-                          >
-                            <Link href={item.url} target={item.newTab ? "_blank" : undefined}>
-                              {item.icon && <item.icon />}
-                              <span>{item.title === "Queue" ? "Q" : item.title}</span>
-                            </Link>
-                          </SidebarMenuButton>
-                        )}
+                        <SidebarMenuButton
+                          asChild
+                          aria-disabled={item.comingSoon}
+                          tooltip={item.title}
+                          isActive={isItemActive(item.url)}
+                        >
+                          <Link href={item.url} target={item.newTab ? "_blank" : undefined}>
+                            {item.icon && <item.icon />}
+                            <span>{item.title === "Queue" ? "Q" : item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
                       </SidebarMenuItem>
                     );
                   }
