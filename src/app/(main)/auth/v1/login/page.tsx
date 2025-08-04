@@ -7,7 +7,7 @@ import { GoogleButton } from "../../_components/social-auth/google-button";
 
 export default function LoginV1() {
   return (
-    <div className="bg-background relative flex min-h-screen items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
+    <div className="relative flex min-h-screen items-center justify-center bg-white px-4 py-12 sm:px-6 lg:px-8">
       <DotPattern className="absolute inset-0 opacity-30" />
       <div className="w-full max-w-md space-y-8">
         <div className="mb-6 flex justify-center">
