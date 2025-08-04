@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 
+import Image from "next/image";
+
 import { Play, Star, StarOff, MoreHorizontal, Eye, Trash2, Copy, Move } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -116,14 +118,151 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
     }
   };
 
+  const renderVideoThumbnail = (video: Video) =>
+    video.thumbnailUrl ? (
+      <Image
+        src={video.thumbnailUrl}
+        alt={video.title}
+        fill
+        className="object-cover transition-transform group-hover:scale-105"
+      />
+    ) : null;
+
+  const renderVideoMetrics = (video: Video) =>
+    video.metrics && (
+      <div className="flex items-center gap-3 text-xs text-white/80">
+        {video.metrics.views > 0 && (
+          <span className="flex items-center gap-1">
+            <Eye className="h-3 w-3" />
+            {formatNumber(video.metrics.views)}
+          </span>
+        )}
+        {video.metrics.likes > 0 && <span>❤️ {formatNumber(video.metrics.likes)}</span>}
+        {video.metrics.comments > 0 && <span>💬 {formatNumber(video.metrics.comments)}</span>}
+      </div>
+    );
+
+  const renderVideoCard = (video: Video) => (
+    <div
+      key={video.id}
+      className="group bg-muted relative aspect-[9/16] cursor-pointer overflow-hidden rounded-lg"
+      onClick={() => handleVideoClick(video)}
+    >
+      {renderVideoThumbnail(video)}
+
+      <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/50">
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
+          <Button size="icon" className="rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30">
+            <Play className="h-6 w-6 fill-white text-white" />
+          </Button>
+        </div>
+
+        <div className="absolute top-2 right-2 left-2 flex items-start justify-between">
+          <div className="flex flex-col gap-2">
+            <Badge className={cn("text-xs", getPlatformBadgeColor(video.platform))}>{video.platform}</Badge>
+            {video.favorite && <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />}
+          </div>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 bg-white/20 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100 hover:bg-white/30"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <MoreHorizontal className="h-4 w-4 text-white" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleVideoClick(video);
+                }}
+              >
+                <Eye className="mr-2 h-4 w-4" />
+                View Insights
+              </DropdownMenuItem>
+              {canWrite && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleToggleFavorite(video);
+                  }}
+                >
+                  {video.favorite ? (
+                    <>
+                      <StarOff className="mr-2 h-4 w-4" />
+                      Remove from favorites
+                    </>
+                  ) : (
+                    <>
+                      <Star className="mr-2 h-4 w-4" />
+                      Add to favorites
+                    </>
+                  )}
+                </DropdownMenuItem>
+              )}
+              {canWrite && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setMovingVideo(video);
+                    }}
+                  >
+                    <Move className="mr-2 h-4 w-4" />
+                    Move to Collection
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Handle copy
+                    }}
+                  >
+                    <Copy className="mr-2 h-4 w-4" />
+                    Copy to Collection
+                  </DropdownMenuItem>
+                </>
+              )}
+              {canDelete && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDeletingVideo(video);
+                    }}
+                    className="text-destructive"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/80 to-transparent p-3">
+          {renderVideoMetrics(video)}
+        </div>
+      </div>
+    </div>
+  );
+
   if (state.loading && state.videos.length === 0) {
     return (
-      <div className="grid grid-cols-4 gap-4">
-        {[...Array(12)].map((_, index) => (
-          <div key={`loading-${index}`} className="relative aspect-[9/16]">
-            <Skeleton className="h-full w-full rounded-lg" />
-          </div>
-        ))}
+      <div className="@container">
+        <div className="grid grid-cols-1 gap-4 @sm:grid-cols-2 @lg:grid-cols-3 @xl:grid-cols-4">
+          {[...Array(12)].map((_, index) => (
+            <div key={`loading-skeleton-${index}`} className="relative aspect-[9/16]">
+              <Skeleton className="h-full w-full rounded-lg" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -131,134 +270,10 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
   return (
     <>
       <div className="space-y-4">
-        <div className="grid grid-cols-4 gap-4">
-          {state.videos.map((video) => (
-            <div
-              key={video.id}
-              className="group bg-muted relative aspect-[9/16] cursor-pointer overflow-hidden rounded-lg"
-              onClick={() => handleVideoClick(video)}
-            >
-              {video.thumbnailUrl && (
-                <img
-                  src={video.thumbnailUrl}
-                  alt={video.title}
-                  className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                />
-              )}
-
-              <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/50">
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
-                  <Button size="icon" className="rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30">
-                    <Play className="h-6 w-6 fill-white text-white" />
-                  </Button>
-                </div>
-
-                <div className="absolute top-2 right-2 left-2 flex items-start justify-between">
-                  <div className="flex flex-col gap-2">
-                    <Badge className={cn("text-xs", getPlatformBadgeColor(video.platform))}>{video.platform}</Badge>
-                    {video.favorite && <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />}
-                  </div>
-
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-8 w-8 bg-white/20 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100 hover:bg-white/30"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <MoreHorizontal className="h-4 w-4 text-white" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleVideoClick(video);
-                        }}
-                      >
-                        <Eye className="mr-2 h-4 w-4" />
-                        View Insights
-                      </DropdownMenuItem>
-                      {canWrite && (
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleToggleFavorite(video);
-                          }}
-                        >
-                          {video.favorite ? (
-                            <>
-                              <StarOff className="mr-2 h-4 w-4" />
-                              Remove from favorites
-                            </>
-                          ) : (
-                            <>
-                              <Star className="mr-2 h-4 w-4" />
-                              Add to favorites
-                            </>
-                          )}
-                        </DropdownMenuItem>
-                      )}
-                      {canWrite && (
-                        <>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setMovingVideo(video);
-                            }}
-                          >
-                            <Move className="mr-2 h-4 w-4" />
-                            Move to Collection
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // Handle copy
-                            }}
-                          >
-                            <Copy className="mr-2 h-4 w-4" />
-                            Copy to Collection
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                      {canDelete && (
-                        <>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDeletingVideo(video);
-                            }}
-                            className="text-destructive"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/80 to-transparent p-3">
-                  {video.metrics && (
-                    <div className="flex items-center gap-3 text-xs text-white/80">
-                      {video.metrics.views > 0 && (
-                        <span className="flex items-center gap-1">
-                          <Eye className="h-3 w-3" />
-                          {formatNumber(video.metrics.views)}
-                        </span>
-                      )}
-                      {video.metrics.likes > 0 && <span>❤️ {formatNumber(video.metrics.likes)}</span>}
-                      {video.metrics.comments > 0 && <span>💬 {formatNumber(video.metrics.comments)}</span>}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
+        <div className="@container">
+          <div className="grid grid-cols-1 gap-4 @sm:grid-cols-2 @lg:grid-cols-3 @xl:grid-cols-4">
+            {state.videos.map(renderVideoCard)}
+          </div>
         </div>
 
         {state.videos.length === 0 && !state.loading && (
