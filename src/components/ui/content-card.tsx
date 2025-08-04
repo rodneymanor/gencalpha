@@ -1,13 +1,17 @@
 import React from 'react';
 
 import { Shield, Star, Share2, Bookmark } from 'lucide-react';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface ContentCardProps {
   title: string;
   description: string;
   badge: {
     label: string;
-    variant?: 'default' | 'warning';
+    variant?: 'default' | 'secondary' | 'outline';
   };
   rating: {
     value: string;
@@ -25,95 +29,66 @@ export function ContentCard({
   rating,
   onShare,
   onBookmark,
-  className = '',
+  className,
 }: ContentCardProps) {
   return (
-    <div className={`
-      flex flex-col w-full max-w-[547px] 
-      bg-white border border-gray-200 rounded-2xl
-      font-['Poppins'] text-base leading-6 text-black
-      ${className}
-    `}>
-      {/* Header Content */}
-      <div className="flex-1 p-4 pb-3">
-        <div className="flex flex-col gap-1">
-          <h3 className="text-sm font-medium leading-5 text-gray-700 m-0">
+    <Card className={cn("w-full max-w-lg", className)}>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium text-card-foreground leading-none">
             {title}
           </h3>
-          <p className="text-xs leading-4 font-normal text-gray-500 m-0">
+          <p className="text-xs text-muted-foreground">
             {description}
           </p>
         </div>
-      </div>
+      </CardContent>
 
-      {/* Footer */}
-      <div className="border-t border-gray-100">
-        <div className="flex items-center justify-between px-4 py-2">
+      <CardFooter className="border-t pt-6">
+        <div className="flex items-center justify-between w-full">
           {/* Left Section - Badge and Rating */}
-          <div className="flex items-center flex-wrap gap-2">
+          <div className="flex items-center gap-3">
             {/* Badge */}
-            <span className="
-              flex items-center gap-1
-              bg-orange-50 text-orange-600
-              text-xs leading-4 rounded-full
-              px-2 py-1
-            ">
-              <span className="text-[10px] font-medium whitespace-nowrap">
+            <Badge variant={badge.variant || 'secondary'} className="gap-1">
+              <span className="text-xs font-medium">
                 {badge.label}
               </span>
-              <div className="flex items-center">
-                <Shield className="h-3 w-3 text-orange-600" />
-              </div>
-            </span>
-
-            {/* Divider */}
-            <hr className="h-4 border-l border-gray-200 border-t-0 border-r-0 border-b-0" />
+              <Shield className="size-3" />
+            </Badge>
 
             {/* Rating */}
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                {rating.showIcon !== false && <Star className="h-3 w-3 fill-yellow-400 text-yellow-600" />}
-                <span className="text-xs leading-4 font-medium text-yellow-600">
-                  {rating.value}
-                </span>
-              </div>
+            <div className="flex items-center gap-1">
+              {rating.showIcon !== false && (
+                <Star className="size-3 fill-yellow-500 text-yellow-500" />
+              )}
+              <span className="text-xs font-medium text-yellow-600">
+                {rating.value}
+              </span>
             </div>
           </div>
 
           {/* Right Section - Action Buttons */}
           <div className="flex items-center gap-1">
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={onShare}
-              className="
-                flex items-center justify-center
-                h-7 w-7 p-1.5
-                bg-transparent border-0 rounded
-                cursor-pointer gap-2
-                transition-all duration-200 ease-in-out
-                hover:bg-gray-50
-              "
-              type="button"
+              className="size-8"
             >
-              <Share2 className="h-4 w-4 text-gray-500" />
-            </button>
-            <button
+              <Share2 className="size-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={onBookmark}
-              className="
-                flex items-center justify-center
-                h-7 w-7 p-1.5
-                bg-transparent border-0 rounded
-                cursor-pointer gap-2
-                transition-all duration-200 ease-in-out
-                hover:bg-gray-50
-              "
-              type="button"
+              className="size-8"
             >
-              <Bookmark className="h-4 w-4 text-gray-500" />
-            </button>
+              <Bookmark className="size-4" />
+            </Button>
           </div>
         </div>
-      </div>
-    </div>
+      </CardFooter>
+    </Card>
   );
 }
 
