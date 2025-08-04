@@ -2,21 +2,67 @@
 
 import React, { useState, useEffect } from "react";
 
+import { motion } from "framer-motion";
 import { ArrowUp, Link, AlertCircle, CheckCircle2, Loader2, Bot, Globe, Pencil } from "lucide-react";
 
 import { PersonaSelector, PersonaType } from "@/components/chatbot/persona-selector";
-import HelpNotificationsButtons from "@/components/help-notifications-buttons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { SlidingSwitch, SlidingSwitchOption } from "@/components/ui/sliding-switch";
 import { useAuth } from "@/contexts/auth-context";
 import { useResizableLayout } from "@/contexts/resizable-layout-context";
 import { scrapeVideoUrl } from "@/lib/unified-video-scraper";
 import { cn } from "@/lib/utils";
 import { detectURL, URLDetectionResult } from "@/lib/utils/url-detector";
 
-type InputMode = 'writer' | 'global' | 'notes';
+// Types for the sliding switch
+interface SwitchOption {
+  value: string;
+  icon: React.ReactNode;
+}
+
+interface AdvancedSlidingSwitchProps {
+  options: SwitchOption[];
+  onChange?: (index: number, option: SwitchOption) => void;
+  defaultValue?: number;
+}
+
+// Advanced Sliding Switch Component
+const AdvancedSlidingSwitch: React.FC<AdvancedSlidingSwitchProps> = ({ options, onChange, defaultValue = 0 }) => {
+  const [activeIndex, setActiveIndex] = useState(defaultValue);
+
+  return (
+    <div className="bg-muted inline-flex h-[29px] w-[110px] items-center overflow-hidden rounded-full border p-0.5">
+      {options.map((option: SwitchOption, index: number) => (
+        <button
+          key={index}
+          onClick={() => {
+            setActiveIndex(index);
+            onChange?.(index, option);
+          }}
+          className={`relative z-10 flex h-full flex-1 items-center justify-center rounded-none text-sm transition-colors duration-200 ${
+            activeIndex === index ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+          } `}
+        >
+          {/* The animated background slides to the active index */}
+          {activeIndex === index && (
+            <motion.div
+              layoutId="sliding-background"
+              className="bg-background absolute inset-0 rounded-full shadow-sm"
+              transition={{
+                type: "spring",
+                stiffness: 400,
+                damping: 35,
+              }}
+            />
+          )}
+          {/* The content of the button (icon) */}
+          <div className="relative z-10 flex items-center">{option.icon}</div>
+        </button>
+      ))}
+    </div>
+  );
+};
 
 interface ManusPromptProps {
   greeting?: string;
@@ -45,36 +91,20 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
   const { user, userProfile } = useAuth();
   const [prompt, setPrompt] = useState("");
   const [selectedPersona, setSelectedPersona] = useState<PersonaType>("MiniBuddy");
-  const [inputMode, setInputMode] = useState<InputMode>("writer");
   const [urlDetection, setUrlDetection] = useState<URLDetectionResult | null>(null);
   const [isProcessingVideo, setIsProcessingVideo] = useState(false);
   const { toggleChatbotPanel } = useResizableLayout();
 
-  // Input mode options for sliding switch
-  const modeOptions: SlidingSwitchOption[] = [
-    { value: 'writer', icon: <Bot size={16} /> },
-    { value: 'global', icon: <Globe size={16} /> },
-    { value: 'notes', icon: <Pencil size={16} /> },
+  // Switch options for the sliding switch
+  const switchOptions = [
+    { value: "writer", icon: <Bot className="h-[18px] w-[18px]" /> },
+    { value: "global", icon: <Globe className="h-[18px] w-[18px]" /> },
+    { value: "notes", icon: <Pencil className="h-[18px] w-[18px]" /> },
   ];
 
-  const handleModeChange = (index: number, option: SlidingSwitchOption) => {
-    setInputMode(option.value as InputMode);
-  };
-
-  // Get placeholder text based on input mode
-  const getPlaceholder = () => {
-    if (urlDetection) return "Video URL detected! Press Enter to process...";
-    
-    switch (inputMode) {
-      case 'writer':
-        return "Give Gen.C a topic to script...";
-      case 'global':
-        return "What would you like to know or explore?";
-      case 'notes':
-        return "Capture your thoughts and ideas...";
-      default:
-        return placeholder;
-    }
+  // Handler for switch changes
+  const handleSwitchChange = (index: number, option: SwitchOption) => {
+    console.log("Switch changed to:", option.value);
   };
 
   // URL Detection Effect
@@ -192,10 +222,10 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={getPlaceholder()}
+              placeholder={urlDetection ? "Video URL detected! Press Enter to process..." : placeholder}
               className={cn(
-                "resize-none border-0 bg-transparent focus-visible:ring-0 pb-12", // Always add bottom padding for mode switcher
-                urlDetection && "pb-16", // Extra padding when URL detection is shown
+                "resize-none border-0 bg-transparent focus-visible:ring-0",
+                urlDetection && "pb-12", // Add padding when URL detection is shown
               )}
             />
 
@@ -239,21 +269,13 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
                 )}
               </div>
             )}
-
-            {/* Input Mode Selector - positioned in bottom left */}
-            <div className="absolute bottom-2 left-3">
-              <SlidingSwitch
-                options={modeOptions}
-                onChange={handleModeChange}
-                defaultValue={0}
-                className="h-8"
-              />
-            </div>
           </div>
 
           {/* Controls */}
           <div className="flex items-center gap-2 px-3">
-            <HelpNotificationsButtons />
+            <div className="mt-[5px]">
+              <AdvancedSlidingSwitch options={switchOptions} onChange={handleSwitchChange} />
+            </div>
 
             <span className="flex-1" />
 

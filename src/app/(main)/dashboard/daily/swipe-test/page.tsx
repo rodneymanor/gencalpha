@@ -189,55 +189,6 @@ export default function SwipeTestPage() {
       }}
     >
       {/* Rest of your component remains the same */}
-      {/* Debug State Indicator */}
-      <div className="fixed top-4 right-4 z-[9999] rounded-lg bg-black/80 p-3 font-mono text-sm text-white">
-        <div className="space-y-1">
-          <div>
-            Content Revealed:{" "}
-            <span className={isRevealed ? "text-green-400" : "text-red-400"}>{isRevealed.toString()}</span>
-          </div>
-          <div>
-            Page Y: <span className="text-blue-400">{Math.round(pageY.get())}px</span>
-          </div>
-          <div>
-            Touch Support: <span className="text-blue-400">{hasTouchSupport ? "Yes" : "No"}</span>
-          </div>
-          <div>
-            Page Scroll: <span className="text-orange-400">Disabled</span>
-          </div>
-          <div>
-            Wheel Threshold: <span className="text-yellow-400">{wheelThreshold}px</span>
-          </div>
-          <div className="mt-2 space-y-1">
-            <div className="flex gap-1">
-              <button
-                onClick={() => setWheelThreshold(Math.max(1, wheelThreshold - 1))}
-                className="rounded bg-red-600 px-1 text-xs text-white hover:bg-red-700"
-              >
-                -
-              </button>
-              <button
-                onClick={() => setWheelThreshold(wheelThreshold + 1)}
-                className="rounded bg-green-600 px-1 text-xs text-white hover:bg-green-700"
-              >
-                +
-              </button>
-              <button
-                onClick={() => setWheelThreshold(5)}
-                className="rounded bg-blue-600 px-1 text-xs text-white hover:bg-blue-700"
-              >
-                Reset
-              </button>
-            </div>
-          </div>
-          <div className="mt-2 border-t border-gray-600 pt-1 text-xs">
-            <div>📱 Touch events: Mobile swipes</div>
-            <div>🖱️ Manual wheel: Desktop trackpad/mouse</div>
-            <div>🖱️ Drag events: Mouse/trackpad drag</div>
-            <div>🚫 Page scroll disabled to prevent conflicts</div>
-          </div>
-        </div>
-      </div>
 
       {/* Rest of your existing JSX */}
       <div className="fixed bottom-4 left-1/2 z-50 -translate-x-1/2 transform">

@@ -1,6 +1,5 @@
 "use client";
 
-/* eslint-disable max-lines */
 import { useState, useEffect, useRef, useCallback } from "react";
 
 import { motion } from "framer-motion";
@@ -11,7 +10,6 @@ import { Button } from "@/components/ui/button";
 
 import { DailyInspirationSection } from "./daily-inspiration-section";
 
-// eslint-disable-next-line complexity
 export default function DailyPageSlideWrapper() {
   const [showContent, setShowContent] = useState(false);
   const [showFullContent, setShowFullContent] = useState(false);
@@ -233,59 +231,6 @@ export default function DailyPageSlideWrapper() {
 
   return (
     <>
-      {/* Debug State Indicator */}
-      <div className="fixed top-4 right-4 z-[9999] rounded-lg bg-black/80 p-3 font-mono text-sm text-white">
-        <div className="space-y-1">
-          <div>
-            showContent:{" "}
-            <span className={showContent ? "text-green-400" : "text-red-400"}>{showContent.toString()}</span>
-          </div>
-          <div>
-            showFullContent:{" "}
-            <span className={showFullContent ? "text-green-400" : "text-red-400"}>{showFullContent.toString()}</span>
-          </div>
-          <div>
-            Touch Events:{" "}
-            <span className="text-blue-400">
-              {typeof window !== "undefined" && "ontouchstart" in window ? "Supported" : "Not Supported"}
-            </span>
-          </div>
-          <div>
-            Page Scroll: <span className="text-orange-400">Disabled</span>
-          </div>
-          <div>
-            Wheel Threshold: <span className="text-yellow-400">{wheelThreshold}px</span>
-          </div>
-          <div className="mt-2 space-y-1">
-            <div className="flex gap-1">
-              <button
-                onClick={() => setWheelThreshold(Math.max(1, wheelThreshold - 1))}
-                className="rounded bg-red-600 px-1 text-xs text-white hover:bg-red-700"
-              >
-                -
-              </button>
-              <button
-                onClick={() => setWheelThreshold(wheelThreshold + 1)}
-                className="rounded bg-green-600 px-1 text-xs text-white hover:bg-green-700"
-              >
-                +
-              </button>
-              <button
-                onClick={() => setWheelThreshold(5)}
-                className="rounded bg-blue-600 px-1 text-xs text-white hover:bg-blue-700"
-              >
-                Reset
-              </button>
-            </div>
-          </div>
-          <div className="mt-2 border-t border-gray-600 pt-1 text-xs">
-            <div>📱 Touch events: Mobile swipes</div>
-            <div>🖱️ Wheel events: Swipe DOWN to reveal, UP to hide</div>
-            <div>🚫 Page scroll disabled</div>
-          </div>
-        </div>
-      </div>
-
       {/* Main container - remove restrictive touchAction */}
       <div ref={containerRef} className="relative">
         {/* Main page content that shifts up when content is shown */}
