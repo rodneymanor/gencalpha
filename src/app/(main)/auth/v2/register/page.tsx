@@ -12,10 +12,10 @@ export default function RegisterV2() {
     <AuthRedirectGuard>
       <div className="w-full max-w-md space-y-8">
         <div className="mb-6 flex justify-center">
-          <div className="hover:text-primary flex cursor-pointer items-center gap-1 transition-colors">
-            <span className="text-foreground text-xl font-bold">Gen</span>
-            <div className="h-2 w-2 rounded-full bg-yellow-400"></div>
-            <span className="text-foreground text-xl font-bold">C</span>
+          <div className="hover:text-primary flex cursor-pointer items-center gap-2 transition-colors">
+            <span className="text-foreground text-3xl font-bold">Gen</span>
+            <div className="h-3 w-3 rounded-full bg-yellow-400"></div>
+            <span className="text-foreground text-3xl font-bold">C</span>
           </div>
         </div>
         <div className="space-y-2 text-center">
