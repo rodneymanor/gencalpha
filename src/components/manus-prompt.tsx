@@ -2,18 +2,21 @@
 
 import React, { useState, useEffect } from "react";
 
-import { ArrowUp, Link, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { ArrowUp, Link, AlertCircle, CheckCircle2, Loader2, Bot, Globe, Pencil } from "lucide-react";
 
 import { PersonaSelector, PersonaType } from "@/components/chatbot/persona-selector";
 import HelpNotificationsButtons from "@/components/help-notifications-buttons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { SlidingSwitch, SlidingSwitchOption } from "@/components/ui/sliding-switch";
 import { useAuth } from "@/contexts/auth-context";
 import { useResizableLayout } from "@/contexts/resizable-layout-context";
 import { scrapeVideoUrl } from "@/lib/unified-video-scraper";
 import { cn } from "@/lib/utils";
 import { detectURL, URLDetectionResult } from "@/lib/utils/url-detector";
+
+type InputMode = 'writer' | 'global' | 'notes';
 
 interface ManusPromptProps {
   greeting?: string;
@@ -42,9 +45,37 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
   const { user, userProfile } = useAuth();
   const [prompt, setPrompt] = useState("");
   const [selectedPersona, setSelectedPersona] = useState<PersonaType>("MiniBuddy");
+  const [inputMode, setInputMode] = useState<InputMode>("writer");
   const [urlDetection, setUrlDetection] = useState<URLDetectionResult | null>(null);
   const [isProcessingVideo, setIsProcessingVideo] = useState(false);
   const { toggleChatbotPanel } = useResizableLayout();
+
+  // Input mode options for sliding switch
+  const modeOptions: SlidingSwitchOption[] = [
+    { value: 'writer', icon: <Bot size={16} /> },
+    { value: 'global', icon: <Globe size={16} /> },
+    { value: 'notes', icon: <Pencil size={16} /> },
+  ];
+
+  const handleModeChange = (index: number, option: SlidingSwitchOption) => {
+    setInputMode(option.value as InputMode);
+  };
+
+  // Get placeholder text based on input mode
+  const getPlaceholder = () => {
+    if (urlDetection) return "Video URL detected! Press Enter to process...";
+    
+    switch (inputMode) {
+      case 'writer':
+        return "Give Gen.C a topic to script...";
+      case 'global':
+        return "What would you like to know or explore?";
+      case 'notes':
+        return "Capture your thoughts and ideas...";
+      default:
+        return placeholder;
+    }
+  };
 
   // URL Detection Effect
   useEffect(() => {
@@ -161,10 +192,10 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={urlDetection ? "Video URL detected! Press Enter to process..." : placeholder}
+              placeholder={getPlaceholder()}
               className={cn(
-                "resize-none border-0 bg-transparent focus-visible:ring-0",
-                urlDetection && "pb-12", // Add padding when URL detection is shown
+                "resize-none border-0 bg-transparent focus-visible:ring-0 pb-12", // Always add bottom padding for mode switcher
+                urlDetection && "pb-16", // Extra padding when URL detection is shown
               )}
             />
 
@@ -208,6 +239,16 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
                 )}
               </div>
             )}
+
+            {/* Input Mode Selector - positioned in bottom left */}
+            <div className="absolute bottom-2 left-3">
+              <SlidingSwitch
+                options={modeOptions}
+                onChange={handleModeChange}
+                defaultValue={0}
+                className="h-8"
+              />
+            </div>
           </div>
 
           {/* Controls */}
