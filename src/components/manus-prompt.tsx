@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useResizableLayout } from "@/contexts/resizable-layout-context";
+import { useAuth } from "@/contexts/auth-context";
 import { cn } from "@/lib/utils";
 import { detectURL, URLDetectionResult } from "@/lib/utils/url-detector";
 import { scrapeVideoUrl } from "@/lib/unified-video-scraper";
@@ -29,6 +30,7 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
   className,
   onSubmit,
 }) => {
+  const { user, userProfile } = useAuth();
   const [prompt, setPrompt] = useState("");
   const [selectedPersona, setSelectedPersona] = useState<PersonaType>("MiniBuddy");
   const [urlDetection, setUrlDetection] = useState<URLDetectionResult | null>(null);
@@ -124,7 +126,7 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
       {/* Header */}
       <header className="flex w-full items-end justify-between pb-4 pl-4">
         <h1 className="text-foreground text-4xl leading-10 font-bold tracking-tight">
-          {greeting}
+          {greeting}{user && (userProfile?.displayName || user.displayName) && `, ${userProfile?.displayName || user.displayName}`}
           <br />
           <span className="text-muted-foreground">{subtitle}</span>
         </h1>
