@@ -4,16 +4,16 @@ import React, { useState, useEffect } from "react";
 
 import { ArrowUp, Link, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 
-import HelpNotificationsButtons from "@/components/help-notifications-buttons";
 import { PersonaSelector, PersonaType } from "@/components/chatbot/persona-selector";
+import HelpNotificationsButtons from "@/components/help-notifications-buttons";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { useResizableLayout } from "@/contexts/resizable-layout-context";
 import { useAuth } from "@/contexts/auth-context";
+import { useResizableLayout } from "@/contexts/resizable-layout-context";
+import { scrapeVideoUrl } from "@/lib/unified-video-scraper";
 import { cn } from "@/lib/utils";
 import { detectURL, URLDetectionResult } from "@/lib/utils/url-detector";
-import { scrapeVideoUrl } from "@/lib/unified-video-scraper";
 
 interface ManusPromptProps {
   greeting?: string;
@@ -31,14 +31,14 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
   className,
   onSubmit,
 }) => {
-  console.log("💬 ManusPrompt: Component initialized with props:", {
-    greeting,
-    subtitle,
-    placeholder,
-    className,
-    hasOnSubmit: !!onSubmit
-  });
-  
+  // console.log("💬 ManusPrompt: Component initialized with props:", {
+  //   greeting,
+  //   subtitle,
+  //   placeholder,
+  //   className,
+  //   hasOnSubmit: !!onSubmit
+  // });
+
   const { user, userProfile } = useAuth();
   const [prompt, setPrompt] = useState("");
   const [selectedPersona, setSelectedPersona] = useState<PersonaType>("MiniBuddy");
@@ -57,7 +57,7 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
     // Check if input contains a URL pattern
     const urlPattern = /https?:\/\/[^\s]+/i;
     const urlMatch = trimmedInput.match(urlPattern);
-    
+
     if (urlMatch) {
       const detectedUrl = urlMatch[0];
       const detection = detectURL(detectedUrl);
@@ -75,26 +75,26 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
     try {
       // Process video URL using unified video scraper
       const result = await scrapeVideoUrl(urlDetection.url);
-      
+
       if (result) {
         // Create a formatted message with video transcription
-        const message = `Here's the transcription from the ${urlDetection.platform} video:\n\n**Title:** ${result.title}\n**Author:** @${result.author}\n\n**Transcript:**\n${result.description || 'No transcript available - this video may not have spoken content.'}`;
-        
+        const message = `Here's the transcription from the ${urlDetection.platform} video:\n\n**Title:** ${result.title}\n**Author:** @${result.author}\n\n**Transcript:**\n${result.description || "No transcript available - this video may not have spoken content."}`;
+
         // Open the chatbot panel with the transcription and selected persona
         toggleChatbotPanel(message, selectedPersona);
-        
+
         // Call the optional onSubmit callback
         onSubmit?.(message, selectedPersona);
-        
+
         // Clear the input and detection
         setPrompt("");
         setUrlDetection(null);
       }
     } catch (error) {
-      console.error('Error processing video:', error);
+      console.error("Error processing video:", error);
       // Show error message to user
-      const errorMessage = `Failed to process ${urlDetection.platform} video: ${error instanceof Error ? error.message : 'Unknown error'}`;
-      
+      const errorMessage = `Failed to process ${urlDetection.platform} video: ${error instanceof Error ? error.message : "Unknown error"}`;
+
       // Open chatbot panel with error message
       toggleChatbotPanel(errorMessage, selectedPersona);
       onSubmit?.(errorMessage, selectedPersona);
@@ -105,19 +105,19 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
 
   const handleSubmit = async () => {
     if (!prompt.trim() || isProcessingVideo) return;
-    
+
     // If we detected a supported video URL, process it instead of regular submit
     if (urlDetection && urlDetection.isSupported) {
       await handleVideoProcess();
       return;
     }
-    
+
     // Open the chatbot panel with the initial prompt and persona
     toggleChatbotPanel(prompt.trim(), selectedPersona);
-    
+
     // Call the optional onSubmit callback with the prompt and persona
     onSubmit?.(prompt.trim(), selectedPersona);
-    
+
     // Clear the input and detection
     setPrompt("");
     setUrlDetection(null);
@@ -130,20 +130,23 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
     }
   };
 
-  console.log("💬 ManusPrompt: Rendering with state:", {
-    prompt: prompt.length > 0 ? `${prompt.length} chars` : "empty",
-    selectedPersona,
-    urlDetection: urlDetection?.platform || null,
-    isProcessingVideo,
-    user: user?.displayName || "not logged in"
-  });
+  // console.log("💬 ManusPrompt: Rendering with state:", {
+  //   prompt: prompt.length > 0 ? `${prompt.length} chars` : "empty",
+  //   selectedPersona,
+  //   urlDetection: urlDetection?.platform || null,
+  //   isProcessingVideo,
+  //   user: user?.displayName || "not logged in"
+  // });
 
   return (
     <div className={cn("mx-auto my-24 w-full max-w-3xl min-w-[390px] space-y-4 px-5 text-base", className)}>
       {/* Header */}
       <header className="flex w-full items-end justify-between pb-4 pl-4">
         <h1 className="text-foreground text-4xl leading-10 font-bold tracking-tight">
-          {greeting}{user && (userProfile?.displayName ?? user.displayName) && `, ${userProfile?.displayName ?? user.displayName}`}
+          {greeting}
+          {user &&
+            (userProfile?.displayName ?? user.displayName) &&
+            `, ${userProfile?.displayName ?? user.displayName}`}
           <br />
           <span className="text-muted-foreground">{subtitle}</span>
         </h1>
@@ -152,7 +155,7 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
       {/* Input Card */}
       <div className="bg-background rounded-3xl border shadow-md">
         <div className="flex max-h-72 flex-col space-y-3 py-3">
-          <div className="overflow-y-auto px-4 relative">
+          <div className="relative overflow-y-auto px-4">
             <Textarea
               rows={1}
               value={prompt}
@@ -161,26 +164,26 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
               placeholder={urlDetection ? "Video URL detected! Press Enter to process..." : placeholder}
               className={cn(
                 "resize-none border-0 bg-transparent focus-visible:ring-0",
-                urlDetection && "pb-12" // Add padding when URL detection is shown
+                urlDetection && "pb-12", // Add padding when URL detection is shown
               )}
             />
-            
+
             {/* URL Detection Feedback */}
             {urlDetection && (
-              <div className="absolute bottom-2 left-0 right-0 mx-3 flex items-center justify-between p-2 bg-muted/80 backdrop-blur-sm rounded-md border border-border/50">
+              <div className="bg-muted/80 border-border/50 absolute right-0 bottom-2 left-0 mx-3 flex items-center justify-between rounded-md border p-2 backdrop-blur-sm">
                 <div className="flex items-center gap-2">
-                  <Link className="h-4 w-4 text-muted-foreground" />
+                  <Link className="text-muted-foreground h-4 w-4" />
                   <span className="text-sm font-medium">
                     {urlDetection.platform.charAt(0).toUpperCase() + urlDetection.platform.slice(1)} {urlDetection.type}
                   </span>
                   {urlDetection.isSupported ? (
-                    <Badge variant="default" className="text-xs bg-green-500 hover:bg-green-500/80">
-                      <CheckCircle2 className="h-3 w-3 mr-1" />
+                    <Badge variant="default" className="bg-green-500 text-xs hover:bg-green-500/80">
+                      <CheckCircle2 className="mr-1 h-3 w-3" />
                       Supported
                     </Badge>
                   ) : (
                     <Badge variant="secondary" className="text-xs">
-                      <AlertCircle className="h-3 w-3 mr-1" />
+                      <AlertCircle className="mr-1 h-3 w-3" />
                       Coming Soon
                     </Badge>
                   )}
@@ -191,15 +194,15 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
                     variant="outline"
                     onClick={handleVideoProcess}
                     disabled={isProcessingVideo}
-                    className="text-xs h-6 px-2"
+                    className="h-6 px-2 text-xs"
                   >
                     {isProcessingVideo ? (
                       <>
-                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                        <Loader2 className="mr-1 h-3 w-3 animate-spin" />
                         Processing...
                       </>
                     ) : (
-                      'Process Video'
+                      "Process Video"
                     )}
                   </Button>
                 )}
@@ -220,14 +223,10 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
                 "size-9 rounded-full transition-colors",
                 prompt.trim() && !isProcessingVideo
                   ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                  : "bg-muted hover:bg-muted/80"
+                  : "bg-muted hover:bg-muted/80",
               )}
             >
-              {isProcessingVideo ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <ArrowUp className="size-4" />
-              )}
+              {isProcessingVideo ? <Loader2 className="size-4 animate-spin" /> : <ArrowUp className="size-4" />}
             </Button>
           </div>
         </div>
@@ -236,7 +235,7 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
       {/* Persona Selector */}
       <div className="space-y-3">
         <div className="text-center">
-          <span className="text-sm font-medium text-foreground">Choose your assistant:</span>
+          <span className="text-foreground text-sm font-medium">Choose your assistant:</span>
         </div>
         <PersonaSelector
           selectedPersona={selectedPersona}
