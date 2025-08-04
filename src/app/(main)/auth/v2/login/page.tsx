@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { AuthRedirectGuard } from "@/components/auth/auth-redirect-guard";
+import { DotPattern } from "@/components/magicui/dot-pattern";
 
 import { LoginForm } from "../../_components/login-form";
 import { GoogleButton } from "../../_components/social-auth/google-button";
@@ -10,6 +11,7 @@ import { GoogleButton } from "../../_components/social-auth/google-button";
 export default function LoginV2() {
   return (
     <AuthRedirectGuard>
+      <DotPattern className="fixed inset-0 opacity-30" />
       <div className="w-full max-w-md space-y-8">
         <div className="mb-6 flex justify-center">
           <div className="hover:text-primary flex cursor-pointer items-center gap-2 transition-colors">
