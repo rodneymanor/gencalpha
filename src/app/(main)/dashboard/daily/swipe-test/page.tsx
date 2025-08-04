@@ -143,7 +143,7 @@ export default function SwipeTestPage() {
       document.removeEventListener("wheel", handleWheel);
       console.log("🖱️ Wheel event listener removed");
     };
-  }, [isRevealed, pageY]);
+  }, [isRevealed, wheelThreshold]);
 
   // Handle drag end for mouse/drag interactions
   const handleDragEnd = useCallback((event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
