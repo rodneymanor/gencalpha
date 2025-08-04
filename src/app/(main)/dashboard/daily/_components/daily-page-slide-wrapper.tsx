@@ -122,12 +122,13 @@ export default function DailyPageSlideWrapper() {
           threshold: wheelThreshold,
         });
 
-        if (isUpSwipe && !showContent) {
-          console.log("🔄 Revealing content via wheel");
+        // INVERTED: Down swipe reveals content, up swipe hides content
+        if (isDownSwipe && !showContent) {
+          console.log("🔄 Revealing content via wheel (swipe down)");
           e.preventDefault(); // Prevent default scroll
           setShowContent(true);
-        } else if (isDownSwipe && showContent && !showFullContent) {
-          console.log("🔄 Hiding content via wheel");
+        } else if (isUpSwipe && showContent && !showFullContent) {
+          console.log("🔄 Hiding content via wheel (swipe up)");
           e.preventDefault(); // Prevent default scroll
           setShowContent(false);
         }
@@ -280,7 +281,7 @@ export default function DailyPageSlideWrapper() {
           </div>
           <div className="mt-2 border-t border-gray-600 pt-1 text-xs">
             <div>📱 Touch events: Mobile swipes</div>
-            <div>🖱️ Wheel events: Trackpad swipes</div>
+            <div>🖱️ Wheel events: Swipe DOWN to reveal, UP to hide</div>
             <div>🚫 Page scroll disabled</div>
           </div>
         </div>
@@ -353,7 +354,7 @@ export default function DailyPageSlideWrapper() {
             >
               <h3 className="text-foreground font-semibold">Hey guys, I&apos;m here! 👋</h3>
               <p className="text-muted-foreground text-sm">
-                Swipe up or tap to explore viral content and daily inspiration...
+                Swipe down or tap to explore viral content and daily inspiration...
               </p>
             </div>
             <Button
