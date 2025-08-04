@@ -7,12 +7,10 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProcessingBadge, ProcessingTooltip } from "@/components/ui/processing-badge";
-import { useVideoProcessing } from "@/contexts/video-processing-context";
-import { VideoProcessingProvider } from "@/contexts/video-processing-context";
+import { useVideoProcessing, VideoProcessingProvider } from "@/contexts/video-processing-context";
 
 import { AddVideoDialog } from "./_components/add-video-dialog";
-import { CollectionsProvider } from "./_components/collections-context";
-import { useCollections } from "./_components/collections-context";
+import { CollectionsProvider, useCollections } from "./_components/collections-context";
 import { CollectionsSidebar } from "./_components/collections-sidebar";
 import { CreateCollectionDialog } from "./_components/create-collection-dialog";
 import { VideoGrid } from "./_components/video-grid";
@@ -58,23 +56,27 @@ function CollectionsContent() {
         </div>
 
         {/* Main Content */}
-        <div className="grid grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           {/* Sidebar */}
-          <div className="col-span-3">
-            <CollectionsSidebar
-              selectedCollectionId={selectedCollectionId}
-              onSelectCollection={setSelectedCollectionId}
-            />
+          <div className="hidden lg:col-span-3 lg:block">
+            <Card>
+              <CardContent className="p-0">
+                <CollectionsSidebar
+                  selectedCollectionId={selectedCollectionId}
+                  onSelectCollection={setSelectedCollectionId}
+                />
+              </CardContent>
+            </Card>
           </div>
 
           {/* Video Grid */}
-          <div className="col-span-9">
+          <div className="col-span-1 lg:col-span-9">
             <Card>
               <CardHeader>
                 <CardTitle>
                   {selectedCollectionId === "all-videos"
                     ? "All Videos"
-                    : selectedCollection?.title || "Collection Videos"}
+                    : (selectedCollection?.title ?? "Collection Videos")}
                 </CardTitle>
                 {selectedCollection?.description && (
                   <p className="text-muted-foreground mt-1 text-sm">{selectedCollection.description}</p>

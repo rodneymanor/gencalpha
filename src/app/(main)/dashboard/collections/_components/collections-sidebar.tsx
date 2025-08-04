@@ -101,7 +101,7 @@ export function CollectionsSidebar({ selectedCollectionId, onSelectCollection }:
 
   if (state.loading) {
     return (
-      <div className="flex h-full flex-col overflow-hidden">
+      <div className="flex h-full flex-col overflow-hidden p-4">
         {/* Header */}
         <div className="flex h-[52px] items-center justify-center px-2">
           <div className="border-input flex w-full items-center gap-2 rounded-md border bg-transparent px-3 py-2 text-sm">
@@ -127,7 +127,7 @@ export function CollectionsSidebar({ selectedCollectionId, onSelectCollection }:
 
   return (
     <>
-      <div className="flex h-full flex-col overflow-hidden">
+      <div className="flex h-full flex-col overflow-hidden p-4">
         {/* Header */}
         <div className="flex h-[52px] items-center justify-center px-2">
           <div className="border-input flex w-full items-center gap-2 rounded-md border bg-transparent px-3 py-2 text-sm">
