@@ -67,13 +67,13 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
               </header> */}
               <div className="min-h-0 flex-1 overflow-hidden">
                 <ResizableDashboardWrapper className="h-full">
-                  <div className="mx-auto flex h-full max-w-6xl flex-col">
-                    <div className="relative flex-shrink-0">
+                  <div className="mx-auto max-w-6xl">
+                    <div className="relative">
                       <div className="absolute top-6 right-6 z-10">
                         <ProcessingNotificationBadge />
                       </div>
                     </div>
-                    <div className="min-h-0 flex-1 overflow-y-auto px-4 py-6 md:px-6 md:py-8">{children}</div>
+                    <div className="px-4 py-6 md:px-6 md:py-8">{children}</div>
                   </div>
                 </ResizableDashboardWrapper>
               </div>

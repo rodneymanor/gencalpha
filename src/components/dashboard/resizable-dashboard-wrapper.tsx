@@ -94,7 +94,7 @@ export function ResizableDashboardWrapper({ children, className }: ResizableDash
     <PanelGroup direction="horizontal" className={cn("flex h-full w-full", className)} onLayout={handleLayout}>
       {/* Main content (always left-most) */}
       <Panel defaultSize={mainContentSize} minSize={40} order={1} className="h-full">
-        <div className="h-full overflow-y-auto">{children}</div>
+        {children}
       </Panel>
 
       {/* Optional Writing panel (right side) */}
