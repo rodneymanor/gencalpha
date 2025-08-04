@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+/* eslint-disable max-lines */
+import { useState, useEffect, useRef, useCallback } from "react";
 
 import { motion } from "framer-motion";
 import { ChevronDown, ChevronUp } from "lucide-react";
@@ -11,9 +12,8 @@ import { Button } from "@/components/ui/button";
 import { DailyInspirationSection } from "./daily-inspiration-section";
 import { DebugGridTest } from "./debug-grid-test";
 
+// eslint-disable-next-line complexity
 export default function DailyPageSlideWrapper() {
-  // console.log("🔄 DailyPageSlideWrapper: Component initialized");
-
   const [showContent, setShowContent] = useState(false);
   const [showFullContent, setShowFullContent] = useState(false);
   const lastScrollY = useRef(0);
@@ -34,6 +34,21 @@ export default function DailyPageSlideWrapper() {
   const touchStartTime = useRef<number>(0);
   const minSwipeDistance = 50;
   const maxSwipeTime = 300; // Maximum time for a swipe gesture
+  const [wheelThreshold, setWheelThreshold] = useState(5); // Wheel event threshold for trackpad sensitivity
+
+  // Ref for the container to attach manual event listeners
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Utility function to disable/enable page scroll
+  const disablePageScroll = (disable: boolean) => {
+    if (disable) {
+      document.body.style.overflow = "hidden";
+      document.body.style.height = "100%";
+    } else {
+      document.body.style.overflow = "";
+      document.body.style.height = "";
+    }
+  };
 
   // Touch event handlers for swipe detection - using native events
   const handleTouchStart = (e: TouchEvent) => {
@@ -89,6 +104,64 @@ export default function DailyPageSlideWrapper() {
       setShowContent(false);
     }
   };
+
+  // Manual wheel event handler for desktop trackpad/mouse (non-passive)
+  const handleWheelEvent = useCallback(
+    (e: WheelEvent) => {
+      // Only handle vertical wheel events
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        const isUpSwipe = e.deltaY < -wheelThreshold;
+        const isDownSwipe = e.deltaY > wheelThreshold;
+
+        console.log("🖱️ Wheel event:", {
+          deltaY: e.deltaY,
+          deltaX: e.deltaX,
+          isUpSwipe,
+          isDownSwipe,
+          currentState: { showContent, showFullContent },
+          threshold: wheelThreshold,
+        });
+
+        if (isUpSwipe && !showContent) {
+          console.log("🔄 Revealing content via wheel");
+          e.preventDefault(); // Prevent default scroll
+          setShowContent(true);
+        } else if (isDownSwipe && showContent && !showFullContent) {
+          console.log("🔄 Hiding content via wheel");
+          e.preventDefault(); // Prevent default scroll
+          setShowContent(false);
+        }
+      }
+    },
+    [showContent, showFullContent, wheelThreshold],
+  );
+
+  // Disable page scroll when component mounts to prevent conflicts
+  useEffect(() => {
+    console.log("🚫 Disabling page scroll to prevent conflicts");
+    disablePageScroll(true);
+
+    return () => {
+      console.log("✅ Re-enabling page scroll");
+      disablePageScroll(false);
+    };
+  }, []);
+
+  // Add manual wheel event listeners with passive: false
+  useEffect(() => {
+    const element = containerRef.current;
+    if (!element) return;
+
+    // CRITICAL: Use passive: false to allow preventDefault()
+    element.addEventListener("wheel", handleWheelEvent, { passive: false });
+
+    console.log("🖱️ Manual wheel event listener added with passive: false");
+
+    return () => {
+      element.removeEventListener("wheel", handleWheelEvent);
+      console.log("🖱️ Manual wheel event listener removed");
+    };
+  }, [handleWheelEvent]);
 
   // Add native touch event listeners
   useEffect(() => {
@@ -158,25 +231,63 @@ export default function DailyPageSlideWrapper() {
     setShowFullContent(true);
   };
 
-  // console.log("🎨 DailyPageSlideWrapper: Rendering with state", {
-  //   showContent,
-  //   showFullContent,
-  //   touchAction: 'pan-x pan-y'
-  // });
-
   return (
     <>
       {/* Debug State Indicator */}
-      <div className="fixed top-4 right-4 z-[9999] rounded bg-black/80 p-2 font-mono text-xs text-white">
-        <div>showContent: {showContent.toString()}</div>
-        <div>showFullContent: {showFullContent.toString()}</div>
-        <div>
-          Touch Events: {typeof window !== "undefined" && "ontouchstart" in window ? "Supported" : "Not Supported"}
+      <div className="fixed top-4 right-4 z-[9999] rounded-lg bg-black/80 p-3 font-mono text-sm text-white">
+        <div className="space-y-1">
+          <div>
+            showContent:{" "}
+            <span className={showContent ? "text-green-400" : "text-red-400"}>{showContent.toString()}</span>
+          </div>
+          <div>
+            showFullContent:{" "}
+            <span className={showFullContent ? "text-green-400" : "text-red-400"}>{showFullContent.toString()}</span>
+          </div>
+          <div>
+            Touch Events:{" "}
+            <span className="text-blue-400">
+              {typeof window !== "undefined" && "ontouchstart" in window ? "Supported" : "Not Supported"}
+            </span>
+          </div>
+          <div>
+            Page Scroll: <span className="text-orange-400">Disabled</span>
+          </div>
+          <div>
+            Wheel Threshold: <span className="text-yellow-400">{wheelThreshold}px</span>
+          </div>
+          <div className="mt-2 space-y-1">
+            <div className="flex gap-1">
+              <button
+                onClick={() => setWheelThreshold(Math.max(1, wheelThreshold - 1))}
+                className="rounded bg-red-600 px-1 text-xs text-white hover:bg-red-700"
+              >
+                -
+              </button>
+              <button
+                onClick={() => setWheelThreshold(wheelThreshold + 1)}
+                className="rounded bg-green-600 px-1 text-xs text-white hover:bg-green-700"
+              >
+                +
+              </button>
+              <button
+                onClick={() => setWheelThreshold(5)}
+                className="rounded bg-blue-600 px-1 text-xs text-white hover:bg-blue-700"
+              >
+                Reset
+              </button>
+            </div>
+          </div>
+          <div className="mt-2 border-t border-gray-600 pt-1 text-xs">
+            <div>📱 Touch events: Mobile swipes</div>
+            <div>🖱️ Wheel events: Trackpad swipes</div>
+            <div>🚫 Page scroll disabled</div>
+          </div>
         </div>
       </div>
 
       {/* Main container - remove restrictive touchAction */}
-      <div className="relative">
+      <div ref={containerRef} className="relative">
         {/* Main page content that shifts up when content is shown */}
         <motion.div
           animate={{
