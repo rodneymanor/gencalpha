@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 
-import { motion, useMotionValue, PanInfo } from "framer-motion";
+import { motion, useMotionValue, PanInfo, animate } from "framer-motion";
 import { ChevronUp, ChevronDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ export default function SwipeTestPage() {
   const touchStartY = useRef<number>(0);
   const touchEndY = useRef<number>(0);
   const minSwipeDistance = 50;
+  const wheelThreshold = 20; // Much lower threshold for trackpad sensitivity
 
   // Improved touch support detection
   const [hasTouchSupport, setHasTouchSupport] = useState(false);
@@ -80,13 +81,11 @@ export default function SwipeTestPage() {
     if (isUpSwipe && !isRevealed) {
       console.log("🔄 Revealing content via swipe");
       setIsRevealed(true);
-      pageY.set(-150);
     } else if (isDownSwipe && isRevealed) {
       console.log("🔄 Hiding content via swipe");
       setIsRevealed(false);
-      pageY.set(0);
     }
-  }, [isRevealed, pageY, minSwipeDistance]);
+  }, [isRevealed, minSwipeDistance]);
 
   // Add touch event listeners for mobile
   useEffect(() => {
@@ -111,8 +110,8 @@ export default function SwipeTestPage() {
     const handleWheel = (e: WheelEvent) => {
       // Only handle vertical wheel events (trackpad swipes)
       if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-        const isUpSwipe = e.deltaY < -50; // Swipe up (negative deltaY)
-        const isDownSwipe = e.deltaY > 50; // Swipe down (positive deltaY)
+        const isUpSwipe = e.deltaY < -wheelThreshold; // Swipe up (negative deltaY)
+        const isDownSwipe = e.deltaY > wheelThreshold; // Swipe down (positive deltaY)
 
         console.log("🖱️ Wheel event:", {
           deltaY: e.deltaY,
@@ -120,17 +119,16 @@ export default function SwipeTestPage() {
           isUpSwipe,
           isDownSwipe,
           currentState: isRevealed,
+          threshold: wheelThreshold,
         });
 
         if (isUpSwipe && !isRevealed) {
           console.log("🔄 Revealing content via wheel");
           setIsRevealed(true);
-          pageY.set(-150);
           e.preventDefault(); // Prevent default scroll
         } else if (isDownSwipe && isRevealed) {
           console.log("🔄 Hiding content via wheel");
           setIsRevealed(false);
-          pageY.set(0);
           e.preventDefault(); // Prevent default scroll
         }
       }
@@ -148,40 +146,38 @@ export default function SwipeTestPage() {
   }, [isRevealed, pageY]);
 
   // Handle drag end for mouse/drag interactions
-  const handleDragEnd = useCallback(
-    (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-      const dragDistance = Math.abs(info.offset.y);
-      const dragVelocity = info.velocity.y;
+  const handleDragEnd = useCallback((event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    const dragDistance = Math.abs(info.offset.y);
+    const dragVelocity = info.velocity.y;
 
-      console.log("🖱️ Drag end:", {
-        dragDistance,
-        dragVelocity,
-        offset: info.offset.y,
-      });
+    console.log("🖱️ Drag end:", {
+      dragDistance,
+      dragVelocity,
+      offset: info.offset.y,
+    });
 
-      if (info.offset.y < -50 || dragVelocity < -500) {
-        setIsRevealed(true);
-        pageY.set(-150);
-      } else if (info.offset.y > 50 || dragVelocity > 500) {
-        setIsRevealed(false);
-        pageY.set(0);
-      } else {
-        // Snap back to current state
-        pageY.set(isRevealed ? -150 : 0);
-      }
-    },
-    [isRevealed, pageY],
-  );
+    if (info.offset.y < -50 || dragVelocity < -500) {
+      setIsRevealed(true);
+    } else if (info.offset.y > 50 || dragVelocity > 500) {
+      setIsRevealed(false);
+    }
+    // Let the useEffect handle the smooth animation
+  }, []);
 
-  // Sync motion value with state changes
+  // Sync motion value with state changes - smooth animation
   useEffect(() => {
-    pageY.set(isRevealed ? -150 : 0);
+    const targetY = isRevealed ? -150 : 0;
+
+    // Use animate for smooth transitions
+    animate(pageY, targetY, {
+      duration: 0.6,
+      ease: [0.4, 0.0, 0.2, 1],
+    });
   }, [isRevealed, pageY]);
 
   const toggleReveal = () => {
-    const newState = !isRevealed;
-    setIsRevealed(newState);
-    pageY.set(newState ? -150 : 0);
+    setIsRevealed(!isRevealed);
+    // Animation will be handled by the useEffect above
   };
 
   return (
