@@ -10,7 +10,6 @@ import { ManusPrompt } from "@/components/manus-prompt";
 import { Button } from "@/components/ui/button";
 
 import { DailyInspirationSection } from "./daily-inspiration-section";
-import { DebugGridTest } from "./debug-grid-test";
 
 // eslint-disable-next-line complexity
 export default function DailyPageSlideWrapper() {
@@ -399,13 +398,9 @@ export default function DailyPageSlideWrapper() {
             </div>
           </div>
 
-          {/* IMPORTANT: This is where your grid content goes */}
+          {/* Daily Inspiration Content */}
           <div className="min-h-screen space-y-8 p-6">
-            <div className="mx-auto max-w-7xl space-y-4">
-              {/* Debug Test Component */}
-              <DebugGridTest />
-
-              {/* Actual Content */}
+            <div className="mx-auto max-w-7xl">
               <DailyInspirationSection />
             </div>
           </div>
