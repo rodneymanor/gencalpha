@@ -1,4 +1,4 @@
-import { Calendar, Wand2, BookOpen, Video, ListTodo, Palette, MessageCircle, type LucideIcon } from "lucide-react";
+import { Calendar, Wand2, BookOpen, Video, ListTodo, MessageCircle, type LucideIcon } from "lucide-react";
 
 export interface NavSubItem {
   title: string;
@@ -17,6 +17,7 @@ export interface NavMainItem {
   comingSoon?: boolean;
   newTab?: boolean;
   isNew?: boolean;
+  isCustomButton?: boolean;
 }
 
 export interface NavGroup {
@@ -28,12 +29,12 @@ export interface NavGroup {
 export const sidebarItems: NavGroup[] = [
   {
     id: 1,
-    label: "Content",
     items: [
       {
         title: "Daily",
         url: "/dashboard/daily",
         icon: Calendar,
+        isCustomButton: true,
       },
       {
         title: "AI Ghostwriter",

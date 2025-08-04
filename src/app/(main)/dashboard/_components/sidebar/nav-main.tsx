@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Plus } from "lucide-react";
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
@@ -35,6 +35,16 @@ const IsComingSoon = () => (
   <span className="ml-auto rounded-md bg-gray-200 px-2 py-1 text-xs dark:text-gray-800">Soon</span>
 );
 
+const CustomDailyButton = ({ url, isActive }: { url: string; isActive: boolean }) => (
+  <SidebarMenuButton asChild isActive={isActive} tooltip="Daily">
+    <Link href={url} className="flex items-center justify-center">
+      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-black transition-colors hover:bg-gray-800">
+        <Plus className="h-4 w-4 text-white" />
+      </div>
+    </Link>
+  </SidebarMenuButton>
+);
+
 const NavItemExpanded = ({
   item,
   isActive,
@@ -59,6 +69,8 @@ const NavItemExpanded = ({
               {item.comingSoon && <IsComingSoon />}
               <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
             </SidebarMenuButton>
+          ) : item.isCustomButton && item.title === "Daily" ? (
+            <CustomDailyButton url={item.url} isActive={isActive(item.url)} />
           ) : (
             <SidebarMenuButton
               asChild
@@ -186,17 +198,21 @@ export function NavMain({ items }: NavMainProps) {
                   if (!item.subItems) {
                     return (
                       <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton
-                          asChild
-                          aria-disabled={item.comingSoon}
-                          tooltip={item.title}
-                          isActive={isItemActive(item.url)}
-                        >
-                          <Link href={item.url} target={item.newTab ? "_blank" : undefined}>
-                            {item.icon && <item.icon />}
-                            <span>{item.title === "Queue" ? "Q" : item.title}</span>
-                          </Link>
-                        </SidebarMenuButton>
+                        {item.isCustomButton && item.title === "Daily" ? (
+                          <CustomDailyButton url={item.url} isActive={isItemActive(item.url)} />
+                        ) : (
+                          <SidebarMenuButton
+                            asChild
+                            aria-disabled={item.comingSoon}
+                            tooltip={item.title}
+                            isActive={isItemActive(item.url)}
+                          >
+                            <Link href={item.url} target={item.newTab ? "_blank" : undefined}>
+                              {item.icon && <item.icon />}
+                              <span>{item.title === "Queue" ? "Q" : item.title}</span>
+                            </Link>
+                          </SidebarMenuButton>
+                        )}
                       </SidebarMenuItem>
                     );
                   }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 import { motion } from "framer-motion";
 import { ChevronDown, ChevronUp } from "lucide-react";
@@ -12,6 +12,61 @@ import { DailyInspirationSection } from "./daily-inspiration-section";
 
 export default function DailyPageSlideWrapper() {
   const [showContent, setShowContent] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const lastScrollY = useRef(0);
+  const scrollTimeout = useRef<NodeJS.Timeout>();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      setScrollY(currentScrollY);
+
+      // Clear existing timeout
+      if (scrollTimeout.current) {
+        clearTimeout(scrollTimeout.current);
+      }
+
+      // Determine scroll direction
+      const scrollDirection = currentScrollY > lastScrollY.current ? "down" : "up";
+      lastScrollY.current = currentScrollY;
+
+      // Show content when scrolling up
+      if (scrollDirection === "up" && currentScrollY > 50 && !showContent) {
+        setShowContent(true);
+      }
+
+      // Hide content when scrolling down and we're back near the top
+      if (scrollDirection === "down" && currentScrollY < 100 && showContent) {
+        // Add a small delay to prevent flickering
+        scrollTimeout.current = setTimeout(() => {
+          setShowContent(false);
+        }, 300);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (scrollTimeout.current) {
+        clearTimeout(scrollTimeout.current);
+      }
+    };
+  }, [showContent]);
+
+  // Handle manual button clicks
+  const handleShowContent = () => {
+    setShowContent(true);
+    // Scroll down a bit to trigger the scroll detection
+    window.scrollTo({ top: 100, behavior: "smooth" });
+  };
+
+  const handleHideContent = () => {
+    setShowContent(false);
+    // Scroll back to top
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <div className="relative min-h-screen">
@@ -23,8 +78,8 @@ export default function DailyPageSlideWrapper() {
           placeholder="Give Gen.C a topic to script..."
         />
 
-        {/* Explore button positioned below the prompt */}
-        <div className="flex justify-center pb-12">
+        {/* Explore button positioned 20px from bottom of screen */}
+        <div className="fixed bottom-5 left-1/2 z-10 -translate-x-1/2">
           <Button
             variant="ghost"
             size="lg"
