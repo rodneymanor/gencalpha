@@ -10,11 +10,9 @@ import { DailyInspirationSection } from "./daily-inspiration-section";
 export default function DailyPageSlideWrapper() {
   const [showContent, setShowContent] = useState(false);
   const [showFullContent, setShowFullContent] = useState(false);
-  const [scrollY, setScrollY] = useState(0);
-  const containerRef = useRef<HTMLDivElement>(null);
   const lastScrollY = useRef(0);
   const scrollTimeout = useRef<NodeJS.Timeout>();
-  
+
   // Touch/swipe detection states
   const touchStartY = useRef<number>(0);
   const touchEndY = useRef<number>(0);
@@ -35,17 +33,22 @@ export default function DailyPageSlideWrapper() {
     
     const distance = touchStartY.current - touchEndY.current;
     const isUpSwipe = distance > minSwipeDistance;
+    const isDownSwipe = distance < -minSwipeDistance;
     
     // Trigger show content on upward swipe
     if (isUpSwipe && !showContent) {
       setShowContent(true);
+    }
+    
+    // Hide peek content on downward swipe (but not when full content is shown)
+    if (isDownSwipe && showContent && !showFullContent) {
+      setShowContent(false);
     }
   };
 
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      setScrollY(currentScrollY);
 
       if (scrollTimeout.current) {
         clearTimeout(scrollTimeout.current);
@@ -75,7 +78,7 @@ export default function DailyPageSlideWrapper() {
         clearTimeout(scrollTimeout.current);
       }
     };
-  }, [showContent]);
+  }, [showContent, showFullContent]);
 
   const handleShowContent = () => {
     setShowContent(true);
@@ -91,7 +94,7 @@ export default function DailyPageSlideWrapper() {
   };
 
   return (
-    <div
+    <div 
       className="relative min-h-screen"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
@@ -124,7 +127,7 @@ export default function DailyPageSlideWrapper() {
       <motion.div
         initial={{ y: "100%" }}
         animate={{
-          y: showContent ? "calc(100vh - 120px)" : "100%",
+          y: showContent && !showFullContent ? "calc(100% - 120px)" : "100%",
         }}
         transition={{
           duration: 0.6,
@@ -132,35 +135,30 @@ export default function DailyPageSlideWrapper() {
           type: "tween",
         }}
         className="bg-background fixed bottom-0 left-0 right-0 z-20 h-screen overflow-hidden rounded-t-xl shadow-lg"
-        style={{
-          maxHeight: showContent ? "120px" : "0px",
-        }}
       >
-        {/* Peek content header */}
-        <div className="bg-background border-b border-gray-200">
-          <div className="flex items-center justify-between px-6 py-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-1 bg-gray-300 rounded-full"></div>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-foreground"
-              onClick={handleHideContent}
-            >
-              <ChevronUp className="h-4 w-4" />
-            </Button>
-          </div>
+        {/* Drag handle */}
+        <div className="flex justify-center py-2">
+          <div className="w-10 h-1 bg-gray-300 rounded-full"></div>
         </div>
-
-        {/* Preview content */}
-        <div className="px-6 py-3" onClick={handleShowFullContent}>
-          <h3 className="text-lg font-semibold text-foreground mb-2">
-            Hey guys, I'm here! 👋
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            Swipe up or tap to explore viral content and daily inspiration...
-          </p>
+        
+        {/* Peek content header */}
+        <div className="bg-background">
+          <div className="px-6 py-3" onClick={handleShowFullContent}>
+            <h3 className="text-lg font-semibold text-foreground mb-2">
+              Hey guys, I&apos;m here! 👋
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Swipe up or tap to explore viral content and daily inspiration...
+            </p>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute top-2 right-2 text-muted-foreground hover:text-foreground"
+            onClick={handleHideContent}
+          >
+            <ChevronUp className="h-4 w-4" />
+          </Button>
         </div>
       </motion.div>
 
@@ -176,10 +174,8 @@ export default function DailyPageSlideWrapper() {
           type: "tween",
         }}
         className="bg-background fixed inset-0 z-30 overflow-y-auto"
-        style={{
-          display: showFullContent ? "block" : "none",
-        }}
       >
+        {/* Return button at the top */}
         <div className="bg-background/80 sticky top-0 z-40 border-b backdrop-blur-sm">
           <div className="flex justify-center py-4">
             <Button
