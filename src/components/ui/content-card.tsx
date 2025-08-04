@@ -1,9 +1,10 @@
 import React from 'react';
 
 import { Shield, Star, Share2, Bookmark } from 'lucide-react';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 interface ContentCardProps {
@@ -49,7 +50,7 @@ export function ContentCard({
           {/* Left Section - Badge and Rating */}
           <div className="flex items-center gap-3">
             {/* Badge */}
-            <Badge variant={badge.variant || 'secondary'} className="gap-1">
+            <Badge variant={badge.variant ?? 'secondary'} className="gap-1">
               <span className="text-xs font-medium">
                 {badge.label}
               </span>
