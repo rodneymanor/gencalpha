@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@/components/ui/visually-hidden";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
@@ -973,8 +974,10 @@ export function OnboardingWizardModal({
     return (
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="w-[95vw] sm:max-w-md">
-          <DialogHeader className="sr-only">
-            <DialogTitle>Loading Brand Settings</DialogTitle>
+          <DialogHeader>
+            <VisuallyHidden>
+              <DialogTitle>Loading Brand Settings</DialogTitle>
+            </VisuallyHidden>
           </DialogHeader>
           <div className="flex items-center justify-center p-8">
             <div className="text-center space-y-4">
@@ -990,8 +993,10 @@ export function OnboardingWizardModal({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="w-[95vw] sm:max-w-3xl md:max-w-4xl lg:max-w-5xl xl:max-w-6xl p-0 overflow-hidden">
-        <DialogHeader className="sr-only">
-          <DialogTitle>Onboarding Wizard - Step {stepIndex + 1} of {steps.length}</DialogTitle>
+        <DialogHeader>
+          <VisuallyHidden>
+            <DialogTitle>Onboarding Wizard - Step {stepIndex + 1} of {steps.length}</DialogTitle>
+          </VisuallyHidden>
         </DialogHeader>
         
         {/* Progress bar */}

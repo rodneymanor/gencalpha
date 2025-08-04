@@ -9,12 +9,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProcessingBadge, ProcessingTooltip } from "@/components/ui/processing-badge";
 import { useVideoProcessing, VideoProcessingProvider } from "@/contexts/video-processing-context";
 
+import { VideoInsightsProvider } from "@/contexts/video-insights-context";
+import { VideoInsightsWrapper } from "@/components/video-insights";
+
 import { AddVideoDialog } from "./_components/add-video-dialog";
 import { CollectionsProvider, useCollections } from "./_components/collections-context";
 import { CollectionsSidebar } from "./_components/collections-sidebar";
 import { CreateCollectionDialog } from "./_components/create-collection-dialog";
 import { VideoGrid } from "./_components/video-grid";
-import { VideoInsightsDialog } from "./_components/video-insights-dialog";
 
 function CollectionsContent() {
   const [selectedCollectionId, setSelectedCollectionId] = useState<string>("all-videos");
@@ -99,7 +101,7 @@ function CollectionsContent() {
         selectedCollectionId={selectedCollectionId}
       />
 
-      <VideoInsightsDialog />
+      <VideoInsightsWrapper />
     </div>
   );
 }
@@ -107,9 +109,11 @@ function CollectionsContent() {
 export default function CollectionsPage() {
   return (
     <VideoProcessingProvider>
-      <CollectionsProvider>
-        <CollectionsContent />
-      </CollectionsProvider>
+      <VideoInsightsProvider>
+        <CollectionsProvider>
+          <CollectionsContent />
+        </CollectionsProvider>
+      </VideoInsightsProvider>
     </VideoProcessingProvider>
   );
 }

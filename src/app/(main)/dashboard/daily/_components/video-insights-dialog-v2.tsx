@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@/components/ui/visually-hidden";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Video } from "@/lib/collections";
 import { useAuth } from "@/contexts/auth-context";
@@ -76,9 +77,11 @@ export function VideoInsightsDialogV2({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="h-[calc(90vh-13px)] !max-w-[1200px] overflow-hidden p-0">
-        <DialogHeader className="sr-only">
-          <DialogTitle>{displayVideo.title} – Video Insights</DialogTitle>
-          <DialogDescription>View detailed insights and analytics for this video</DialogDescription>
+        <DialogHeader>
+          <VisuallyHidden>
+            <DialogTitle>{displayVideo.title} – Video Insights</DialogTitle>
+            <DialogDescription>View detailed insights and analytics for this video</DialogDescription>
+          </VisuallyHidden>
         </DialogHeader>
 
         <div className="flex h-full min-h-0">

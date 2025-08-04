@@ -22,6 +22,7 @@ import { useRBAC } from "@/hooks/use-rbac";
 import { Video, CollectionsService } from "@/lib/collections";
 import { cn } from "@/lib/utils";
 
+import { useVideoInsights } from "@/contexts/video-insights-context";
 import { useCollections } from "./collections-context";
 import { DeleteConfirmDialog } from "./delete-confirm-dialog";
 import { MoveVideoDialog } from "./move-video-dialog";
@@ -32,6 +33,7 @@ interface VideoGridProps {
 
 export function VideoGrid({ collectionId }: VideoGridProps) {
   const { state, dispatch } = useCollections();
+  const { openPanel } = useVideoInsights();
   const { user } = useAuth();
   const { canWrite, canDelete } = useRBAC();
   const [movingVideo, setMovingVideo] = useState<Video | null>(null);
@@ -64,8 +66,7 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
   }, [user?.uid, collectionId, loadVideos]);
 
   const handleVideoClick = (video: Video) => {
-    dispatch({ type: "SET_SELECTED_VIDEO", payload: video });
-    dispatch({ type: "SET_INSIGHTS_DIALOG_OPEN", payload: true });
+    openPanel(video);
   };
 
   const handleToggleFavorite = async (video: Video) => {

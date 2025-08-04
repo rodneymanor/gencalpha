@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { VisuallyHidden } from '@/components/ui/visually-hidden'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -90,8 +91,10 @@ export function BrandSettingsSummaryModal({
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-4xl max-h-[90vh]">
-          <DialogHeader className="sr-only">
-            <DialogTitle>Loading Brand Settings</DialogTitle>
+          <DialogHeader>
+            <VisuallyHidden>
+              <DialogTitle>Loading Brand Settings</DialogTitle>
+            </VisuallyHidden>
           </DialogHeader>
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin" />

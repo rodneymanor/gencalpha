@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@/components/ui/visually-hidden";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -69,8 +70,10 @@ export function BrandSettingsModal({ open, onOpenChange }: BrandSettingsModalPro
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[90vw] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl p-0 overflow-hidden">
-        <DialogHeader className="sr-only">
-          <DialogTitle>Brand Preferences</DialogTitle>
+        <DialogHeader>
+          <VisuallyHidden>
+            <DialogTitle>Brand Preferences</DialogTitle>
+          </VisuallyHidden>
         </DialogHeader>
 
         <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b">
