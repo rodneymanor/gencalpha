@@ -42,15 +42,13 @@ const CustomDailyButton = ({ url, isActive }: { url: string; isActive: boolean }
   return (
     <Link
       href={url}
-      className={`relative flex items-center justify-center ${isCollapsed ? "h-8 w-8" : "h-8 w-full"} group`}
-      data-tooltip="Daily"
+      className={`relative flex items-center ${isCollapsed ? "h-8 w-8 justify-center" : "h-8 w-full justify-start"} group`}
+      data-tooltip="New Script"
     >
-      <div
-        className={`flex items-center justify-center rounded-full bg-black transition-all duration-200 hover:scale-105 hover:bg-gray-800 ${isCollapsed ? "h-8 w-8" : "mr-auto h-8 w-8"} shadow-lg hover:shadow-xl`}
-      >
+      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-black shadow-lg transition-all duration-200 hover:scale-105 hover:bg-gray-800 hover:shadow-xl">
         <Plus className="h-4 w-4 text-white" />
       </div>
-      {!isCollapsed && <span className="text-sidebar-foreground ml-2 text-sm font-medium">Daily</span>}
+      {!isCollapsed && <span className="text-sidebar-foreground ml-2 text-sm font-medium">New Script</span>}
     </Link>
   );
 };
