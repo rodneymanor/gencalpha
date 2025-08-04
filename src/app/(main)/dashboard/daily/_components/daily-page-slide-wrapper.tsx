@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
 import { motion } from "framer-motion";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronUp, ChevronUpIcon } from "lucide-react";
 
 import { ManusPrompt } from "@/components/manus-prompt";
 import { Button } from "@/components/ui/button";
@@ -251,6 +251,7 @@ export default function DailyPageSlideWrapper() {
               greeting="Hello"
               subtitle="What will you script today?"
               placeholder="Give Gen.C a topic to script..."
+              className="mt-[0px]"
             />
 
             {/* Explore button - only show when content is hidden */}
@@ -263,7 +264,7 @@ export default function DailyPageSlideWrapper() {
                   onClick={handleShowContent}
                 >
                   Explore Viral Content
-                  <ChevronDown className="h-4 w-4" />
+                  <ChevronUpIcon className="h-4 w-4" />
                 </Button>
               </div>
             )}

@@ -297,9 +297,6 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
 
       {/* Persona Selector */}
       <div className="space-y-3">
-        <div className="text-center">
-          <span className="text-foreground text-sm font-medium">Choose your assistant:</span>
-        </div>
         <PersonaSelector
           selectedPersona={selectedPersona}
           onPersonaChange={setSelectedPersona}
