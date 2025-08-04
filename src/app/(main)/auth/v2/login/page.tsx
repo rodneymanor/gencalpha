@@ -11,6 +11,13 @@ export default function LoginV2() {
   return (
     <AuthRedirectGuard>
       <div className="w-full max-w-md space-y-8">
+        <div className="mb-6 flex justify-center">
+          <div className="hover:text-primary flex cursor-pointer items-center gap-1 transition-colors">
+            <span className="text-foreground text-xl font-bold">Gen</span>
+            <div className="h-2 w-2 rounded-full bg-yellow-400"></div>
+            <span className="text-foreground text-xl font-bold">C</span>
+          </div>
+        </div>
         <div className="space-y-2 text-center">
           <h1 className="text-3xl font-medium">Login to your account</h1>
           <p className="text-muted-foreground text-sm">Please enter your details to login.</p>
