@@ -93,27 +93,45 @@ export function ResizableDashboardWrapper({ children, className }: ResizableDash
   return (
     <PanelGroup direction="horizontal" className={cn("flex h-full w-full", className)} onLayout={handleLayout}>
       {/* Main content (always left-most) */}
-      <Panel defaultSize={mainContentSize} minSize={40} order={1} className="h-full overflow-y-auto">
-        {children}
+      <Panel defaultSize={mainContentSize} minSize={40} order={1} className="h-full">
+        <div className="h-full overflow-y-auto">{children}</div>
       </Panel>
 
       {/* Optional Writing panel (right side) */}
       {showWritingPanel && (
-        <Panel defaultSize={writingPanelSize} minSize={10} maxSize={30} order={2} className="border-l">
+        <Panel
+          defaultSize={writingPanelSize}
+          minSize={10}
+          maxSize={30}
+          order={2}
+          className="h-full overflow-hidden border-l"
+        >
           <WritingPanel />
         </Panel>
       )}
 
       {/* Optional Notes panel */}
       {showNotesPanel && (
-        <Panel defaultSize={notesPanelSize} minSize={10} maxSize={30} order={3} className="border-l">
+        <Panel
+          defaultSize={notesPanelSize}
+          minSize={10}
+          maxSize={30}
+          order={3}
+          className="h-full overflow-hidden border-l"
+        >
           <NotesPanel />
         </Panel>
       )}
 
       {/* Optional Chatbot panel (outermost right) */}
       {showChatbotPanel && (
-        <Panel defaultSize={chatbotPanelSize} minSize={10} maxSize={30} order={4} className="border-l">
+        <Panel
+          defaultSize={chatbotPanelSize}
+          minSize={10}
+          maxSize={30}
+          order={4}
+          className="h-full overflow-hidden border-l"
+        >
           <ChatbotPanel initialPrompt={chatbotInitialPrompt} initialPersona={chatbotInitialPersona as PersonaType} />
         </Panel>
       )}
