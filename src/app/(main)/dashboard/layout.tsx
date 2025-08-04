@@ -2,7 +2,6 @@ import { ReactNode } from "react";
 
 import { DashboardWrapper } from "@/app/(main)/dashboard/_components/dashboard-wrapper";
 import { AppSidebar } from "@/app/(main)/dashboard/_components/sidebar/app-sidebar";
-import HeaderActions from "@/components/dashboard/header-actions";
 import { ResizableDashboardWrapper } from "@/components/dashboard/resizable-dashboard-wrapper";
 import { FloatingActionButton } from "@/components/ui/floating-action-button";
 // import removed: OnboardingProgress
@@ -22,7 +21,6 @@ import {
 } from "@/types/preferences/layout";
 
 // Local components
-import { HeaderTitle } from "./_components/header-title";
 
 export default async function Layout({ children }: Readonly<{ children: ReactNode }>) {
   const [sidebarVariant, sidebarCollapsible, contentLayout] = await Promise.all([
@@ -66,15 +64,15 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
                   </div>
                 </div>
               </header> */}
-              <div className="h-full">
+              <div className="flex min-h-0 flex-1 flex-col">
                 <ResizableDashboardWrapper>
-                  <div className="mx-auto max-w-6xl">
+                  <div className="mx-auto h-full max-w-6xl">
                     <div className="relative">
-                      <div className="absolute top-6 right-6">
+                      <div className="absolute top-6 right-6 z-10">
                         <ProcessingNotificationBadge />
                       </div>
                     </div>
-                    <div className="px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6">{children}</div>
+                    <div className="h-full px-4 py-6 md:px-6 md:py-8">{children}</div>
                   </div>
                 </ResizableDashboardWrapper>
               </div>
