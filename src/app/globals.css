@@ -169,6 +169,15 @@ These serve as the fallback; there is no separate default.css file. */
   }
 }
 
+@keyframes shimmer {
+  from {
+    background-position: -250% 0;
+  }
+  to {
+    background-position: 250% 0;
+  }
+}
+
 .disable-transitions * {
   transition: none !important;
 }
