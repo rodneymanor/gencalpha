@@ -9,7 +9,11 @@ import { Button } from "@/components/ui/button";
 import { PersonalizedVideoFeed } from "./personalized-video-feed";
 
 export function DailyInspirationSection() {
+  console.log("📋 DailyInspirationSection: Component initialized");
+  
   const [trigger, setTrigger] = useState<number | null>(null);
+
+  console.log("📋 DailyInspirationSection: Rendering with trigger:", trigger);
 
   return (
     <div className="space-y-4">
@@ -18,7 +22,10 @@ export function DailyInspirationSection() {
         <Button
           variant="secondary"
           size="sm"
-          onClick={() => setTrigger(Date.now())}
+          onClick={() => {
+            console.log("🔄 DailyInspirationSection: Refresh button clicked");
+            setTrigger(Date.now());
+          }}
           className="flex items-center gap-2"
         >
           <RefreshCcw className="h-4 w-4" /> Fetch

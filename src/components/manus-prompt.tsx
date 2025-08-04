@@ -23,6 +23,7 @@ interface ManusPromptProps {
   onSubmit?: (prompt: string, persona: PersonaType) => void;
 }
 
+// eslint-disable-next-line complexity
 export const ManusPrompt: React.FC<ManusPromptProps> = ({
   greeting = "Hello",
   subtitle = "What will you script today?",
@@ -30,6 +31,14 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
   className,
   onSubmit,
 }) => {
+  console.log("💬 ManusPrompt: Component initialized with props:", {
+    greeting,
+    subtitle,
+    placeholder,
+    className,
+    hasOnSubmit: !!onSubmit
+  });
+  
   const { user, userProfile } = useAuth();
   const [prompt, setPrompt] = useState("");
   const [selectedPersona, setSelectedPersona] = useState<PersonaType>("MiniBuddy");
@@ -120,6 +129,14 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
       handleSubmit();
     }
   };
+
+  console.log("💬 ManusPrompt: Rendering with state:", {
+    prompt: prompt.length > 0 ? `${prompt.length} chars` : "empty",
+    selectedPersona,
+    urlDetection: urlDetection?.platform || null,
+    isProcessingVideo,
+    user: user?.displayName || "not logged in"
+  });
 
   return (
     <div className={cn("mx-auto my-24 w-full max-w-3xl min-w-[390px] space-y-4 px-5 text-base", className)}>

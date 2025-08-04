@@ -8,5 +8,6 @@ export const metadata: Metadata = {
 };
 
 export default function DailyPage() {
+  console.log("🏠 DailyPage: Component rendered");
   return <DailyPageSlideWrapper />;
 }
