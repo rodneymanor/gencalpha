@@ -65,7 +65,7 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
                   </div>
                 </div>
               </header> */}
-              <div className="min-h-0 flex-1 overflow-hidden">
+              <div className="min-h-0 flex-1 overflow-y-auto">
                 <ResizableDashboardWrapper className="h-full">
                   <div className="mx-auto max-w-6xl">
                     <div className="relative">
