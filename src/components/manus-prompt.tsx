@@ -126,7 +126,7 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
       {/* Header */}
       <header className="flex w-full items-end justify-between pb-4 pl-4">
         <h1 className="text-foreground text-4xl leading-10 font-bold tracking-tight">
-          {greeting}{user && (userProfile?.displayName || user.displayName) && `, ${userProfile?.displayName || user.displayName}`}
+          {greeting}{user && (userProfile?.displayName ?? user.displayName) && `, ${userProfile?.displayName ?? user.displayName}`}
           <br />
           <span className="text-muted-foreground">{subtitle}</span>
         </h1>
