@@ -18,8 +18,7 @@ export default function SwipeTestPage() {
   const touchStartY = useRef<number>(0);
   const touchEndY = useRef<number>(0);
   const minSwipeDistance = 50;
-  const wheelThreshold = 20;
-
+  const [wheelThreshold, setWheelThreshold] = useState(5); // Very low threshold for trackpad sensitivity
   const [hasTouchSupport, setHasTouchSupport] = useState(false);
 
   // Utility function to disable/enable page scroll
@@ -206,6 +205,31 @@ export default function SwipeTestPage() {
           <div>
             Page Scroll: <span className="text-orange-400">Disabled</span>
           </div>
+          <div>
+            Wheel Threshold: <span className="text-yellow-400">{wheelThreshold}px</span>
+          </div>
+          <div className="mt-2 space-y-1">
+            <div className="flex gap-1">
+              <button
+                onClick={() => setWheelThreshold(Math.max(1, wheelThreshold - 1))}
+                className="rounded bg-red-600 px-1 text-xs text-white hover:bg-red-700"
+              >
+                -
+              </button>
+              <button
+                onClick={() => setWheelThreshold(wheelThreshold + 1)}
+                className="rounded bg-green-600 px-1 text-xs text-white hover:bg-green-700"
+              >
+                +
+              </button>
+              <button
+                onClick={() => setWheelThreshold(5)}
+                className="rounded bg-blue-600 px-1 text-xs text-white hover:bg-blue-700"
+              >
+                Reset
+              </button>
+            </div>
+          </div>
           <div className="mt-2 border-t border-gray-600 pt-1 text-xs">
             <div>📱 Touch events: Mobile swipes</div>
             <div>🖱️ Manual wheel: Desktop trackpad/mouse</div>
@@ -257,6 +281,7 @@ export default function SwipeTestPage() {
             <p>🖱️ Mouse: Drag the page or use the button</p>
             <p>✨ The entire page translates vertically</p>
             <p>🚫 Page scroll disabled to prevent conflicts</p>
+            <p>🎛️ Use debug panel buttons to adjust wheel threshold</p>
           </div>
         </div>
       </div>
