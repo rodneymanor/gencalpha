@@ -31,7 +31,7 @@ export default function DailyPageSlideWrapper() {
   const touchStartTime = useRef<number>(0);
   const minSwipeDistance = 50;
   const maxSwipeTime = 300; // Maximum time for a swipe gesture
-  const [wheelThreshold, setWheelThreshold] = useState(5); // Wheel event threshold for trackpad sensitivity
+  const [wheelThreshold] = useState(5); // Wheel event threshold for trackpad sensitivity
 
   // Ref for the container to attach manual event listeners
   const containerRef = useRef<HTMLDivElement>(null);
@@ -233,25 +233,15 @@ export default function DailyPageSlideWrapper() {
     <>
       {/* Main container - remove restrictive touchAction */}
       <div ref={containerRef} className="relative">
-        {/* Main page content that shifts up when content is shown */}
-        <motion.div
-          animate={{
-            y: showContent && !showFullContent ? -120 : 0,
-          }}
-          transition={{
-            duration: 0.5,
-            ease: [0.4, 0.0, 0.2, 1],
-            type: "tween",
-          }}
-          className="min-h-screen"
-        >
-          {/* Initial view - only Manus Prompt visible */}
+        {/* Main page content - no shifting animation */}
+        <div className="min-h-screen">
+          {/* Initial view - only Manus Prompt visible, positioned higher to account for callout space */}
           <div className="flex min-h-screen flex-col justify-center">
             <ManusPrompt
               greeting="Hello"
               subtitle="What will you script today?"
               placeholder="Give Gen.C a topic to script..."
-              className="mt-[0px]"
+              className="mb-32"
             />
 
             {/* Explore button - only show when content is hidden */}
@@ -269,13 +259,13 @@ export default function DailyPageSlideWrapper() {
               </div>
             )}
           </div>
-        </motion.div>
+        </div>
 
-        {/* Content that slides up - now part of page flow */}
+        {/* Content that slides up from bottom */}
         <motion.div
           initial={{ y: "100%" }}
           animate={{
-            y: showContent && !showFullContent ? "calc(100vh - 120px)" : "100%",
+            y: showContent && !showFullContent ? 0 : "100%",
           }}
           transition={{
             duration: 0.5,
