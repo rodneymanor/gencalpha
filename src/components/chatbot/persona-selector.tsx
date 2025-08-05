@@ -33,7 +33,7 @@ export function PersonaSelector({ selectedPersona, onPersonaChange, className }:
           className={cn(
             "gap-1.5 rounded-full px-4 py-1 text-xs font-medium transition-all",
             selectedPersona === key
-              ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+              ? "bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent/80 shadow-sm"
               : "hover:bg-accent hover:text-accent-foreground",
           )}
           title={tooltip}
