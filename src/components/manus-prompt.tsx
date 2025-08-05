@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 
-import { motion } from "framer-motion";
 import { ArrowUp, Link, AlertCircle, CheckCircle2, Loader2, Bot, Globe, Pencil, X } from "lucide-react";
 
 import { PersonaSelector, PersonaType } from "@/components/chatbot/persona-selector";
+import { AdvancedSlidingSwitch, type ModeType, type SwitchOption } from "@/components/ui/advanced-sliding-switch";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,58 +14,6 @@ import { useResizableLayout } from "@/contexts/resizable-layout-context";
 import { scrapeVideoUrl } from "@/lib/unified-video-scraper";
 import { cn } from "@/lib/utils";
 import { detectURL, URLDetectionResult } from "@/lib/utils/url-detector";
-
-// Types for the sliding switch
-interface SwitchOption {
-  value: string;
-  icon: React.ReactNode;
-}
-
-interface AdvancedSlidingSwitchProps {
-  options: SwitchOption[];
-  onChange?: (index: number, option: SwitchOption) => void;
-  defaultValue?: number;
-}
-
-// Advanced Sliding Switch Component
-const AdvancedSlidingSwitch: React.FC<AdvancedSlidingSwitchProps> = ({ options, onChange, defaultValue = 0 }) => {
-  const [activeIndex, setActiveIndex] = useState(defaultValue);
-
-  return (
-    <div className="border-border bg-muted/50 relative inline-flex h-8 w-[110px] items-center overflow-hidden rounded-[var(--radius-button)] border p-1 shadow-[var(--shadow-input)]">
-      {/* Sliding background positioned absolutely to the container */}
-      <motion.div
-        className="bg-background border-border/50 absolute h-6 rounded-[calc(var(--radius-button)-2px)] border shadow-sm"
-        style={{
-          width: `${100 / options.length}%`,
-        }}
-        animate={{
-          x: `${activeIndex * 100}%`,
-        }}
-        transition={{
-          type: "spring",
-          stiffness: 500,
-          damping: 30,
-        }}
-      />
-
-      {options.map((option: SwitchOption, index: number) => (
-        <button
-          key={index}
-          onClick={() => {
-            setActiveIndex(index);
-            onChange?.(index, option);
-          }}
-          className={`relative z-10 flex h-6 flex-1 items-center justify-center text-sm font-medium transition-colors duration-200 ${
-            activeIndex === index ? "text-foreground" : "text-muted-foreground hover:text-foreground/80"
-          }`}
-        >
-          <div className="flex items-center">{option.icon}</div>
-        </button>
-      ))}
-    </div>
-  );
-};
 
 interface ManusPromptProps {
   greeting?: string;
@@ -83,20 +31,13 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
   className,
   onSubmit,
 }) => {
-  // console.log("💬 ManusPrompt: Component initialized with props:", {
-  //   greeting,
-  //   subtitle,
-  //   placeholder,
-  //   className,
-  //   hasOnSubmit: !!onSubmit
-  // });
-
   const { user, userProfile } = useAuth();
   const [prompt, setPrompt] = useState("");
   const [selectedPersona, setSelectedPersona] = useState<PersonaType>("MiniBuddy");
   const [personaSelected, setPersonaSelected] = useState(false);
   const [urlDetection, setUrlDetection] = useState<URLDetectionResult | null>(null);
   const [isProcessingVideo, setIsProcessingVideo] = useState(false);
+  const [activeMode, setActiveMode] = useState<ModeType>("ghost-write");
   const { toggleChatbotPanel } = useResizableLayout();
 
   // Get persona data for display
@@ -111,6 +52,20 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
     return personas.find((p) => p.key === personaType);
   };
 
+  // Get dynamic placeholder based on active mode
+  const getDynamicPlaceholder = () => {
+    switch (activeMode) {
+      case "ghost-write":
+        return "What do you want me to script?";
+      case "web-search":
+        return "Write a fact-based script...";
+      case "ideas":
+        return "Your Capture Everything Hub...";
+      default:
+        return placeholder;
+    }
+  };
+
   const handlePersonaChange = (persona: PersonaType) => {
     setSelectedPersona(persona);
     setPersonaSelected(true);
@@ -122,14 +77,27 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
   };
 
   // Switch options for the sliding switch
-  const switchOptions = [
-    { value: "writer", icon: <Bot className="h-[18px] w-[18px]" /> },
-    { value: "global", icon: <Globe className="h-[18px] w-[18px]" /> },
-    { value: "notes", icon: <Pencil className="h-[18px] w-[18px]" /> },
+  const switchOptions: SwitchOption[] = [
+    {
+      value: "ghost-write",
+      icon: <Bot className="h-[18px] w-[18px]" />,
+      tooltip: "AI generates original scripts or text based on your input.",
+    },
+    {
+      value: "web-search",
+      icon: <Globe className="h-[18px] w-[18px]" />,
+      tooltip: "Fetches real-world facts and data for grounding your content.",
+    },
+    {
+      value: "ideas",
+      icon: <Pencil className="h-[18px] w-[18px]" />,
+      tooltip: "Stores quick thoughts, outlines, or reminders for later use.",
+    },
   ];
 
   // Handler for switch changes
   const handleSwitchChange = (index: number, option: SwitchOption) => {
+    setActiveMode(option.value);
     console.log("Switch changed to:", option.value);
   };
 
@@ -171,7 +139,9 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
         toggleChatbotPanel(message, selectedPersona);
 
         // Call the optional onSubmit callback
-        onSubmit?.(message, selectedPersona);
+        if (onSubmit) {
+          onSubmit(message, selectedPersona);
+        }
 
         // Clear the input and detection
         setPrompt("");
@@ -184,7 +154,9 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
 
       // Open chatbot panel with error message
       toggleChatbotPanel(errorMessage, selectedPersona);
-      onSubmit?.(errorMessage, selectedPersona);
+      if (onSubmit) {
+        onSubmit(errorMessage, selectedPersona);
+      }
     } finally {
       setIsProcessingVideo(false);
     }
@@ -203,7 +175,9 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
     toggleChatbotPanel(prompt.trim(), selectedPersona);
 
     // Call the optional onSubmit callback with the prompt and persona
-    onSubmit?.(prompt.trim(), selectedPersona);
+    if (onSubmit) {
+      onSubmit(prompt.trim(), selectedPersona);
+    }
 
     // Clear the input and detection
     setPrompt("");
@@ -216,14 +190,6 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
       handleSubmit();
     }
   };
-
-  // console.log("💬 ManusPrompt: Rendering with state:", {
-  //   prompt: prompt.length > 0 ? `${prompt.length} chars` : "empty",
-  //   selectedPersona,
-  //   urlDetection: urlDetection?.platform || null,
-  //   isProcessingVideo,
-  //   user: user?.displayName || "not logged in"
-  // });
 
   return (
     <div className={cn("mx-auto my-24 w-full max-w-3xl min-w-[390px] space-y-4 px-5 text-base", className)}>
@@ -248,7 +214,7 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={urlDetection ? "Video URL detected! Press Enter to process..." : placeholder}
+              placeholder={urlDetection ? "Video URL detected! Press Enter to process..." : getDynamicPlaceholder()}
               className={cn(
                 "resize-none border-0 bg-transparent focus-visible:ring-0",
                 urlDetection && "pb-12", // Add padding when URL detection is shown
@@ -299,15 +265,13 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
 
           {/* Controls */}
           <div className="flex items-center gap-2 px-3">
-            <div className="mt-[5px]">
-              <AdvancedSlidingSwitch options={switchOptions} onChange={handleSwitchChange} />
-            </div>
+            <AdvancedSlidingSwitch options={switchOptions} onChange={handleSwitchChange} />
 
             {/* Persona Badge */}
             {personaSelected && (
               <Badge
                 variant="secondary"
-                className="bg-secondary/10 text-secondary border-secondary/20 hover:bg-secondary/20 ml-2 flex h-[29px] items-center rounded-[var(--radius-pill)] px-3 text-xs font-medium"
+                className="bg-secondary/10 text-secondary border-secondary/20 hover:bg-secondary/20 ml-2 flex h-8 items-center rounded-[var(--radius-pill)] px-3 text-xs font-medium"
               >
                 <span className="mr-2">{getPersonaData(selectedPersona)?.icon}</span>
                 {getPersonaData(selectedPersona)?.label}
