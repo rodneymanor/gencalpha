@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 
 import { motion } from "framer-motion";
-import { ArrowUp, Link, AlertCircle, CheckCircle2, Loader2, Bot, Globe, Pencil } from "lucide-react";
+import { ArrowUp, Link, AlertCircle, CheckCircle2, Loader2, Bot, Globe, Pencil, X } from "lucide-react";
 
 import { PersonaSelector, PersonaType } from "@/components/chatbot/persona-selector";
 import { Badge } from "@/components/ui/badge";
@@ -91,9 +91,32 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
   const { user, userProfile } = useAuth();
   const [prompt, setPrompt] = useState("");
   const [selectedPersona, setSelectedPersona] = useState<PersonaType>("MiniBuddy");
+  const [personaSelected, setPersonaSelected] = useState(false);
   const [urlDetection, setUrlDetection] = useState<URLDetectionResult | null>(null);
   const [isProcessingVideo, setIsProcessingVideo] = useState(false);
   const { toggleChatbotPanel } = useResizableLayout();
+
+  // Get persona data for display
+  const getPersonaData = (personaType: PersonaType) => {
+    const personas = [
+      { key: "Scribo", label: "Scribo", icon: "📝" },
+      { key: "MiniBuddy", label: "MiniBuddy", icon: "🤖" },
+      { key: "StoryBuddy", label: "StoryBuddy", icon: "📚" },
+      { key: "HookBuddy", label: "HookBuddy", icon: "🎣" },
+      { key: "MVBB", label: "Value Bomb", icon: "⚡" },
+    ];
+    return personas.find((p) => p.key === personaType);
+  };
+
+  const handlePersonaChange = (persona: PersonaType) => {
+    setSelectedPersona(persona);
+    setPersonaSelected(true);
+  };
+
+  const handleRemovePersona = () => {
+    setPersonaSelected(false);
+    setSelectedPersona("MiniBuddy"); // Reset to default
+  };
 
   // Switch options for the sliding switch
   const switchOptions = [
@@ -216,6 +239,29 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
       {/* Input Card */}
       <div className="bg-background rounded-3xl border shadow-md">
         <div className="flex max-h-72 flex-col space-y-3 py-3">
+          {/* Persona Badge */}
+          {personaSelected && (
+            <div className="px-4 pt-1">
+              <div className="flex items-center gap-2">
+                <Badge
+                  variant="secondary"
+                  className="bg-secondary/10 text-secondary border-secondary/20 hover:bg-secondary/20 rounded-[var(--radius-pill)] px-3 py-1 text-xs font-medium"
+                >
+                  <span className="mr-2">{getPersonaData(selectedPersona)?.icon}</span>
+                  {getPersonaData(selectedPersona)?.label}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleRemovePersona}
+                    className="hover:bg-destructive/20 hover:text-destructive ml-2 h-4 w-4 rounded-full p-0"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </Badge>
+              </div>
+            </div>
+          )}
+
           <div className="relative overflow-y-auto px-4">
             <Textarea
               rows={1}
@@ -299,8 +345,9 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
       <div className="space-y-3">
         <PersonaSelector
           selectedPersona={selectedPersona}
-          onPersonaChange={setSelectedPersona}
+          onPersonaChange={handlePersonaChange}
           className="justify-center"
+          showCallout={personaSelected}
         />
       </div>
     </div>
