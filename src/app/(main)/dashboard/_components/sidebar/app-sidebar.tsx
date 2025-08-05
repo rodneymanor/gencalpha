@@ -45,7 +45,7 @@ function SidebarLogo({ isPinned, onPinToggle }: { isPinned: boolean; onPinToggle
           {/* Logo on the left */}
           <div className="hover:text-primary flex cursor-pointer items-center gap-1 transition-colors">
             <span className="text-foreground text-xl font-bold">Gen</span>
-            <div className="bg-secondary h-2 w-2 rounded-[var(--radius-pill)]"></div>
+            <div className="bg-brand h-2 w-2 rounded-[var(--radius-pill)]"></div>
             <span className="text-foreground text-xl font-bold">C</span>
           </div>
           {/* PanelLeft icon on the right */}

@@ -14,6 +14,8 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
@@ -69,6 +71,8 @@
   --primary-foreground: #FFFFFF;
   --secondary: #0081F2;
   --secondary-foreground: #FFFFFF;
+  --brand: #FACC15;
+  --brand-foreground: #1A1A19;
   --muted: #F8F8F7;
   --muted-foreground: #858481;
   --accent: rgba(55,53,47,0.06);
@@ -130,6 +134,8 @@
   --primary-foreground: #1A1A19;
   --secondary: #38BDF8;
   --secondary-foreground: #1A1A19;
+  --brand: #FACC15;
+  --brand-foreground: #1A1A19;
   --muted: #1A1A19;
   --muted-foreground: #858481;
   --accent: rgba(255,255,255,0.1);
