@@ -286,7 +286,7 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
               <Pencil className="h-4 w-4" />
             </Button>
 
-            <AdvancedSlidingSwitch options={switchOptions} onChange={handleSwitchChange} />
+            <AdvancedSlidingSwitch options={switchOptions} onChange={handleSwitchChange} disabled={showIdeaInbox} />
 
             {/* Persona Badge */}
             {personaSelected && (
