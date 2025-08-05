@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/auth-context";
 import { useResizableLayout } from "@/contexts/resizable-layout-context";
+import { auth } from "@/lib/firebase";
 import { scrapeVideoUrl } from "@/lib/unified-video-scraper";
 import { cn } from "@/lib/utils";
 import { detectURL, URLDetectionResult } from "@/lib/utils/url-detector";
@@ -124,6 +125,14 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
 
   const processVoiceRecording = async (audioBlob: Blob) => {
     try {
+      // Get Firebase Auth token
+      if (!auth?.currentUser) {
+        console.error("Please sign in to use voice transcription");
+        return;
+      }
+
+      const token = await auth.currentUser.getIdToken();
+
       // Convert blob to base64
       const arrayBuffer = await audioBlob.arrayBuffer();
       const base64Audio = Buffer.from(arrayBuffer).toString("base64");
@@ -133,6 +142,7 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           audio: base64Audio,
