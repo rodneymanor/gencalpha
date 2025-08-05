@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
  * @param {number} [cr=1] - The radius of each dot
  * @param {string} [className] - Additional CSS classes to apply to the SVG container
  * @param {boolean} [glow=false] - Whether dots should have a glowing animation effect
+ * @param {boolean} [wave=false] - Whether dots should have a wave animation effect
  */
 interface DotPatternProps extends React.SVGProps<SVGSVGElement> {
   width?: number;
@@ -29,6 +30,7 @@ interface DotPatternProps extends React.SVGProps<SVGSVGElement> {
   cr?: number;
   className?: string;
   glow?: boolean;
+  wave?: boolean;
   [key: string]: unknown;
 }
 
@@ -54,6 +56,12 @@ interface DotPatternProps extends React.SVGProps<SVGSVGElement> {
  *   className="opacity-50"
  * />
  *
+ * // With wave animation effect
+ * <DotPattern
+ *   wave={true}
+ *   className="opacity-30"
+ * />
+ *
  * @notes
  * - The component is client-side only ("use client")
  * - Automatically responds to container size changes
@@ -72,6 +80,7 @@ export function DotPattern({
   cr = 1,
   className,
   glow = false,
+  wave = false,
   ...props
 }: DotPatternProps) {
   const id = useId();
@@ -98,11 +107,15 @@ export function DotPattern({
     (_, i) => {
       const col = i % Math.ceil(dimensions.width / width);
       const row = Math.floor(i / Math.ceil(dimensions.width / width));
+      const distanceFromCenter = Math.sqrt(
+        Math.pow(col * width - dimensions.width / 2, 2) + Math.pow(row * height - dimensions.height / 2, 2),
+      );
       return {
         x: col * width + cx,
         y: row * height + cy,
-        delay: Math.random() * 5,
-        duration: Math.random() * 3 + 2,
+        delay: wave ? distanceFromCenter / 100 : Math.random() * 5,
+        duration: wave ? 4 : Math.random() * 3 + 2,
+        wavePhase: wave ? col * 0.1 + row * 0.1 : 0,
       };
     },
   );
@@ -128,14 +141,20 @@ export function DotPattern({
           r={cr}
           fill={glow ? `url(#${id}-gradient)` : "currentColor"}
           className="text-neutral-400/80"
-          initial={glow ? { opacity: 0.4, scale: 1 } : {}}
+          initial={glow ? { opacity: 0.4, scale: 1 } : wave ? { opacity: 0.2, scale: 0.8 } : {}}
           animate={
             glow
               ? {
                   opacity: [0.4, 1, 0.4],
                   scale: [1, 1.5, 1],
                 }
-              : {}
+              : wave
+                ? {
+                    opacity: [0.2, 0.8, 0.2],
+                    scale: [0.8, 1.2, 0.8],
+                    y: [dot.y, dot.y - 3, dot.y],
+                  }
+                : {}
           }
           transition={
             glow
@@ -146,7 +165,15 @@ export function DotPattern({
                   delay: dot.delay,
                   ease: "easeInOut",
                 }
-              : {}
+              : wave
+                ? {
+                    duration: dot.duration,
+                    repeat: Infinity,
+                    repeatType: "reverse",
+                    delay: dot.delay,
+                    ease: "easeInOut",
+                  }
+                : {}
           }
         />
       ))}

@@ -12,7 +12,7 @@ import { GoogleButton } from "../../_components/social-auth/google-button";
 export default function LoginV2() {
   return (
     <AuthRedirectGuard>
-      <DotPattern className="fixed inset-0 opacity-30" />
+      <DotPattern wave={true} className="fixed inset-0 opacity-30" />
       <div className="w-full max-w-md">
         <MagicCard className="bg-card rounded-[var(--radius-card)] shadow-[var(--shadow-soft-drop)]">
           <div className="space-y-8 p-8">
