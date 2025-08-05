@@ -12,13 +12,13 @@ export const metadata: Metadata = {
 export default function DailyPage() {
   return (
     <div className="min-h-screen">
-      {/* Manus Prompt positioned in center with space for content below */}
-      <div className="flex min-h-screen flex-col justify-center">
+      {/* Manus Prompt positioned higher on page with fixed spacing to prevent shifting */}
+      <div className="pt-32 pb-48">
         <ManusPrompt
           greeting="Hello"
           subtitle="What will you script today?"
           placeholder="Give Gen.C a topic to script..."
-          className="mb-32"
+          className=""
         />
       </div>
 
