@@ -45,7 +45,7 @@ const CustomDailyButton = ({ url, isActive }: { url: string; isActive: boolean }
       className={`relative flex items-center ${isCollapsed ? "h-8 w-8 justify-center" : "h-8 w-full justify-start"} group`}
       data-tooltip="New Script"
     >
-      <div className="bg-primary hover:bg-primary/90 flex h-6 w-6 items-center justify-center rounded-[var(--radius-pill)] shadow-[var(--shadow-soft-drop)] transition-all duration-200 hover:scale-105 hover:shadow-[var(--shadow-soft-drop)]">
+      <div className="bg-primary hover:bg-primary/90 flex h-6 w-6 items-center justify-center rounded-[var(--radius-pill)] shadow-[var(--shadow-soft-drop)] transition-all duration-200 ease-linear hover:scale-105 hover:shadow-[var(--shadow-soft-drop)]">
         <Plus className="text-primary-foreground h-3 w-3" />
       </div>
       {!isCollapsed && <span className="text-sidebar-foreground ml-2 text-sm font-medium">New Script</span>}
@@ -75,7 +75,7 @@ const NavItemExpanded = ({
               {item.icon && <item.icon />}
               <span>{item.title}</span>
               {item.comingSoon && <IsComingSoon />}
-              <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+              <ChevronRight className="ml-auto transition-transform duration-200 ease-linear group-data-[state=open]/collapsible:rotate-90" />
             </SidebarMenuButton>
           ) : item.isCustomButton && item.title === "Daily" ? (
             // Custom Daily button - render outside of SidebarMenuButton to avoid standard styling

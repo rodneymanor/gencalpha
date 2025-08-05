@@ -37,21 +37,21 @@ function SidebarLogo({ isPinned, onPinToggle }: { isPinned: boolean; onPinToggle
     <div className="flex h-12 w-full items-center justify-between px-2">
       {isCollapsed ? (
         // Show "G" when collapsed
-        <span className="text-foreground hover:text-primary cursor-pointer text-2xl font-bold transition-colors">
+        <span className="text-foreground hover:text-primary cursor-pointer text-2xl font-bold transition-colors duration-200 ease-linear">
           G
         </span>
       ) : (
         <>
           {/* Logo on the left */}
-          <div className="hover:text-primary flex cursor-pointer items-center gap-1 transition-colors">
+          <div className="hover:text-primary flex cursor-pointer items-center gap-1 transition-colors duration-200 ease-linear">
             <span className="text-foreground text-xl font-bold">Gen</span>
             <div className="bg-brand h-2 w-2 rounded-[var(--radius-pill)]"></div>
             <span className="text-foreground text-xl font-bold">C</span>
           </div>
           {/* PanelLeft icon on the right */}
-          <div className="hover:bg-accent hover:text-accent-foreground flex items-center justify-center rounded-[var(--radius-button)] p-1 transition-colors">
+          <div className="hover:bg-accent hover:text-accent-foreground flex items-center justify-center rounded-[var(--radius-button)] p-1 transition-colors duration-200 ease-linear">
             <PanelLeft
-              className={`h-4 w-4 cursor-pointer transition-colors ${isPinned ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+              className={`h-4 w-4 cursor-pointer transition-colors duration-200 ease-linear ${isPinned ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
               onClick={onPinToggle}
             />
           </div>
@@ -147,7 +147,7 @@ export function AppSidebar({ layoutPreferences, ...props }: AppSidebarProps) {
   };
 
   return (
-    <Sidebar ref={sidebarRef} className="transition-all duration-300 ease-in-out" {...props}>
+    <Sidebar ref={sidebarRef} {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
