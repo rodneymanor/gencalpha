@@ -316,7 +316,7 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
                 "size-9 rounded-full transition-colors",
                 prompt.trim() && !isProcessingVideo
                   ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                  : "bg-muted hover:bg-muted/80",
+                  : "bg-muted/60 text-muted-foreground border-border hover:bg-muted/60 cursor-not-allowed border",
               )}
             >
               {isProcessingVideo ? <Loader2 className="size-4 animate-spin" /> : <ArrowUp className="size-4" />}
