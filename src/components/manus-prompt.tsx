@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from "react";
 
-import { ArrowUp, Link, AlertCircle, CheckCircle2, Loader2, Bot, Globe, Pencil, X } from "lucide-react";
+import { ArrowUp, Link, AlertCircle, CheckCircle2, Loader2, Bot, Globe, Pencil, X, Mic } from "lucide-react";
 
 import { PersonaSelector, PersonaType } from "@/components/chatbot/persona-selector";
 import { AdvancedSlidingSwitch, type ModeType, type SwitchOption } from "@/components/ui/advanced-sliding-switch";
@@ -40,6 +40,8 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
   const [isProcessingVideo, setIsProcessingVideo] = useState(false);
   const [activeMode, setActiveMode] = useState<ModeType>("ghost-write");
   const [showIdeaInbox, setShowIdeaInbox] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const { toggleChatbotPanel } = useResizableLayout();
 
   // Get persona data for display
@@ -82,6 +84,75 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
 
   const handleToggleIdeaInbox = () => {
     setShowIdeaInbox(!showIdeaInbox);
+  };
+
+  const handleVoiceRecording = async () => {
+    if (isRecording) {
+      // Stop recording
+      if (mediaRecorder) {
+        mediaRecorder.stop();
+        setIsRecording(false);
+      }
+    } else {
+      // Start recording
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const recorder = new MediaRecorder(stream);
+        const audioChunks: Blob[] = [];
+
+        recorder.ondataavailable = (event) => {
+          audioChunks.push(event.data);
+        };
+
+        recorder.onstop = async () => {
+          const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+          await processVoiceRecording(audioBlob);
+
+          // Stop all tracks to turn off microphone
+          stream.getTracks().forEach((track) => track.stop());
+        };
+
+        recorder.start();
+        setMediaRecorder(recorder);
+        setIsRecording(true);
+      } catch (error) {
+        console.error("Error accessing microphone:", error);
+        // Could show a toast notification here
+      }
+    }
+  };
+
+  const processVoiceRecording = async (audioBlob: Blob) => {
+    try {
+      // Convert blob to base64
+      const arrayBuffer = await audioBlob.arrayBuffer();
+      const base64Audio = Buffer.from(arrayBuffer).toString("base64");
+
+      // Send to transcription API
+      const response = await fetch("/api/transcribe/voice", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          audio: base64Audio,
+          format: "wav",
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success && result.transcription) {
+        // Set the transcribed text in the prompt
+        setPrompt(result.transcription);
+      } else {
+        console.error("Transcription failed:", result.error);
+        // Could show a toast notification here
+      }
+    } catch (error) {
+      console.error("Error processing voice recording:", error);
+      // Could show a toast notification here
+    }
   };
 
   // Switch options for the sliding switch
@@ -310,16 +381,27 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
             <span className="flex-1" />
 
             <Button
-              onClick={handleSubmit}
-              disabled={!prompt.trim() || isProcessingVideo}
+              onClick={prompt.trim() ? handleSubmit : handleVoiceRecording}
+              disabled={isProcessingVideo}
               className={cn(
                 "size-9 rounded-full transition-colors",
                 prompt.trim() && !isProcessingVideo
                   ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                  : "bg-muted/60 text-muted-foreground border-border hover:bg-muted/60 cursor-not-allowed border",
+                  : isRecording
+                    ? "animate-pulse bg-red-500 text-white hover:bg-red-600"
+                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80",
               )}
+              title={prompt.trim() ? "Send message" : isRecording ? "Stop recording" : "Start voice recording"}
             >
-              {isProcessingVideo ? <Loader2 className="size-4 animate-spin" /> : <ArrowUp className="size-4" />}
+              {isProcessingVideo ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : prompt.trim() ? (
+                <ArrowUp className="size-4" />
+              ) : isRecording ? (
+                <Mic className="size-4" />
+              ) : (
+                <Mic className="size-4" />
+              )}
             </Button>
           </div>
         </div>
