@@ -33,17 +33,17 @@ const getSourceIcon = (source: string) => {
 const getSourceColor = (source: string) => {
   switch (source) {
     case "instagram":
-      return "bg-pink-100 text-pink-800";
+      return "bg-accent text-accent-foreground";
     case "tiktok":
-      return "bg-black text-white";
+      return "bg-primary text-primary-foreground";
     case "youtube":
-      return "bg-red-100 text-red-800";
+      return "bg-destructive text-destructive-foreground";
     case "blog":
-      return "bg-blue-100 text-blue-800";
+      return "bg-secondary text-secondary-foreground";
     case "voice":
-      return "bg-purple-100 text-purple-800";
+      return "bg-muted text-muted-foreground";
     default:
-      return "bg-gray-100 text-gray-800";
+      return "bg-muted text-muted-foreground";
   }
 };
 

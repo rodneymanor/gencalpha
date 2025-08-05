@@ -29,13 +29,13 @@ const getSourceIcon = (source: string) => {
 
 const getSourceColor = (source: string) => {
   const colorMap = {
-    instagram: "bg-pink-100 text-pink-800",
-    tiktok: "bg-black text-white",
-    youtube: "bg-red-100 text-red-800",
-    blog: "bg-blue-100 text-blue-800",
-    voice: "bg-purple-100 text-purple-800",
+    instagram: "bg-accent text-accent-foreground",
+    tiktok: "bg-primary text-primary-foreground",
+    youtube: "bg-destructive text-destructive-foreground",
+    blog: "bg-secondary text-secondary-foreground",
+    voice: "bg-muted text-muted-foreground",
   };
-  return colorMap[source as keyof typeof colorMap] || "bg-gray-100 text-gray-800";
+  return colorMap[source as keyof typeof colorMap] || "bg-muted text-muted-foreground";
 };
 
 const formatDate = (dateString: string): string => {
@@ -95,7 +95,7 @@ export function IdeaDetailDialog({
         <div className="min-h-0 flex-1 overflow-y-auto">
           <div className="relative">
             <div
-              className="prose bg-muted/20 hover:bg-muted/30 group max-w-none cursor-pointer rounded-lg p-4 transition-colors"
+              className="prose bg-muted/20 hover:bg-muted/30 group max-w-none cursor-pointer rounded-[var(--radius-card)] p-6 transition-colors"
               onClick={handleCopyContent}
               title="Click to copy content"
             >
@@ -110,27 +110,27 @@ export function IdeaDetailDialog({
                     handleCopyContent();
                   }}
                 >
-                  {isCopied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                  {isCopied ? <Check className="text-secondary h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 </Button>
               </div>
             </div>
 
             {isCopied && (
-              <div className="absolute top-2 right-2 rounded bg-green-100 px-2 py-1 text-xs text-green-800">
+              <div className="bg-secondary text-secondary-foreground absolute top-2 right-2 rounded-[var(--radius-button)] px-2 py-1 text-xs">
                 Copied!
               </div>
             )}
           </div>
 
           {idea.sourceUrl && (
-            <div className="mt-4 rounded-lg bg-blue-50 p-3">
-              <p className="text-sm text-blue-800">
+            <div className="bg-accent mt-6 rounded-[var(--radius-card)] p-4">
+              <p className="text-accent-foreground text-sm">
                 <strong>Source:</strong>{" "}
                 <a
                   href={idea.sourceUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="underline hover:no-underline"
+                  className="text-secondary underline hover:no-underline"
                 >
                   {idea.sourceUrl}
                 </a>

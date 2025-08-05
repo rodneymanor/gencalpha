@@ -47,7 +47,7 @@ export function ImportDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-8">
           {/* Import from URL */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Import from URL</h3>
@@ -75,7 +75,7 @@ export function ImportDialog({
             </Button>
           </div>
 
-          <div className="border-t pt-6">
+          <div className="border-t pt-8">
             <h3 className="mb-4 text-lg font-semibold">Create Manual Note</h3>
             <div className="space-y-4">
               <Input

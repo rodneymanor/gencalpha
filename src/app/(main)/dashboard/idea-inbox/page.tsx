@@ -201,8 +201,8 @@ The content would be processed and cleaned up for easier reading and conversion 
       <div className="container mx-auto max-w-7xl p-6">
         <div className="mb-8">
           <div className="mb-4 flex items-center gap-3">
-            <div className="rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 p-3">
-              <Import className="h-6 w-6 text-white" />
+            <div className="bg-secondary rounded-[var(--radius-card)] p-3">
+              <Import className="text-secondary-foreground h-6 w-6" />
             </div>
             <div>
               <h1 className="text-3xl font-bold">Idea Inbox</h1>
@@ -212,7 +212,7 @@ The content would be processed and cleaned up for easier reading and conversion 
         </div>
         <Card>
           <CardContent className="py-12 text-center">
-            <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent"></div>
+            <div className="border-secondary mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-t-transparent"></div>
             <p className="text-muted-foreground">Loading ideas from your database...</p>
           </CardContent>
         </Card>
@@ -226,8 +226,8 @@ The content would be processed and cleaned up for easier reading and conversion 
       <div className="container mx-auto max-w-7xl p-6">
         <div className="mb-8">
           <div className="mb-4 flex items-center gap-3">
-            <div className="rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 p-3">
-              <Import className="h-6 w-6 text-white" />
+            <div className="bg-secondary rounded-[var(--radius-card)] p-3">
+              <Import className="text-secondary-foreground h-6 w-6" />
             </div>
             <div>
               <h1 className="text-3xl font-bold">Idea Inbox</h1>
@@ -253,8 +253,8 @@ The content would be processed and cleaned up for easier reading and conversion 
       {/* Header */}
       <div className="mb-8">
         <div className="mb-4 flex items-center gap-3">
-          <div className="rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 p-3">
-            <Import className="h-6 w-6 text-white" />
+          <div className="bg-secondary rounded-[var(--radius-card)] p-3">
+            <Import className="text-secondary-foreground h-6 w-6" />
           </div>
           <div>
             <h1 className="text-3xl font-bold">Idea Inbox</h1>
