@@ -240,7 +240,7 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
       </header>
 
       {/* Input Card */}
-      <div className="bg-background rounded-3xl border shadow-md">
+      <div className="bg-card rounded-3xl border shadow-md">
         <div className="flex max-h-72 flex-col space-y-3 py-3">
           <div className="relative overflow-y-auto px-4">
             <Textarea
