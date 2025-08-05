@@ -10,7 +10,6 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
@@ -35,23 +34,27 @@ function SidebarLogo({ isPinned, onPinToggle }: { isPinned: boolean; onPinToggle
   const isCollapsed = state === "collapsed";
 
   return (
-    <div className="flex w-full items-center justify-between h-12 px-2">
+    <div className="flex h-12 w-full items-center justify-between px-2">
       {isCollapsed ? (
         // Show "G" when collapsed
-        <span className="text-foreground text-2xl font-bold cursor-pointer transition-colors hover:text-primary">G</span>
+        <span className="text-foreground hover:text-primary cursor-pointer text-2xl font-bold transition-colors">
+          G
+        </span>
       ) : (
         <>
           {/* Logo on the left */}
-          <div className="flex items-center gap-1 cursor-pointer transition-colors hover:text-primary">
+          <div className="hover:text-primary flex cursor-pointer items-center gap-1 transition-colors">
             <span className="text-foreground text-xl font-bold">Gen</span>
             <div className="h-2 w-2 rounded-full bg-yellow-400"></div>
             <span className="text-foreground text-xl font-bold">C</span>
           </div>
           {/* PanelLeft icon on the right */}
-          <PanelLeft
-            className={`h-4 w-4 cursor-pointer transition-colors ${isPinned ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
-            onClick={onPinToggle}
-          />
+          <div className="hover:bg-accent hover:text-accent-foreground flex items-center justify-center rounded-sm p-1 transition-colors">
+            <PanelLeft
+              className={`h-4 w-4 cursor-pointer transition-colors ${isPinned ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+              onClick={onPinToggle}
+            />
+          </div>
         </>
       )}
     </div>
@@ -159,7 +162,9 @@ export function AppSidebar({ layoutPreferences, ...props }: AppSidebarProps) {
       </SidebarContent>
       <SidebarFooter>
         <div className="flex flex-col items-center gap-2 px-2 pb-2">
-          <LayoutControls {...(layoutPreferences || { variant: "inset", collapsible: "icon", contentLayout: "centered" })} />
+          <LayoutControls
+            {...(layoutPreferences ?? { variant: "inset", collapsible: "icon", contentLayout: "centered" })}
+          />
           <ThemeSwitcher />
         </div>
         <NavUser />
