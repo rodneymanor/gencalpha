@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
+
+import { useRouter } from "next/navigation";
+
 import { siGoogle } from "simple-icons";
 
 import { SimpleIcon } from "@/components/simple-icon";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/auth-context";
-import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 export function GoogleButton({ className, ...props }: React.ComponentProps<typeof Button>) {
   const { signInWithGoogle, loading } = useAuth();
@@ -28,8 +30,8 @@ export function GoogleButton({ className, ...props }: React.ComponentProps<typeo
 
   return (
     <Button
-      variant="secondary"
-      className={cn(className)}
+      variant="outline"
+      className={cn("text-foreground hover:bg-accent bg-white", className)}
       onClick={handleGoogleSignIn}
       disabled={loading || isSubmitting}
       {...props}
