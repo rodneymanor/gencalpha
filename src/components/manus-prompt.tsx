@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -33,11 +34,12 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
 }) => {
   const { user, userProfile } = useAuth();
   const [prompt, setPrompt] = useState("");
-  const [selectedPersona, setSelectedPersona] = useState<PersonaType>("MiniBuddy");
+  const [selectedPersona, setSelectedPersona] = useState<PersonaType | null>(null);
   const [personaSelected, setPersonaSelected] = useState(false);
   const [urlDetection, setUrlDetection] = useState<URLDetectionResult | null>(null);
   const [isProcessingVideo, setIsProcessingVideo] = useState(false);
   const [activeMode, setActiveMode] = useState<ModeType>("ghost-write");
+  const [showIdeaInbox, setShowIdeaInbox] = useState(false);
   const { toggleChatbotPanel } = useResizableLayout();
 
   // Get persona data for display
@@ -54,13 +56,15 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
 
   // Get dynamic placeholder based on active mode
   const getDynamicPlaceholder = () => {
+    if (showIdeaInbox) {
+      return "Capture your ideas, thoughts, and inspiration here...";
+    }
+
     switch (activeMode) {
       case "ghost-write":
         return "What do you want me to script?";
       case "web-search":
         return "Write a fact-based script...";
-      case "ideas":
-        return "Your Capture Everything Hub...";
       default:
         return placeholder;
     }
@@ -73,7 +77,11 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
 
   const handleRemovePersona = () => {
     setPersonaSelected(false);
-    setSelectedPersona("MiniBuddy"); // Reset to default
+    setSelectedPersona(null); // Reset to no selection
+  };
+
+  const handleToggleIdeaInbox = () => {
+    setShowIdeaInbox(!showIdeaInbox);
   };
 
   // Switch options for the sliding switch
@@ -87,11 +95,6 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
       value: "web-search",
       icon: <Globe className="h-[18px] w-[18px]" />,
       tooltip: "Fetches real-world facts and data for grounding your content.",
-    },
-    {
-      value: "ideas",
-      icon: <Pencil className="h-[18px] w-[18px]" />,
-      tooltip: "Stores quick thoughts, outlines, or reminders for later use.",
     },
   ];
 
@@ -123,6 +126,7 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
   }, [prompt]);
 
   // Handle video processing for supported URLs
+  // eslint-disable-next-line complexity
   const handleVideoProcess = async () => {
     if (!urlDetection || !urlDetection.isSupported) return;
 
@@ -131,16 +135,17 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
       // Process video URL using unified video scraper
       const result = await scrapeVideoUrl(urlDetection.url);
 
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (result) {
         // Create a formatted message with video transcription
         const message = `Here's the transcription from the ${urlDetection.platform} video:\n\n**Title:** ${result.title}\n**Author:** @${result.author}\n\n**Transcript:**\n${result.description || "No transcript available - this video may not have spoken content."}`;
 
         // Open the chatbot panel with the transcription and selected persona
-        toggleChatbotPanel(message, selectedPersona);
+        toggleChatbotPanel(message, selectedPersona ?? "MiniBuddy");
 
         // Call the optional onSubmit callback
         if (onSubmit) {
-          onSubmit(message, selectedPersona);
+          onSubmit(message, selectedPersona ?? "MiniBuddy");
         }
 
         // Clear the input and detection
@@ -153,9 +158,9 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
       const errorMessage = `Failed to process ${urlDetection.platform} video: ${error instanceof Error ? error.message : "Unknown error"}`;
 
       // Open chatbot panel with error message
-      toggleChatbotPanel(errorMessage, selectedPersona);
+      toggleChatbotPanel(errorMessage, selectedPersona ?? "MiniBuddy");
       if (onSubmit) {
-        onSubmit(errorMessage, selectedPersona);
+        onSubmit(errorMessage, selectedPersona ?? "MiniBuddy");
       }
     } finally {
       setIsProcessingVideo(false);
@@ -172,11 +177,11 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
     }
 
     // Open the chatbot panel with the initial prompt and persona
-    toggleChatbotPanel(prompt.trim(), selectedPersona);
+    toggleChatbotPanel(prompt.trim(), selectedPersona ?? "MiniBuddy");
 
     // Call the optional onSubmit callback with the prompt and persona
     if (onSubmit) {
-      onSubmit(prompt.trim(), selectedPersona);
+      onSubmit(prompt.trim(), selectedPersona ?? "MiniBuddy");
     }
 
     // Clear the input and detection
@@ -265,6 +270,22 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
 
           {/* Controls */}
           <div className="flex items-center gap-2 px-3">
+            {/* Idea Inbox Toggle Button */}
+            <Button
+              variant={showIdeaInbox ? "default" : "outline"}
+              size="sm"
+              onClick={handleToggleIdeaInbox}
+              className={cn(
+                "size-8 rounded-full p-0 transition-all",
+                showIdeaInbox
+                  ? "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                  : "hover:bg-accent hover:text-accent-foreground",
+              )}
+              title="Toggle Idea Inbox"
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+
             <AdvancedSlidingSwitch options={switchOptions} onChange={handleSwitchChange} />
 
             {/* Persona Badge */}
@@ -273,8 +294,8 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
                 variant="secondary"
                 className="bg-secondary/10 text-secondary border-secondary/20 hover:bg-secondary/20 ml-2 flex h-8 items-center rounded-[var(--radius-pill)] px-3 text-xs font-medium"
               >
-                <span className="mr-2">{getPersonaData(selectedPersona)?.icon}</span>
-                {getPersonaData(selectedPersona)?.label}
+                <span className="mr-2">{selectedPersona ? getPersonaData(selectedPersona)?.icon : ""}</span>
+                {selectedPersona ? getPersonaData(selectedPersona)?.label : ""}
                 <Button
                   variant="ghost"
                   size="sm"
@@ -304,14 +325,64 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
         </div>
       </div>
 
-      {/* Persona Selector */}
+      {/* Persona Selector or Idea Inbox Explanation */}
       <div className="space-y-3">
-        <PersonaSelector
-          selectedPersona={selectedPersona}
-          onPersonaChange={handlePersonaChange}
-          className="justify-center"
-          showCallout={personaSelected}
-        />
+        {showIdeaInbox ? (
+          <div className="bg-card border-border rounded-[var(--radius-card)] border p-6 shadow-[var(--shadow-soft-drop)]">
+            <div className="flex items-start space-x-4">
+              <div className="flex-shrink-0">
+                <div className="bg-secondary/10 flex h-12 w-12 items-center justify-center rounded-[var(--radius-button)]">
+                  <Pencil className="text-secondary h-6 w-6" />
+                </div>
+              </div>
+              <div className="flex-1">
+                <div className="mb-2 flex items-center space-x-2">
+                  <h3 className="text-foreground font-semibold">Idea Inbox - Your Save Everything Hub</h3>
+                </div>
+                <p className="text-muted-foreground mb-4 text-sm">
+                  Capture your ideas, thoughts, inspiration, and random sparks of creativity here. Think of this as your
+                  digital notebook where nothing gets lost.
+                </p>
+                <div className="space-y-2">
+                  <div className="flex items-start space-x-2">
+                    <div className="bg-primary/10 text-primary mt-0.5 flex h-5 w-5 items-center justify-center rounded-full text-xs font-semibold">
+                      1
+                    </div>
+                    <p className="text-sm">
+                      <span className="font-medium">Save Everything:</span> Jot down video ideas, hooks, story concepts,
+                      or any creative thoughts
+                    </p>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <div className="bg-primary/10 text-primary mt-0.5 flex h-5 w-5 items-center justify-center rounded-full text-xs font-semibold">
+                      2
+                    </div>
+                    <p className="text-sm">
+                      <span className="font-medium">Come Back Later:</span> Your ideas are automatically saved in your
+                      Idea Inbox dashboard
+                    </p>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <div className="bg-primary/10 text-primary mt-0.5 flex h-5 w-5 items-center justify-center rounded-full text-xs font-semibold">
+                      3
+                    </div>
+                    <p className="text-sm">
+                      <span className="font-medium">Turn into Scripts:</span> Transform any saved idea into a full
+                      script with AI assistance
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <PersonaSelector
+            selectedPersona={selectedPersona}
+            onPersonaChange={handlePersonaChange}
+            className="justify-center"
+            showCallout={personaSelected}
+          />
+        )}
       </div>
     </div>
   );

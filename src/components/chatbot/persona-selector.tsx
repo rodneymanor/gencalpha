@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 export type PersonaType = "Scribo" | "MiniBuddy" | "StoryBuddy" | "HookBuddy" | "MVBB";
 
 interface PersonaSelectorProps {
-  selectedPersona: PersonaType;
+  selectedPersona: PersonaType | null;
   onPersonaChange: (persona: PersonaType) => void;
   className?: string;
   showCallout?: boolean;
@@ -67,7 +67,7 @@ export function PersonaSelector({
   className,
   showCallout = false,
 }: PersonaSelectorProps) {
-  const selectedPersonaData = PERSONAS.find((p) => p.key === selectedPersona);
+  const selectedPersonaData = selectedPersona ? PERSONAS.find((p) => p.key === selectedPersona) : null;
 
   // Show callout when persona is selected and showCallout is true
   if (showCallout && selectedPersonaData) {
