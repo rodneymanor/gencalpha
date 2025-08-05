@@ -24,7 +24,6 @@ import {
   SidebarMenuSubItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { useScriptPanel } from "@/contexts/script-panel-context";
 import { type NavGroup, type NavMainItem } from "@/navigation/sidebar/sidebar-items";
 
 interface NavMainProps {
@@ -37,18 +36,19 @@ const IsComingSoon = () => (
 
 const CustomDailyButton = ({ url, isActive }: { url: string; isActive: boolean }) => {
   return (
-    <Link
-      href={url}
-      className="relative flex h-8 w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left transition-[width,height,padding] duration-200 ease-linear group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0"
-      data-tooltip="New Script"
+    <SidebarMenuButton
+      asChild
+      isActive={isActive}
+      tooltip="New Script"
+      className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
     >
-      <div className="bg-primary hover:bg-primary/90 flex h-6 w-6 shrink-0 items-center justify-center rounded-[var(--radius-pill)] shadow-[var(--shadow-soft-drop)] transition-all duration-200 ease-linear hover:scale-[1.02] hover:shadow-[var(--shadow-soft-drop)]">
-        <Plus className="text-primary-foreground h-3 w-3" />
-      </div>
-      <span className="text-sidebar-foreground truncate text-sm font-medium group-data-[collapsible=icon]:hidden">
-        New Script
-      </span>
-    </Link>
+      <Link href={url}>
+        <div className="bg-primary hover:bg-primary/90 flex h-4 w-4 shrink-0 items-center justify-center rounded-[var(--radius-pill)] shadow-[var(--shadow-soft-drop)] transition-all duration-200 ease-linear">
+          <Plus className="text-primary-foreground h-3 w-3" />
+        </div>
+        <span>New Script</span>
+      </Link>
+    </SidebarMenuButton>
   );
 };
 
@@ -77,10 +77,8 @@ const NavItemExpanded = ({
               <ChevronRight className="ml-auto transition-transform duration-200 ease-linear group-data-[state=open]/collapsible:rotate-90" />
             </SidebarMenuButton>
           ) : item.isCustomButton && item.title === "Daily" ? (
-            // Custom Daily button - render with proper structure
-            <div className="flex w-full p-1">
-              <CustomDailyButton url={item.url} isActive={isActive(item.url)} />
-            </div>
+            // Custom Daily button - render with standard structure
+            <CustomDailyButton url={item.url} isActive={isActive(item.url)} />
           ) : (
             <SidebarMenuButton
               asChild
@@ -166,7 +164,6 @@ const NavItemCollapsed = ({
 export function NavMain({ items }: NavMainProps) {
   const path = usePathname();
   const { state, isMobile } = useSidebar();
-  const { openPanel } = useScriptPanel();
 
   const isItemActive = (url: string, subItems?: NavMainItem["subItems"]) => {
     if (subItems?.length) {
@@ -207,11 +204,9 @@ export function NavMain({ items }: NavMainProps) {
                   // If no subItems, just render the button as a link
                   if (!item.subItems) {
                     return item.isCustomButton && item.title === "Daily" ? (
-                      // Render custom Daily button with proper SidebarMenuItem wrapper
+                      // Render custom Daily button with standard SidebarMenuItem structure
                       <SidebarMenuItem key={item.title}>
-                        <div className="flex items-center justify-center p-1">
-                          <CustomDailyButton url={item.url} isActive={isItemActive(item.url)} />
-                        </div>
+                        <CustomDailyButton url={item.url} isActive={isItemActive(item.url)} />
                       </SidebarMenuItem>
                     ) : (
                       <SidebarMenuItem key={item.title}>
