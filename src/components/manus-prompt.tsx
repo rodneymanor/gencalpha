@@ -32,7 +32,23 @@ const AdvancedSlidingSwitch: React.FC<AdvancedSlidingSwitchProps> = ({ options, 
   const [activeIndex, setActiveIndex] = useState(defaultValue);
 
   return (
-    <div className="bg-muted inline-flex h-[29px] w-[110px] items-center overflow-hidden rounded-full border p-0.5">
+    <div className="border-border bg-muted/50 relative inline-flex h-8 w-[110px] items-center overflow-hidden rounded-[var(--radius-button)] border p-1 shadow-[var(--shadow-input)]">
+      {/* Sliding background positioned absolutely to the container */}
+      <motion.div
+        className="bg-background border-border/50 absolute h-6 rounded-[calc(var(--radius-button)-2px)] border shadow-sm"
+        style={{
+          width: `${100 / options.length}%`,
+        }}
+        animate={{
+          x: `${activeIndex * 100}%`,
+        }}
+        transition={{
+          type: "spring",
+          stiffness: 500,
+          damping: 30,
+        }}
+      />
+
       {options.map((option: SwitchOption, index: number) => (
         <button
           key={index}
@@ -40,24 +56,11 @@ const AdvancedSlidingSwitch: React.FC<AdvancedSlidingSwitchProps> = ({ options, 
             setActiveIndex(index);
             onChange?.(index, option);
           }}
-          className={`relative z-10 flex h-full flex-1 items-center justify-center rounded-none text-sm transition-colors duration-200 ${
-            activeIndex === index ? "text-foreground" : "text-muted-foreground hover:text-foreground"
-          } `}
+          className={`relative z-10 flex h-6 flex-1 items-center justify-center text-sm font-medium transition-colors duration-200 ${
+            activeIndex === index ? "text-foreground" : "text-muted-foreground hover:text-foreground/80"
+          }`}
         >
-          {/* The animated background slides to the active index */}
-          {activeIndex === index && (
-            <motion.div
-              layoutId="sliding-background"
-              className="bg-background absolute inset-0 rounded-full shadow-sm"
-              transition={{
-                type: "spring",
-                stiffness: 400,
-                damping: 35,
-              }}
-            />
-          )}
-          {/* The content of the button (icon) */}
-          <div className="relative z-10 flex items-center">{option.icon}</div>
+          <div className="flex items-center">{option.icon}</div>
         </button>
       ))}
     </div>
