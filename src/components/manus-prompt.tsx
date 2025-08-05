@@ -323,6 +323,25 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
               <AdvancedSlidingSwitch options={switchOptions} onChange={handleSwitchChange} />
             </div>
 
+            {/* Persona Badge */}
+            {personaSelected && (
+              <Badge
+                variant="secondary"
+                className="bg-secondary/10 text-secondary border-secondary/20 hover:bg-secondary/20 ml-2 rounded-[var(--radius-pill)] px-3 py-1 text-xs font-medium"
+              >
+                <span className="mr-2">{getPersonaData(selectedPersona)?.icon}</span>
+                {getPersonaData(selectedPersona)?.label}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleRemovePersona}
+                  className="hover:bg-destructive/20 hover:text-destructive ml-2 h-4 w-4 rounded-full p-0"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </Badge>
+            )}
+
             <span className="flex-1" />
 
             <Button
