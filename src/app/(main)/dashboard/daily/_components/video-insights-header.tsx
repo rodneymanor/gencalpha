@@ -1,10 +1,11 @@
 "use client";
 
+import { Loader2, User } from "lucide-react";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, User } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Video } from "@/lib/collections";
+import { cn } from "@/lib/utils";
 
 interface VideoInsightsHeaderProps {
   video: Video;
@@ -12,11 +13,13 @@ interface VideoInsightsHeaderProps {
   formatNumber: (n: number | undefined) => string;
 }
 
-// Map platform to CSS variable driven backgrounds for brand consistency
-const platformBadgeStyles: Record<string, { bg: string; color?: string }> = {
-  tiktok: { bg: "#000", color: "#fff" },
-  instagram: { bg: "var(--secondary)" },
-  youtube: { bg: "var(--destructive)", color: "var(--accent-foreground)" },
+// Map platform to design system colors for brand consistency
+const platformBadgeStyles: Record<string, string> = {
+  tiktok: "bg-primary text-primary-foreground",
+  instagram: "bg-secondary text-secondary-foreground",
+  youtube: "bg-destructive text-destructive-foreground",
+  twitter: "bg-secondary text-secondary-foreground",
+  default: "bg-accent text-accent-foreground",
 };
 
 export function VideoInsightsHeader({ video, isLoading, formatNumber }: VideoInsightsHeaderProps) {
@@ -34,13 +37,12 @@ export function VideoInsightsHeader({ video, isLoading, formatNumber }: VideoIns
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
-            <span className="font-semibold text-sm">{video.metadata?.author ?? "Unknown Creator"}</span>
+            <span className="text-sm font-semibold">{video.metadata?.author ?? "Unknown Creator"}</span>
             <Badge
-              className="capitalize"
-              style={{
-                backgroundColor: platformBadgeStyles[video.platform.toLowerCase()]?.bg ?? "var(--accent)",
-                color: platformBadgeStyles[video.platform.toLowerCase()]?.color ?? "var(--accent-foreground)",
-              }}
+              className={cn(
+                "capitalize",
+                platformBadgeStyles[video.platform.toLowerCase()] ?? platformBadgeStyles.default,
+              )}
             >
               {video.platform}
             </Badge>

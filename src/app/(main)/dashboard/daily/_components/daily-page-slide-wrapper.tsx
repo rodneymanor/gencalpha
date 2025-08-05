@@ -282,12 +282,12 @@ export default function DailyPageSlideWrapper() {
             ease: [0.4, 0.0, 0.2, 1],
             type: "tween",
           }}
-          className="bg-background fixed right-0 bottom-0 left-0 z-20 rounded-t-xl border-t shadow-2xl"
+          className="bg-background fixed right-0 bottom-0 left-0 z-20 rounded-t-[var(--radius-card)] border-t shadow-[var(--shadow-soft-drop)]"
           style={{ height: "120px" }}
         >
           {/* Drag handle */}
           <div className="flex justify-center pt-3 pb-2">
-            <div className="h-1 w-12 rounded-full bg-gray-300"></div>
+            <div className="bg-muted-foreground/30 h-1 w-12 rounded-[var(--radius-pill)]"></div>
           </div>
 
           {/* Peek content header */}
@@ -345,7 +345,7 @@ export default function DailyPageSlideWrapper() {
           </div>
 
           {/* Daily Inspiration Content */}
-          <div className="min-h-screen space-y-8 p-6">
+          <div className="min-h-screen space-y-6 p-6">
             <div className="mx-auto max-w-7xl">
               <DailyInspirationSection />
             </div>

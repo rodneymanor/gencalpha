@@ -2,20 +2,21 @@
 /* Clean, smaller rewrite of the dialog – <300 lines & reduced complexity */
 
 import { useState, useEffect } from "react";
+
 import { Loader2 } from "lucide-react";
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { VisuallyHidden } from "@/components/ui/visually-hidden";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Video } from "@/lib/collections";
+import { VisuallyHidden } from "@/components/ui/visually-hidden";
 import { useAuth } from "@/contexts/auth-context";
+import { Video } from "@/lib/collections";
 import { VideoInsightsService } from "@/lib/video-insights-service";
 
-import { VideoPreviewWithMetrics } from "./video-preview-with-metrics";
-import { VideoInsightsHeader } from "./video-insights-header";
-import { StickyActionButtons } from "./sticky-action-buttons";
 import { MainInsightsTab } from "./main-insights-tab";
+import { StickyActionButtons } from "./sticky-action-buttons";
 import { ScriptComponents } from "./video-insights-components";
+import { VideoInsightsHeader } from "./video-insights-header";
+import { VideoPreviewWithMetrics } from "./video-preview-with-metrics";
 
 interface VideoInsightsDialogProps {
   video: Video | null;
@@ -86,7 +87,7 @@ export function VideoInsightsDialogV2({
 
         <div className="flex h-full min-h-0">
           {/* Fixed Video Column */}
-          <div className="relative flex h-[600px] w-96 items-center justify-center bg-black flex-shrink-0">
+          <div className="relative flex h-[600px] w-96 flex-shrink-0 items-center justify-center bg-black">
             {isLoadingInsights ? (
               <Loader2 className="h-8 w-8 animate-spin text-white" />
             ) : (
@@ -96,24 +97,20 @@ export function VideoInsightsDialogV2({
 
           {/* Main Panel */}
           <div className="bg-background flex h-full min-h-0 flex-1 flex-col">
-            <VideoInsightsHeader
-              video={displayVideo}
-              isLoading={isLoadingInsights}
-              formatNumber={formatNumber}
-            />
+            <VideoInsightsHeader video={displayVideo} isLoading={isLoadingInsights} formatNumber={formatNumber} />
 
             <Tabs defaultValue="insights" className="flex min-h-0 flex-1 flex-col">
               <div className="bg-muted/30 flex-shrink-0 border-b p-6">
                 <TabsList className="bg-background grid w-full grid-cols-2 border">
                   <TabsTrigger
                     value="insights"
-                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium"
+                    className="data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground font-medium"
                   >
                     Insights
                   </TabsTrigger>
                   <TabsTrigger
                     value="script"
-                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-medium"
+                    className="data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground font-medium"
                   >
                     Script Components
                   </TabsTrigger>
@@ -131,11 +128,7 @@ export function VideoInsightsDialogV2({
                   />
                 </TabsContent>
                 <TabsContent value="script" className="mt-0">
-                  <ScriptComponents
-                    video={displayVideo}
-                    copiedText={copiedText}
-                    onCopy={copyToClipboard}
-                  />
+                  <ScriptComponents video={displayVideo} copiedText={copiedText} onCopy={copyToClipboard} />
                 </TabsContent>
               </div>
             </Tabs>
