@@ -45,11 +45,11 @@ function SidebarLogo({ isPinned, onPinToggle }: { isPinned: boolean; onPinToggle
           {/* Logo on the left */}
           <div className="hover:text-primary flex cursor-pointer items-center gap-1 transition-colors">
             <span className="text-foreground text-xl font-bold">Gen</span>
-            <div className="h-2 w-2 rounded-full bg-yellow-400"></div>
+            <div className="bg-secondary h-2 w-2 rounded-[var(--radius-pill)]"></div>
             <span className="text-foreground text-xl font-bold">C</span>
           </div>
           {/* PanelLeft icon on the right */}
-          <div className="hover:bg-accent hover:text-accent-foreground flex items-center justify-center rounded-sm p-1 transition-colors">
+          <div className="hover:bg-accent hover:text-accent-foreground flex items-center justify-center rounded-[var(--radius-button)] p-1 transition-colors">
             <PanelLeft
               className={`h-4 w-4 cursor-pointer transition-colors ${isPinned ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
               onClick={onPinToggle}

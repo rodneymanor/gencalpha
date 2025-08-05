@@ -13,7 +13,7 @@ export default function DailyPage() {
   return (
     <div className="min-h-screen">
       {/* Manus Prompt positioned higher on page with fixed spacing to prevent shifting */}
-      <div className="pt-16 pb-48">
+      <div className="pt-8 pb-48">
         <ManusPrompt
           greeting="Hello"
           subtitle="What will you script today?"

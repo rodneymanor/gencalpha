@@ -32,7 +32,7 @@ interface NavMainProps {
 }
 
 const IsComingSoon = () => (
-  <span className="ml-auto rounded-md bg-gray-200 px-2 py-1 text-xs dark:text-gray-800">Soon</span>
+  <span className="bg-muted text-muted-foreground ml-auto rounded-[var(--radius-button)] px-2 py-1 text-xs">Soon</span>
 );
 
 const CustomDailyButton = ({ url, isActive }: { url: string; isActive: boolean }) => {
@@ -45,8 +45,8 @@ const CustomDailyButton = ({ url, isActive }: { url: string; isActive: boolean }
       className={`relative flex items-center ${isCollapsed ? "h-8 w-8 justify-center" : "h-8 w-full justify-start"} group`}
       data-tooltip="New Script"
     >
-      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-black shadow-lg transition-all duration-200 hover:scale-105 hover:bg-gray-800 hover:shadow-xl">
-        <Plus className="h-3 w-3 text-white" />
+      <div className="bg-primary hover:bg-primary/90 flex h-6 w-6 items-center justify-center rounded-[var(--radius-pill)] shadow-[var(--shadow-soft-drop)] transition-all duration-200 hover:scale-105 hover:shadow-[var(--shadow-soft-drop)]">
+        <Plus className="text-primary-foreground h-3 w-3" />
       </div>
       {!isCollapsed && <span className="text-sidebar-foreground ml-2 text-sm font-medium">New Script</span>}
     </Link>
