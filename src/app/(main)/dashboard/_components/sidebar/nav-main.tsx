@@ -45,7 +45,7 @@ const CustomDailyButton = ({ url, isActive }: { url: string; isActive: boolean }
       className={`relative flex items-center ${isCollapsed ? "h-8 w-8 justify-center" : "h-8 w-full justify-start"} group`}
       data-tooltip="New Script"
     >
-      <div className="bg-primary hover:bg-primary/90 flex h-6 w-6 items-center justify-center rounded-[var(--radius-pill)] shadow-[var(--shadow-soft-drop)] transition-all duration-200 ease-linear hover:scale-105 hover:shadow-[var(--shadow-soft-drop)]">
+      <div className="bg-primary hover:bg-primary/90 flex h-6 w-6 items-center justify-center rounded-[var(--radius-pill)] shadow-[var(--shadow-soft-drop)] transition-all duration-200 ease-linear hover:scale-[1.02] hover:shadow-[var(--shadow-soft-drop)]">
         <Plus className="text-primary-foreground h-3 w-3" />
       </div>
       {!isCollapsed && <span className="text-sidebar-foreground ml-2 text-sm font-medium">New Script</span>}
@@ -78,8 +78,8 @@ const NavItemExpanded = ({
               <ChevronRight className="ml-auto transition-transform duration-200 ease-linear group-data-[state=open]/collapsible:rotate-90" />
             </SidebarMenuButton>
           ) : item.isCustomButton && item.title === "Daily" ? (
-            // Custom Daily button - render outside of SidebarMenuButton to avoid standard styling
-            <div className="flex w-full">
+            // Custom Daily button - render with proper structure
+            <div className="flex w-full p-1">
               <CustomDailyButton url={item.url} isActive={isActive(item.url)} />
             </div>
           ) : (
@@ -208,10 +208,12 @@ export function NavMain({ items }: NavMainProps) {
                   // If no subItems, just render the button as a link
                   if (!item.subItems) {
                     return item.isCustomButton && item.title === "Daily" ? (
-                      // Render custom Daily button outside SidebarMenuItem to avoid padding constraints
-                      <div key={item.title} className="flex items-center justify-center p-0">
-                        <CustomDailyButton url={item.url} isActive={isItemActive(item.url)} />
-                      </div>
+                      // Render custom Daily button with proper SidebarMenuItem wrapper
+                      <SidebarMenuItem key={item.title}>
+                        <div className="flex items-center justify-center p-1">
+                          <CustomDailyButton url={item.url} isActive={isItemActive(item.url)} />
+                        </div>
+                      </SidebarMenuItem>
                     ) : (
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton
