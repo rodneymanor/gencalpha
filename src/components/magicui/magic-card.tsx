@@ -20,10 +20,10 @@ export function MagicCard({
   children,
   className,
   gradientSize = 200,
-  gradientColor = "#262626",
-  gradientOpacity = 0.8,
-  gradientFrom = "#9E7AFF",
-  gradientTo = "#FE8BBB",
+  gradientColor = "var(--secondary)",
+  gradientOpacity = 0.1,
+  gradientFrom = "var(--secondary)",
+  gradientTo = "var(--ring)",
 }: MagicCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const mouseX = useMotionValue(-gradientSize);
