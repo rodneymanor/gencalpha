@@ -36,19 +36,18 @@ const IsComingSoon = () => (
 );
 
 const CustomDailyButton = ({ url, isActive }: { url: string; isActive: boolean }) => {
-  const { state } = useSidebar();
-  const isCollapsed = state === "collapsed";
-
   return (
     <Link
       href={url}
-      className={`relative flex items-center ${isCollapsed ? "h-8 w-8 justify-center" : "h-8 w-full justify-start"} group`}
+      className="relative flex h-8 w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left transition-[width,height,padding] duration-200 ease-linear group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0"
       data-tooltip="New Script"
     >
-      <div className="bg-primary hover:bg-primary/90 flex h-6 w-6 items-center justify-center rounded-[var(--radius-pill)] shadow-[var(--shadow-soft-drop)] transition-all duration-200 ease-linear hover:scale-[1.02] hover:shadow-[var(--shadow-soft-drop)]">
+      <div className="bg-primary hover:bg-primary/90 flex h-6 w-6 shrink-0 items-center justify-center rounded-[var(--radius-pill)] shadow-[var(--shadow-soft-drop)] transition-all duration-200 ease-linear hover:scale-[1.02] hover:shadow-[var(--shadow-soft-drop)]">
         <Plus className="text-primary-foreground h-3 w-3" />
       </div>
-      {!isCollapsed && <span className="text-sidebar-foreground ml-2 text-sm font-medium">New Script</span>}
+      <span className="text-sidebar-foreground truncate text-sm font-medium group-data-[collapsible=icon]:hidden">
+        New Script
+      </span>
     </Link>
   );
 };
