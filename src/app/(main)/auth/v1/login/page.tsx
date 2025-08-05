@@ -8,7 +8,7 @@ import { GoogleButton } from "../../_components/social-auth/google-button";
 export default function LoginV1() {
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-white px-4 py-12 sm:px-6 lg:px-8">
-      <DotPattern wave={true} className="absolute inset-0 opacity-30" />
+      <DotPattern wave={true} className="absolute inset-0 opacity-60" />
       <div className="w-full max-w-md space-y-8">
         <div className="mb-6 flex justify-center">
           <div className="hover:text-primary flex cursor-pointer items-center gap-2 transition-colors">
