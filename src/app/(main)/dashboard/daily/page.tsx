@@ -1,5 +1,3 @@
-"use client";
-
 import { Metadata } from "next";
 
 import { ManusPrompt } from "@/components/manus-prompt";
