@@ -34,13 +34,13 @@ const IsComingSoon = () => (
   <span className="bg-muted text-muted-foreground ml-auto rounded-[var(--radius-button)] px-2 py-1 text-xs">Soon</span>
 );
 
-const CustomDailyButton = ({ url, isActive }: { url: string; isActive: boolean }) => {
+const CustomDailyButton = ({ url }: { url: string }) => {
   return (
     <SidebarMenuButton
       asChild
-      isActive={isActive}
+      isActive={false}
       tooltip="New Script"
-      className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+      className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground data-[active=true]:bg-transparent data-[active=true]:font-normal"
     >
       <Link href={url}>
         <div className="bg-primary hover:bg-primary/90 flex h-4 w-4 shrink-0 items-center justify-center rounded-[var(--radius-pill)] shadow-[var(--shadow-soft-drop)] transition-all duration-200 ease-linear">
@@ -78,7 +78,7 @@ const NavItemExpanded = ({
             </SidebarMenuButton>
           ) : item.isCustomButton && item.title === "Daily" ? (
             // Custom Daily button - render with standard structure
-            <CustomDailyButton url={item.url} isActive={isActive(item.url)} />
+            <CustomDailyButton url={item.url} />
           ) : (
             <SidebarMenuButton
               asChild
@@ -206,7 +206,7 @@ export function NavMain({ items }: NavMainProps) {
                     return item.isCustomButton && item.title === "Daily" ? (
                       // Render custom Daily button with standard SidebarMenuItem structure
                       <SidebarMenuItem key={item.title}>
-                        <CustomDailyButton url={item.url} isActive={isItemActive(item.url)} />
+                        <CustomDailyButton url={item.url} />
                       </SidebarMenuItem>
                     ) : (
                       <SidebarMenuItem key={item.title}>
