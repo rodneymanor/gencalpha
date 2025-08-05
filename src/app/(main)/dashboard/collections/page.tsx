@@ -7,10 +7,9 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProcessingBadge, ProcessingTooltip } from "@/components/ui/processing-badge";
-import { useVideoProcessing, VideoProcessingProvider } from "@/contexts/video-processing-context";
-
-import { VideoInsightsProvider } from "@/contexts/video-insights-context";
 import { VideoInsightsWrapper } from "@/components/video-insights";
+import { VideoInsightsProvider } from "@/contexts/video-insights-context";
+import { useVideoProcessing, VideoProcessingProvider } from "@/contexts/video-processing-context";
 
 import { AddVideoDialog } from "./_components/add-video-dialog";
 import { CollectionsProvider, useCollections } from "./_components/collections-context";
@@ -31,9 +30,9 @@ function CollectionsContent() {
 
   return (
     <div className="bg-background min-h-screen">
-      <div className="container mx-auto p-6">
+      <div className="container mx-auto p-8">
         {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Video Collections</h1>
             <p className="text-muted-foreground">Organize and manage your video content</p>
@@ -58,7 +57,7 @@ function CollectionsContent() {
         </div>
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
           {/* Sidebar */}
           <div className="hidden lg:col-span-3 lg:block">
             <Card>

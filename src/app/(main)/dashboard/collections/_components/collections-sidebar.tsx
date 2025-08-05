@@ -101,10 +101,10 @@ export function CollectionsSidebar({ selectedCollectionId, onSelectCollection }:
 
   if (state.loading) {
     return (
-      <div className="flex h-full flex-col overflow-hidden p-4">
+      <div className="flex h-full flex-col overflow-hidden p-6">
         {/* Header */}
         <div className="flex h-[52px] items-center justify-center px-2">
-          <div className="border-input flex w-full items-center gap-2 rounded-md border bg-transparent px-3 py-2 text-sm">
+          <div className="border-input flex w-full items-center gap-2 rounded-[var(--radius-button)] border bg-transparent px-3 py-2 text-sm">
             <Folder className="h-4 w-4 shrink-0" />
             <span className="flex-1 truncate font-medium">Collections</span>
           </div>
@@ -127,10 +127,10 @@ export function CollectionsSidebar({ selectedCollectionId, onSelectCollection }:
 
   return (
     <>
-      <div className="flex h-full flex-col overflow-hidden p-4">
+      <div className="flex h-full flex-col overflow-hidden p-6">
         {/* Header */}
         <div className="flex h-[52px] items-center justify-center px-2">
-          <div className="border-input flex w-full items-center gap-2 rounded-md border bg-transparent px-3 py-2 text-sm">
+          <div className="border-input flex w-full items-center gap-2 rounded-[var(--radius-button)] border bg-transparent px-3 py-2 text-sm">
             <Folder className="h-4 w-4 shrink-0" />
             <span className="flex-1 truncate font-medium">Collections</span>
           </div>
@@ -140,15 +140,15 @@ export function CollectionsSidebar({ selectedCollectionId, onSelectCollection }:
         <div className="bg-border h-[1px] w-full shrink-0"></div>
 
         {/* Main Navigation */}
-        <div className="flex flex-col gap-4 py-2">
-          <nav className="grid gap-1 px-2">
+        <div className="flex flex-col gap-6 py-4">
+          <nav className="grid gap-2 px-2">
             {/* All Videos */}
             <button
               onClick={() => onSelectCollection("all-videos")}
               className={cn(
-                "focus-visible:ring-ring inline-flex h-8 items-center justify-start gap-2 rounded-md px-3 text-xs font-medium whitespace-nowrap transition-colors focus-visible:ring-1 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
+                "focus-visible:ring-ring inline-flex h-8 items-center justify-start gap-2 rounded-[var(--radius-button)] px-3 text-xs font-medium whitespace-nowrap transition-colors focus-visible:ring-1 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
                 selectedCollectionId === "all-videos"
-                  ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow"
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-[var(--shadow-soft-drop)]"
                   : "hover:bg-accent hover:text-accent-foreground",
               )}
             >
@@ -163,9 +163,9 @@ export function CollectionsSidebar({ selectedCollectionId, onSelectCollection }:
                 <button
                   onClick={() => onSelectCollection(collection.id!)}
                   className={cn(
-                    "focus-visible:ring-ring inline-flex h-8 w-full items-center justify-start gap-2 rounded-md px-3 text-xs font-medium whitespace-nowrap transition-colors focus-visible:ring-1 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
+                    "focus-visible:ring-ring inline-flex h-8 w-full items-center justify-start gap-2 rounded-[var(--radius-button)] px-3 text-xs font-medium whitespace-nowrap transition-colors focus-visible:ring-1 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
                     selectedCollectionId === collection.id
-                      ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow"
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-[var(--shadow-soft-drop)]"
                       : "hover:bg-accent hover:text-accent-foreground",
                   )}
                 >

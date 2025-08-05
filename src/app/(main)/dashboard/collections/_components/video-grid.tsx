@@ -17,12 +17,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/auth-context";
+import { useVideoInsights } from "@/contexts/video-insights-context";
 import { RBACClientService } from "@/core/auth/rbac-client";
 import { useRBAC } from "@/hooks/use-rbac";
 import { Video, CollectionsService } from "@/lib/collections";
 import { cn } from "@/lib/utils";
 
-import { useVideoInsights } from "@/contexts/video-insights-context";
 import { useCollections } from "./collections-context";
 import { DeleteConfirmDialog } from "./delete-confirm-dialog";
 import { MoveVideoDialog } from "./move-video-dialog";
@@ -146,7 +146,7 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
   const renderVideoCard = (video: Video) => (
     <div
       key={video.id}
-      className="group bg-muted relative aspect-[9/16] cursor-pointer overflow-hidden rounded-lg"
+      className="group bg-muted relative aspect-[9/16] cursor-pointer overflow-hidden rounded-[var(--radius-card)]"
       onClick={() => handleVideoClick(video)}
     >
       {renderVideoThumbnail(video)}
@@ -257,10 +257,10 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
   if (state.loading && state.videos.length === 0) {
     return (
       <div className="@container">
-        <div className="grid grid-cols-1 gap-4 @sm:grid-cols-2 @lg:grid-cols-3 @xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-6 @sm:grid-cols-2 @lg:grid-cols-3 @xl:grid-cols-4">
           {[...Array(12)].map((_, index) => (
             <div key={`loading-skeleton-${index}`} className="relative aspect-[9/16]">
-              <Skeleton className="h-full w-full rounded-lg" />
+              <Skeleton className="h-full w-full rounded-[var(--radius-card)]" />
             </div>
           ))}
         </div>
@@ -270,9 +270,9 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
 
   return (
     <>
-      <div className="space-y-4">
+      <div className="space-y-6">
         <div className="@container">
-          <div className="grid grid-cols-1 gap-4 @sm:grid-cols-2 @lg:grid-cols-3 @xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-6 @sm:grid-cols-2 @lg:grid-cols-3 @xl:grid-cols-4">
             {state.videos.map(renderVideoCard)}
           </div>
         </div>
