@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft, Plus, FolderOpen, Video, Star, Heart, TrendingUp, Calendar, Bookmark, Archive } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,39 @@ interface FocusCollectionsSidebarProps {
   onCreateCollection: () => void;
   className?: string;
 }
+
+// Icon mapping for title-based assignment
+const iconMap = new Map([
+  ["favorite", Heart],
+  ["fav", Heart],
+  ["trending", TrendingUp],
+  ["viral", TrendingUp],
+  ["bookmark", Bookmark],
+  ["saved", Bookmark],
+  ["archive", Archive],
+  ["old", Archive],
+  ["star", Star],
+  ["featured", Star],
+  ["calendar", Calendar],
+  ["scheduled", Calendar],
+]);
+
+// Helper function to get icon for collection based on title or use default rotation
+const getCollectionIcon = (collectionId: string, title: string) => {
+  const titleLower = title.toLowerCase();
+
+  // Find matching icon based on keywords
+  for (const [keyword, IconComponent] of iconMap) {
+    if (titleLower.includes(keyword)) {
+      return IconComponent;
+    }
+  }
+
+  // Default rotation based on collection ID (safe hash)
+  const icons = [Video, FolderOpen, Star, Heart, TrendingUp, Calendar, Bookmark, Archive];
+  const safeIndex = Math.abs(collectionId.split("").reduce((a, b) => a + b.charCodeAt(0), 0)) % icons.length;
+  return icons[safeIndex];
+};
 
 export function FocusCollectionsSidebar({
   collections,
@@ -68,7 +101,7 @@ export function FocusCollectionsSidebar({
             onMouseEnter={() => setHoveredCollection("all-videos")}
             onMouseLeave={() => setHoveredCollection(null)}
             className={cn(
-              "flex w-full items-center justify-between rounded-[var(--radius-button)] p-3 text-left transition-colors",
+              "flex w-full items-center gap-3 rounded-[var(--radius-button)] p-3 text-left transition-colors",
               selectedCollectionId === "all-videos"
                 ? "bg-background text-foreground border-secondary border-l-4 font-medium shadow-[var(--shadow-input)]"
                 : hoveredCollection === "all-videos"
@@ -76,39 +109,62 @@ export function FocusCollectionsSidebar({
                   : "text-muted-foreground hover:text-foreground",
             )}
           >
-            <span className="font-sans text-sm">All Videos</span>
-            <Badge variant="secondary" className="text-xs">
-              {collections.reduce((total, col) => total + col.videoCount, 0)}
-            </Badge>
+            <div
+              className={cn(
+                "flex h-8 w-8 items-center justify-center rounded-md transition-colors",
+                selectedCollectionId === "all-videos" ? "bg-foreground text-background" : "bg-muted text-foreground",
+              )}
+            >
+              <Video className="h-4 w-4" />
+            </div>
+            <div className="flex flex-1 items-center justify-between">
+              <span className="font-sans text-sm">All Videos</span>
+              <Badge variant="secondary" className="text-xs">
+                {collections.reduce((total, col) => total + col.videoCount, 0)}
+              </Badge>
+            </div>
           </button>
 
           {/* Individual Collections */}
-          {collections.map((collection) => (
-            <button
-              key={collection.id}
-              onClick={() => onSelectCollection(collection.id)}
-              onMouseEnter={() => setHoveredCollection(collection.id)}
-              onMouseLeave={() => setHoveredCollection(null)}
-              className={cn(
-                "flex w-full items-center justify-between rounded-[var(--radius-button)] p-3 text-left transition-colors",
-                selectedCollectionId === collection.id
-                  ? "bg-background text-foreground border-secondary border-l-4 font-medium shadow-[var(--shadow-input)]"
-                  : hoveredCollection === collection.id
-                    ? "bg-background/50 text-foreground"
-                    : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <div className="min-w-0 flex-1">
-                <div className="truncate font-sans text-sm font-medium">{collection.title}</div>
-                {collection.description && (
-                  <div className="text-muted-foreground mt-1 truncate text-xs">{collection.description}</div>
+          {collections.map((collection) => {
+            const IconComponent = getCollectionIcon(collection.id, collection.title);
+            return (
+              <button
+                key={collection.id}
+                onClick={() => onSelectCollection(collection.id)}
+                onMouseEnter={() => setHoveredCollection(collection.id)}
+                onMouseLeave={() => setHoveredCollection(null)}
+                className={cn(
+                  "flex w-full items-center gap-3 rounded-[var(--radius-button)] p-3 text-left transition-colors",
+                  selectedCollectionId === collection.id
+                    ? "bg-background text-foreground border-secondary border-l-4 font-medium shadow-[var(--shadow-input)]"
+                    : hoveredCollection === collection.id
+                      ? "bg-background/50 text-foreground"
+                      : "text-muted-foreground hover:text-foreground",
                 )}
-              </div>
-              <Badge variant="secondary" className="ml-2 text-xs">
-                {collection.videoCount}
-              </Badge>
-            </button>
-          ))}
+              >
+                <div
+                  className={cn(
+                    "flex h-8 w-8 items-center justify-center rounded-md transition-colors",
+                    selectedCollectionId === collection.id
+                      ? "bg-foreground text-background"
+                      : "bg-muted text-foreground",
+                  )}
+                >
+                  <IconComponent className="h-4 w-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate font-sans text-sm font-medium">{collection.title}</div>
+                  {collection.description && (
+                    <div className="text-muted-foreground mt-1 truncate text-xs">{collection.description}</div>
+                  )}
+                </div>
+                <Badge variant="secondary" className="ml-2 text-xs">
+                  {collection.videoCount}
+                </Badge>
+              </button>
+            );
+          })}
         </div>
 
         {/* Empty State */}
