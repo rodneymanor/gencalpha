@@ -37,10 +37,10 @@ export const AdvancedSlidingSwitch: React.FC<AdvancedSlidingSwitchProps> = ({
       <motion.div
         className="bg-card border-border absolute h-6 rounded-[calc(var(--radius-button)-2px)] border shadow-sm"
         style={{
-          width: `${100 / options.length}%`,
+          width: `${96 / options.length}%`,
         }}
         animate={{
-          x: `${activeIndex * 100}%`,
+          x: `${activeIndex * 100 + 2}%`,
         }}
         transition={{
           type: "spring",
