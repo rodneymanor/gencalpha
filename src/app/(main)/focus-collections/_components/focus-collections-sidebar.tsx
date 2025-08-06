@@ -154,9 +154,9 @@ export function FocusCollectionsSidebar({
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="truncate font-sans text-sm font-medium">{collection.title}</div>
-                  {collection.description && (
-                    <div className="text-muted-foreground mt-1 truncate text-xs">{collection.description}</div>
-                  )}
+                  <div className="text-muted-foreground mt-1 truncate text-xs">
+                    {collection.description ?? "Collection of curated videos"}
+                  </div>
                 </div>
                 <span className="text-muted-foreground ml-2 text-xs">{collection.videoCount}</span>
               </button>
