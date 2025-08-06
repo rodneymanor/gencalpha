@@ -106,7 +106,14 @@ export function FocusCollectionsSidebar({
                 : "text-sidebar-foreground",
             )}
           >
-            <div className="flex h-4 w-4 shrink-0 items-center justify-center">
+            <div
+              className={cn(
+                "flex h-6 w-6 shrink-0 items-center justify-center rounded-md transition-colors",
+                selectedCollectionId === "all-videos"
+                  ? "bg-sidebar-accent-foreground text-sidebar-accent"
+                  : "bg-sidebar-accent/20 text-sidebar-foreground",
+              )}
+            >
               <Video className="h-4 w-4" />
             </div>
             <div className="flex flex-1 items-center justify-between">
@@ -133,7 +140,14 @@ export function FocusCollectionsSidebar({
                     : "text-sidebar-foreground",
                 )}
               >
-                <div className="flex h-4 w-4 shrink-0 items-center justify-center">
+                <div
+                  className={cn(
+                    "flex h-6 w-6 shrink-0 items-center justify-center rounded-md transition-colors",
+                    selectedCollectionId === collection.id
+                      ? "bg-sidebar-accent-foreground text-sidebar-accent"
+                      : "bg-sidebar-accent/20 text-sidebar-foreground",
+                  )}
+                >
                   <IconComponent className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
