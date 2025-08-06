@@ -205,25 +205,40 @@
   transition: none !important;
 }
 
-/* Video Slideout Player Styles */
-.slideout-layout {
-  transition: margin-right 300ms ease-out;
+/* Floating Video Player Styles */
+.floating-video-container {
+  position: relative;
+  pointer-events: none;
 }
 
-html.slideout-open .slideout-layout {
-  margin-right: min(480px, 100vw);
+.floating-video-container > * {
+  pointer-events: auto;
 }
 
-html.slideout-expanded .slideout-layout {
-  margin-right: min(75vw, 75%);
+.responsive-layout {
+  transition: all 300ms ease-out;
 }
 
-@media (max-width: 640px) {
-  html.slideout-open .slideout-layout {
-    margin-right: 100vw;
+/* Dynamic CSS variables for responsive behavior */
+:root {
+  --floating-player-width: 420px;
+}
+
+/* Responsive content adjustment when floating player is active */
+@media (min-width: 768px) {
+  .responsive-layout:has(.floating-video-container) {
+    margin-right: calc(var(--floating-player-width) + 32px);
   }
-  
-  html.slideout-expanded .slideout-layout {
-    margin-right: 100vw;
+}
+
+@media (max-width: 767px) {
+  .floating-video-container > div {
+    position: fixed !important;
+    top: 8px !important;
+    right: 8px !important;
+    left: 8px !important;
+    width: calc(100vw - 16px) !important;
+    height: 50vh !important;
+    max-height: 400px !important;
   }
 }

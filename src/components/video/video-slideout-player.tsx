@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 // Import the VideoInspirationPlayer component
 import VideoInspirationPlayerWrapper from './video-inspiration-player';
 
-interface VideoSlideoutPlayerProps {
+interface FloatingVideoPlayerProps {
   isOpen: boolean;
   onClose: () => void;
   videoData?: {
@@ -25,12 +25,13 @@ interface VideoSlideoutPlayerProps {
   className?: string;
 }
 
-export function VideoSlideoutPlayer({ 
+// eslint-disable-next-line complexity
+export function FloatingVideoPlayer({ 
   isOpen, 
   onClose, 
   videoData,
   className 
-}: VideoSlideoutPlayerProps) {
+}: FloatingVideoPlayerProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Dummy data fallback following Clarity Design System
@@ -46,28 +47,25 @@ export function VideoSlideoutPlayer({
     followers: '1.2M'
   };
 
+  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
   const video = videoData || defaultVideoData;
 
-  // Handle body scroll and layout adjustments
+  // Handle window resize for responsive behavior
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      // Add class to root to handle layout adjustments
-      document.documentElement.classList.add('slideout-open');
-      if (isExpanded) {
-        document.documentElement.classList.add('slideout-expanded');
-      } else {
-        document.documentElement.classList.remove('slideout-expanded');
+    const handleResize = () => {
+      if (isOpen) {
+        // Force re-calculation of layout
+        document.documentElement.style.setProperty(
+          '--floating-player-width', 
+          isExpanded ? 'min(60vw, 800px)' : 'min(420px, 90vw)'
+        );
       }
-    } else {
-      document.body.style.overflow = 'unset';
-      document.documentElement.classList.remove('slideout-open', 'slideout-expanded');
-    }
-
-    return () => {
-      document.body.style.overflow = 'unset';
-      document.documentElement.classList.remove('slideout-open', 'slideout-expanded');
     };
+
+    window.addEventListener('resize', handleResize);
+    handleResize(); // Initial call
+
+    return () => window.removeEventListener('resize', handleResize);
   }, [isOpen, isExpanded]);
 
   // Handle escape key
@@ -82,64 +80,43 @@ export function VideoSlideoutPlayer({
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
 
+  if (!isOpen) return null;
+
   return (
-    <>
-      {/* Layout Pusher - This pushes the main content */}
+    <div className="floating-video-container">
+      {/* Floating Video Player */}
       <div
         className={cn(
+          "fixed top-4 right-4 z-50",
+          "bg-background border border-border shadow-[var(--shadow-soft-drop)]",
+          "rounded-[var(--radius-card)] overflow-hidden",
           "transition-all duration-300 ease-out",
-          isOpen && !isExpanded && "mr-96 md:mr-[420px] lg:mr-[480px]",
-          isOpen && isExpanded && "mr-[75vw] lg:mr-[60vw] xl:mr-[50vw]"
-        )}
-        style={{
-          marginRight: isOpen 
-            ? (isExpanded ? 'min(75vw, 75%)' : 'min(480px, 100vw)')
-            : '0'
-        }}
-      />
-
-      {/* Backdrop */}
-      <div
-        className={cn(
-          "fixed inset-0 bg-black/20 backdrop-blur-sm z-40 transition-all duration-300 ease-out",
-          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-        )}
-        onClick={onClose}
-      />
-
-      {/* Slideout Panel */}
-      <div
-        className={cn(
-          "fixed top-0 right-0 h-screen bg-background border-l border-border shadow-[var(--shadow-soft-drop)] z-50",
-          "transition-all duration-300 ease-out",
-          // Width and transform based on state
-          isOpen ? "translate-x-0" : "translate-x-full",
           isExpanded 
-            ? "w-[75vw] lg:w-[60vw] xl:w-[50vw]" 
-            : "w-full sm:w-96 md:w-[420px] lg:w-[480px]",
+            ? "w-[min(60vw,800px)] h-[min(80vh,600px)]" 
+            : "w-[min(420px,90vw)] h-[min(70vh,500px)]",
           className
         )}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border bg-card">
-          <div className="flex items-center gap-3 min-w-0 flex-1">
+        {/* Floating Header */}
+        <div className="flex items-center justify-between p-3 border-b border-border bg-card/80 backdrop-blur-sm">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             <div className="w-2 h-2 rounded-full bg-secondary flex-shrink-0"></div>
-            <h2 className="font-sans font-medium text-foreground truncate text-sm">
+            <h3 className="font-sans font-medium text-foreground truncate text-sm">
               {video.title}
-            </h2>
+            </h3>
           </div>
           
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-1 flex-shrink-0">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setIsExpanded(!isExpanded)}
-              className="text-muted-foreground hover:text-foreground h-8 w-8 p-0 rounded-[var(--radius-button)]"
+              className="text-muted-foreground hover:text-foreground h-7 w-7 p-0 rounded-[var(--radius-button)]"
             >
               {isExpanded ? (
-                <Minimize2 className="h-4 w-4" />
+                <Minimize2 className="h-3.5 w-3.5" />
               ) : (
-                <Maximize2 className="h-4 w-4" />
+                <Maximize2 className="h-3.5 w-3.5" />
               )}
               <span className="sr-only">{isExpanded ? 'Minimize' : 'Maximize'}</span>
             </Button>
@@ -148,36 +125,48 @@ export function VideoSlideoutPlayer({
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="text-muted-foreground hover:text-foreground h-8 w-8 p-0 rounded-[var(--radius-button)]"
+              className="text-muted-foreground hover:text-foreground h-7 w-7 p-0 rounded-[var(--radius-button)]"
             >
-              <X className="h-4 w-4" />
+              <X className="h-3.5 w-3.5" />
               <span className="sr-only">Close</span>
             </Button>
           </div>
         </div>
 
         {/* Video Player Content */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden h-[calc(100%-52px)]">
           <div className="h-full">
             <VideoInspirationPlayerWrapper />
           </div>
         </div>
       </div>
-    </>
+
+      {/* Layout Integration Spacer */}
+      <div
+        className={cn(
+          "transition-all duration-300 ease-out",
+          "fixed top-0 right-0 z-40 pointer-events-none",
+          isExpanded 
+            ? "w-[min(62vw,820px)] h-[min(82vh,620px)]"
+            : "w-[min(440px,92vw)] h-[min(72vh,520px)]"
+        )}
+      />
+    </div>
   );
 }
 
-// Hook for managing slideout state
-export function useVideoSlideout() {
+// Hook for managing floating video state
+export function useFloatingVideo() {
   const [isOpen, setIsOpen] = useState(false);
-  const [currentVideo, setCurrentVideo] = useState<VideoSlideoutPlayerProps['videoData'] | null>(null);
+  const [currentVideo, setCurrentVideo] = useState<FloatingVideoPlayerProps['videoData'] | null>(null);
 
-  const openSlideout = (videoData?: VideoSlideoutPlayerProps['videoData']) => {
+  const openVideo = (videoData?: FloatingVideoPlayerProps['videoData']) => {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     setCurrentVideo(videoData || null);
     setIsOpen(true);
   };
 
-  const closeSlideout = () => {
+  const closeVideo = () => {
     setIsOpen(false);
     // Keep the video data until the close animation completes
     setTimeout(() => setCurrentVideo(null), 300);
@@ -186,16 +175,21 @@ export function useVideoSlideout() {
   return {
     isOpen,
     currentVideo,
-    openSlideout,
-    closeSlideout
+    openVideo,
+    closeVideo
   };
 }
 
-// Layout component that handles content pushing
-export function SlideoutLayout({ children }: { children: React.ReactNode }) {
+// Layout component that integrates with floating video
+export function ResponsiveLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative min-h-screen transition-all duration-300 ease-out slideout-layout">
+    <div className="relative min-h-screen transition-all duration-300 ease-out responsive-layout">
       {children}
     </div>
   );
 }
+
+// Legacy exports for backward compatibility
+export const VideoSlideoutPlayer = FloatingVideoPlayer;
+export const useVideoSlideout = useFloatingVideo;
+export const SlideoutLayout = ResponsiveLayout;
