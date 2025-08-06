@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Video } from "@/lib/collections";
 
 import { FocusCollectionsSidebar } from "./focus-collections-sidebar";
-import { FocusInsightsPanel } from "./focus-insights-panel";
+import { StaticVideoPlayer } from "./static-video-player";
 
 interface Collection {
   id: string;
@@ -75,7 +75,7 @@ export function MobileOverlays({
                 </Button>
               </div>
               <div className="flex-1">
-                <FocusInsightsPanel video={selectedVideo} className="h-full" />
+                {selectedVideo && <StaticVideoPlayer video={selectedVideo} className="h-full" />}
               </div>
             </div>
           </div>
