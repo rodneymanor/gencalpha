@@ -48,10 +48,10 @@ const Metric = ({ icon, value }: { icon: React.ReactNode; value: string }) => (
 const VideoPlayerView: React.FC<
   Pick<VideoInspirationPlayerProps, "videoUrl" | "views" | "likes" | "comments" | "shares">
 > = ({ videoUrl, views, likes, comments, shares }) => (
-  <div className="flex h-full flex-col items-center justify-center">
+  <div className="flex h-full flex-col">
     <div className="flex items-center justify-center gap-4">
       {/* Video Player */}
-      <div className="relative aspect-[9/16] w-full max-w-[280px] flex-shrink-0 overflow-hidden rounded-[var(--radius-card)] bg-black shadow-[var(--shadow-input)]">
+      <div className="relative aspect-[9/16] w-full max-w-[240px] flex-shrink-0 overflow-hidden rounded-[var(--radius-card)] bg-black shadow-[var(--shadow-input)]">
         <iframe
           className="absolute top-0 left-0 h-full w-full rounded-b-[var(--radius-card)]"
           src={videoUrl}
@@ -61,22 +61,23 @@ const VideoPlayerView: React.FC<
           allowFullScreen
         ></iframe>
       </div>
-      {/* Metrics Container */}
-      <div className="flex flex-col gap-4">
-        <div className="bg-background/80 text-foreground flex flex-col items-center gap-1 rounded-[var(--radius-card)] px-2 py-1.5 shadow-[var(--shadow-soft-drop)] backdrop-blur-sm">
-          <Heart className="h-5 w-5" />
+
+      {/* Metrics positioned to the right of video */}
+      <div className="flex flex-shrink-0 flex-col gap-3">
+        <div className="bg-background/80 text-foreground flex flex-col items-center gap-1 rounded-[var(--radius-card)] px-3 py-2 shadow-[var(--shadow-soft-drop)] backdrop-blur-sm">
+          <Heart className="h-4 w-4" />
           <span className="text-xs font-medium">{likes}</span>
         </div>
-        <div className="bg-background/80 text-foreground flex flex-col items-center gap-1 rounded-[var(--radius-card)] px-2 py-1.5 shadow-[var(--shadow-soft-drop)] backdrop-blur-sm">
-          <MessageCircle className="h-5 w-5" />
+        <div className="bg-background/80 text-foreground flex flex-col items-center gap-1 rounded-[var(--radius-card)] px-3 py-2 shadow-[var(--shadow-soft-drop)] backdrop-blur-sm">
+          <MessageCircle className="h-4 w-4" />
           <span className="text-xs font-medium">{comments}</span>
         </div>
-        <div className="bg-background/80 text-foreground flex flex-col items-center gap-1 rounded-[var(--radius-card)] px-2 py-1.5 shadow-[var(--shadow-soft-drop)] backdrop-blur-sm">
-          <Share2 className="h-5 w-5" />
+        <div className="bg-background/80 text-foreground flex flex-col items-center gap-1 rounded-[var(--radius-card)] px-3 py-2 shadow-[var(--shadow-soft-drop)] backdrop-blur-sm">
+          <Share2 className="h-4 w-4" />
           <span className="text-xs font-medium">{shares}</span>
         </div>
-        <div className="bg-background/80 text-foreground flex flex-col items-center gap-1 rounded-[var(--radius-card)] px-2 py-1.5 shadow-[var(--shadow-soft-drop)] backdrop-blur-sm">
-          <Eye className="h-5 w-5" />
+        <div className="bg-background/80 text-foreground flex flex-col items-center gap-1 rounded-[var(--radius-card)] px-3 py-2 shadow-[var(--shadow-soft-drop)] backdrop-blur-sm">
+          <Eye className="h-4 w-4" />
           <span className="text-xs font-medium">{views}</span>
         </div>
       </div>
