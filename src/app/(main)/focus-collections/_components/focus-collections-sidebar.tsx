@@ -83,7 +83,10 @@ export function FocusCollectionsSidebar({
         <Button
           onClick={onCreateCollection}
           variant="secondary"
-          className="text-sidebar-foreground w-full gap-2 rounded-md"
+          className="text-sidebar-foreground w-full gap-2 rounded-md border-0"
+          style={{
+            boxShadow: "rgba(0, 0, 0, 0.08) 0px 0.5px 3px 0px",
+          }}
           size="default"
         >
           <Plus className="h-4 w-4" />
