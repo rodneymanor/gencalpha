@@ -51,7 +51,7 @@ export function FocusCollectionsSidebar({
         <Button
           onClick={onCreateCollection}
           variant="secondary"
-          className="w-full gap-2 rounded-[var(--radius-button)]"
+          className="text-foreground w-full gap-2 rounded-[var(--radius-button)]"
           size="default"
         >
           <Plus className="h-4 w-4" />
