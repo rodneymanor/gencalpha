@@ -48,8 +48,9 @@ const Metric = ({ icon, value }: { icon: React.ReactNode; value: string }) => (
 const VideoPlayerView: React.FC<
   Pick<VideoInspirationPlayerProps, "videoUrl" | "views" | "likes" | "comments" | "shares">
 > = ({ videoUrl, views, likes, comments, shares }) => (
-  <div className="flex h-full flex-col">
-    <div className="relative flex justify-center">
+  <div className="flex h-full flex-col items-center justify-center">
+    <div className="flex items-center justify-center gap-4">
+      {/* Video Player */}
       <div className="relative aspect-[9/16] w-full max-w-[280px] flex-shrink-0 overflow-hidden rounded-[var(--radius-card)] bg-black shadow-[var(--shadow-input)]">
         <iframe
           className="absolute top-0 left-0 h-full w-full rounded-b-[var(--radius-card)]"
@@ -60,8 +61,8 @@ const VideoPlayerView: React.FC<
           allowFullScreen
         ></iframe>
       </div>
-      {/* Metrics positioned on the right side of video */}
-      <div className="absolute top-1/2 right-0 flex -translate-y-1/2 flex-col gap-4 pr-2">
+      {/* Metrics Container */}
+      <div className="flex flex-col gap-4">
         <div className="bg-background/80 text-foreground flex flex-col items-center gap-1 rounded-[var(--radius-card)] px-2 py-1.5 shadow-[var(--shadow-soft-drop)] backdrop-blur-sm">
           <Heart className="h-5 w-5" />
           <span className="text-xs font-medium">{likes}</span>
