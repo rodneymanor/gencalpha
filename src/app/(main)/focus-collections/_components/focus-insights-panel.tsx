@@ -22,30 +22,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import type { Video } from "@/lib/collections";
 
 import { InsightsTabsContent } from "./insights-tabs-content";
-
-interface VideoMetrics {
-  views: number;
-  likes: number;
-  comments: number;
-  shares?: number;
-  engagementRate?: number;
-}
-
-interface Video {
-  id: string;
-  title: string;
-  platform: string;
-  thumbnailUrl?: string;
-  videoUrl?: string;
-  favorite: boolean;
-  metrics?: VideoMetrics;
-  duration?: string;
-  uploadDate?: string;
-  description?: string;
-  tags?: string[];
-}
 
 interface HookIdea {
   id: string;
@@ -62,7 +41,7 @@ interface ContentSuggestion {
 }
 
 interface FocusInsightsPanelProps {
-  video: Video | null;
+  video: (Video & { id: string }) | null;
   className?: string;
 }
 
@@ -148,21 +127,23 @@ const mockContentSuggestions: ContentSuggestion[] = [
   },
 ];
 
+const EmptyVideoState = ({ className }: { className?: string }) => (
+  <div className={cn("flex h-full items-center justify-center p-8", className)}>
+    <div className="text-center">
+      <Eye className="text-muted-foreground mx-auto mb-4 h-12 w-12 opacity-50" />
+      <h3 className="mb-2 font-sans text-lg font-semibold">Select a video to view insights</h3>
+      <p className="text-muted-foreground text-sm">
+        Click on any video from the grid to see detailed analytics and AI-generated insights.
+      </p>
+    </div>
+  </div>
+);
+
 export function FocusInsightsPanel({ video, className }: FocusInsightsPanelProps) {
   const [activeTab, setActiveTab] = useState("hooks");
 
   if (!video) {
-    return (
-      <div className={cn("flex h-full items-center justify-center p-8", className)}>
-        <div className="text-center">
-          <Eye className="text-muted-foreground mx-auto mb-4 h-12 w-12 opacity-50" />
-          <h3 className="mb-2 font-sans text-lg font-semibold">Select a video to view insights</h3>
-          <p className="text-muted-foreground text-sm">
-            Click on any video from the grid to see detailed analytics and AI-generated insights.
-          </p>
-        </div>
-      </div>
-    );
+    return <EmptyVideoState className={className} />;
   }
 
   return (
@@ -183,7 +164,14 @@ export function FocusInsightsPanel({ video, className }: FocusInsightsPanelProps
 
           {/* Video Info */}
           <div className="min-w-0 flex-1">
-            <h2 className="mb-2 line-clamp-2 font-sans text-lg font-semibold">{video.title}</h2>
+            <div className="mb-2 flex items-center justify-between">
+              <h2 className="line-clamp-1 font-sans text-lg font-semibold">
+                {video.metadata?.author ?? 'Unknown Creator'}
+              </h2>
+              <span className="text-muted-foreground text-sm">
+                Followers: N/A
+              </span>
+            </div>
             <div className="mb-3 flex items-center gap-2">
               <Badge
                 variant={video.platform.toLowerCase() === "instagram" ? "instagram" : "secondary"}
@@ -192,7 +180,7 @@ export function FocusInsightsPanel({ video, className }: FocusInsightsPanelProps
                 {video.platform}
               </Badge>
               {video.duration && <span className="text-muted-foreground text-xs">{video.duration}</span>}
-              <span className="text-muted-foreground text-xs">{formatDate(video.uploadDate)}</span>
+              <span className="text-muted-foreground text-xs">{formatDate(video.addedAt)}</span>
             </div>
 
             {/* Quick Actions */}
@@ -234,10 +222,12 @@ export function FocusInsightsPanel({ video, className }: FocusInsightsPanelProps
               </span>
             </div>
           </div>
-          {video.metrics.engagementRate && (
+          {video.metrics && video.metrics.views > 0 && (
             <div className="mt-2 flex items-center justify-center gap-1">
               <TrendingUp className="text-secondary h-4 w-4" />
-              <span className="text-sm font-semibold">{(video.metrics.engagementRate * 100).toFixed(1)}%</span>
+              <span className="text-sm font-semibold">
+                {((video.metrics.likes + video.metrics.comments) / video.metrics.views * 100).toFixed(1)}%
+              </span>
             </div>
           )}
         </div>
@@ -267,7 +257,11 @@ export function FocusInsightsPanel({ video, className }: FocusInsightsPanelProps
 
           <div className="flex-1 overflow-y-auto p-6">
             <InsightsTabsContent
-              video={video}
+              video={{
+                ...video,
+                favorite: video.favorite ?? false,
+                duration: typeof video.duration === 'number' ? `${Math.floor(video.duration / 60)}:${(video.duration % 60).toString().padStart(2, '0')}` : video.duration,
+              }}
               mockHookIdeas={mockHookIdeas}
               mockContentSuggestions={mockContentSuggestions}
               formatDate={formatDate}
