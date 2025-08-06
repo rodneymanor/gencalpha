@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Play } from 'lucide-react';
 
 export default function TestSlideoutPage() {
-  const { isOpen, videoData, openVideo, closeVideo } = useFloatingVideo();
+  const { isOpen, currentVideo, openVideo, closeVideo } = useFloatingVideo();
 
   const testVideoData = {
     id: 'test-1',
@@ -82,7 +82,7 @@ export default function TestSlideoutPage() {
             isOpen={isOpen}
             onClose={closeVideo}
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            videoData={videoData || undefined}
+            videoData={currentVideo || undefined}
           />
         </div>
       </div>

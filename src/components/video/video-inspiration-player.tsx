@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
+
 import { motion } from "framer-motion";
 import { Eye, Heart, MessageCircle, Share2, Lightbulb, Play, List, FileText } from "lucide-react";
+
 import { AdvancedSlidingSwitch, SwitchOption } from "@/components/ui/advanced-sliding-switch";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -162,27 +164,24 @@ const VideoInspirationPlayer: React.FC<VideoInspirationPlayerProps> = (props) =>
   ];
 
   return (
-    <div className="w-full h-full flex items-start justify-center font-sans text-foreground">
+    <div className="bg-background text-foreground flex min-h-screen items-start justify-center p-4 font-sans">
       <motion.div
-        className="w-full max-w-full"
-        animate={{ width: showInsights ? "100%" : "100%" }}
+        className="sticky top-4"
+        animate={{ width: showInsights ? 800 : 375 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
-        <Card className="h-full rounded-[var(--radius-xl)] shadow-[var(--shadow-soft-drop)]">
-          <CardContent className="p-3 h-full flex flex-col">
-            <div className="flex items-center gap-2 border-b pb-3 flex-shrink-0">
-              <TikTokIcon className="text-foreground h-8 w-8 flex-shrink-0" />
+        <Card className="rounded-[var(--radius-xl)] shadow-[var(--shadow-soft-drop)]">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3 border-b pb-4">
+              <TikTokIcon className="text-foreground h-10 w-10 flex-shrink-0" />
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-bold">{creatorName}</div>
                 <div className="text-muted-foreground text-xs">{followers} Followers</div>
               </div>
-              <AdvancedSlidingSwitch 
-                options={switchOptions} 
-                onChange={() => setShowInsights((prev) => !prev)} 
-              />
+              <AdvancedSlidingSwitch options={switchOptions} onChange={() => setShowInsights((prev) => !prev)} />
             </div>
 
-            <div className="mt-3 flex-1 overflow-hidden">
+            <div className="mt-4 min-h-[600px]">
               {showInsights ? <InsightsPanelView {...props} /> : <VideoPlayerView {...props} />}
             </div>
           </CardContent>
