@@ -353,14 +353,12 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
           <div className="flex items-center gap-2 px-3">
             {/* Idea Inbox Toggle Button */}
             <Button
-              variant={showIdeaInbox ? "default" : "outline"}
+              variant="outline"
               size="sm"
               onClick={handleToggleIdeaInbox}
               className={cn(
-                "size-8 rounded-full p-0 transition-all",
-                showIdeaInbox
-                  ? "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                  : "hover:bg-accent hover:text-accent-foreground",
+                "hover:bg-accent hover:text-accent-foreground size-8 rounded-full p-0 transition-all",
+                showIdeaInbox && "ring-ring ring-2 ring-offset-2",
               )}
               title="Toggle Idea Inbox"
             >
