@@ -110,7 +110,7 @@ export function FocusCollectionsSidebar({
           >
             <div
               className={cn(
-                "flex h-8 w-8 items-center justify-center rounded-md transition-colors",
+                "bg-accent/30 flex h-8 w-8 items-center justify-center rounded-md transition-colors",
                 selectedCollectionId === "all-videos" ? "bg-foreground text-background" : "bg-muted text-foreground",
               )}
             >
@@ -144,7 +144,7 @@ export function FocusCollectionsSidebar({
               >
                 <div
                   className={cn(
-                    "flex h-8 w-8 items-center justify-center rounded-md transition-colors",
+                    "bg-accent/30 flex h-8 w-8 items-center justify-center rounded-md transition-colors",
                     selectedCollectionId === collection.id
                       ? "bg-foreground text-background"
                       : "bg-muted text-foreground",
