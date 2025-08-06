@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { cn } from '@/lib/utils';
+import React, { useState, useEffect } from "react";
+
+import { cn } from "@/lib/utils";
 
 // Import the VideoInspirationPlayer component
-import VideoInspirationPlayerWrapper from './video-inspiration-player';
+import { VideoInspirationPlayerWrapperFloating } from "./video-inspiration-player";
 
 interface FloatingVideoPlayerProps {
   isOpen: boolean;
@@ -16,32 +17,27 @@ interface FloatingVideoPlayerProps {
     thumbnail: string;
     duration: string;
     views: string;
-    platform: 'tiktok' | 'instagram' | 'youtube';
+    platform: "tiktok" | "instagram" | "youtube";
     author: string;
     followers: string;
   };
   className?: string;
 }
 
-export function FloatingVideoPlayer({ 
-  isOpen, 
-  onClose, 
-  videoData,
-  className 
-}: FloatingVideoPlayerProps) {
+export function FloatingVideoPlayer({ isOpen, onClose, videoData, className }: FloatingVideoPlayerProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Dummy data fallback following Clarity Design System
   const defaultVideoData = {
-    id: 'sample-1',
-    title: 'Master React Components in 60 Seconds',
-    url: 'https://www.youtube.com/embed/wA_24AIXqgM',
-    thumbnail: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=400&h=600&fit=crop',
-    duration: '58',
-    views: '2.1M',
-    platform: 'tiktok' as const,
-    author: 'The Art of Code',
-    followers: '1.2M'
+    id: "sample-1",
+    title: "Master React Components in 60 Seconds",
+    url: "https://www.youtube.com/embed/wA_24AIXqgM",
+    thumbnail: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=400&h=600&fit=crop",
+    duration: "58",
+    views: "2.1M",
+    platform: "tiktok" as const,
+    author: "The Art of Code",
+    followers: "1.2M",
   };
 
   const video = videoData ?? defaultVideoData;
@@ -49,13 +45,13 @@ export function FloatingVideoPlayer({
   // Handle escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
+      if (e.key === "Escape" && isOpen) {
         onClose();
       }
     };
 
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
@@ -66,15 +62,14 @@ export function FloatingVideoPlayer({
         "fixed top-4 right-4 z-50",
         "transition-all duration-300 ease-out",
         "overflow-hidden rounded-lg",
-        isExpanded 
-          ? "w-[min(60vw,800px)] h-[min(80vh,600px)]" 
-          : "w-[min(420px,90vw)] h-[min(70vh,500px)]",
-        className
+        // FIXED: Increased height minimums to accommodate the inner component's min-h-[600px] requirement
+        isExpanded ? "h-[min(85vh,750px)] w-[min(70vw,900px)]" : "h-[min(75vh,680px)] w-[min(420px,90vw)]",
+        className,
       )}
     >
       {/* Video Player - Full Height */}
-      <div className="w-full h-full">
-        <VideoInspirationPlayerWrapper />
+      <div className="h-full w-full">
+        <VideoInspirationPlayerWrapperFloating />
       </div>
     </div>
   );
@@ -83,9 +78,9 @@ export function FloatingVideoPlayer({
 // Hook for managing floating video state
 export function useFloatingVideo() {
   const [isOpen, setIsOpen] = useState(false);
-  const [currentVideo, setCurrentVideo] = useState<FloatingVideoPlayerProps['videoData'] | null>(null);
+  const [currentVideo, setCurrentVideo] = useState<FloatingVideoPlayerProps["videoData"] | null>(null);
 
-  const openVideo = (videoData?: FloatingVideoPlayerProps['videoData']) => {
+  const openVideo = (videoData?: FloatingVideoPlayerProps["videoData"]) => {
     setCurrentVideo(videoData ?? null);
     setIsOpen(true);
   };
@@ -100,17 +95,13 @@ export function useFloatingVideo() {
     isOpen,
     currentVideo,
     openVideo,
-    closeVideo
+    closeVideo,
   };
 }
 
 // Simplified layout component
 export function ResponsiveLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="relative min-h-screen">
-      {children}
-    </div>
-  );
+  return <div className="relative min-h-screen">{children}</div>;
 }
 
 // Legacy exports for backward compatibility
