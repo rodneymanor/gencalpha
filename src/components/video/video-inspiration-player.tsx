@@ -203,19 +203,21 @@ const FloatingVideoInspirationPlayer: React.FC<VideoInspirationPlayerProps> = (p
 
   return (
     <div className="bg-background text-foreground flex h-full flex-col font-sans">
-      <div className="flex-1 overflow-hidden">
-        <Card className="h-full rounded-[var(--radius-card)] shadow-[var(--shadow-soft-drop)]">
-          <CardContent className="flex h-full flex-col p-3">
-            <div className="flex flex-shrink-0 items-center gap-2 border-b pb-3">
+      <div className="flex h-full flex-col">
+        <Card className="flex h-full flex-col rounded-[var(--radius-card)] shadow-[var(--shadow-soft-drop)]">
+          <CardContent className="flex h-full flex-col p-4">
+            {/* Header - Fixed height */}
+            <div className="flex flex-shrink-0 items-center gap-3 border-b pb-3">
               <TikTokIcon className="text-foreground h-8 w-8 flex-shrink-0" />
               <div className="min-w-0 flex-1">
-                <div className="truncate text-xs font-bold">{creatorName}</div>
+                <div className="truncate text-sm font-bold">{creatorName}</div>
                 <div className="text-muted-foreground text-xs">{followers} Followers</div>
               </div>
               <AdvancedSlidingSwitch options={switchOptions} onChange={() => setShowInsights((prev) => !prev)} />
             </div>
 
-            <div className="mt-3 flex-1 overflow-hidden">
+            {/* Content - Takes remaining space */}
+            <div className="mt-4 flex-1 overflow-hidden">
               {showInsights ? <InsightsPanelView {...props} /> : <VideoPlayerView {...props} />}
             </div>
           </CardContent>

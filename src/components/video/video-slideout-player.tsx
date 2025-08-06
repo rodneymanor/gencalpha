@@ -61,9 +61,9 @@ export function FloatingVideoPlayer({ isOpen, onClose, videoData, className }: F
       className={cn(
         "fixed top-4 right-4 z-50",
         "transition-all duration-300 ease-out",
-        "overflow-hidden rounded-lg",
-        // FIXED: Increased height minimums to accommodate the inner component's min-h-[600px] requirement
-        isExpanded ? "h-[min(85vh,750px)] w-[min(70vw,900px)]" : "h-[min(75vh,680px)] w-[min(420px,90vw)]",
+        "rounded-[var(--radius-card)]",
+        // FIXED: Dramatically increased height minimums and removed overflow-hidden to prevent clipping
+        isExpanded ? "h-[min(90vh,800px)] w-[min(70vw,900px)]" : "h-[min(85vh,750px)] w-[min(420px,90vw)]",
         className,
       )}
     >
