@@ -110,7 +110,7 @@ export function FocusCollectionsSidebar({
               className={cn(
                 "flex h-6 w-6 shrink-0 items-center justify-center rounded-md transition-colors",
                 selectedCollectionId === "all-videos"
-                  ? "bg-sidebar-accent-foreground text-sidebar-accent"
+                  ? "bg-sidebar-accent-foreground text-sidebar-accent-foreground"
                   : "bg-sidebar-accent/20 text-sidebar-foreground",
               )}
             >
@@ -144,7 +144,7 @@ export function FocusCollectionsSidebar({
                   className={cn(
                     "flex h-6 w-6 shrink-0 items-center justify-center rounded-md transition-colors",
                     selectedCollectionId === collection.id
-                      ? "bg-sidebar-accent-foreground text-sidebar-accent"
+                      ? "bg-sidebar-accent-foreground text-sidebar-accent-foreground"
                       : "bg-sidebar-accent/20 text-sidebar-foreground",
                   )}
                 >
