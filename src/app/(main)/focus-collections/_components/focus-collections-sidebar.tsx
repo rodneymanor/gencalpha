@@ -102,7 +102,7 @@ export function FocusCollectionsSidebar({
             className={cn(
               "flex w-full items-center gap-3 rounded-[var(--radius-button)] p-3 text-left transition-colors",
               selectedCollectionId === "all-videos"
-                ? "bg-background text-foreground border-secondary border-l-4 font-medium shadow-[var(--shadow-input)]"
+                ? "bg-background text-foreground font-medium shadow-[var(--shadow-input)]"
                 : hoveredCollection === "all-videos"
                   ? "bg-background/50 text-foreground"
                   : "text-muted-foreground hover:text-foreground",
@@ -136,7 +136,7 @@ export function FocusCollectionsSidebar({
                 className={cn(
                   "flex w-full items-center gap-3 rounded-[var(--radius-button)] p-3 text-left transition-colors",
                   selectedCollectionId === collection.id
-                    ? "bg-background text-foreground border-secondary border-l-4 font-medium shadow-[var(--shadow-input)]"
+                    ? "bg-background text-foreground font-medium shadow-[var(--shadow-input)]"
                     : hoveredCollection === collection.id
                       ? "bg-background/50 text-foreground"
                       : "text-muted-foreground hover:text-foreground",
