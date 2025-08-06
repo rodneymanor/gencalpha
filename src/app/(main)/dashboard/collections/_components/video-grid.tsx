@@ -16,13 +16,12 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
+import { VideoSlideoutPlayer } from "@/components/video/video-slideout-player";
 import { useAuth } from "@/contexts/auth-context";
 import { RBACClientService } from "@/core/auth/rbac-client";
 import { useRBAC } from "@/hooks/use-rbac";
 import { Video, CollectionsService } from "@/lib/collections";
 import { cn } from "@/lib/utils";
-
-import { VideoSlideoutPlayer } from "@/components/video/video-slideout-player";
 
 import { useCollections } from "./collections-context";
 import { DeleteConfirmDialog } from "./delete-confirm-dialog";
@@ -316,21 +315,7 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
       />
 
       {selectedVideo && (
-        <VideoSlideoutPlayer
-          isOpen={!!selectedVideo}
-          onClose={() => setSelectedVideo(null)}
-          videoData={{
-            id: selectedVideo.id ?? '',
-            title: selectedVideo.title,
-            url: selectedVideo.iframeUrl ?? selectedVideo.originalUrl,
-            thumbnail: selectedVideo.thumbnailUrl,
-            duration: selectedVideo.duration?.toString() ?? '0',
-            views: selectedVideo.metrics?.views?.toString() ?? '0',
-            platform: selectedVideo.platform as "tiktok" | "instagram" | "youtube",
-            author: selectedVideo.metadata?.author ?? 'Unknown',
-            followers: '0', // This data isn't available in the Video interface
-          }}
-        />
+        <VideoSlideoutPlayer isOpen={!!selectedVideo} onClose={() => setSelectedVideo(null)} video={selectedVideo} />
       )}
     </>
   );

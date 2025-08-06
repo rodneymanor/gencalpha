@@ -8,6 +8,8 @@ import { Eye, Heart, MessageCircle, Share2, Lightbulb, Play, List, FileText } fr
 import { AdvancedSlidingSwitch, SwitchOption } from "@/components/ui/advanced-sliding-switch";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Video } from "@/lib/collections";
+import { formatNumber } from "@/lib/utils";
 
 // --- TYPE DEFINITIONS ---
 interface VideoInspirationPlayerProps {
@@ -227,29 +229,28 @@ const FloatingVideoInspirationPlayer: React.FC<VideoInspirationPlayerProps> = (p
   );
 };
 
-// Export a wrapper that uses the floating-optimized version
-export function VideoInspirationPlayerWrapperFloating() {
-  const videoData: VideoInspirationPlayerProps = {
-    creatorName: "The Art of Code",
-    followers: "1.2M",
-    videoUrl: "https://www.youtube.com/embed/wA_24AIXqgM",
-    views: "2.1M",
-    likes: "180K",
-    comments: "1,245",
-    shares: "24.3K",
-    saves: "95K",
-    engagementRate: "8.5%",
-    duration: "58",
-    caption:
-      "Here's a quick look at how to build animated UIs with React and Tailwind CSS. It's easier than you think! #react #tailwindcss #uidev #webdev #coding",
-    transcript: `(Upbeat music starts)
-Hey everyone! Today I'm going to show you how to create a slick, animated sliding panel using just React and Tailwind CSS.
-First, we'll set up our state with useState to track whether the panel is open or closed.
-Next, we'll apply conditional classes based on that state. This is where the magic happens. We'll change the width and add transition properties...
-(Music fades)
-...and just like that, you have a beautiful, animated UI. Let me know what you want to see next!`,
+// Helper function to transform Video data to VideoInspirationPlayerProps
+// eslint-disable-next-line complexity
+function transformVideoData(video: Video): VideoInspirationPlayerProps {
+  return {
+    creatorName: video.metadata?.author ?? "Unknown Creator",
+    followers: "N/A", // Not in our data model
+    videoUrl: video.iframeUrl ?? video.originalUrl,
+    views: formatNumber(video.metrics?.views ?? 0),
+    likes: formatNumber(video.metrics?.likes ?? 0),
+    comments: formatNumber(video.metrics?.comments ?? 0),
+    shares: formatNumber(video.metrics?.shares ?? 0),
+    saves: formatNumber(video.metrics?.saves ?? 0),
+    engagementRate: "N/A", // Not in our data model
+    caption: video.caption ?? video.metadata?.description ?? "No caption available.",
+    transcript: video.transcript ?? "No transcript available.",
+    duration: video.duration?.toString() ?? "N/A",
   };
+}
 
+// Export a wrapper that uses the floating-optimized version
+export function VideoInspirationPlayerWrapperFloating({ video }: { video: Video }) {
+  const videoData = transformVideoData(video);
   return <FloatingVideoInspirationPlayer {...videoData} />;
 }
 

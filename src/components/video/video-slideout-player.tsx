@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 
+import { Video } from "@/lib/collections";
 import { cn } from "@/lib/utils";
 
 // Import the VideoInspirationPlayer component
@@ -10,37 +11,12 @@ import { VideoInspirationPlayerWrapperFloating } from "./video-inspiration-playe
 interface FloatingVideoPlayerProps {
   isOpen: boolean;
   onClose: () => void;
-  videoData?: {
-    id: string;
-    title: string;
-    url: string;
-    thumbnail: string;
-    duration: string;
-    views: string;
-    platform: "tiktok" | "instagram" | "youtube";
-    author: string;
-    followers: string;
-  };
+  video: Video;
   className?: string;
 }
 
-export function FloatingVideoPlayer({ isOpen, onClose, videoData, className }: FloatingVideoPlayerProps) {
+export function FloatingVideoPlayer({ isOpen, onClose, video, className }: FloatingVideoPlayerProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-
-  // Dummy data fallback following Clarity Design System
-  const defaultVideoData = {
-    id: "sample-1",
-    title: "Master React Components in 60 Seconds",
-    url: "https://www.youtube.com/embed/wA_24AIXqgM",
-    thumbnail: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=400&h=600&fit=crop",
-    duration: "58",
-    views: "2.1M",
-    platform: "tiktok" as const,
-    author: "The Art of Code",
-    followers: "1.2M",
-  };
-
-  const video = videoData ?? defaultVideoData;
 
   // Update body margin when slideout opens/closes to push content over
   useEffect(() => {
@@ -93,10 +69,11 @@ export function FloatingVideoPlayer({ isOpen, onClose, videoData, className }: F
         isExpanded ? "w-[min(70vw,900px)]" : "w-[min(420px,90vw)]",
         className,
       )}
+      onClick={() => setIsExpanded(!isExpanded)}
     >
       {/* Video Player - Full Height */}
       <div className="h-full w-full">
-        <VideoInspirationPlayerWrapperFloating />
+        <VideoInspirationPlayerWrapperFloating video={video} />
       </div>
     </div>
   );
@@ -105,10 +82,10 @@ export function FloatingVideoPlayer({ isOpen, onClose, videoData, className }: F
 // Hook for managing floating video state
 export function useFloatingVideo() {
   const [isOpen, setIsOpen] = useState(false);
-  const [currentVideo, setCurrentVideo] = useState<FloatingVideoPlayerProps["videoData"] | null>(null);
+  const [currentVideo, setCurrentVideo] = useState<Video | null>(null);
 
-  const openVideo = (videoData?: FloatingVideoPlayerProps["videoData"]) => {
-    setCurrentVideo(videoData ?? null);
+  const openVideo = (videoData: Video) => {
+    setCurrentVideo(videoData);
     setIsOpen(true);
   };
 
