@@ -10,9 +10,9 @@ import { Video } from "@/lib/collections";
 
 import { CollectionHeader } from "./_components/collection-header";
 import { FocusCollectionsSidebar } from "./_components/focus-collections-sidebar";
+import { FocusInsightsWrapper } from "./_components/focus-insights-wrapper";
 import { FocusVideoGrid } from "./_components/focus-video-grid";
 import { MobileOverlays } from "./_components/mobile-overlays";
-import { StaticVideoPlayer } from "./_components/static-video-player";
 
 interface Collection {
   id: string;
@@ -168,7 +168,7 @@ export default function FocusCollectionsPage() {
 
         {/* Desktop: Right Panel */}
         <div className="border-border hidden w-96 flex-shrink-0 border-l lg:block">
-          {selectedVideo && <StaticVideoPlayer video={selectedVideo} className="h-full" />}
+          <FocusInsightsWrapper video={selectedVideo} className="h-full" />
         </div>
       </div>
     </div>
