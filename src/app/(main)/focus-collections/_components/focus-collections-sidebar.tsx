@@ -4,7 +4,6 @@ import { useState } from "react";
 
 import { ArrowLeft, Plus, FolderOpen, Video, Star, Heart, TrendingUp, Calendar, Bookmark, Archive } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -119,9 +118,9 @@ export function FocusCollectionsSidebar({
             </div>
             <div className="flex flex-1 items-center justify-between">
               <span className="font-sans text-sm">All Videos</span>
-              <Badge variant="secondary" className="text-xs">
+              <span className="text-muted-foreground text-xs">
                 {collections.reduce((total, col) => total + col.videoCount, 0)}
-              </Badge>
+              </span>
             </div>
           </button>
 
@@ -159,9 +158,7 @@ export function FocusCollectionsSidebar({
                     <div className="text-muted-foreground mt-1 truncate text-xs">{collection.description}</div>
                   )}
                 </div>
-                <Badge variant="secondary" className="ml-2 text-xs">
-                  {collection.videoCount}
-                </Badge>
+                <span className="text-muted-foreground ml-2 text-xs">{collection.videoCount}</span>
               </button>
             );
           })}
