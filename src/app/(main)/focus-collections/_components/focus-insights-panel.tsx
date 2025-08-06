@@ -175,7 +175,11 @@ export function FocusInsightsPanel({ video, className }: FocusInsightsPanelProps
             <div className="mb-3 flex items-center gap-2">
               <Badge
                 variant={video.platform.toLowerCase() === "instagram" ? "instagram" : "secondary"}
-                className="text-xs"
+                className={`text-xs ${
+                  video.platform.toLowerCase() === "tiktok"
+                    ? "bg-black text-white hover:bg-black/80"
+                    : ""
+                }`}
               >
                 {video.platform}
               </Badge>
