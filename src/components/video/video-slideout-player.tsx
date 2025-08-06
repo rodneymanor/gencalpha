@@ -42,6 +42,33 @@ export function FloatingVideoPlayer({ isOpen, onClose, videoData, className }: F
 
   const video = videoData ?? defaultVideoData;
 
+  // Update body margin when slideout opens/closes to push content over
+  useEffect(() => {
+    const body = document.body;
+    if (isOpen) {
+      // Calculate panel width + padding for margin
+      const panelWidth = isExpanded ? Math.min(window.innerWidth * 0.7, 900) : Math.min(420, window.innerWidth * 0.9);
+      const totalWidth = panelWidth + 32; // 32px for right padding (right-4 = 16px + some buffer)
+
+      // Add transition and margin to push content
+      body.style.transition = "margin-right 300ms ease-out";
+      body.style.marginRight = `${totalWidth}px`;
+    } else {
+      // Remove margin when closed
+      body.style.marginRight = "0px";
+      // Clean up transition after animation
+      setTimeout(() => {
+        body.style.transition = "";
+      }, 300);
+    }
+
+    // Cleanup on unmount
+    return () => {
+      body.style.marginRight = "0px";
+      body.style.transition = "";
+    };
+  }, [isOpen, isExpanded]);
+
   // Handle escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
