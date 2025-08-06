@@ -204,3 +204,26 @@
 .disable-transitions * {
   transition: none !important;
 }
+
+/* Video Slideout Player Styles */
+.slideout-layout {
+  transition: margin-right 300ms ease-out;
+}
+
+html.slideout-open .slideout-layout {
+  margin-right: min(480px, 100vw);
+}
+
+html.slideout-expanded .slideout-layout {
+  margin-right: min(75vw, 75%);
+}
+
+@media (max-width: 640px) {
+  html.slideout-open .slideout-layout {
+    margin-right: 100vw;
+  }
+  
+  html.slideout-expanded .slideout-layout {
+    margin-right: 100vw;
+  }
+}
