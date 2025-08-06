@@ -17,11 +17,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/auth-context";
-import { useVideoInsights } from "@/contexts/video-insights-context";
 import { RBACClientService } from "@/core/auth/rbac-client";
 import { useRBAC } from "@/hooks/use-rbac";
 import { Video, CollectionsService } from "@/lib/collections";
 import { cn } from "@/lib/utils";
+
+import { VideoSlideoutPlayer } from "@/components/video/video-slideout-player";
 
 import { useCollections } from "./collections-context";
 import { DeleteConfirmDialog } from "./delete-confirm-dialog";
@@ -33,11 +34,11 @@ interface VideoGridProps {
 
 export function VideoGrid({ collectionId }: VideoGridProps) {
   const { state, dispatch } = useCollections();
-  const { openPanel } = useVideoInsights();
   const { user } = useAuth();
   const { canWrite, canDelete } = useRBAC();
   const [movingVideo, setMovingVideo] = useState<Video | null>(null);
   const [deletingVideo, setDeletingVideo] = useState<Video | null>(null);
+  const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
 
   const loadVideos = useCallback(async () => {
     if (!user?.uid) return;
@@ -66,7 +67,7 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
   }, [user?.uid, collectionId, loadVideos]);
 
   const handleVideoClick = (video: Video) => {
-    openPanel(video);
+    setSelectedVideo(video);
   };
 
   const handleToggleFavorite = async (video: Video) => {
@@ -258,7 +259,7 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
     return (
       <div className="@container">
         <div className="grid grid-cols-1 gap-6 @sm:grid-cols-2 @lg:grid-cols-3 @xl:grid-cols-4">
-          {[...Array(12)].map((_, index) => (
+          {Array.from({ length: 12 }, (_, index) => (
             <div key={`loading-skeleton-${index}`} className="relative aspect-[9/16]">
               <Skeleton className="h-full w-full rounded-[var(--radius-card)]" />
             </div>
@@ -313,6 +314,24 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
           }
         }}
       />
+
+      {selectedVideo && (
+        <VideoSlideoutPlayer
+          isOpen={!!selectedVideo}
+          onClose={() => setSelectedVideo(null)}
+          videoData={{
+            id: selectedVideo.id ?? '',
+            title: selectedVideo.title,
+            url: selectedVideo.iframeUrl ?? selectedVideo.originalUrl,
+            thumbnail: selectedVideo.thumbnailUrl,
+            duration: selectedVideo.duration?.toString() ?? '0',
+            views: selectedVideo.metrics?.views?.toString() ?? '0',
+            platform: selectedVideo.platform as "tiktok" | "instagram" | "youtube",
+            author: selectedVideo.metadata?.author ?? 'Unknown',
+            followers: '0', // This data isn't available in the Video interface
+          }}
+        />
+      )}
     </>
   );
 }

@@ -49,7 +49,7 @@ const VideoPlayerView: React.FC<
   <div className="flex h-full flex-col">
     <div className="relative aspect-[9/16] w-full flex-shrink-0 overflow-hidden rounded-[var(--radius-card)] bg-black shadow-[var(--shadow-input)]">
       <iframe
-        className="absolute top-0 left-0 h-full w-full"
+        className="absolute top-0 left-0 h-full w-full rounded-b-[var(--radius-card)]"
         src={videoUrl}
         title="Video Player"
         frameBorder="0"
