@@ -20,6 +20,8 @@ const badgeVariants = cva(
           "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         success:
           "border-transparent bg-green-500 text-white [a&]:hover:bg-green-600 focus-visible:ring-green-500/20 dark:focus-visible:ring-green-500/40",
+        instagram:
+          "border-transparent bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 text-white [a&]:hover:from-purple-600 [a&]:hover:via-pink-600 [a&]:hover:to-orange-500 focus-visible:ring-purple-500/20 dark:focus-visible:ring-purple-500/40",
       },
     },
     defaultVariants: {

@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 interface VideoCardContentProps {
   video: Video;
   isHovered: boolean;
-  formatNumber: (num: number) => string;
+  formatNumber: (num: number | undefined) => string;
 }
 
 export function VideoCardContent({ video, isHovered, formatNumber }: VideoCardContentProps) {

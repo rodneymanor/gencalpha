@@ -26,7 +26,8 @@ interface FocusVideoCardProps {
 }
 
 // Helper functions
-const formatNumber = (num: number): string => {
+const formatNumber = (num: number | undefined): string => {
+  if (num === undefined || num === null) return "0";
   if (num >= 1000000) {
     return (num / 1000000).toFixed(1) + "M";
   } else if (num >= 1000) {
@@ -104,7 +105,15 @@ export function FocusVideoCard({
 
         {/* Platform Badge */}
         <div className="absolute top-3 left-3">
-          <Badge className={cn("font-sans text-xs", getPlatformBadgeColor(video.platform))}>{video.platform}</Badge>
+          <Badge
+            variant={video.platform.toLowerCase() === "instagram" ? "instagram" : undefined}
+            className={cn(
+              "font-sans text-xs",
+              video.platform.toLowerCase() !== "instagram" ? getPlatformBadgeColor(video.platform) : "",
+            )}
+          >
+            {video.platform}
+          </Badge>
         </div>
 
         {/* Actions */}

@@ -10,7 +10,6 @@ import {
   Heart,
   MessageCircle,
   Share2,
-  Download,
   ExternalLink,
   Copy,
   Lightbulb,
@@ -68,7 +67,8 @@ interface FocusInsightsPanelProps {
 }
 
 // Helper functions and constants
-const formatNumber = (num: number): string => {
+const formatNumber = (num: number | undefined): string => {
+  if (num === undefined || num === null) return "0";
   if (num >= 1000000) {
     return (num / 1000000).toFixed(1) + "M";
   } else if (num >= 1000) {
@@ -185,7 +185,10 @@ export function FocusInsightsPanel({ video, className }: FocusInsightsPanelProps
           <div className="min-w-0 flex-1">
             <h2 className="mb-2 line-clamp-2 font-sans text-lg font-semibold">{video.title}</h2>
             <div className="mb-3 flex items-center gap-2">
-              <Badge variant="secondary" className="text-xs">
+              <Badge
+                variant={video.platform.toLowerCase() === "instagram" ? "instagram" : "secondary"}
+                className="text-xs"
+              >
                 {video.platform}
               </Badge>
               {video.duration && <span className="text-muted-foreground text-xs">{video.duration}</span>}
@@ -198,10 +201,7 @@ export function FocusInsightsPanel({ video, className }: FocusInsightsPanelProps
                 <ExternalLink className="h-3 w-3" />
                 View
               </Button>
-              <Button size="sm" variant="outline" className="gap-2">
-                <Download className="h-3 w-3" />
-                Download
-              </Button>
+
               <Button size="sm" variant="outline" className="gap-2">
                 <Copy className="h-3 w-3" />
                 Copy Link

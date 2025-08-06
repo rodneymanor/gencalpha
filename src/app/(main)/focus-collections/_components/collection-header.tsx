@@ -66,8 +66,6 @@ export function CollectionHeader({
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-muted-foreground hidden text-sm sm:inline">{videoCount} videos</span>
-
           {/* Mobile Insights Toggle */}
           {selectedVideo && (
             <Button size="icon" variant="ghost" className="lg:hidden" onClick={onOpenMobileInsights}>

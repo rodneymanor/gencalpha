@@ -113,11 +113,18 @@ export function FocusCollectionsSidebar({
               className={cn(
                 "flex h-6 w-6 shrink-0 items-center justify-center rounded-md transition-colors",
                 selectedCollectionId === "all-videos"
-                  ? "bg-sidebar-accent-foreground text-sidebar-accent-foreground"
+                  ? "bg-slate-800 text-slate-200" // Dark background with light slate text
                   : "bg-sidebar-accent/20 text-sidebar-foreground",
               )}
             >
-              <Video className="h-4 w-4" />
+              <Video
+                className={cn(
+                  "h-4 w-4",
+                  selectedCollectionId === "all-videos"
+                    ? "stroke-slate-200 stroke-1" // Light slate stroke for selected
+                    : "stroke-2",
+                )}
+              />
             </div>
             <div className="flex flex-1 items-center justify-between">
               <span>All Videos</span>
@@ -147,11 +154,18 @@ export function FocusCollectionsSidebar({
                   className={cn(
                     "flex h-6 w-6 shrink-0 items-center justify-center rounded-md transition-colors",
                     selectedCollectionId === collection.id
-                      ? "bg-sidebar-accent-foreground text-sidebar-accent-foreground"
+                      ? "bg-slate-800 text-slate-200" // Dark background with light slate text
                       : "bg-sidebar-accent/20 text-sidebar-foreground",
                   )}
                 >
-                  <IconComponent className="h-4 w-4" />
+                  <IconComponent
+                    className={cn(
+                      "h-4 w-4",
+                      selectedCollectionId === collection.id
+                        ? "stroke-slate-200 stroke-1" // Light slate stroke for selected
+                        : "stroke-2",
+                    )}
+                  />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="truncate font-medium">{collection.title}</div>
