@@ -213,46 +213,31 @@ export function FocusInsightsPanel({ video, className }: FocusInsightsPanelProps
 
       {/* Performance Metrics */}
       {video.metrics && (
-        <div className="border-border flex-shrink-0 border-b p-6">
-          <h3 className="mb-4 font-sans text-sm font-medium">Performance</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="text-center">
-              <div className="mb-1 flex items-center justify-center gap-1">
-                <Eye className="text-muted-foreground h-4 w-4" />
-                <span className="text-2xl font-bold">{formatNumber(video.metrics.views)}</span>
-              </div>
-              <p className="text-muted-foreground text-xs">Views</p>
+        <div className="border-border flex-shrink-0 border-b p-4">
+          <div className="grid grid-cols-4 gap-2">
+            <div className="flex items-center justify-center gap-1">
+              <Eye className="text-secondary h-4 w-4" />
+              <span className="text-sm font-semibold">{formatNumber(video.metrics.views)}</span>
             </div>
-            <div className="text-center">
-              <div className="mb-1 flex items-center justify-center gap-1">
-                <Heart className="text-muted-foreground h-4 w-4" />
-                <span className="text-2xl font-bold">{formatNumber(video.metrics.likes)}</span>
-              </div>
-              <p className="text-muted-foreground text-xs">Likes</p>
+            <div className="flex items-center justify-center gap-1">
+              <Heart className="text-destructive h-4 w-4" />
+              <span className="text-sm font-semibold">{formatNumber(video.metrics.likes)}</span>
             </div>
-            <div className="text-center">
-              <div className="mb-1 flex items-center justify-center gap-1">
-                <MessageCircle className="text-muted-foreground h-4 w-4" />
-                <span className="text-2xl font-bold">{formatNumber(video.metrics.comments)}</span>
-              </div>
-              <p className="text-muted-foreground text-xs">Comments</p>
+            <div className="flex items-center justify-center gap-1">
+              <MessageCircle className="text-primary h-4 w-4" />
+              <span className="text-sm font-semibold">{formatNumber(video.metrics.comments)}</span>
             </div>
-            <div className="text-center">
-              <div className="mb-1 flex items-center justify-center gap-1">
-                <Share2 className="text-muted-foreground h-4 w-4" />
-                <span className="text-2xl font-bold">
-                  {video.metrics.shares ? formatNumber(video.metrics.shares) : "0"}
-                </span>
-              </div>
-              <p className="text-muted-foreground text-xs">Shares</p>
+            <div className="flex items-center justify-center gap-1">
+              <Share2 className="text-brand-foreground h-4 w-4" />
+              <span className="text-sm font-semibold">
+                {video.metrics.shares ? formatNumber(video.metrics.shares) : "0"}
+              </span>
             </div>
           </div>
           {video.metrics.engagementRate && (
-            <div className="mt-4 text-center">
-              <div className="text-secondary text-lg font-semibold">
-                {(video.metrics.engagementRate * 100).toFixed(1)}%
-              </div>
-              <p className="text-muted-foreground text-xs">Engagement Rate</p>
+            <div className="mt-2 flex items-center justify-center gap-1">
+              <TrendingUp className="text-secondary h-4 w-4" />
+              <span className="text-sm font-semibold">{(video.metrics.engagementRate * 100).toFixed(1)}%</span>
             </div>
           )}
         </div>
