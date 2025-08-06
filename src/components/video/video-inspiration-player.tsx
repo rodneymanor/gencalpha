@@ -191,6 +191,66 @@ const VideoInspirationPlayer: React.FC<VideoInspirationPlayerProps> = (props) =>
   );
 };
 
+// --- FLOATING OPTIMIZED VERSION ---
+const FloatingVideoInspirationPlayer: React.FC<VideoInspirationPlayerProps> = (props) => {
+  const { creatorName, followers } = props;
+  const [showInsights, setShowInsights] = useState(false);
+
+  const switchOptions: SwitchOption[] = [
+    { value: "ghost-write", icon: <Play className="h-4 w-4" />, tooltip: "Video" },
+    { value: "web-search", icon: <Lightbulb className="h-4 w-4" />, tooltip: "Insights" },
+  ];
+
+  return (
+    <div className="bg-background text-foreground flex h-full flex-col font-sans">
+      <div className="flex-1 overflow-hidden">
+        <Card className="h-full rounded-[var(--radius-card)] shadow-[var(--shadow-soft-drop)]">
+          <CardContent className="flex h-full flex-col p-3">
+            <div className="flex flex-shrink-0 items-center gap-2 border-b pb-3">
+              <TikTokIcon className="text-foreground h-8 w-8 flex-shrink-0" />
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-xs font-bold">{creatorName}</div>
+                <div className="text-muted-foreground text-xs">{followers} Followers</div>
+              </div>
+              <AdvancedSlidingSwitch options={switchOptions} onChange={() => setShowInsights((prev) => !prev)} />
+            </div>
+
+            <div className="mt-3 flex-1 overflow-hidden">
+              {showInsights ? <InsightsPanelView {...props} /> : <VideoPlayerView {...props} />}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+// Export a wrapper that uses the floating-optimized version
+export function VideoInspirationPlayerWrapperFloating() {
+  const videoData: VideoInspirationPlayerProps = {
+    creatorName: "The Art of Code",
+    followers: "1.2M",
+    videoUrl: "https://www.youtube.com/embed/wA_24AIXqgM",
+    views: "2.1M",
+    likes: "180K",
+    comments: "1,245",
+    shares: "24.3K",
+    saves: "95K",
+    engagementRate: "8.5%",
+    duration: "58",
+    caption:
+      "Here's a quick look at how to build animated UIs with React and Tailwind CSS. It's easier than you think! #react #tailwindcss #uidev #webdev #coding",
+    transcript: `(Upbeat music starts)
+Hey everyone! Today I'm going to show you how to create a slick, animated sliding panel using just React and Tailwind CSS.
+First, we'll set up our state with useState to track whether the panel is open or closed.
+Next, we'll apply conditional classes based on that state. This is where the magic happens. We'll change the width and add transition properties...
+(Music fades)
+...and just like that, you have a beautiful, animated UI. Let me know what you want to see next!`,
+  };
+
+  return <FloatingVideoInspirationPlayer {...videoData} />;
+}
+
 // --- DEFAULT EXPORT AND PROPS ---
 export default function VideoInspirationPlayerWrapper() {
   const videoData: VideoInspirationPlayerProps = {
