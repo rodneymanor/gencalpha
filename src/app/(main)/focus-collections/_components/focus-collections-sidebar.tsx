@@ -100,7 +100,7 @@ export function FocusCollectionsSidebar({
             onMouseEnter={() => setHoveredCollection("all-videos")}
             onMouseLeave={() => setHoveredCollection(null)}
             className={cn(
-              "flex w-full items-center gap-3 rounded-[var(--radius-button)] p-3 text-left transition-colors",
+              "bg-accent/20 flex w-full items-center gap-3 rounded-[var(--radius-button)] p-3 text-left transition-colors",
               selectedCollectionId === "all-videos"
                 ? "bg-background text-foreground font-medium shadow-[var(--shadow-input)]"
                 : hoveredCollection === "all-videos"
@@ -134,7 +134,7 @@ export function FocusCollectionsSidebar({
                 onMouseEnter={() => setHoveredCollection(collection.id)}
                 onMouseLeave={() => setHoveredCollection(null)}
                 className={cn(
-                  "flex w-full items-center gap-3 rounded-[var(--radius-button)] p-3 text-left transition-colors",
+                  "bg-accent/20 flex w-full items-center gap-3 rounded-[var(--radius-button)] p-3 text-left transition-colors",
                   selectedCollectionId === collection.id
                     ? "bg-background text-foreground font-medium shadow-[var(--shadow-input)]"
                     : hoveredCollection === collection.id
