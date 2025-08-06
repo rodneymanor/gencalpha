@@ -66,7 +66,9 @@ export function FloatingVideoPlayer({ isOpen, onClose, video, className }: Float
         "transition-all duration-300 ease-out",
         "rounded-[var(--radius-card)]",
         "h-[calc(100vh-36px)]",
-        isExpanded ? "w-[min(70vw,900px)]" : "w-[min(420px,90vw)]",
+        isExpanded
+          ? "w-[min(59.5vw,900px)]" // 70 vw → 59.5 vw  (-15 %)
+          : "w-[min(420px,76.5vw)]", // 90 vw → 76.5 vw (-15 %)
         className,
       )}
       onClick={() => setIsExpanded(!isExpanded)}

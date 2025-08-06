@@ -49,23 +49,38 @@ const VideoPlayerView: React.FC<
   Pick<VideoInspirationPlayerProps, "videoUrl" | "views" | "likes" | "comments" | "shares">
 > = ({ videoUrl, views, likes, comments, shares }) => (
   <div className="flex h-full flex-col">
-    <div className="relative aspect-[9/16] w-full flex-shrink-0 overflow-hidden rounded-[var(--radius-card)] bg-black shadow-[var(--shadow-input)]">
-      <iframe
-        className="absolute top-0 left-0 h-full w-full rounded-b-[var(--radius-card)]"
-        src={videoUrl}
-        title="Video Player"
-        frameBorder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowFullScreen
-      ></iframe>
+    <div className="relative flex justify-center">
+      <div className="relative aspect-[9/16] w-full max-w-[280px] flex-shrink-0 overflow-hidden rounded-[var(--radius-card)] bg-black shadow-[var(--shadow-input)]">
+        <iframe
+          className="absolute top-0 left-0 h-full w-full rounded-b-[var(--radius-card)]"
+          src={videoUrl}
+          title="Video Player"
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        ></iframe>
+      </div>
+      {/* Metrics positioned on the right side of video */}
+      <div className="absolute top-1/2 right-0 flex -translate-y-1/2 flex-col gap-4 pr-2">
+        <div className="bg-background/80 text-foreground flex flex-col items-center gap-1 rounded-[var(--radius-card)] px-2 py-1.5 shadow-[var(--shadow-soft-drop)] backdrop-blur-sm">
+          <Heart className="h-5 w-5" />
+          <span className="text-xs font-medium">{likes}</span>
+        </div>
+        <div className="bg-background/80 text-foreground flex flex-col items-center gap-1 rounded-[var(--radius-card)] px-2 py-1.5 shadow-[var(--shadow-soft-drop)] backdrop-blur-sm">
+          <MessageCircle className="h-5 w-5" />
+          <span className="text-xs font-medium">{comments}</span>
+        </div>
+        <div className="bg-background/80 text-foreground flex flex-col items-center gap-1 rounded-[var(--radius-card)] px-2 py-1.5 shadow-[var(--shadow-soft-drop)] backdrop-blur-sm">
+          <Share2 className="h-5 w-5" />
+          <span className="text-xs font-medium">{shares}</span>
+        </div>
+        <div className="bg-background/80 text-foreground flex flex-col items-center gap-1 rounded-[var(--radius-card)] px-2 py-1.5 shadow-[var(--shadow-soft-drop)] backdrop-blur-sm">
+          <Eye className="h-5 w-5" />
+          <span className="text-xs font-medium">{views}</span>
+        </div>
+      </div>
     </div>
-    <div className="mt-3 grid flex-shrink-0 grid-cols-4 gap-2 px-1">
-      <Metric icon={<Eye className="h-4 w-4" />} value={views} />
-      <Metric icon={<Heart className="h-4 w-4" />} value={likes} />
-      <Metric icon={<MessageCircle className="h-4 w-4" />} value={comments} />
-      <Metric icon={<Share2 className="h-4 w-4" />} value={shares} />
-    </div>
-    <div className="mt-4 flex-shrink-0">
+    <div className="mx-auto mt-4 w-full max-w-[280px] flex-shrink-0">
       <Button variant="outline" className="h-10 w-full text-sm font-semibold">
         Remix
       </Button>
@@ -169,7 +184,7 @@ const VideoInspirationPlayer: React.FC<VideoInspirationPlayerProps> = (props) =>
     <div className="bg-background text-foreground flex min-h-screen items-start justify-center p-4 font-sans">
       <motion.div
         className="sticky top-4"
-        animate={{ width: showInsights ? 800 : 375 }}
+        animate={{ width: showInsights ? 600 : 375 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
         <Card className="rounded-[var(--radius-xl)] shadow-[var(--shadow-soft-drop)]">
