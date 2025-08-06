@@ -204,7 +204,7 @@ const FloatingVideoInspirationPlayer: React.FC<VideoInspirationPlayerProps> = (p
   return (
     <div className="bg-background text-foreground flex h-full flex-col font-sans">
       <div className="flex h-full flex-col">
-        <Card className="flex h-full flex-col rounded-[var(--radius-card)] shadow-[var(--shadow-soft-drop)]">
+        <Card className="flex h-full flex-col rounded-[var(--radius-card)] py-0 shadow-[var(--shadow-soft-drop)]">
           <CardContent className="flex h-full flex-col p-4">
             {/* Header - Fixed height */}
             <div className="flex flex-shrink-0 items-center gap-3 border-b pb-3">
