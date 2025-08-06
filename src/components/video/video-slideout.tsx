@@ -10,13 +10,12 @@ import { cn } from "@/lib/utils";
 import VideoInspirationPlayerWrapper from "./video-inspiration-player";
 
 interface VideoSlideoutProps {
-  video?: any;
   isOpen: boolean;
   onClose: () => void;
   className?: string;
 }
 
-export function VideoSlideout({ video, isOpen, onClose, className }: VideoSlideoutProps) {
+export function VideoSlideout({ isOpen, onClose, className }: VideoSlideoutProps) {
   const slideoutRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

@@ -16,7 +16,6 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
-import { VideoSlideout } from "@/components/video/video-slideout";
 import { useAuth } from "@/contexts/auth-context";
 import { useVideoInsights } from "@/contexts/video-insights-context";
 import { RBACClientService } from "@/core/auth/rbac-client";
@@ -39,8 +38,6 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
   const { canWrite, canDelete } = useRBAC();
   const [movingVideo, setMovingVideo] = useState<Video | null>(null);
   const [deletingVideo, setDeletingVideo] = useState<Video | null>(null);
-  const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
-  const [isSlideoutOpen, setIsSlideoutOpen] = useState(false);
 
   const loadVideos = useCallback(async () => {
     if (!user?.uid) return;
@@ -69,15 +66,7 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
   }, [user?.uid, collectionId, loadVideos]);
 
   const handleVideoClick = (video: Video) => {
-    setSelectedVideo(video);
-    setIsSlideoutOpen(true);
-    // Also keep the original functionality
     openPanel(video);
-  };
-
-  const handleSlideoutClose = () => {
-    setIsSlideoutOpen(false);
-    setSelectedVideo(null);
   };
 
   const handleToggleFavorite = async (video: Video) => {
@@ -324,8 +313,6 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
           }
         }}
       />
-
-      {selectedVideo && <VideoSlideout video={selectedVideo} isOpen={isSlideoutOpen} onClose={handleSlideoutClose} />}
     </>
   );
 }
