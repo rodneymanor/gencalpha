@@ -26,6 +26,10 @@ class RateLimiter {
    * Wait for rate limit compliance before making a request
    */
   async waitForRateLimit(key: string, config?: Partial<RateLimitConfig>): Promise<void> {
+    // Normalize keys for Instagram to enforce a global limit across routes
+    if (key.startsWith("instagram-")) {
+      key = "instagram-global";
+    }
     const finalConfig = { ...this.defaultConfig, ...config };
     const now = Date.now();
 
