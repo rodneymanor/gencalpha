@@ -331,6 +331,52 @@ async function fetchCreatorVideos(
 }
 
 /**
+ * Parse Instagram DASH manifest to extract lowest quality video URL
+ */
+function extractLowestQualityFromDashManifest(manifest: string): string | null {
+  try {
+    console.log("🔍 [DASH_PARSER] Parsing DASH manifest for lowest quality video");
+
+    // Look for the 240p representation with FBQualityLabel="240p"
+    const regex240p = /<Representation[^>]*FBQualityLabel="240p"[^>]*>[\s\S]*?<BaseURL[^>]*>(.*?)<\/BaseURL>/i;
+    const match240p = manifest.match(regex240p);
+
+    if (match240p && match240p[1]) {
+      const videoUrl = match240p[1].trim();
+      console.log("✅ [DASH_PARSER] Found 240p video URL from DASH manifest");
+      return videoUrl;
+    }
+
+    // Fallback: Look for any representation with lowest bandwidth/resolution
+    const representationRegex = /<Representation[^>]*bandwidth="(\d+)"[^>]*>[\s\S]*?<BaseURL[^>]*>(.*?)<\/BaseURL>/gi;
+    const representations: { bandwidth: number; url: string }[] = [];
+
+    let match;
+    while ((match = representationRegex.exec(manifest)) !== null) {
+      const bandwidth = parseInt(match[1]);
+      const url = match[2].trim();
+      if (url && bandwidth) {
+        representations.push({ bandwidth, url });
+      }
+    }
+
+    if (representations.length > 0) {
+      // Sort by bandwidth (ascending) to get the lowest quality
+      representations.sort((a, b) => a.bandwidth - b.bandwidth);
+      const lowestQuality = representations[0];
+      console.log(`✅ [DASH_PARSER] Found lowest bandwidth video (${lowestQuality.bandwidth}) from DASH manifest`);
+      return lowestQuality.url;
+    }
+
+    console.log("⚠️ [DASH_PARSER] No video URLs found in DASH manifest");
+    return null;
+  } catch (error) {
+    console.error("❌ [DASH_PARSER] Error parsing DASH manifest:", error);
+    return null;
+  }
+}
+
+/**
  * Process videos with Bunny.net upload
  */
 
@@ -357,6 +403,8 @@ async function processVideosWithBunnyUpload(
         // Debug: Log the structure of the raw video data
         console.log(`🔍 [FOLLOW_CREATOR] Raw video structure:`, {
           hasMedia: !!rawVideo.media,
+          hasVideoDashManifest: !!rawVideo.media?.video_dash_manifest,
+          dashManifestLength: rawVideo.media?.video_dash_manifest?.length || 0,
           hasVideoVersions: !!rawVideo.media?.video_versions,
           videoVersionsCount: rawVideo.media?.video_versions?.length || 0,
           firstVideoUrl: rawVideo.media?.video_versions?.[0]?.url,
@@ -373,10 +421,31 @@ async function processVideosWithBunnyUpload(
         let thumbnailUrl: string;
 
         // Platform-specific data extraction
-        if (rawVideo.media?.video_versions?.[0]?.url || rawVideo.video_url || rawVideo.media_url) {
-          // Instagram format - use the correct API response structure
-          videoUrl = rawVideo.media?.video_versions?.[0]?.url || rawVideo.video_url || rawVideo.media_url;
+        if (
+          rawVideo.media?.video_dash_manifest ||
+          rawVideo.media?.video_versions?.[0]?.url ||
+          rawVideo.video_url ||
+          rawVideo.media_url
+        ) {
+          // Instagram format - prioritize DASH manifest for lowest quality, fallback to video_versions
+          let dashVideoUrl: string | null = null;
+
+          if (rawVideo.media?.video_dash_manifest) {
+            dashVideoUrl = extractLowestQualityFromDashManifest(rawVideo.media.video_dash_manifest);
+          }
+
+          videoUrl =
+            dashVideoUrl || rawVideo.media?.video_versions?.[0]?.url || rawVideo.video_url || rawVideo.media_url;
           thumbnailUrl = rawVideo.media?.image_versions2?.candidates?.[0]?.url || rawVideo.thumbnail_url || "";
+
+          // Log which video source was used
+          if (dashVideoUrl) {
+            console.log("🎯 [FOLLOW_CREATOR] Using DASH manifest video URL (lowest quality)");
+          } else if (rawVideo.media?.video_versions?.[0]?.url) {
+            console.log("🎯 [FOLLOW_CREATOR] Using video_versions[0] URL (fallback)");
+          } else {
+            console.log("🎯 [FOLLOW_CREATOR] Using legacy video URL properties (fallback)");
+          }
 
           videoData = {
             platform: "instagram" as const,
