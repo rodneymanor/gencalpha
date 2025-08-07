@@ -12,7 +12,7 @@ import { Play, UserPlus, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/auth-context";
-import { CreatorService, type CreatorVideo } from "@/lib/creator-service";
+import { creatorClientService, type CreatorVideo } from "@/lib/creator-client-service";
 
 // --- TYPE DEFINITIONS ---
 interface VideoData {
@@ -264,7 +264,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onVideoClick }) => {
             {video.isPinned && <PinnedBadge />}
             <VideoThumbnail
               thumbnail={video.thumbnail}
-              thumbnailAvif={video.thumbnailAvif}
+              thumbnailAvif={video.thumbnailAvif || video.thumbnail}
               altText={video.altText}
               videoSrc={video.videoSrc}
             />
@@ -302,7 +302,7 @@ const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({
 
     try {
       console.log("📹 Loading followed creators' videos");
-      const creatorVideos = await CreatorService.getFollowedCreatorsVideos(user.uid, 50);
+      const creatorVideos = await creatorClientService.getFollowedCreatorsVideos(user.uid, 50);
       const transformedVideos = creatorVideos.map(transformCreatorVideoToVideoData);
       setVideos(transformedVideos);
     } catch (error) {
