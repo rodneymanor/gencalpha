@@ -43,6 +43,7 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
   const [showIdeaInbox, setShowIdeaInbox] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [showListening, setShowListening] = useState(true);
   const { toggleChatbotPanel } = useResizableLayout();
 
   // Get persona data for display
@@ -57,8 +58,28 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
     return personas.find((p) => p.key === personaType);
   };
 
+  // Blinking animation for "listening" text
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isRecording) {
+      interval = setInterval(() => {
+        setShowListening((prev) => !prev);
+      }, 800); // Blink every 800ms
+    } else {
+      setShowListening(true);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isRecording]);
+
   // Get dynamic placeholder based on active mode
   const getDynamicPlaceholder = () => {
+    // Show blinking "listening" when recording
+    if (isRecording) {
+      return showListening ? "listening..." : "";
+    }
+
     if (showIdeaInbox) {
       return "Capture your ideas, thoughts, and inspiration here...";
     }
