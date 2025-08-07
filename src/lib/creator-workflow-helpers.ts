@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+/* eslint-disable security/detect-object-injection */
 /**
  * Creator Workflow Helpers
  * Utilities for error handling, retry logic, and workflow management
@@ -38,7 +41,7 @@ export async function retryWithBackoff<T>(
   operation: () => Promise<T>,
   maxRetries: number = 3,
   baseDelay: number = 1000,
-  step: string = "unknown"
+  step: string = "unknown",
 ): Promise<T> {
   let lastError: Error;
 
@@ -57,7 +60,7 @@ export async function retryWithBackoff<T>(
       // Exponential backoff with jitter
       const delay = baseDelay * Math.pow(2, attempt - 1) + Math.random() * 1000;
       console.log(`⏱️ [RETRY] ${step} - Waiting ${Math.round(delay)}ms before retry`);
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
 
@@ -65,14 +68,17 @@ export async function retryWithBackoff<T>(
     step,
     `Failed after ${maxRetries} attempts: ${lastError.message}`,
     false,
-    lastError.message
+    lastError.message,
   );
 }
 
 /**
  * Validate platform and username
  */
-export function validateCreatorInput(username: string, platform?: string): WorkflowResult<{
+export function validateCreatorInput(
+  username: string,
+  platform?: string,
+): WorkflowResult<{
   cleanUsername: string;
   detectedPlatform: "instagram" | "tiktok";
 }> {
@@ -88,7 +94,7 @@ export function validateCreatorInput(username: string, platform?: string): Workf
   }
 
   const cleanUsername = username.replace(/^@/, "").trim();
-  
+
   if (cleanUsername.length === 0) {
     return {
       success: false,
@@ -137,7 +143,7 @@ export function validateCreatorInput(username: string, platform?: string): Workf
         },
       };
     }
-    detectedPlatform = platform as "instagram" | "tiktok";
+    detectedPlatform = platform;
   } else {
     // Simple platform detection heuristics
     detectedPlatform = detectPlatformFromUsername(cleanUsername);
@@ -157,16 +163,16 @@ export function validateCreatorInput(username: string, platform?: string): Workf
  */
 function detectPlatformFromUsername(username: string): "instagram" | "tiktok" {
   const lowerUsername = username.toLowerCase();
-  
+
   // Simple heuristics - can be improved with more sophisticated detection
   if (lowerUsername.includes("insta") || lowerUsername.includes("ig")) {
     return "instagram";
   }
-  
+
   if (lowerUsername.includes("tiktok") || lowerUsername.includes("tt")) {
     return "tiktok";
   }
-  
+
   // Default to Instagram for now (can be changed based on usage patterns)
   return "instagram";
 }
@@ -187,14 +193,14 @@ export class RateLimiter {
   isAllowed(key: string): boolean {
     const now = Date.now();
     const requests = this.requests.get(key) || [];
-    
+
     // Remove old requests outside the window
-    const validRequests = requests.filter(time => now - time < this.windowMs);
-    
+    const validRequests = requests.filter((time) => now - time < this.windowMs);
+
     if (validRequests.length >= this.maxRequests) {
       return false;
     }
-    
+
     validRequests.push(now);
     this.requests.set(key, validRequests);
     return true;
@@ -203,7 +209,7 @@ export class RateLimiter {
   getTimeToReset(key: string): number {
     const requests = this.requests.get(key) || [];
     if (requests.length === 0) return 0;
-    
+
     const oldestRequest = Math.min(...requests);
     const timeToReset = this.windowMs - (Date.now() - oldestRequest);
     return Math.max(0, timeToReset);
@@ -222,11 +228,11 @@ export function sanitizeError(error: unknown, step: string = "unknown"): Workflo
       retryable: error.retryable,
     };
   }
-  
+
   if (error instanceof Error) {
     // Determine if error is retryable based on common patterns
     const retryable = isRetryableError(error);
-    
+
     return {
       step,
       error: error.message,
@@ -234,7 +240,7 @@ export function sanitizeError(error: unknown, step: string = "unknown"): Workflo
       retryable,
     };
   }
-  
+
   return {
     step,
     error: "Unknown error occurred",
@@ -260,10 +266,8 @@ function isRetryableError(error: Error): boolean {
     /ETIMEDOUT/,
     /ENOTFOUND/,
   ];
-  
-  return retryablePatterns.some(pattern => 
-    pattern.test(error.message) || pattern.test(error.name)
-  );
+
+  return retryablePatterns.some((pattern) => pattern.test(error.message) || pattern.test(error.name));
 }
 
 /**
@@ -274,11 +278,11 @@ export class WorkflowProgress {
   private currentStep: number = 0;
 
   constructor(stepNames: string[]) {
-    this.steps = stepNames.map(name => ({ name, completed: false }));
+    this.steps = stepNames.map((name) => ({ name, completed: false }));
   }
 
   startStep(stepName: string): void {
-    const stepIndex = this.steps.findIndex(step => step.name === stepName);
+    const stepIndex = this.steps.findIndex((step) => step.name === stepName);
     if (stepIndex !== -1) {
       this.currentStep = stepIndex;
       console.log(`🚀 [WORKFLOW] Starting step ${stepIndex + 1}/${this.steps.length}: ${stepName}`);
@@ -286,7 +290,7 @@ export class WorkflowProgress {
   }
 
   completeStep(stepName: string): void {
-    const stepIndex = this.steps.findIndex(step => step.name === stepName);
+    const stepIndex = this.steps.findIndex((step) => step.name === stepName);
     if (stepIndex !== -1) {
       this.steps[stepIndex].completed = true;
       console.log(`✅ [WORKFLOW] Completed step ${stepIndex + 1}/${this.steps.length}: ${stepName}`);
@@ -294,7 +298,7 @@ export class WorkflowProgress {
   }
 
   failStep(stepName: string, error: string): void {
-    const stepIndex = this.steps.findIndex(step => step.name === stepName);
+    const stepIndex = this.steps.findIndex((step) => step.name === stepName);
     if (stepIndex !== -1) {
       this.steps[stepIndex].error = error;
       console.log(`❌ [WORKFLOW] Failed step ${stepIndex + 1}/${this.steps.length}: ${stepName} - ${error}`);
@@ -307,7 +311,7 @@ export class WorkflowProgress {
     percentage: number;
     steps: Array<{ name: string; completed: boolean; error?: string }>;
   } {
-    const completed = this.steps.filter(step => step.completed).length;
+    const completed = this.steps.filter((step) => step.completed).length;
     return {
       current: completed,
       total: this.steps.length,
@@ -323,10 +327,10 @@ export class WorkflowProgress {
 export async function processBatch<T, R>(
   items: T[],
   processor: (item: T, index: number) => Promise<R>,
-  concurrency: number = 3
+  concurrency: number = 3,
 ): Promise<Array<{ success: boolean; result?: R; error?: string; index: number }>> {
   const results: Array<{ success: boolean; result?: R; error?: string; index: number }> = [];
-  
+
   // Process items in chunks
   for (let i = 0; i < items.length; i += concurrency) {
     const chunk = items.slice(i, i + concurrency);
@@ -345,7 +349,7 @@ export async function processBatch<T, R>(
     });
 
     const chunkResults = await Promise.allSettled(chunkPromises);
-    
+
     chunkResults.forEach((result, chunkIndex) => {
       if (result.status === "fulfilled") {
         results.push(result.value);

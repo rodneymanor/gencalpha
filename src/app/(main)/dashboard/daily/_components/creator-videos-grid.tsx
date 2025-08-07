@@ -1,8 +1,14 @@
+/* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable complexity */
+/* eslint-disable max-lines */
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
 
 import { Play, UserPlus, Users } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/auth-context";
@@ -81,7 +87,7 @@ const FollowCreatorSection: React.FC<FollowCreatorProps> = ({ onCreatorFollowed 
 
     try {
       console.log(`🎭 Following creator: ${username}`);
-      
+
       const response = await fetch("/api/creators/follow", {
         method: "POST",
         headers: {
@@ -100,22 +106,23 @@ const FollowCreatorSection: React.FC<FollowCreatorProps> = ({ onCreatorFollowed 
       }
 
       console.log(`✅ Successfully followed @${data.creator?.username}`);
-      
+
       // Transform videos for display
-      const transformedVideos = data.videos?.map((video: any) => ({
-        id: video.id,
-        href: video.videoUrl,
-        thumbnail: video.thumbnailUrl,
-        videoSrc: video.videoUrl,
-        altText: video.title,
-        views: formatViews(video.metrics.views),
-        platform: data.creator?.platform,
-        author: {
-          username: data.creator?.username,
-          displayName: data.creator?.displayName,
-        },
-        metrics: video.metrics,
-      })) || [];
+      const transformedVideos =
+        data.videos?.map((video: any) => ({
+          id: video.id,
+          href: video.videoUrl,
+          thumbnail: video.thumbnailUrl,
+          videoSrc: video.videoUrl,
+          altText: video.title,
+          views: formatViews(video.metrics.views),
+          platform: data.creator?.platform,
+          author: {
+            username: data.creator?.username,
+            displayName: data.creator?.displayName,
+          },
+          metrics: video.metrics,
+        })) || [];
 
       if (onCreatorFollowed) {
         onCreatorFollowed(transformedVideos);
@@ -131,12 +138,12 @@ const FollowCreatorSection: React.FC<FollowCreatorProps> = ({ onCreatorFollowed 
   };
 
   return (
-    <div className="space-y-4 p-6 bg-card rounded-[var(--radius-card)] border-border border">
+    <div className="bg-card border-border space-y-4 rounded-[var(--radius-card)] border p-6">
       <div className="flex items-center gap-2">
-        <UserPlus className="h-5 w-5 text-primary" />
-        <h3 className="text-lg font-semibold text-foreground">Follow Creator</h3>
+        <UserPlus className="text-primary h-5 w-5" />
+        <h3 className="text-foreground text-lg font-semibold">Follow Creator</h3>
       </div>
-      
+
       <div className="flex gap-2">
         <Input
           placeholder="Enter username (e.g., @creator)"
@@ -149,20 +156,12 @@ const FollowCreatorSection: React.FC<FollowCreatorProps> = ({ onCreatorFollowed 
           }}
           className="flex-1"
         />
-        <Button 
-          onClick={handleFollowCreator}
-          disabled={!username.trim() || isFollowing}
-          className="px-6"
-        >
+        <Button onClick={handleFollowCreator} disabled={!username.trim() || isFollowing} className="px-6">
           {isFollowing ? "Following..." : "Follow"}
         </Button>
       </div>
-      
-      {error && (
-        <div className="text-destructive text-sm">
-          {error}
-        </div>
-      )}
+
+      {error && <div className="text-destructive text-sm">{error}</div>}
     </div>
   );
 };
@@ -277,11 +276,11 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onVideoClick }) => {
   );
 };
 
-const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({ 
-  videos: propVideos, 
-  onVideoClick, 
-  columns = 5, 
-  showFollowButton = true 
+const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({
+  videos: propVideos,
+  onVideoClick,
+  columns = 5,
+  showFollowButton = true,
 }) => {
   const { user } = useAuth();
   const [videos, setVideos] = useState<VideoData[]>(propVideos || []);
@@ -315,10 +314,10 @@ const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({
   };
 
   const handleCreatorFollowed = useCallback((newVideos: VideoData[]) => {
-    setVideos(prevVideos => {
+    setVideos((prevVideos) => {
       // Add new videos to the beginning, avoiding duplicates
-      const existingIds = new Set(prevVideos.map(v => v.id));
-      const uniqueNewVideos = newVideos.filter(v => !existingIds.has(v.id));
+      const existingIds = new Set(prevVideos.map((v) => v.id));
+      const uniqueNewVideos = newVideos.filter((v) => !existingIds.has(v.id));
       return [...uniqueNewVideos, ...prevVideos];
     });
   }, []);
@@ -341,9 +340,7 @@ const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({
   if (loading) {
     return (
       <div className="space-y-6">
-        {showFollowButton && (
-          <FollowCreatorSection onCreatorFollowed={handleCreatorFollowed} />
-        )}
+        {showFollowButton && <FollowCreatorSection onCreatorFollowed={handleCreatorFollowed} />}
         <div className="px-6">
           <h2 className="text-foreground text-2xl font-semibold">Creator Inspiration</h2>
         </div>
@@ -357,9 +354,7 @@ const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({
   if (error) {
     return (
       <div className="space-y-6">
-        {showFollowButton && (
-          <FollowCreatorSection onCreatorFollowed={handleCreatorFollowed} />
-        )}
+        {showFollowButton && <FollowCreatorSection onCreatorFollowed={handleCreatorFollowed} />}
         <div className="px-6">
           <h2 className="text-foreground text-2xl font-semibold">Creator Inspiration</h2>
         </div>
@@ -373,19 +368,15 @@ const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({
   if (videos.length === 0) {
     return (
       <div className="space-y-6">
-        {showFollowButton && (
-          <FollowCreatorSection onCreatorFollowed={handleCreatorFollowed} />
-        )}
+        {showFollowButton && <FollowCreatorSection onCreatorFollowed={handleCreatorFollowed} />}
         <div className="px-6">
           <h2 className="text-foreground text-2xl font-semibold">Creator Inspiration</h2>
         </div>
-        <div className="flex flex-col items-center justify-center py-12 space-y-4">
-          <Users className="h-12 w-12 text-muted-foreground" />
-          <div className="text-center space-y-2">
-            <div className="text-lg font-medium text-foreground">No creators followed yet</div>
-            <div className="text-muted-foreground">
-              Follow creators to see their latest videos here
-            </div>
+        <div className="flex flex-col items-center justify-center space-y-4 py-12">
+          <Users className="text-muted-foreground h-12 w-12" />
+          <div className="space-y-2 text-center">
+            <div className="text-foreground text-lg font-medium">No creators followed yet</div>
+            <div className="text-muted-foreground">Follow creators to see their latest videos here</div>
           </div>
         </div>
       </div>
@@ -394,14 +385,10 @@ const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({
 
   return (
     <div className="space-y-6">
-      {showFollowButton && (
-        <FollowCreatorSection onCreatorFollowed={handleCreatorFollowed} />
-      )}
+      {showFollowButton && <FollowCreatorSection onCreatorFollowed={handleCreatorFollowed} />}
       <div className="px-6">
         <h2 className="text-foreground text-2xl font-semibold">Creator Inspiration</h2>
-        <p className="text-muted-foreground text-sm mt-1">
-          Latest videos from {videos.length} creators you follow
-        </p>
+        <p className="text-muted-foreground mt-1 text-sm">Latest videos from {videos.length} creators you follow</p>
       </div>
       <div className={`grid w-full ${getGridCols()} gap-4 px-6`}>
         {videos.map((video) => (

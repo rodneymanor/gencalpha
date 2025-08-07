@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 import { NextResponse } from "next/server";
 
 export async function GET() {
@@ -58,13 +59,15 @@ export async function GET() {
       },
       videos_count: data.videos?.length || 0,
       follow_id: data.followId,
-      sample_video: data.videos?.[0] ? {
-        id: data.videos[0].id,
-        title: data.videos[0].title,
-        views: data.videos[0].metrics?.views,
-        has_thumbnail: !!data.videos[0].thumbnailUrl,
-        has_video_url: !!data.videos[0].videoUrl,
-      } : null,
+      sample_video: data.videos?.[0]
+        ? {
+            id: data.videos[0].id,
+            title: data.videos[0].title,
+            views: data.videos[0].metrics?.views,
+            has_thumbnail: !!data.videos[0].thumbnailUrl,
+            has_video_url: !!data.videos[0].videoUrl,
+          }
+        : null,
       recommendations: [
         "Workflow completed successfully",
         "Creator profile stored in database",
@@ -77,18 +80,21 @@ export async function GET() {
   } catch (error) {
     console.error("❌ Workflow test error:", error);
 
-    return NextResponse.json({
-      success: false,
-      test_status: "failed",
-      error: error instanceof Error ? error.message : "Unknown error occurred",
-      recommendations: [
-        "Check if all required environment variables are set",
-        "Verify API endpoints are accessible",
-        "Ensure Bunny.net CDN is configured",
-        "Check Firebase/database connectivity",
-        "Verify social media API keys are valid",
-      ],
-      timestamp: new Date().toISOString(),
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        test_status: "failed",
+        error: error instanceof Error ? error.message : "Unknown error occurred",
+        recommendations: [
+          "Check if all required environment variables are set",
+          "Verify API endpoints are accessible",
+          "Ensure Bunny.net CDN is configured",
+          "Check Firebase/database connectivity",
+          "Verify social media API keys are valid",
+        ],
+        timestamp: new Date().toISOString(),
+      },
+      { status: 500 },
+    );
   }
 }

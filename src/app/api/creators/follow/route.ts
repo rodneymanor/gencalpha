@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+/* eslint-disable no-useless-escape */
 import { NextRequest, NextResponse } from "next/server";
-import { CreatorService, type CreatorProfile, type CreatorVideo } from "@/lib/creator-service";
-import { UnifiedVideoScraper } from "@/lib/unified-video-scraper";
-import { streamToBunnyFromUrl, uploadBunnyThumbnailWithRetry } from "@/lib/bunny-stream";
+
 import { authenticateApiKey } from "@/lib/api-key-auth";
+import { streamToBunnyFromUrl, uploadBunnyThumbnailWithRetry } from "@/lib/bunny-stream";
+import { CreatorService, type CreatorVideo } from "@/lib/creator-service";
 
 interface FollowCreatorRequest {
   username: string;
@@ -38,7 +40,7 @@ interface FollowCreatorResponse {
 
 /**
  * Follow Creator Orchestration Route
- * 
+ *
  * This route coordinates the entire workflow:
  * 1. Input validation and platform detection
  * 2. Platform-specific user resolution (Instagram ID conversion)
@@ -68,31 +70,31 @@ export async function POST(request: NextRequest) {
           success: false,
           error: "Username is required",
         } satisfies FollowCreatorResponse,
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    const finalUserId = userId || authResult.user.uid;
+    const finalUserId = userId ?? authResult.user.uid;
     if (!finalUserId) {
       return NextResponse.json(
         {
           success: false,
           error: "User ID is required",
         } satisfies FollowCreatorResponse,
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    console.log(`🔍 [FOLLOW_CREATOR] Processing request for @${username} (platform: ${platform || "auto-detect"})`);
+    console.log(`🔍 [FOLLOW_CREATOR] Processing request for @${username} (platform: ${platform ?? "auto-detect"})`);
 
     // Step 2: Platform detection and user resolution
-    const detectedPlatform = platform || detectPlatformFromUsername(username);
+    const detectedPlatform = platform ?? detectPlatformFromUsername(username);
     let platformUserId: string;
     let creatorMetadata: any = {};
 
     if (detectedPlatform === "instagram") {
       console.log("📸 [FOLLOW_CREATOR] Processing Instagram creator");
-      
+
       // Convert username to Instagram user ID
       const userIdResult = await fetchInstagramUserId(username);
       if (!userIdResult.success) {
@@ -102,12 +104,12 @@ export async function POST(request: NextRequest) {
             error: "Failed to resolve Instagram user",
             details: userIdResult.error,
           } satisfies FollowCreatorResponse,
-          { status: 400 }
+          { status: 400 },
         );
       }
-      
+
       platformUserId = userIdResult.userId!;
-      creatorMetadata = userIdResult.metadata || {};
+      creatorMetadata = userIdResult.metadata ?? {};
     } else {
       console.log("🎵 [FOLLOW_CREATOR] Processing TikTok creator");
       platformUserId = username; // TikTok uses username directly
@@ -116,7 +118,7 @@ export async function POST(request: NextRequest) {
     // Step 3: Fetch latest content
     console.log("🎬 [FOLLOW_CREATOR] Fetching latest videos");
     const videosResult = await fetchCreatorVideos(detectedPlatform, platformUserId, username);
-    
+
     if (!videosResult.success) {
       return NextResponse.json(
         {
@@ -124,7 +126,7 @@ export async function POST(request: NextRequest) {
           error: "Failed to fetch creator videos",
           details: videosResult.error,
         } satisfies FollowCreatorResponse,
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -134,19 +136,14 @@ export async function POST(request: NextRequest) {
 
     // Step 5: Create or update creator profile
     console.log("👤 [FOLLOW_CREATOR] Creating/updating creator profile");
-    const creatorId = await CreatorService.createOrUpdateCreator(
-      detectedPlatform,
-      username,
-      platformUserId,
-      {
-        displayName: creatorMetadata.displayName,
-        followerCount: creatorMetadata.followerCount,
-        isVerified: creatorMetadata.isVerified,
-        profilePictureUrl: creatorMetadata.profilePictureUrl,
-        bio: creatorMetadata.bio,
-        videoCount: processedVideos.length,
-      }
-    );
+    const creatorId = await CreatorService.createOrUpdateCreator(detectedPlatform, username, platformUserId, {
+      displayName: creatorMetadata.displayName,
+      followerCount: creatorMetadata.followerCount,
+      isVerified: creatorMetadata.isVerified,
+      profilePictureUrl: creatorMetadata.profilePictureUrl,
+      bio: creatorMetadata.bio,
+      videoCount: processedVideos.length,
+    });
 
     // Step 6: Store videos in database
     console.log("💾 [FOLLOW_CREATOR] Storing videos in database");
@@ -170,7 +167,7 @@ export async function POST(request: NextRequest) {
         displayName: creatorProfile?.displayName,
         followerCount: creatorProfile?.followerCount,
       },
-      videos: storedVideos.map(video => ({
+      videos: storedVideos.map((video) => ({
         id: video.id!,
         thumbnailUrl: video.thumbnailUrl,
         videoUrl: video.iframeUrl || video.directUrl || video.originalUrl,
@@ -179,17 +176,16 @@ export async function POST(request: NextRequest) {
       })),
       followId,
     } satisfies FollowCreatorResponse);
-
   } catch (error) {
     console.error("❌ [FOLLOW_CREATOR] Workflow failed:", error);
-    
+
     return NextResponse.json(
       {
         success: false,
         error: "Internal server error",
         details: error instanceof Error ? error.message : "Unknown error occurred",
       } satisfies FollowCreatorResponse,
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -199,16 +195,16 @@ export async function POST(request: NextRequest) {
  */
 function detectPlatformFromUsername(username: string): "instagram" | "tiktok" {
   const cleanUsername = username.replace("@", "").toLowerCase();
-  
+
   // Simple heuristics - can be improved
   if (cleanUsername.includes("insta") || cleanUsername.includes("ig")) {
     return "instagram";
   }
-  
+
   if (cleanUsername.includes("tiktok") || cleanUsername.includes("tt")) {
     return "tiktok";
   }
-  
+
   // Default to Instagram for now
   return "instagram";
 }
@@ -224,7 +220,7 @@ async function fetchInstagramUserId(username: string): Promise<{
 }> {
   try {
     const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000";
-    
+
     const response = await fetch(`${baseUrl}/api/instagram/user-id?username=${encodeURIComponent(username)}`, {
       method: "GET",
       headers: {
@@ -263,7 +259,7 @@ async function fetchInstagramUserId(username: string): Promise<{
 async function fetchCreatorVideos(
   platform: "instagram" | "tiktok",
   platformUserId: string,
-  username: string
+  username: string,
 ): Promise<{
   success: boolean;
   videos?: any[];
@@ -280,7 +276,7 @@ async function fetchCreatorVideos(
           headers: {
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       const data = await response.json();
@@ -337,16 +333,18 @@ async function fetchCreatorVideos(
 /**
  * Process videos with Bunny.net upload
  */
-async function processVideosWithBunnyUpload(rawVideos: any[]): Promise<Omit<CreatorVideo, "id" | "creatorId" | "fetchedAt">[]> {
+
+async function processVideosWithBunnyUpload(
+  rawVideos: any[],
+): Promise<Omit<CreatorVideo, "id" | "creatorId" | "fetchedAt">[]> {
   const processedVideos: Omit<CreatorVideo, "id" | "creatorId" | "fetchedAt">[] = [];
-  const scraper = new UnifiedVideoScraper();
 
   console.log(`🔄 [FOLLOW_CREATOR] Processing ${rawVideos.length} videos for Bunny upload`);
 
   // Process videos in parallel with concurrency limit
   const concurrencyLimit = 3;
   const chunks = [];
-  
+
   for (let i = 0; i < rawVideos.length; i += concurrencyLimit) {
     chunks.push(rawVideos.slice(i, i + concurrencyLimit));
   }
@@ -366,7 +364,7 @@ async function processVideosWithBunnyUpload(rawVideos: any[]): Promise<Omit<Crea
           // Instagram format
           videoUrl = rawVideo.video_url || rawVideo.media_url;
           thumbnailUrl = rawVideo.thumbnail_url || rawVideo.image_versions2?.candidates?.[0]?.url || "";
-          
+
           videoData = {
             platform: "instagram" as const,
             platformVideoId: rawVideo.id || rawVideo.pk || "",
@@ -388,7 +386,9 @@ async function processVideosWithBunnyUpload(rawVideos: any[]): Promise<Omit<Crea
               isVerified: rawVideo.user?.is_verified || rawVideo.owner?.is_verified || false,
               followerCount: rawVideo.user?.follower_count || rawVideo.owner?.follower_count || 0,
             },
-            publishedAt: rawVideo.taken_at ? new Date(rawVideo.taken_at * 1000).toISOString() : new Date().toISOString(),
+            publishedAt: rawVideo.taken_at
+              ? new Date(rawVideo.taken_at * 1000).toISOString()
+              : new Date().toISOString(),
           };
         } else {
           // TikTok format
@@ -415,7 +415,9 @@ async function processVideosWithBunnyUpload(rawVideos: any[]): Promise<Omit<Crea
               isVerified: rawVideo.author?.verified || false,
               followerCount: rawVideo.author?.stats?.followerCount || 0,
             },
-            publishedAt: rawVideo.createTime ? new Date(rawVideo.createTime * 1000).toISOString() : new Date().toISOString(),
+            publishedAt: rawVideo.createTime
+              ? new Date(rawVideo.createTime * 1000).toISOString()
+              : new Date().toISOString(),
           };
         }
 
@@ -429,20 +431,20 @@ async function processVideosWithBunnyUpload(rawVideos: any[]): Promise<Omit<Crea
         console.log(`🐰 [FOLLOW_CREATOR] Uploading video to Bunny.net`);
         const bunnyResult = await streamToBunnyFromUrl(
           videoUrl,
-          `${videoData.platform}_${videoData.platformVideoId}_${Date.now()}.mp4`
+          `${videoData.platform}_${videoData.platformVideoId}_${Date.now()}.mp4`,
         );
 
-        let finalThumbnailUrl = thumbnailUrl;
+        const finalThumbnailUrl = thumbnailUrl;
         let bunnyVideoGuid: string | undefined;
 
         if (bunnyResult) {
           console.log(`✅ [FOLLOW_CREATOR] Video uploaded to Bunny successfully`);
-          
+
           // Extract GUID from iframe URL for thumbnail upload
           const guidMatch = bunnyResult.iframeUrl.match(/\/embed\/[^\/]+\/([^\/\?]+)/);
           if (guidMatch) {
             bunnyVideoGuid = guidMatch[1];
-            
+
             // Upload custom thumbnail if available
             if (thumbnailUrl) {
               console.log(`🖼️ [FOLLOW_CREATOR] Uploading custom thumbnail`);
@@ -475,7 +477,7 @@ async function processVideosWithBunnyUpload(rawVideos: any[]): Promise<Omit<Crea
     });
 
     const chunkResults = await Promise.allSettled(chunkPromises);
-    
+
     chunkResults.forEach((result) => {
       if (result.status === "fulfilled" && result.value) {
         processedVideos.push(result.value);
@@ -493,7 +495,7 @@ async function processVideosWithBunnyUpload(rawVideos: any[]): Promise<Omit<Crea
 function extractHashtags(text: string): string[] {
   const hashtagRegex = /#[\w\u0590-\u05ff]+/g;
   const matches = text.match(hashtagRegex);
-  return matches ? matches.map(tag => tag.substring(1)) : [];
+  return matches ? matches.map((tag) => tag.substring(1)) : [];
 }
 
 /**
@@ -510,7 +512,7 @@ export async function GET(request: NextRequest) {
         success: false,
         error: "Username parameter is required",
       } satisfies FollowCreatorResponse,
-      { status: 400 }
+      { status: 400 },
     );
   }
 

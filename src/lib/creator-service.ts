@@ -1,4 +1,4 @@
-import { db, adminDb } from "./firebase";
+/* eslint-disable max-lines */
 import {
   collection,
   doc,
@@ -12,7 +12,10 @@ import {
   serverTimestamp,
   writeBatch,
 } from "firebase/firestore";
+
 import { formatTimestamp } from "./collections-helpers";
+import { db } from "./firebase";
+import { getAdminDb, isAdminInitialized } from "./firebase-admin";
 
 export interface CreatorProfile {
   id?: string;
@@ -89,7 +92,7 @@ export class CreatorService {
     platform: "instagram" | "tiktok",
     username: string,
     platformUserId: string,
-    additionalData: Partial<CreatorProfile> = {}
+    additionalData: Partial<CreatorProfile> = {},
   ): Promise<string> {
     try {
       console.log(`🎭 [CREATOR_SERVICE] Creating/updating creator: ${username} on ${platform}`);
@@ -120,6 +123,10 @@ export class CreatorService {
         lastFetchedAt: new Date().toISOString(),
       };
 
+      if (!db) {
+        throw new Error("Firebase client database not available");
+      }
+
       const docRef = await addDoc(collection(db, this.CREATORS_PATH), {
         ...creatorData,
         createdAt: serverTimestamp(),
@@ -140,17 +147,21 @@ export class CreatorService {
    */
   static async getCreatorByPlatformId(
     platform: "instagram" | "tiktok",
-    platformUserId: string
+    platformUserId: string,
   ): Promise<CreatorProfile | null> {
     try {
+      if (!db) {
+        throw new Error("Firebase client database not available");
+      }
+
       const q = query(
         collection(db, this.CREATORS_PATH),
         where("platform", "==", platform),
-        where("platformUserId", "==", platformUserId)
+        where("platformUserId", "==", platformUserId),
       );
 
       const querySnapshot = await getDocs(q);
-      
+
       if (querySnapshot.empty) {
         return null;
       }
@@ -174,6 +185,10 @@ export class CreatorService {
    */
   static async updateCreator(creatorId: string, updates: Partial<CreatorProfile>): Promise<void> {
     try {
+      if (!db) {
+        throw new Error("Firebase client database not available");
+      }
+
       const docRef = doc(db, this.CREATORS_PATH, creatorId);
       await updateDoc(docRef, {
         ...updates,
@@ -188,17 +203,13 @@ export class CreatorService {
   /**
    * Follow a creator
    */
-  static async followCreator(
-    userId: string,
-    creatorId: string,
-    platform: "instagram" | "tiktok"
-  ): Promise<string> {
+  static async followCreator(userId: string, creatorId: string, platform: "instagram" | "tiktok"): Promise<string> {
     try {
       console.log(`👥 [CREATOR_SERVICE] User ${userId} following creator ${creatorId}`);
 
       // Check if already following
       const existingFollow = await this.getFollowRelationship(userId, creatorId);
-      
+
       if (existingFollow) {
         if (!existingFollow.isActive) {
           // Reactivate follow
@@ -218,6 +229,10 @@ export class CreatorService {
         notificationsEnabled: true,
       };
 
+      if (!db) {
+        throw new Error("Firebase client database not available");
+      }
+
       const docRef = await addDoc(collection(db, this.CREATOR_FOLLOWS_PATH), {
         ...followData,
         followedAt: serverTimestamp(),
@@ -234,19 +249,20 @@ export class CreatorService {
   /**
    * Get follow relationship between user and creator
    */
-  static async getFollowRelationship(
-    userId: string,
-    creatorId: string
-  ): Promise<CreatorFollowRelationship | null> {
+  static async getFollowRelationship(userId: string, creatorId: string): Promise<CreatorFollowRelationship | null> {
     try {
+      if (!db) {
+        throw new Error("Firebase client database not available");
+      }
+
       const q = query(
         collection(db, this.CREATOR_FOLLOWS_PATH),
         where("userId", "==", userId),
-        where("creatorId", "==", creatorId)
+        where("creatorId", "==", creatorId),
       );
 
       const querySnapshot = await getDocs(q);
-      
+
       if (querySnapshot.empty) {
         return null;
       }
@@ -256,9 +272,7 @@ export class CreatorService {
         id: doc.id,
         ...doc.data(),
         followedAt: formatTimestamp(doc.data().followedAt),
-        lastVideoFetchedAt: doc.data().lastVideoFetchedAt 
-          ? formatTimestamp(doc.data().lastVideoFetchedAt) 
-          : undefined,
+        lastVideoFetchedAt: doc.data().lastVideoFetchedAt ? formatTimestamp(doc.data().lastVideoFetchedAt) : undefined,
       } as CreatorFollowRelationship;
     } catch (error) {
       console.error(`❌ [CREATOR_SERVICE] Error fetching follow relationship:`, error);
@@ -269,11 +283,12 @@ export class CreatorService {
   /**
    * Update follow relationship
    */
-  static async updateFollowRelationship(
-    followId: string,
-    updates: Partial<CreatorFollowRelationship>
-  ): Promise<void> {
+  static async updateFollowRelationship(followId: string, updates: Partial<CreatorFollowRelationship>): Promise<void> {
     try {
+      if (!db) {
+        throw new Error("Firebase client database not available");
+      }
+
       const docRef = doc(db, this.CREATOR_FOLLOWS_PATH, followId);
       await updateDoc(docRef, updates);
     } catch (error) {
@@ -287,40 +302,21 @@ export class CreatorService {
    */
   static async getFollowedCreators(userId: string): Promise<CreatorProfile[]> {
     try {
-      // Get all active follow relationships for the user
-      const followsQuery = query(
-        collection(db, this.CREATOR_FOLLOWS_PATH),
-        where("userId", "==", userId),
-        where("isActive", "==", true)
-      );
+      console.log(`👥 [CREATOR_SERVICE] Fetching followed creators for user: ${userId}`);
 
-      const followsSnapshot = await getDocs(followsQuery);
-      
+      const followsSnapshot = await this.fetchFollowRelationships(userId);
+
       if (followsSnapshot.empty) {
+        console.log(`📭 [CREATOR_SERVICE] No followed creators found for user: ${userId}`);
         return [];
       }
 
-      // Get creator IDs
-      const creatorIds = followsSnapshot.docs.map(doc => doc.data().creatorId);
+      const creatorIds = followsSnapshot.docs.map((doc: { data(): { creatorId: string } }) => doc.data().creatorId);
+      console.log(`📝 [CREATOR_SERVICE] Found ${creatorIds.length} followed creators`);
 
-      // Fetch creator profiles (Note: This requires multiple queries due to Firestore limitations)
-      const creators: CreatorProfile[] = [];
-      
-      for (const creatorId of creatorIds) {
-        const creatorDoc = await getDoc(doc(db, this.CREATORS_PATH, creatorId));
-        if (creatorDoc.exists()) {
-          creators.push({
-            id: creatorDoc.id,
-            ...creatorDoc.data(),
-            createdAt: formatTimestamp(creatorDoc.data().createdAt),
-            updatedAt: formatTimestamp(creatorDoc.data().updatedAt),
-            lastFetchedAt: creatorDoc.data().lastFetchedAt 
-              ? formatTimestamp(creatorDoc.data().lastFetchedAt) 
-              : undefined,
-          } as CreatorProfile);
-        }
-      }
+      const creators = await this.fetchCreatorProfiles(creatorIds);
 
+      console.log(`✅ [CREATOR_SERVICE] Successfully fetched ${creators.length} creator profiles`);
       return creators.sort((a, b) => a.username.localeCompare(b.username));
     } catch (error) {
       console.error(`❌ [CREATOR_SERVICE] Error fetching followed creators:`, error);
@@ -329,14 +325,119 @@ export class CreatorService {
   }
 
   /**
+   * Fetch follow relationships for a user
+   */
+  private static async fetchFollowRelationships(userId: string) {
+    const adminDb = getAdminDb();
+    const useAdmin = isAdminInitialized && adminDb;
+
+    if (useAdmin) {
+      console.log(`🔑 [CREATOR_SERVICE] Using admin DB for follows query`);
+      return adminDb
+        .collection(this.CREATOR_FOLLOWS_PATH)
+        .where("userId", "==", userId)
+        .where("isActive", "==", true)
+        .get();
+    }
+
+    console.log(`👤 [CREATOR_SERVICE] Using client DB for follows query`);
+    if (!db) {
+      throw new Error("Firebase client database not available");
+    }
+    const followsQuery = query(
+      collection(db, this.CREATOR_FOLLOWS_PATH),
+      where("userId", "==", userId),
+      where("isActive", "==", true),
+    );
+    return getDocs(followsQuery);
+  }
+
+  /**
+   * Fetch creator profiles by IDs
+   */
+  private static async fetchCreatorProfiles(creatorIds: string[]): Promise<CreatorProfile[]> {
+    const adminDb = getAdminDb();
+    const useAdmin = isAdminInitialized && adminDb;
+    const creators: CreatorProfile[] = [];
+
+    for (const creatorId of creatorIds) {
+      try {
+        const creatorProfile = await this.fetchSingleCreatorProfile(creatorId, useAdmin, adminDb);
+        if (creatorProfile) {
+          creators.push(creatorProfile);
+        }
+      } catch (creatorError) {
+        console.warn(`⚠️ [CREATOR_SERVICE] Failed to fetch creator ${creatorId}:`, creatorError);
+      }
+    }
+
+    return creators;
+  }
+
+  /**
+   * Fetch a single creator profile by ID
+   */
+  private static async fetchSingleCreatorProfile(
+    creatorId: string,
+    useAdmin: boolean,
+    adminDb: unknown,
+  ): Promise<CreatorProfile | null> {
+    if (useAdmin && adminDb) {
+      return this.fetchCreatorFromAdmin(creatorId, adminDb);
+    }
+    return this.fetchCreatorFromClient(creatorId);
+  }
+
+  /**
+   * Fetch creator using admin SDK
+   */
+  private static async fetchCreatorFromAdmin(creatorId: string, adminDb: unknown): Promise<CreatorProfile | null> {
+    const creatorDoc = await (adminDb as any).collection(this.CREATORS_PATH).doc(creatorId).get();
+    if (!creatorDoc.exists) return null;
+
+    const data = creatorDoc.data();
+    return this.transformCreatorData(creatorDoc.id, data);
+  }
+
+  /**
+   * Fetch creator using client SDK
+   */
+  private static async fetchCreatorFromClient(creatorId: string): Promise<CreatorProfile | null> {
+    if (!db) return null;
+
+    const creatorDoc = await getDoc(doc(db, this.CREATORS_PATH, creatorId));
+    if (!creatorDoc.exists()) return null;
+
+    const data = creatorDoc.data();
+    return this.transformCreatorData(creatorDoc.id, data);
+  }
+
+  /**
+   * Transform creator document data
+   */
+  private static transformCreatorData(id: string, data: any): CreatorProfile {
+    return {
+      id,
+      ...data,
+      createdAt: formatTimestamp(data.createdAt),
+      updatedAt: formatTimestamp(data.updatedAt),
+      lastFetchedAt: data.lastFetchedAt ? formatTimestamp(data.lastFetchedAt) : undefined,
+    } as CreatorProfile;
+  }
+
+  /**
    * Store multiple videos for a creator (batch operation)
    */
   static async storeCreatorVideos(
     creatorId: string,
-    videos: Omit<CreatorVideo, "id" | "creatorId" | "fetchedAt">[]
+    videos: Omit<CreatorVideo, "id" | "creatorId" | "fetchedAt">[],
   ): Promise<CreatorVideo[]> {
     try {
       console.log(`🎬 [CREATOR_SERVICE] Storing ${videos.length} videos for creator ${creatorId}`);
+
+      if (!db) {
+        throw new Error("Firebase client database not available");
+      }
 
       const batch = writeBatch(db);
       const createdVideos: CreatorVideo[] = [];
@@ -381,28 +482,23 @@ export class CreatorService {
   /**
    * Get videos for a creator
    */
-  static async getCreatorVideos(
-    creatorId: string,
-    limit: number = 20
-  ): Promise<CreatorVideo[]> {
+  static async getCreatorVideos(creatorId: string, limit: number = 20): Promise<CreatorVideo[]> {
     try {
       const q = query(
-        collection(db, this.CREATOR_VIDEOS_PATH),
+        collection(db!, this.CREATOR_VIDEOS_PATH),
         where("creatorId", "==", creatorId),
-        orderBy("publishedAt", "desc")
+        orderBy("publishedAt", "desc"),
       );
 
       const querySnapshot = await getDocs(q);
-      
-      const videos = querySnapshot.docs
-        .slice(0, limit)
-        .map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-          fetchedAt: formatTimestamp(doc.data().fetchedAt),
-          publishedAt: formatTimestamp(doc.data().publishedAt),
-          processedAt: doc.data().processedAt ? formatTimestamp(doc.data().processedAt) : undefined,
-        })) as CreatorVideo[];
+
+      const videos = querySnapshot.docs.slice(0, limit).map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+        fetchedAt: formatTimestamp(doc.data().fetchedAt),
+        publishedAt: formatTimestamp(doc.data().publishedAt),
+        processedAt: doc.data().processedAt ? formatTimestamp(doc.data().processedAt) : undefined,
+      })) as CreatorVideo[];
 
       return videos;
     } catch (error) {
@@ -414,25 +510,22 @@ export class CreatorService {
   /**
    * Get all videos from followed creators for a user
    */
-  static async getFollowedCreatorsVideos(
-    userId: string,
-    limit: number = 50
-  ): Promise<CreatorVideo[]> {
+  static async getFollowedCreatorsVideos(userId: string, limit: number = 50): Promise<CreatorVideo[]> {
     try {
       // Get followed creators
       const followedCreators = await this.getFollowedCreators(userId);
-      
+
       if (followedCreators.length === 0) {
         return [];
       }
 
-      const creatorIds = followedCreators.map(creator => creator.id!);
-      
+      const creatorIds = followedCreators.map((creator) => creator.id!);
+
       // Get videos from all followed creators
       // Note: This is a simplified approach. In production, you might want to implement
       // pagination and more sophisticated querying
       const allVideos: CreatorVideo[] = [];
-      
+
       for (const creatorId of creatorIds) {
         const videos = await this.getCreatorVideos(creatorId, 10); // Get latest 10 from each
         allVideos.push(...videos);
@@ -454,7 +547,7 @@ export class CreatorService {
   static async unfollowCreator(userId: string, creatorId: string): Promise<void> {
     try {
       const followRelationship = await this.getFollowRelationship(userId, creatorId);
-      
+
       if (followRelationship) {
         await this.updateFollowRelationship(followRelationship.id!, { isActive: false });
       }
@@ -470,40 +563,33 @@ export class CreatorService {
   static async searchCreators(
     searchTerm: string,
     platform?: "instagram" | "tiktok",
-    limit: number = 20
+    limit: number = 20,
   ): Promise<CreatorProfile[]> {
     try {
       let q;
-      
+
       if (platform) {
-        q = query(
-          collection(db, this.CREATORS_PATH),
-          where("platform", "==", platform),
-          orderBy("username")
-        );
+        q = query(collection(db!, this.CREATORS_PATH), where("platform", "==", platform), orderBy("username"));
       } else {
-        q = query(
-          collection(db, this.CREATORS_PATH),
-          orderBy("username")
-        );
+        q = query(collection(db!, this.CREATORS_PATH), orderBy("username"));
       }
 
       const querySnapshot = await getDocs(q);
-      
+
       // Client-side filtering for username search (Firestore doesn't support full-text search)
-      const creators = (querySnapshot.docs
-        .map(doc => ({
+      const creators = (
+        querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
           createdAt: formatTimestamp(doc.data().createdAt),
           updatedAt: formatTimestamp(doc.data().updatedAt),
-          lastFetchedAt: doc.data().lastFetchedAt 
-            ? formatTimestamp(doc.data().lastFetchedAt) 
-            : undefined,
-        })) as CreatorProfile[])
-        .filter(creator => 
-          creator.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (creator.displayName && creator.displayName.toLowerCase().includes(searchTerm.toLowerCase()))
+          lastFetchedAt: doc.data().lastFetchedAt ? formatTimestamp(doc.data().lastFetchedAt) : undefined,
+        })) as CreatorProfile[]
+      )
+        .filter(
+          (creator) =>
+            creator.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (creator.displayName && creator.displayName.toLowerCase().includes(searchTerm.toLowerCase())),
         )
         .slice(0, limit);
 

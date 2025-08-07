@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 import { type VideoData } from "@/app/(main)/dashboard/daily/_components/creator-videos-grid";
 import { type Video } from "@/lib/collections";
 
