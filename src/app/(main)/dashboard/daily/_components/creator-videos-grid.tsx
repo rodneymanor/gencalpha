@@ -1,157 +1,201 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 
-import { Eye, BarChart3, RotateCcw, Play } from "lucide-react";
+import { Play } from "lucide-react";
 
-// --- MOCK DATA & TYPES ---
+// --- TYPE DEFINITIONS ---
 interface VideoData {
   id: number;
-  thumbnailUrl: string;
-  videoUrl: string;
+  href: string;
+  thumbnail: string;
+  thumbnailAvif: string;
+  videoSrc?: string;
+  altText: string;
   views: string;
+  isPinned?: boolean;
 }
 
-const videoData: VideoData[] = [
+interface CreatorVideosGridProps {
+  videos: VideoData[];
+  onVideoClick?: (video: VideoData) => void;
+  columns?: number;
+}
+
+// --- MOCK DATA ---
+const mockVideoData: VideoData[] = [
   {
     id: 1,
-    thumbnailUrl: "https://placehold.co/200x355/DBE8FF/337BFF?text=Video+1",
-    videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
-    views: "25.1K",
+    href: "https://www.tiktok.com/@adamstewartmarketing/video/7228550733853969671",
+    thumbnail:
+      "https://p19-common-sign-sg.tiktokcdn-us.com/tos-alisg-p-0037/853479528e4a4ebc98f904122d16dd7d_1683028129~tplv-tiktokx-dmt-logom:tos-alisg-i-0068/00c1e09c6a1946cabd07625ccfda684e.image?dr=9634&x-expires=1754733600&x-signature=nSLBArQ2ktS62mVoRv9w1PMmx4Y%3D&t=4d5b0474&ps=13740610&shp=81f88b70&shcp=43f4a2f9&idc=useast5",
+    thumbnailAvif:
+      "https://p16-common-sign-sg.tiktokcdn-us.com/tos-alisg-p-0037/853479528e4a4ebc98f904122d16dd7d_1683028129~tplv-photomode-zoomcover:720:720.avif?dr=9616&x-expires=1754733600&x-signature=YGgmyiwBpzZ6lCh6dVuIqqKPC%2Fc%3D&t=4d5b0474&ps=13740610&shp=81f88b70&shcp=43f4a2f9&idc=useast5&ftpl=1",
+    altText: "AutoGPT saving money",
+    views: "5.1M",
+    isPinned: true,
   },
   {
     id: 2,
-    thumbnailUrl: "https://placehold.co/200x355/E9F0FF/337BFF?text=Video+2",
-    videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
-    views: "27.7K",
+    href: "https://www.tiktok.com/@adamstewartmarketing/video/7399563772538457351",
+    thumbnail:
+      "https://p16-common-sign-sg.tiktokcdn-us.com/tos-alisg-p-0037/81b08648f3e24aa2a8f2ce64e3524e78_1722845203~tplv-tiktokx-origin.image?dr=9636&x-expires=1754733600&x-signature=dK9aWjtk0ADODzJs0UTtCFbz9h8%3D&t=4d5b0474&ps=13740610&shp=81f88b70&shcp=43f4a2f9&idc=useast5",
+    thumbnailAvif:
+      "https://p19-common-sign-sg.tiktokcdn-us.com/tos-alisg-p-0037/81b08648f3e24aa2a8f2ce64e3524e78_1722845203~tplv-photomode-zoomcover:720:720.avif?dr=9616&x-expires=1754733600&x-signature=VlCO%2FHpKxS3x3ruVPTRbQI%2Fzc2E%3D&t=4d5b0474&ps=13740610&shp=81f88b70&shcp=43f4a2f9&idc=useast5&ftpl=1",
+    videoSrc: "blob:https://www.tiktok.com/7ff73d20-f143-4f61-a5d7-14677f0801af",
+    altText: "ChatGPT advanced voice acting as a pilot",
+    views: "3.1M",
+    isPinned: true,
   },
   {
     id: 3,
-    thumbnailUrl: "https://placehold.co/200x355/DBE8FF/337BFF?text=Video+3",
-    videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
-    views: "22.2K",
-  },
-  {
-    id: 4,
-    thumbnailUrl: "https://placehold.co/200x355/E9F0FF/337BFF?text=Video+4",
-    videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
-    views: "190.6K",
-  },
-  {
-    id: 5,
-    thumbnailUrl: "https://placehold.co/200x355/DBE8FF/337BFF?text=Video+5",
-    videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
-    views: "416.0K",
-  },
-  {
-    id: 6,
-    thumbnailUrl: "https://placehold.co/200x355/E9F0FF/337BFF?text=Video+6",
-    videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
-    views: "32.6K",
-  },
-  {
-    id: 7,
-    thumbnailUrl: "https://placehold.co/200x355/DBE8FF/337BFF?text=Video+7",
-    videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
-    views: "85.1K",
-  },
-  {
-    id: 8,
-    thumbnailUrl: "https://placehold.co/200x355/E9F0FF/337BFF?text=Video+8",
-    videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
-    views: "12.9K",
+    href: "https://www.tiktok.com/@adamstewartmarketing/video/7276440256579226898",
+    thumbnail:
+      "https://p16-common-sign-sg.tiktokcdn-us.com/tos-alisg-p-0037/3ebf4f233d884186b724739345d990cb_1694178276~tplv-tiktokx-dmt-logom:tos-alisg-i-0068/oMv7vpgftAE8d3DsAzRkl9CTGhBQfEAC8YAIXD.image?dr=9634&x-expires=1754733600&x-signature=TNPZ0iRElh7gcGu8GUR8dCatk9E%3D&t=4d5b0474&ps=13740610&shp=81f88b70&shcp=43f4a2f9&idc=useast5",
+    thumbnailAvif:
+      "https://p16-common-sign-sg.tiktokcdn-us.com/tos-alisg-p-0037/3ebf4f233d884186b724739345d990cb_1694178276~tplv-photomode-zoomcover:720:720.avif?dr=9616&x-expires=1754733600&x-signature=Gs41S5pvzO1K9TiSAvhH5w2Lp9A%3D&t=4d5b0474&ps=13740610&shp=81f88b70&shcp=43f4a2f9&idc=useast5&ftpl=1",
+    altText: "Creating videos from simple prompts",
+    views: "1.7M",
+    isPinned: true,
   },
 ];
 
-// --- REUSABLE SUB-COMPONENTS ---
-interface VideoCardProps {
-  video: VideoData;
+// --- REUSABLE COMPONENTS ---
+
+const PinnedBadge: React.FC = () => (
+  <div className="absolute top-2 left-2 z-10">
+    <div className="bg-destructive text-destructive-foreground flex items-center gap-2 rounded-[var(--radius-button)] px-2 py-1 text-xs font-medium">
+      Pinned
+    </div>
+  </div>
+);
+
+interface VideoThumbnailProps {
+  thumbnail: string;
+  thumbnailAvif: string;
+  altText: string;
+  videoSrc?: string;
 }
 
-const VideoCard: React.FC<VideoCardProps> = ({ video }) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const videoRef = React.useRef<HTMLVideoElement>(null);
+const VideoThumbnail: React.FC<VideoThumbnailProps> = ({ thumbnail, thumbnailAvif, altText, videoSrc }) => (
+  <div className="absolute inset-0 overflow-hidden rounded-[var(--radius-card)]">
+    <div className="bg-muted relative h-full w-full overflow-hidden bg-cover bg-center">
+      <div className="relative h-full w-full">
+        <picture>
+          <source type="image/avif" srcSet={`${thumbnailAvif} 1x, ${thumbnailAvif} 2x`} />
+          <img
+            alt={altText}
+            fetchPriority="auto"
+            decoding="async"
+            src={thumbnail}
+            srcSet={`${thumbnail} 1x, ${thumbnail} 2x`}
+            className="absolute inset-0 h-full w-full max-w-full min-w-full object-cover"
+          />
+        </picture>
+        {videoSrc && (
+          <video
+            autoPlay
+            playsInline
+            muted
+            loop
+            poster={thumbnail}
+            src={videoSrc}
+            className="absolute inset-0 block h-full w-full object-cover"
+          />
+        )}
+      </div>
+    </div>
+  </div>
+);
 
-  const handlePlay = () => {
-    if (videoRef.current) {
-      videoRef.current.play();
-      setIsPlaying(true);
+interface VideoViewsProps {
+  views: string;
+}
+
+const VideoViews: React.FC<VideoViewsProps> = ({ views }) => (
+  <div className="absolute bottom-0 flex h-24 w-full items-end bg-gradient-to-t from-black/50 to-transparent p-4">
+    <div className="flex items-center gap-1 text-white">
+      <Play className="h-4 w-4" />
+      <strong className="text-base font-semibold">{views}</strong>
+    </div>
+  </div>
+);
+
+interface VideoCardProps {
+  video: VideoData;
+  onVideoClick?: (video: VideoData) => void;
+}
+
+const VideoCard: React.FC<VideoCardProps> = ({ video, onVideoClick }) => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (onVideoClick) {
+      onVideoClick(video);
     }
   };
 
   return (
-    <div className="border-border bg-card relative flex w-full max-w-xs flex-col gap-4 rounded-[var(--radius-card)] border p-6 shadow-[var(--shadow-soft-drop)]">
-      {/* Video Player */}
+    <div className="rounded-[var(--radius-card)]">
       <div
-        className="relative aspect-[9/16] w-full cursor-pointer overflow-hidden rounded-[var(--radius-button)]"
-        onClick={handlePlay}
+        tabIndex={0}
+        role="button"
+        aria-label={`Watch ${video.altText}`}
+        className="focus:ring-ring relative w-full cursor-pointer overflow-hidden rounded-[var(--radius-card)] transition-transform hover:scale-105 focus:ring-2 focus:ring-offset-2 focus:outline-none"
+        onClick={handleClick}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            const syntheticEvent = {
+              preventDefault: () => {},
+            } as React.MouseEvent<HTMLDivElement>;
+            handleClick(syntheticEvent);
+          }
+        }}
       >
-        <video
-          ref={videoRef}
-          src={video.videoUrl}
-          loop
-          muted
-          playsInline
-          className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${isPlaying ? "opacity-100" : "opacity-0"}`}
-          onEnded={() => setIsPlaying(false)}
-        />
-        <img
-          src={video.thumbnailUrl}
-          alt="Video thumbnail"
-          className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${isPlaying ? "opacity-0" : "opacity-100"}`}
-          onError={(e) => {
-            e.currentTarget.src = "https://placehold.co/200x355/FF0000/FFFFFF?text=Error";
-          }}
-        />
-        {!isPlaying && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-            <div className="flex h-16 w-16 items-center justify-center rounded-[var(--radius-pill)] bg-black/60 transition-transform hover:scale-110">
-              <Play className="h-8 w-8 text-white" />
-            </div>
+        {/* Aspect ratio container using Tailwind aspect ratio */}
+        <div className="aspect-[3/4]">
+          <div className="absolute inset-0">
+            {video.isPinned && <PinnedBadge />}
+            <VideoThumbnail
+              thumbnail={video.thumbnail}
+              thumbnailAvif={video.thumbnailAvif}
+              altText={video.altText}
+              videoSrc={video.videoSrc}
+            />
+            <VideoViews views={video.views} />
           </div>
-        )}
-      </div>
-
-      {/* Views Badge */}
-      <div className="absolute top-8 left-8 z-10 flex items-center justify-center gap-1.5 rounded-[var(--radius-pill)] bg-black/60 px-2 py-1 text-white">
-        <Eye className="h-3 w-3" />
-        <p className="text-xs font-normal">{video.views}</p>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex w-full gap-2">
-        <button className="border-border bg-card text-foreground hover:bg-accent flex h-9 flex-1 cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-[var(--radius-button)] border text-xs font-medium transition-all duration-300 select-none">
-          <RotateCcw className="h-3.5 w-3.5" />
-          <span className="truncate">Rewrite</span>
-        </button>
-        <button className="border-border bg-card text-foreground hover:bg-accent flex h-9 flex-1 cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-[var(--radius-button)] border text-xs font-medium transition-all duration-300 select-none">
-          <BarChart3 className="h-3.5 w-3.5" />
-          <span className="truncate">Analyse</span>
-        </button>
+        </div>
       </div>
     </div>
   );
 };
 
-export const CreatorVideosGrid: React.FC = () => {
+const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({ videos, onVideoClick, columns = 5 }) => {
+  const getGridCols = () => {
+    switch (columns) {
+      case 3:
+        return "grid-cols-3";
+      case 4:
+        return "grid-cols-4";
+      case 5:
+        return "grid-cols-5";
+      case 6:
+        return "grid-cols-6";
+      default:
+        return "grid-cols-5";
+    }
+  };
+
   return (
-    <div className="w-full">
-      <div className="border-border bg-card flex flex-col gap-6 rounded-[var(--radius-card)] border p-6 shadow-[var(--shadow-soft-drop)]">
-        {/* Header */}
-        <div className="flex items-center gap-3">
-          <div className="bg-secondary flex h-8 w-8 items-center justify-center rounded-[var(--radius-button)]">
-            <Play className="text-secondary-foreground h-4 w-4" />
-          </div>
-          <h1 className="text-foreground text-2xl font-bold">Short Form Videos</h1>
-        </div>
-
-        {/* Video Grid */}
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {videoData.map((video) => (
-            <VideoCard key={video.id} video={video} />
-          ))}
-        </div>
-      </div>
+    <div className={`grid w-full ${getGridCols()} gap-6 p-6`}>
+      {videos.map((video) => (
+        <VideoCard key={video.id} video={video} onVideoClick={onVideoClick} />
+      ))}
     </div>
   );
 };
+
+// Export both the main component and mock data for flexibility
+export { CreatorVideosGrid, mockVideoData };
+export type { VideoData, CreatorVideosGridProps };
+export default CreatorVideosGrid;
