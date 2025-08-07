@@ -1,64 +1,171 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
-import { Play } from "lucide-react";
+import { Play, UserPlus, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/auth-context";
+import { CreatorService, type CreatorVideo } from "@/lib/creator-service";
 
 // --- TYPE DEFINITIONS ---
 interface VideoData {
-  id: number;
+  id: string;
   href: string;
   thumbnail: string;
-  thumbnailAvif: string;
+  thumbnailAvif?: string;
   videoSrc?: string;
   altText: string;
   views: string;
   isPinned?: boolean;
+  platform: "instagram" | "tiktok";
+  author: {
+    username: string;
+    displayName?: string;
+  };
+  metrics: {
+    views: number;
+    likes: number;
+    comments: number;
+    shares: number;
+  };
 }
 
 interface CreatorVideosGridProps {
-  videos: VideoData[];
+  videos?: VideoData[];
   onVideoClick?: (video: VideoData) => void;
   columns?: number;
+  showFollowButton?: boolean;
 }
 
-// --- MOCK DATA ---
-const mockVideoData: VideoData[] = [
-  {
-    id: 1,
-    href: "https://www.tiktok.com/@adamstewartmarketing/video/7228550733853969671",
-    thumbnail:
-      "https://p19-common-sign-sg.tiktokcdn-us.com/tos-alisg-p-0037/853479528e4a4ebc98f904122d16dd7d_1683028129~tplv-tiktokx-dmt-logom:tos-alisg-i-0068/00c1e09c6a1946cabd07625ccfda684e.image?dr=9634&x-expires=1754733600&x-signature=nSLBArQ2ktS62mVoRv9w1PMmx4Y%3D&t=4d5b0474&ps=13740610&shp=81f88b70&shcp=43f4a2f9&idc=useast5",
-    thumbnailAvif:
-      "https://p16-common-sign-sg.tiktokcdn-us.com/tos-alisg-p-0037/853479528e4a4ebc98f904122d16dd7d_1683028129~tplv-photomode-zoomcover:720:720.avif?dr=9616&x-expires=1754733600&x-signature=YGgmyiwBpzZ6lCh6dVuIqqKPC%2Fc%3D&t=4d5b0474&ps=13740610&shp=81f88b70&shcp=43f4a2f9&idc=useast5&ftpl=1",
-    altText: "AutoGPT saving money",
-    views: "5.1M",
-    isPinned: true,
-  },
-  {
-    id: 2,
-    href: "https://www.tiktok.com/@adamstewartmarketing/video/7399563772538457351",
-    thumbnail:
-      "https://p16-common-sign-sg.tiktokcdn-us.com/tos-alisg-p-0037/81b08648f3e24aa2a8f2ce64e3524e78_1722845203~tplv-tiktokx-origin.image?dr=9636&x-expires=1754733600&x-signature=dK9aWjtk0ADODzJs0UTtCFbz9h8%3D&t=4d5b0474&ps=13740610&shp=81f88b70&shcp=43f4a2f9&idc=useast5",
-    thumbnailAvif:
-      "https://p19-common-sign-sg.tiktokcdn-us.com/tos-alisg-p-0037/81b08648f3e24aa2a8f2ce64e3524e78_1722845203~tplv-photomode-zoomcover:720:720.avif?dr=9616&x-expires=1754733600&x-signature=VlCO%2FHpKxS3x3ruVPTRbQI%2Fzc2E%3D&t=4d5b0474&ps=13740610&shp=81f88b70&shcp=43f4a2f9&idc=useast5&ftpl=1",
-    videoSrc: "blob:https://www.tiktok.com/7ff73d20-f143-4f61-a5d7-14677f0801af",
-    altText: "ChatGPT advanced voice acting as a pilot",
-    views: "3.1M",
-    isPinned: true,
-  },
-  {
-    id: 3,
-    href: "https://www.tiktok.com/@adamstewartmarketing/video/7276440256579226898",
-    thumbnail:
-      "https://p16-common-sign-sg.tiktokcdn-us.com/tos-alisg-p-0037/3ebf4f233d884186b724739345d990cb_1694178276~tplv-tiktokx-dmt-logom:tos-alisg-i-0068/oMv7vpgftAE8d3DsAzRkl9CTGhBQfEAC8YAIXD.image?dr=9634&x-expires=1754733600&x-signature=TNPZ0iRElh7gcGu8GUR8dCatk9E%3D&t=4d5b0474&ps=13740610&shp=81f88b70&shcp=43f4a2f9&idc=useast5",
-    thumbnailAvif:
-      "https://p16-common-sign-sg.tiktokcdn-us.com/tos-alisg-p-0037/3ebf4f233d884186b724739345d990cb_1694178276~tplv-photomode-zoomcover:720:720.avif?dr=9616&x-expires=1754733600&x-signature=Gs41S5pvzO1K9TiSAvhH5w2Lp9A%3D&t=4d5b0474&ps=13740610&shp=81f88b70&shcp=43f4a2f9&idc=useast5&ftpl=1",
-    altText: "Creating videos from simple prompts",
-    views: "1.7M",
-    isPinned: true,
-  },
-];
+// --- HELPER FUNCTIONS ---
+function formatViews(views: number): string {
+  if (views >= 1000000) {
+    return `${(views / 1000000).toFixed(1)}M`;
+  } else if (views >= 1000) {
+    return `${(views / 1000).toFixed(1)}K`;
+  }
+  return views.toString();
+}
+
+function transformCreatorVideoToVideoData(video: CreatorVideo): VideoData {
+  return {
+    id: video.id!,
+    href: video.originalUrl,
+    thumbnail: video.thumbnailUrl,
+    videoSrc: video.iframeUrl || video.directUrl,
+    altText: video.title,
+    views: formatViews(video.metrics.views),
+    platform: video.platform,
+    author: video.author,
+    metrics: video.metrics,
+  };
+}
+
+// --- FOLLOW CREATOR COMPONENT ---
+interface FollowCreatorProps {
+  onCreatorFollowed?: (videos: VideoData[]) => void;
+}
+
+const FollowCreatorSection: React.FC<FollowCreatorProps> = ({ onCreatorFollowed }) => {
+  const { user } = useAuth();
+  const [username, setUsername] = useState("");
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleFollowCreator = async () => {
+    if (!username.trim() || !user?.uid) return;
+
+    setIsFollowing(true);
+    setError(null);
+
+    try {
+      console.log(`🎭 Following creator: ${username}`);
+      
+      const response = await fetch("/api/creators/follow", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: username.trim(),
+          userId: user.uid,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Failed to follow creator");
+      }
+
+      console.log(`✅ Successfully followed @${data.creator?.username}`);
+      
+      // Transform videos for display
+      const transformedVideos = data.videos?.map((video: any) => ({
+        id: video.id,
+        href: video.videoUrl,
+        thumbnail: video.thumbnailUrl,
+        videoSrc: video.videoUrl,
+        altText: video.title,
+        views: formatViews(video.metrics.views),
+        platform: data.creator?.platform,
+        author: {
+          username: data.creator?.username,
+          displayName: data.creator?.displayName,
+        },
+        metrics: video.metrics,
+      })) || [];
+
+      if (onCreatorFollowed) {
+        onCreatorFollowed(transformedVideos);
+      }
+
+      setUsername("");
+    } catch (error) {
+      console.error("❌ Failed to follow creator:", error);
+      setError(error instanceof Error ? error.message : "Failed to follow creator");
+    } finally {
+      setIsFollowing(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4 p-6 bg-card rounded-[var(--radius-card)] border-border border">
+      <div className="flex items-center gap-2">
+        <UserPlus className="h-5 w-5 text-primary" />
+        <h3 className="text-lg font-semibold text-foreground">Follow Creator</h3>
+      </div>
+      
+      <div className="flex gap-2">
+        <Input
+          placeholder="Enter username (e.g., @creator)"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              handleFollowCreator();
+            }
+          }}
+          className="flex-1"
+        />
+        <Button 
+          onClick={handleFollowCreator}
+          disabled={!username.trim() || isFollowing}
+          className="px-6"
+        >
+          {isFollowing ? "Following..." : "Follow"}
+        </Button>
+      </div>
+      
+      {error && (
+        <div className="text-destructive text-sm">
+          {error}
+        </div>
+      )}
+    </div>
+  );
+};
 
 // --- REUSABLE COMPONENTS ---
 
@@ -170,7 +277,52 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onVideoClick }) => {
   );
 };
 
-const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({ videos, onVideoClick, columns = 5 }) => {
+const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({ 
+  videos: propVideos, 
+  onVideoClick, 
+  columns = 5, 
+  showFollowButton = true 
+}) => {
+  const { user } = useAuth();
+  const [videos, setVideos] = useState<VideoData[]>(propVideos || []);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Load followed creators' videos on mount
+  useEffect(() => {
+    if (!propVideos && user?.uid) {
+      loadFollowedCreatorsVideos();
+    }
+  }, [user?.uid, propVideos]);
+
+  const loadFollowedCreatorsVideos = async () => {
+    if (!user?.uid) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      console.log("📹 Loading followed creators' videos");
+      const creatorVideos = await CreatorService.getFollowedCreatorsVideos(user.uid, 50);
+      const transformedVideos = creatorVideos.map(transformCreatorVideoToVideoData);
+      setVideos(transformedVideos);
+    } catch (error) {
+      console.error("❌ Failed to load followed creators' videos:", error);
+      setError("Failed to load videos from followed creators");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreatorFollowed = useCallback((newVideos: VideoData[]) => {
+    setVideos(prevVideos => {
+      // Add new videos to the beginning, avoiding duplicates
+      const existingIds = new Set(prevVideos.map(v => v.id));
+      const uniqueNewVideos = newVideos.filter(v => !existingIds.has(v.id));
+      return [...uniqueNewVideos, ...prevVideos];
+    });
+  }, []);
+
   const getGridCols = () => {
     switch (columns) {
       case 3:
@@ -186,10 +338,70 @@ const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({ videos, onVideoCl
     }
   };
 
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        {showFollowButton && (
+          <FollowCreatorSection onCreatorFollowed={handleCreatorFollowed} />
+        )}
+        <div className="px-6">
+          <h2 className="text-foreground text-2xl font-semibold">Creator Inspiration</h2>
+        </div>
+        <div className="flex items-center justify-center py-12">
+          <div className="text-muted-foreground">Loading videos from followed creators...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        {showFollowButton && (
+          <FollowCreatorSection onCreatorFollowed={handleCreatorFollowed} />
+        )}
+        <div className="px-6">
+          <h2 className="text-foreground text-2xl font-semibold">Creator Inspiration</h2>
+        </div>
+        <div className="flex items-center justify-center py-12">
+          <div className="text-destructive">{error}</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (videos.length === 0) {
+    return (
+      <div className="space-y-6">
+        {showFollowButton && (
+          <FollowCreatorSection onCreatorFollowed={handleCreatorFollowed} />
+        )}
+        <div className="px-6">
+          <h2 className="text-foreground text-2xl font-semibold">Creator Inspiration</h2>
+        </div>
+        <div className="flex flex-col items-center justify-center py-12 space-y-4">
+          <Users className="h-12 w-12 text-muted-foreground" />
+          <div className="text-center space-y-2">
+            <div className="text-lg font-medium text-foreground">No creators followed yet</div>
+            <div className="text-muted-foreground">
+              Follow creators to see their latest videos here
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {showFollowButton && (
+        <FollowCreatorSection onCreatorFollowed={handleCreatorFollowed} />
+      )}
       <div className="px-6">
         <h2 className="text-foreground text-2xl font-semibold">Creator Inspiration</h2>
+        <p className="text-muted-foreground text-sm mt-1">
+          Latest videos from {videos.length} creators you follow
+        </p>
       </div>
       <div className={`grid w-full ${getGridCols()} gap-4 px-6`}>
         {videos.map((video) => (
@@ -200,7 +412,7 @@ const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({ videos, onVideoCl
   );
 };
 
-// Export both the main component and mock data for flexibility
-export { CreatorVideosGrid, mockVideoData };
+// Export the main component and types
+export { CreatorVideosGrid, FollowCreatorSection };
 export type { VideoData, CreatorVideosGridProps };
 export default CreatorVideosGrid;
