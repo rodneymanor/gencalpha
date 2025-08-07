@@ -99,6 +99,7 @@ class RateLimiter {
 
 // Global rate limiter instances
 export const instagramRateLimiter = new RateLimiter();
+export const rapidApiRateLimiter = new RateLimiter();
 export const tiktokRateLimiter = new RateLimiter();
 export const generalRateLimiter = new RateLimiter();
 
@@ -109,23 +110,28 @@ export async function withInstagramRateLimit<T>(
   operation: () => Promise<T>,
   key: string = "instagram-api",
 ): Promise<T> {
-  await instagramRateLimiter.waitForRateLimit(key, {
-    maxRequestsPerSecond: 1, // Instagram RapidAPI limit
-    maxRequestsPerMinute: 50,
-  });
-
-  return operation();
+  // Route through the generic RapidAPI limiter so ALL RapidAPI calls share the same bucket
+  return withRapidApiRateLimit(operation, key);
 }
 
 /**
  * Rate limit wrapper for TikTok API calls
  */
 export async function withTikTokRateLimit<T>(operation: () => Promise<T>, key: string = "tiktok-api"): Promise<T> {
-  await tiktokRateLimiter.waitForRateLimit(key, {
-    maxRequestsPerSecond: 2, // Assuming TikTok has higher limits
-    maxRequestsPerMinute: 100,
-  });
+  return withRapidApiRateLimit(operation, key);
+}
 
+/**
+ * Generic wrapper for ANY RapidAPI call
+ */
+export async function withRapidApiRateLimit<T>(
+  operation: () => Promise<T>,
+  key: string = "rapidapi-global",
+): Promise<T> {
+  await rapidApiRateLimiter.waitForRateLimit(key, {
+    maxRequestsPerSecond: 1,
+    maxRequestsPerMinute: 50,
+  });
   return operation();
 }
 
