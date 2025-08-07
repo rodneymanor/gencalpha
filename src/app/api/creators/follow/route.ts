@@ -132,7 +132,16 @@ export async function POST(request: NextRequest) {
 
     // Step 4: Process videos - extract metadata and upload to Bunny.net
     console.log(`📹 [FOLLOW_CREATOR] Processing ${videosResult.videos!.length} videos`);
-    const processedVideos = await processVideosWithBunnyUpload(videosResult.videos!);
+
+    let processedVideos: Omit<CreatorVideo, "id" | "creatorId" | "fetchedAt">[];
+
+    // For Instagram, download videos immediately to prevent URL expiration
+    if (detectedPlatform === "instagram") {
+      console.log("📥 [FOLLOW_CREATOR] Instagram detected - downloading videos immediately to prevent URL expiration");
+      processedVideos = await processInstagramVideosWithImmediateDownload(videosResult.videos!);
+    } else {
+      processedVideos = await processVideosWithBunnyUpload(videosResult.videos!);
+    }
 
     // Step 5: Create or update creator profile
     console.log("👤 [FOLLOW_CREATOR] Creating/updating creator profile");
@@ -572,6 +581,140 @@ async function processVideosWithBunnyUpload(
   }
 
   console.log(`✅ [FOLLOW_CREATOR] Successfully processed ${processedVideos.length}/${rawVideos.length} videos`);
+  return processedVideos;
+}
+
+/**
+ * Process Instagram videos with immediate download to prevent URL expiration
+ */
+async function processInstagramVideosWithImmediateDownload(
+  rawVideos: any[],
+): Promise<Omit<CreatorVideo, "id" | "creatorId" | "fetchedAt">[]> {
+  console.log(`📥 [INSTAGRAM_IMMEDIATE] Starting immediate download for ${rawVideos.length} Instagram videos`);
+
+  const processedVideos: Omit<CreatorVideo, "id" | "creatorId" | "fetchedAt">[] = [];
+
+  // Process videos one by one to prevent URL expiration
+  for (let index = 0; index < rawVideos.length; index++) {
+    const rawVideo = rawVideos[index];
+
+    try {
+      console.log(`📥 [INSTAGRAM_IMMEDIATE] Processing video ${index + 1}/${rawVideos.length}`);
+
+      // Extract video URL immediately
+      let videoUrl = "";
+      let thumbnailUrl = "";
+
+      // Check for DASH manifest first (lowest quality)
+      const dashManifest = rawVideo.media?.video_dash_manifest;
+      if (dashManifest) {
+        console.log("🔍 [INSTAGRAM_IMMEDIATE] Found DASH manifest, extracting lowest quality");
+        const dashVideoUrl = extractLowestQualityFromDashManifest(dashManifest);
+        if (dashVideoUrl) {
+          videoUrl = dashVideoUrl;
+          console.log("✅ [INSTAGRAM_IMMEDIATE] Using DASH manifest URL");
+        }
+      }
+
+      // Fallback to video_versions
+      if (!videoUrl && rawVideo.media?.video_versions?.[0]?.url) {
+        videoUrl = rawVideo.media.video_versions[0].url;
+        console.log("✅ [INSTAGRAM_IMMEDIATE] Using video_versions[0] URL");
+      }
+
+      // Extract thumbnail URL
+      if (rawVideo.media?.image_versions2?.candidates?.[0]?.url) {
+        thumbnailUrl = rawVideo.media.image_versions2.candidates[0].url;
+      }
+
+      if (!videoUrl) {
+        console.log(`⚠️ [INSTAGRAM_IMMEDIATE] No video URL found, skipping video ${index + 1}`);
+        continue;
+      }
+
+      console.log(`🔗 [INSTAGRAM_IMMEDIATE] Video URL extracted: ${videoUrl.substring(0, 100)}...`);
+
+      // IMMEDIATELY download and upload to Bunny.net while URL is fresh
+      console.log(`⚡ [INSTAGRAM_IMMEDIATE] Immediate download and upload for video ${index + 1}`);
+      const bunnyResult = await streamToBunnyFromUrl(videoUrl);
+
+      // Build video metadata
+      const videoData: Omit<CreatorVideo, "id" | "creatorId" | "fetchedAt"> = {
+        platform: "instagram" as const,
+        platformVideoId: rawVideo.media?.id || rawVideo.id || rawVideo.pk || "",
+        originalUrl: `https://www.instagram.com/reel/${rawVideo.media?.code || rawVideo.code}/`,
+        title: rawVideo.media?.caption?.text?.substring(0, 100) || "Instagram Reel",
+        description: rawVideo.media?.caption?.text || "",
+        hashtags: extractHashtags(rawVideo.media?.caption?.text || ""),
+        duration: rawVideo.media?.video_duration || rawVideo.video_duration || 0,
+        metrics: {
+          views: rawVideo.media?.play_count || rawVideo.view_count || rawVideo.play_count || 0,
+          likes: rawVideo.media?.like_count || rawVideo.like_count || 0,
+          comments: rawVideo.media?.comment_count || rawVideo.comment_count || 0,
+          shares: rawVideo.media?.reshare_count || rawVideo.share_count || 0,
+          saves: rawVideo.save_count || 0,
+        },
+        author: {
+          username: rawVideo.media?.user?.username || rawVideo.user?.username || rawVideo.owner?.username || "",
+          displayName: rawVideo.media?.user?.full_name || rawVideo.user?.full_name || rawVideo.owner?.full_name || "",
+          isVerified:
+            rawVideo.media?.user?.is_verified || rawVideo.user?.is_verified || rawVideo.owner?.is_verified || false,
+          followerCount: rawVideo.user?.follower_count || rawVideo.owner?.follower_count || 0,
+        },
+        publishedAt: rawVideo.media?.taken_at
+          ? new Date(rawVideo.media.taken_at * 1000).toISOString()
+          : rawVideo.taken_at
+            ? new Date(rawVideo.taken_at * 1000).toISOString()
+            : new Date().toISOString(),
+      };
+
+      if (bunnyResult) {
+        console.log(`✅ [INSTAGRAM_IMMEDIATE] Video ${index + 1} uploaded to Bunny successfully`);
+
+        // Extract GUID for thumbnail upload
+        const guidMatch = bunnyResult.iframeUrl.match(/\/embed\/[^\/]+\/([^\/\?]+)/);
+        let bunnyVideoGuid: string | undefined;
+
+        if (guidMatch) {
+          bunnyVideoGuid = guidMatch[1];
+
+          // Upload custom thumbnail if available
+          if (thumbnailUrl) {
+            console.log(`🖼️ [INSTAGRAM_IMMEDIATE] Uploading custom thumbnail for video ${index + 1}`);
+            const thumbnailSuccess = await uploadBunnyThumbnailWithRetry(bunnyVideoGuid, thumbnailUrl);
+            if (thumbnailSuccess) {
+              console.log(`✅ [INSTAGRAM_IMMEDIATE] Custom thumbnail uploaded for video ${index + 1}`);
+            }
+          }
+        }
+
+        processedVideos.push({
+          ...videoData,
+          iframeUrl: bunnyResult.iframeUrl,
+          directUrl: bunnyResult.directUrl,
+          thumbnailUrl,
+          bunnyVideoGuid,
+          processedAt: new Date().toISOString(),
+        });
+      } else {
+        console.log(`⚠️ [INSTAGRAM_IMMEDIATE] Bunny upload failed for video ${index + 1}, storing with original URL`);
+        processedVideos.push({
+          ...videoData,
+          thumbnailUrl,
+        });
+      }
+
+      // Small delay to prevent overwhelming the system
+      if (index < rawVideos.length - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+    } catch (error) {
+      console.error(`❌ [INSTAGRAM_IMMEDIATE] Error processing video ${index + 1}:`, error);
+      continue;
+    }
+  }
+
+  console.log(`✅ [INSTAGRAM_IMMEDIATE] Successfully processed ${processedVideos.length}/${rawVideos.length} videos`);
   return processedVideos;
 }
 
