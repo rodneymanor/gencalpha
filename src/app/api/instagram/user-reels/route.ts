@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { withInstagramRateLimit, retryWithBackoff } from "@/lib/rate-limiter";
+import { withGlobalInstagramRateLimit, retryWithGlobalBackoff } from "@/lib/global-rate-limiter";
 
 // Types based on the actual API response structure
 interface InstagramMedia {
@@ -318,9 +318,9 @@ export async function GET(request: NextRequest) {
 
     console.log(`📡 Calling Instagram API: ${apiUrl.toString()}`);
 
-    const response = await retryWithBackoff(
+    const response = await retryWithGlobalBackoff(
       () =>
-        withInstagramRateLimit(
+        withGlobalInstagramRateLimit(
           () =>
             fetch(apiUrl.toString(), {
               method: "GET",
@@ -333,6 +333,7 @@ export async function GET(request: NextRequest) {
         ),
       3,
       1000,
+      `instagram-user-reels-${userId}`,
     );
 
     if (!response.ok) {

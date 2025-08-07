@@ -65,7 +65,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<DownloadU
 
     // Then upload to Bunny.net
     console.log("📤 [INSTAGRAM_DOWNLOAD_UPLOAD] Uploading to Bunny Stream...");
-    const videoFilename = filename || `instagram-video-${Date.now()}.mp4`;
+    const videoFilename = filename ?? `instagram-video-${Date.now()}.mp4`;
     const bunnyResponse = await uploadToBunnyStream(videoBuffer, videoFilename, "video/mp4");
 
     const uploadTime = Date.now() - uploadStart;

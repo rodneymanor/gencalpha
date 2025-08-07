@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { withInstagramRateLimit, retryWithBackoff } from "@/lib/rate-limiter";
+import { withGlobalInstagramRateLimit, retryWithGlobalBackoff } from "@/lib/global-rate-limiter";
 
 interface InstagramUserIdResponse {
   UserID: number;
@@ -62,9 +62,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Make request to Instagram API with rate limiting and retry logic
-    const response = await retryWithBackoff(
+    const response = await retryWithGlobalBackoff(
       () =>
-        withInstagramRateLimit(
+        withGlobalInstagramRateLimit(
           () =>
             fetch(
               `https://instagram-api-fast-reliable-data-scraper.p.rapidapi.com/user_id_by_username?username=${encodeURIComponent(cleanUsername)}`,
@@ -80,6 +80,7 @@ export async function GET(request: NextRequest) {
         ),
       3,
       1000,
+      `instagram-user-id-${cleanUsername}`,
     );
 
     if (!response.ok) {

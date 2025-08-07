@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { streamToBunnyFromUrl } from "@/lib/bunny-stream";
+import { withGlobalInstagramRateLimit, retryWithGlobalBackoff } from "@/lib/global-rate-limiter";
 
 function validateEnvironmentVariables(): { valid: boolean; error?: string } {
   if (!process.env.BUNNY_STREAM_LIBRARY_ID || !process.env.BUNNY_STREAM_API_KEY) {
@@ -74,7 +75,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { videoData, metadata } = rapidApiData;
+    if (!rapidApiData.success) {
+      console.error("❌ [INSTAGRAM_TO_BUNNY] RapidAPI failed:", rapidApiData.error);
+      return NextResponse.json(
+        {
+          error: "Failed to fetch Instagram video data",
+          details: rapidApiData.error,
+        },
+        { status: 500 },
+      );
+    }
+
+    const videoData = 'videoData' in rapidApiData ? rapidApiData.videoData : null;
+    const metadata = 'metadata' in rapidApiData ? rapidApiData.metadata : null;
 
     if (!videoData?.lowQualityUrl) {
       console.error("❌ [INSTAGRAM_TO_BUNNY] No video URL found in response");
@@ -107,13 +120,13 @@ export async function POST(request: NextRequest) {
         platform: "instagram",
       },
       metadata: {
-        author: metadata.author,
-        likes: metadata.likes,
-        views: metadata.views,
-        comments: metadata.comments,
-        shares: metadata.shares,
-        saves: metadata.saves,
-        duration: metadata.duration,
+        author: metadata?.author ?? "Unknown",
+        likes: metadata?.likes ?? 0,
+        views: metadata?.views ?? 0,
+        comments: metadata?.comments ?? 0,
+        shares: metadata?.shares ?? 0,
+        saves: metadata?.saves ?? 0,
+        duration: metadata?.duration ?? 0,
         originalUrl: url,
         shortcode,
         processedAt: new Date().toISOString(),
@@ -138,7 +151,12 @@ export async function POST(request: NextRequest) {
 
 async function fetchInstagramData(shortcode: string) {
   try {
-    const response = await makeRapidApiRequest(shortcode);
+    const response = await retryWithGlobalBackoff(
+      () => makeRapidApiRequest(shortcode),
+      3,
+      1000,
+      `instagram-fetch-data-${shortcode}`
+    );
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -156,23 +174,28 @@ async function fetchInstagramData(shortcode: string) {
 }
 
 async function makeRapidApiRequest(shortcode: string) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 30000);
+  return withGlobalInstagramRateLimit(
+    async () => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-  const response = await fetch(
-    `https://instagram-api-fast-reliable-data-scraper.p.rapidapi.com/reel_by_shortcode?shortcode=${shortcode}`,
-    {
-      method: "GET",
-      headers: {
-        "x-rapidapi-key": process.env.RAPIDAPI_KEY!,
-        "x-rapidapi-host": "instagram-api-fast-reliable-data-scraper.p.rapidapi.com",
-      },
-      signal: controller.signal,
+      const response = await fetch(
+        `https://instagram-api-fast-reliable-data-scraper.p.rapidapi.com/reel_by_shortcode?shortcode=${shortcode}`,
+        {
+          method: "GET",
+          headers: {
+            "x-rapidapi-key": process.env.RAPIDAPI_KEY!,
+            "x-rapidapi-host": "instagram-api-fast-reliable-data-scraper.p.rapidapi.com",
+          },
+          signal: controller.signal,
+        },
+      );
+
+      clearTimeout(timeoutId);
+      return response;
     },
+    `instagram-reel-shortcode-${shortcode}`
   );
-
-  clearTimeout(timeoutId);
-  return response;
 }
 
 function processInstagramResponse(data: any) {
