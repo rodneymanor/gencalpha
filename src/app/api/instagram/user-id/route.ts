@@ -49,6 +49,16 @@ export async function GET(request: NextRequest) {
 
     console.log(`🔍 Fetching user ID for username: ${cleanUsername}`);
 
+    // Check if RapidAPI key is configured
+    const rapidApiKey = process.env.RAPIDAPI_KEY;
+    if (!rapidApiKey) {
+      console.log("❌ RAPIDAPI_KEY not found in environment variables");
+      return NextResponse.json(
+        { error: "API configuration error", details: "RAPIDAPI_KEY not configured" } as ErrorResponse,
+        { status: 500 },
+      );
+    }
+
     // Make request to Instagram API
     const response = await fetch(
       `https://instagram-api-fast-reliable-data-scraper.p.rapidapi.com/user_id_by_username?username=${encodeURIComponent(cleanUsername)}`,
@@ -56,7 +66,7 @@ export async function GET(request: NextRequest) {
         method: "GET",
         headers: {
           "x-rapidapi-host": "instagram-api-fast-reliable-data-scraper.p.rapidapi.com",
-          "x-rapidapi-key": process.env.RAPIDAPI_KEY ?? "7d8697833dmsh0919d85dc19515ap1175f7jsn0f8bb6dae84e",
+          "x-rapidapi-key": rapidApiKey,
         },
       },
     );

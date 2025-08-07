@@ -5,7 +5,17 @@ export async function GET() {
 
   try {
     // Check if RapidAPI key is available
-    const rapidApiKey = process.env.RAPIDAPI_KEY ?? "7d8697833dmsh0919d85dc19515ap1175f7jsn0f8bb6dae84e";
+    const rapidApiKey = process.env.RAPIDAPI_KEY;
+    if (!rapidApiKey) {
+      console.log("❌ RAPIDAPI_KEY not found in environment variables");
+      return NextResponse.json(
+        {
+          success: false,
+          error: "RAPIDAPI_KEY not configured",
+        },
+        { status: 500 },
+      );
+    }
 
     console.log("🔑 API Key available:", !!rapidApiKey);
     console.log("🔑 API Key prefix:", rapidApiKey.substring(0, 10) + "...");
