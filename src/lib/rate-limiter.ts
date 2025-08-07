@@ -143,29 +143,26 @@ export async function retryWithBackoff<T>(
   maxRetries: number = 3,
   baseDelay: number = 1000,
 ): Promise<T> {
-  let lastError: Error;
+  let lastError: Error | null = null;
+
+  const shouldNotRetry = (err: unknown): boolean => {
+    if (err instanceof Error) {
+      const lower = err.message.toLowerCase();
+      return lower.includes("not found") || lower.includes("unauthorized") || lower.includes("forbidden");
+    }
+    return false;
+  };
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       return await operation();
     } catch (error) {
+      if (shouldNotRetry(error)) {
+        throw error;
+      }
+
       lastError = error as Error;
-
-      // Don't retry on certain error types
-      if (error instanceof Error) {
-        const errorMessage = error.message.toLowerCase();
-        if (
-          errorMessage.includes("not found") ||
-          errorMessage.includes("unauthorized") ||
-          errorMessage.includes("forbidden")
-        ) {
-          throw error;
-        }
-      }
-
-      if (attempt === maxRetries) {
-        break;
-      }
+      if (attempt === maxRetries) break;
 
       const delay = baseDelay * Math.pow(2, attempt);
       console.log(`🔄 [RETRY] Attempt ${attempt + 1} failed, retrying in ${delay}ms...`);
@@ -173,5 +170,5 @@ export async function retryWithBackoff<T>(
     }
   }
 
-  throw lastError;
+  throw lastError ?? new Error("Operation failed after all retries");
 }

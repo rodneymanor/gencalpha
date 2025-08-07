@@ -124,9 +124,12 @@ class GlobalRateLimiter {
   }
 }
 
-// Global instances for different API providers
-export const instagramGlobalRateLimiter = new GlobalRateLimiter(0.5); // 0.5 requests per second to be extra safe
-export const tiktokGlobalRateLimiter = new GlobalRateLimiter(1); // 1 request per second for TikTok
+// Global instances
+// Single shared RapidAPI limiter so ALL RapidAPI calls (Instagram, TikTok, etc.) share the same bucket
+export const rapidApiGlobalRateLimiter = new GlobalRateLimiter(1); // 1 request per second
+// Retain provider-specific instances if needed for future differentiation (unused by default wrappers)
+export const instagramGlobalRateLimiter = new GlobalRateLimiter(1);
+export const tiktokGlobalRateLimiter = new GlobalRateLimiter(1);
 
 /**
  * Wrapper for Instagram RapidAPI calls - ensures only one call at a time globally
@@ -135,7 +138,7 @@ export async function withGlobalInstagramRateLimit<T>(
   operation: () => Promise<T>,
   key: string = "instagram-api",
 ): Promise<T> {
-  return instagramGlobalRateLimiter.enqueue(operation, key);
+  return rapidApiGlobalRateLimiter.enqueue(operation, key);
 }
 
 /**
@@ -145,7 +148,17 @@ export async function withGlobalTikTokRateLimit<T>(
   operation: () => Promise<T>,
   key: string = "tiktok-api",
 ): Promise<T> {
-  return tiktokGlobalRateLimiter.enqueue(operation, key);
+  return rapidApiGlobalRateLimiter.enqueue(operation, key);
+}
+
+/**
+ * Generic RapidAPI wrapper - use when the provider-specific wrapper is not appropriate
+ */
+export async function withGlobalRapidApiLimit<T>(
+  operation: () => Promise<T>,
+  key: string = "rapidapi-global",
+): Promise<T> {
+  return rapidApiGlobalRateLimiter.enqueue(operation, key);
 }
 
 /**
