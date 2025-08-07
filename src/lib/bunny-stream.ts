@@ -111,10 +111,10 @@ async function attemptUpload(
 
   // Step 3: Construct URLs for Bunny Stream
   const iframeUrl = `https://iframe.mediadelivery.net/embed/${libraryId}/${videoGuid}`;
-  const hostname = process.env.BUNNY_CDN_HOSTNAME || '';
-  const cleanHostname = hostname.startsWith('vz-') ? hostname : `vz-${hostname}`;
+  const hostname = process.env.BUNNY_CDN_HOSTNAME ?? "";
+  const cleanHostname = hostname.startsWith("vz-") ? hostname : `vz-${hostname}`;
   const directUrl = `https://${cleanHostname}/${videoGuid}/play_720p.mp4`;
-  
+
   console.log("🎯 [BUNNY] Iframe embed URL constructed:", iframeUrl);
   console.log("🎯 [BUNNY] Direct MP4 URL constructed:", directUrl);
 
@@ -187,7 +187,7 @@ async function performRetryLoop(
         errorMessage: error.message,
         timestamp: new Date().toISOString(),
         bufferSize: arrayBuffer.byteLength,
-        filename
+        filename,
       });
       await new Promise((resolve) => setTimeout(resolve, backoffDelay));
     }
@@ -290,10 +290,10 @@ export async function streamToBunnyFromUrl(
     }
 
     const iframeUrl = `https://iframe.mediadelivery.net/embed/${process.env.BUNNY_STREAM_LIBRARY_ID}/${videoGuid}`;
-    const hostname = process.env.BUNNY_CDN_HOSTNAME || '';
-  const cleanHostname = hostname.startsWith('vz-') ? hostname : `vz-${hostname}`;
-  const directUrl = `https://${cleanHostname}/${videoGuid}/play_720p.mp4`;
-    
+    const hostname = process.env.BUNNY_CDN_HOSTNAME ?? "";
+    const cleanHostname = hostname.startsWith("vz-") ? hostname : `vz-${hostname}`;
+    const directUrl = `https://${cleanHostname}/${videoGuid}/play_720p.mp4`;
+
     console.log("✅ [BUNNY_STREAM] Direct stream completed successfully");
     console.log("🎯 [BUNNY_STREAM] Complete Iframe URL:", iframeUrl);
     console.log("🎯 [BUNNY_STREAM] Direct MP4 URL:", directUrl);
@@ -350,11 +350,22 @@ async function createBunnyVideoObject(filename: string): Promise<string | null> 
 
 async function fetchSourceVideo(sourceUrl: string): Promise<Response | null> {
   console.log(`🔍 [BUNNY_STREAM] Fetching source video from: ${sourceUrl.substring(0, 100)}...`);
-  
+
+  // Use comprehensive headers to bypass Instagram's hotlinking protection
   const sourceResponse = await fetch(sourceUrl, {
     headers: {
       "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      Referer: "https://www.instagram.com/",
+      Accept: "video/mp4,video/*,*/*;q=0.9,*/*;q=0.8",
+      "Accept-Language": "en-US,en;q=0.5",
+      "Accept-Encoding": "gzip, deflate, br",
+      DNT: "1",
+      Connection: "keep-alive",
+      "Upgrade-Insecure-Requests": "1",
+      "Sec-Fetch-Dest": "video",
+      "Sec-Fetch-Mode": "no-cors",
+      "Sec-Fetch-Site": "cross-site",
     },
   });
 
@@ -371,10 +382,12 @@ async function fetchSourceVideo(sourceUrl: string): Promise<Response | null> {
   // Validate content type to ensure we're getting video data
   const contentType = sourceResponse.headers.get("content-type");
   console.log(`🔍 [BUNNY_STREAM] Content-Type: ${contentType}`);
-  
+
   if (contentType && !contentType.startsWith("video/")) {
     console.error(`❌ [BUNNY_STREAM] Invalid content type: ${contentType} (expected video/*)`);
-    console.error(`❌ [BUNNY_STREAM] URL may be pointing to thumbnail instead of video: ${sourceUrl.substring(0, 100)}...`);
+    console.error(
+      `❌ [BUNNY_STREAM] URL may be pointing to thumbnail instead of video: ${sourceUrl.substring(0, 100)}...`,
+    );
     return null;
   }
 
@@ -448,9 +461,9 @@ async function streamVideoToBunny(sourceUrl: string, videoGuid: string, maxRetri
           maxRetries,
           errorType: error.constructor.name,
           errorMessage: error.message,
-          sourceUrl: sourceUrl.substring(0, 100) + '...',
+          sourceUrl: sourceUrl.substring(0, 100) + "...",
           videoGuid,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
         await new Promise((resolve) => setTimeout(resolve, retryDelay));
         continue;
