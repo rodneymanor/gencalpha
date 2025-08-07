@@ -1,11 +1,11 @@
-import { getAuth } from 'firebase/auth';
+import { getAuth } from "firebase/auth";
 
 export interface Creator {
   id: string;
   username: string;
   displayName: string;
   profilePictureUrl?: string;
-  platform: 'tiktok' | 'instagram';
+  platform: "tiktok" | "instagram";
   followerCount?: number;
   isFollowing?: boolean;
 }
@@ -47,7 +47,7 @@ class CreatorClientService {
     const auth = getAuth();
     const user = auth.currentUser;
     if (!user) {
-      throw new Error('User not authenticated');
+      throw new Error("User not authenticated");
     }
     return await user.getIdToken();
   }
@@ -55,14 +55,14 @@ class CreatorClientService {
   async getCreatorVideos(creatorId: string): Promise<CreatorVideo[]> {
     try {
       const idToken = await this.getIdToken();
-      
-      const response = await fetch('/api/creators/videos', {
-        method: 'POST',
+
+      const response = await fetch("/api/creators/videos", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${idToken}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
         },
-        body: JSON.stringify({ creatorId })
+        body: JSON.stringify({ creatorId }),
       });
 
       if (!response.ok) {
@@ -70,9 +70,9 @@ class CreatorClientService {
       }
 
       const data = await response.json();
-      return data.videos || [];
+      return data.videos ?? [];
     } catch (error) {
-      console.error('Error fetching creator videos:', error);
+      console.error("Error fetching creator videos:", error);
       return [];
     }
   }
@@ -80,14 +80,14 @@ class CreatorClientService {
   async getFollowedCreatorsVideos(userId: string, limit: number = 50): Promise<CreatorVideo[]> {
     try {
       const idToken = await this.getIdToken();
-      
-      const response = await fetch('/api/creators/followed-videos', {
-        method: 'POST',
+
+      const response = await fetch("/api/creators/followed-videos", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${idToken}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
         },
-        body: JSON.stringify({ userId, limit })
+        body: JSON.stringify({ userId, limit }),
       });
 
       if (!response.ok) {
@@ -95,14 +95,18 @@ class CreatorClientService {
       }
 
       const data = await response.json();
-      return data.videos || [];
+      return data.videos ?? [];
     } catch (error) {
-      console.error('Error fetching followed creators videos:', error);
+      console.error("Error fetching followed creators videos:", error);
       return [];
     }
   }
 
-  async followCreator(username: string, userId: string): Promise<{
+  async followCreator(
+    username: string,
+    userId: string,
+    platform?: "instagram" | "tiktok",
+  ): Promise<{
     success: boolean;
     creator?: Creator;
     videos?: CreatorVideo[];
@@ -110,14 +114,14 @@ class CreatorClientService {
   }> {
     try {
       const idToken = await this.getIdToken();
-      
-      const response = await fetch('/api/creators/follow', {
-        method: 'POST',
+
+      const response = await fetch("/api/creators/follow", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${idToken}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
         },
-        body: JSON.stringify({ username, userId })
+        body: JSON.stringify({ username, userId, platform }),
       });
 
       const data = await response.json();
@@ -125,20 +129,20 @@ class CreatorClientService {
       if (!response.ok) {
         return {
           success: false,
-          error: data.error || `Failed to follow creator: ${response.status}`
+          error: data.error ?? `Failed to follow creator: ${response.status}`,
         };
       }
 
       return {
         success: true,
         creator: data.creator,
-        videos: data.videos
+        videos: data.videos,
       };
     } catch (error) {
-      console.error('Error following creator:', error);
+      console.error("Error following creator:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to follow creator'
+        error: error instanceof Error ? error.message : "Failed to follow creator",
       };
     }
   }

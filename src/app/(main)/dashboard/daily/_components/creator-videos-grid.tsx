@@ -7,10 +7,11 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 
-import { Play, UserPlus, Users } from "lucide-react";
+import { Play, UserPlus, Users, Instagram } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/auth-context";
 import { creatorClientService, type CreatorVideo } from "@/lib/creator-client-service";
 
@@ -76,6 +77,7 @@ interface FollowCreatorProps {
 const FollowCreatorSection: React.FC<FollowCreatorProps> = ({ onCreatorFollowed }) => {
   const { user } = useAuth();
   const [username, setUsername] = useState("");
+  const [platform, setPlatform] = useState<"instagram" | "tiktok" | "auto">("auto");
   const [isFollowing, setIsFollowing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -96,6 +98,7 @@ const FollowCreatorSection: React.FC<FollowCreatorProps> = ({ onCreatorFollowed 
         body: JSON.stringify({
           username: username.trim(),
           userId: user.uid,
+          platform: platform === "auto" ? undefined : platform,
         }),
       });
 
@@ -144,19 +147,51 @@ const FollowCreatorSection: React.FC<FollowCreatorProps> = ({ onCreatorFollowed 
         <h3 className="text-foreground text-lg font-semibold">Follow Creator</h3>
       </div>
 
-      <div className="flex gap-2">
-        <Input
-          placeholder="Enter username (e.g., @creator)"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              handleFollowCreator();
-            }
-          }}
-          className="flex-1"
-        />
-        <Button onClick={handleFollowCreator} disabled={!username.trim() || isFollowing} className="px-6">
+      <div className="space-y-3">
+        <div className="flex gap-2">
+          <Input
+            placeholder="Enter username (e.g., @creator)"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleFollowCreator();
+              }
+            }}
+            className="flex-1"
+          />
+          <Select value={platform} onValueChange={(value: "instagram" | "tiktok" | "auto") => setPlatform(value)}>
+            <SelectTrigger className="w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="auto">
+                <div className="flex items-center gap-2">
+                  <div className="bg-secondary text-secondary-foreground flex h-4 w-4 items-center justify-center rounded-[var(--radius-button)] text-xs font-medium">
+                    AI
+                  </div>
+                  <span>Auto-detect</span>
+                </div>
+              </SelectItem>
+              <SelectItem value="instagram">
+                <div className="flex items-center gap-2">
+                  <Instagram className="h-4 w-4" />
+                  <span>Instagram</span>
+                </div>
+              </SelectItem>
+              <SelectItem value="tiktok">
+                <div className="flex items-center gap-2">
+                  <div className="bg-foreground text-background flex h-4 w-4 items-center justify-center rounded-[var(--radius-button)] text-xs font-bold">
+                    T
+                  </div>
+                  <span>TikTok</span>
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <Button onClick={handleFollowCreator} disabled={!username.trim() || isFollowing} className="w-full">
           {isFollowing ? "Following..." : "Follow"}
         </Button>
       </div>
