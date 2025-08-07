@@ -354,41 +354,58 @@ async function processVideosWithBunnyUpload(
       try {
         console.log(`📹 [FOLLOW_CREATOR] Processing video ${index + 1}/${rawVideos.length}`);
 
+        // Debug: Log the structure of the raw video data
+        console.log(`🔍 [FOLLOW_CREATOR] Raw video structure:`, {
+          hasMedia: !!rawVideo.media,
+          hasVideoVersions: !!rawVideo.media?.video_versions,
+          videoVersionsCount: rawVideo.media?.video_versions?.length || 0,
+          firstVideoUrl: rawVideo.media?.video_versions?.[0]?.url,
+          hasImageVersions: !!rawVideo.media?.image_versions2,
+          thumbnailCandidatesCount: rawVideo.media?.image_versions2?.candidates?.length || 0,
+          firstThumbnailUrl: rawVideo.media?.image_versions2?.candidates?.[0]?.url,
+          platformId: rawVideo.media?.id || rawVideo.id,
+          code: rawVideo.media?.code || rawVideo.code,
+        });
+
         // Extract video metadata first
         let videoData;
         let videoUrl: string;
         let thumbnailUrl: string;
 
         // Platform-specific data extraction
-        if (rawVideo.video_url || rawVideo.media_url) {
-          // Instagram format
-          videoUrl = rawVideo.video_url || rawVideo.media_url;
-          thumbnailUrl = rawVideo.thumbnail_url || rawVideo.image_versions2?.candidates?.[0]?.url || "";
+        if (rawVideo.media?.video_versions?.[0]?.url || rawVideo.video_url || rawVideo.media_url) {
+          // Instagram format - use the correct API response structure
+          videoUrl = rawVideo.media?.video_versions?.[0]?.url || rawVideo.video_url || rawVideo.media_url;
+          thumbnailUrl = rawVideo.media?.image_versions2?.candidates?.[0]?.url || rawVideo.thumbnail_url || "";
 
           videoData = {
             platform: "instagram" as const,
-            platformVideoId: rawVideo.id || rawVideo.pk || "",
-            originalUrl: `https://www.instagram.com/p/${rawVideo.code || rawVideo.id}/`,
-            title: rawVideo.caption?.text?.substring(0, 100) || "Instagram Reel",
-            description: rawVideo.caption?.text || "",
-            hashtags: extractHashtags(rawVideo.caption?.text || ""),
-            duration: rawVideo.video_duration || 0,
+            platformVideoId: rawVideo.media?.id || rawVideo.id || rawVideo.pk || "",
+            originalUrl: `https://www.instagram.com/reel/${rawVideo.media?.code || rawVideo.code}/`,
+            title: rawVideo.media?.caption?.text?.substring(0, 100) || "Instagram Reel",
+            description: rawVideo.media?.caption?.text || "",
+            hashtags: extractHashtags(rawVideo.media?.caption?.text || ""),
+            duration: rawVideo.media?.video_duration || rawVideo.video_duration || 0,
             metrics: {
-              views: rawVideo.view_count || rawVideo.play_count || 0,
-              likes: rawVideo.like_count || 0,
-              comments: rawVideo.comment_count || 0,
-              shares: rawVideo.share_count || 0,
+              views: rawVideo.media?.play_count || rawVideo.view_count || rawVideo.play_count || 0,
+              likes: rawVideo.media?.like_count || rawVideo.like_count || 0,
+              comments: rawVideo.media?.comment_count || rawVideo.comment_count || 0,
+              shares: rawVideo.media?.reshare_count || rawVideo.share_count || 0,
               saves: rawVideo.save_count || 0,
             },
             author: {
-              username: rawVideo.user?.username || rawVideo.owner?.username || "",
-              displayName: rawVideo.user?.full_name || rawVideo.owner?.full_name || "",
-              isVerified: rawVideo.user?.is_verified || rawVideo.owner?.is_verified || false,
+              username: rawVideo.media?.user?.username || rawVideo.user?.username || rawVideo.owner?.username || "",
+              displayName:
+                rawVideo.media?.user?.full_name || rawVideo.user?.full_name || rawVideo.owner?.full_name || "",
+              isVerified:
+                rawVideo.media?.user?.is_verified || rawVideo.user?.is_verified || rawVideo.owner?.is_verified || false,
               followerCount: rawVideo.user?.follower_count || rawVideo.owner?.follower_count || 0,
             },
-            publishedAt: rawVideo.taken_at
-              ? new Date(rawVideo.taken_at * 1000).toISOString()
-              : new Date().toISOString(),
+            publishedAt: rawVideo.media?.taken_at
+              ? new Date(rawVideo.media.taken_at * 1000).toISOString()
+              : rawVideo.taken_at
+                ? new Date(rawVideo.taken_at * 1000).toISOString()
+                : new Date().toISOString(),
           };
         } else {
           // TikTok format

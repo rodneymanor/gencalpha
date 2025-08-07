@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { withInstagramRateLimit, retryWithBackoff } from "@/lib/rate-limiter";
+
 interface InstagramUserIdResponse {
   UserID: number;
   UserName: string;
@@ -59,16 +61,25 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Make request to Instagram API
-    const response = await fetch(
-      `https://instagram-api-fast-reliable-data-scraper.p.rapidapi.com/user_id_by_username?username=${encodeURIComponent(cleanUsername)}`,
-      {
-        method: "GET",
-        headers: {
-          "x-rapidapi-host": "instagram-api-fast-reliable-data-scraper.p.rapidapi.com",
-          "x-rapidapi-key": rapidApiKey,
-        },
-      },
+    // Make request to Instagram API with rate limiting and retry logic
+    const response = await retryWithBackoff(
+      () =>
+        withInstagramRateLimit(
+          () =>
+            fetch(
+              `https://instagram-api-fast-reliable-data-scraper.p.rapidapi.com/user_id_by_username?username=${encodeURIComponent(cleanUsername)}`,
+              {
+                method: "GET",
+                headers: {
+                  "x-rapidapi-host": "instagram-api-fast-reliable-data-scraper.p.rapidapi.com",
+                  "x-rapidapi-key": rapidApiKey,
+                },
+              },
+            ),
+          `instagram-user-id-${cleanUsername}`,
+        ),
+      3,
+      1000,
     );
 
     if (!response.ok) {
@@ -83,7 +94,12 @@ export async function GET(request: NextRequest) {
 
       if (response.status === 429) {
         return NextResponse.json(
-          { error: "Rate limit exceeded", details: "Too many requests. Please try again later." } as ErrorResponse,
+          {
+            error: "Rate limit exceeded",
+            details:
+              "Instagram API rate limit exceeded. The request has been retried with backoff but still failed. Please try again later.",
+            retryAfter: 60,
+          } as ErrorResponse & { retryAfter: number },
           { status: 429 },
         );
       }

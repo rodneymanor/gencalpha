@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { withInstagramRateLimit, retryWithBackoff } from "@/lib/rate-limiter";
+
 // Types based on the actual API response structure
 interface InstagramMedia {
   id: string;
@@ -274,14 +276,6 @@ interface InstagramUserReelsResponse {
   status: string;
 }
 
-interface _ApiResponse {
-  success: boolean;
-  data?: InstagramUserReelsResponse;
-  error?: string;
-  user_id?: string;
-  include_feed_video?: boolean;
-}
-
 export async function GET(request: NextRequest) {
   console.log("🎬 Instagram User Reels API called");
 
@@ -324,18 +318,63 @@ export async function GET(request: NextRequest) {
 
     console.log(`📡 Calling Instagram API: ${apiUrl.toString()}`);
 
-    const response = await fetch(apiUrl.toString(), {
-      method: "GET",
-      headers: {
-        "x-rapidapi-host": "instagram-api-fast-reliable-data-scraper.p.rapidapi.com",
-        "x-rapidapi-key": rapidApiKey,
-      },
-    });
+    const response = await retryWithBackoff(
+      () =>
+        withInstagramRateLimit(
+          () =>
+            fetch(apiUrl.toString(), {
+              method: "GET",
+              headers: {
+                "x-rapidapi-host": "instagram-api-fast-reliable-data-scraper.p.rapidapi.com",
+                "x-rapidapi-key": rapidApiKey,
+              },
+            }),
+          `instagram-user-reels-${userId}`,
+        ),
+      3,
+      1000,
+    );
 
     if (!response.ok) {
       console.log(`❌ Instagram API error: ${response.status} ${response.statusText}`);
       const errorText = await response.text();
       console.log(`❌ Error response: ${errorText}`);
+
+      // Handle specific error cases
+      if (response.status === 429) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Rate limit exceeded",
+            details:
+              "Instagram API rate limit exceeded. The request has been retried with backoff but still failed. Please try again later.",
+            retryAfter: 60, // Suggest retry after 60 seconds
+          },
+          { status: 429 },
+        );
+      }
+
+      if (response.status === 404) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "User not found",
+            details: "The specified user ID does not exist on Instagram or has no public content.",
+          },
+          { status: 404 },
+        );
+      }
+
+      if (response.status === 403) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Access denied",
+            details: "Instagram API access denied. This may be due to API key issues or account restrictions.",
+          },
+          { status: 403 },
+        );
+      }
 
       return NextResponse.json(
         {

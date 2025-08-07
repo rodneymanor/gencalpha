@@ -16,21 +16,6 @@ function validateEnvironmentVariables(): { valid: boolean; error?: string } {
   return { valid: true };
 }
 
-function getBaseUrl(request: NextRequest): string {
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`;
-  }
-
-  // In development, use the request's host to get the correct port
-  const host = request.headers.get("host");
-  if (host) {
-    return `http://${host}`;
-  }
-
-  // Fallback to default
-  return process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : `http://localhost:${process.env.PORT || 3001}`;
-}
-
 function validateInstagramUrl(url: string): { valid: boolean; error?: string } {
   if (!url) {
     console.error("❌ [INSTAGRAM_TO_BUNNY] No URL provided");
@@ -179,7 +164,7 @@ async function makeRapidApiRequest(shortcode: string) {
     {
       method: "GET",
       headers: {
-        "x-rapidapi-key": process.env.RAPIDAPI_KEY ?? "7d8697833dmsh0919d85dc19515ap1175f7jsn0f8bb6dae84e",
+        "x-rapidapi-key": process.env.RAPIDAPI_KEY!,
         "x-rapidapi-host": "instagram-api-fast-reliable-data-scraper.p.rapidapi.com",
       },
       signal: controller.signal,

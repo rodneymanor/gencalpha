@@ -1,3 +1,5 @@
+import { withInstagramRateLimit, retryWithBackoff } from "@/lib/rate-limiter";
+
 export async function fetchInstagramMetadata(shortcode: string) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 30000);
@@ -13,16 +15,25 @@ export async function fetchInstagramMetadata(shortcode: string) {
     );
   }
 
-  const response = await fetch(
-    `https://instagram-api-fast-reliable-data-scraper.p.rapidapi.com/reel_by_shortcode?shortcode=${shortcode}`,
-    {
-      method: "GET",
-      headers: {
-        "x-rapidapi-key": rapidApiKey,
-        "x-rapidapi-host": "instagram-api-fast-reliable-data-scraper.p.rapidapi.com",
-      },
-      signal: controller.signal,
-    },
+  const response = await retryWithBackoff(
+    () =>
+      withInstagramRateLimit(
+        () =>
+          fetch(
+            `https://instagram-api-fast-reliable-data-scraper.p.rapidapi.com/reel_by_shortcode?shortcode=${shortcode}`,
+            {
+              method: "GET",
+              headers: {
+                "x-rapidapi-key": rapidApiKey,
+                "x-rapidapi-host": "instagram-api-fast-reliable-data-scraper.p.rapidapi.com",
+              },
+              signal: controller.signal,
+            },
+          ),
+        `instagram-reel-${shortcode}`,
+      ),
+    3,
+    1000,
   );
 
   clearTimeout(timeoutId);
@@ -84,11 +95,11 @@ export function extractAdditionalMetadata(metadata: any) {
   const duration = getDurationFromMetadata(metadata);
 
   const captionText =
-    metadata.caption?.text || metadata.caption_text || metadata.edge_media_to_caption?.edges?.[0]?.node?.text || "";
+    metadata.caption?.text ?? metadata.caption_text ?? metadata.edge_media_to_caption?.edges?.[0]?.node?.text ?? "";
 
   // Extract hashtags from caption text
   const hashtags = Array.from(
-    new Set((captionText.match(/#[A-Za-z0-9_]+/g) || []).map((h: string) => h.substring(1))),
+    new Set((captionText.match(/#[A-Za-z0-9_]+/g) ?? []).map((h: string) => h.substring(1))),
   ).slice(0, 30); // limit
 
   const additionalData = {
