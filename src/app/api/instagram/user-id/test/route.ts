@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 /**
- * GET /api/apify/instagram/user-id/test
+ * GET /api/instagram/user-id/test
  *
  * Test endpoint to verify the Instagram user ID API is working
  */
@@ -17,10 +17,10 @@ export async function GET(request: NextRequest) {
     const host = request.headers.get("host") ?? "localhost:3000";
     const baseUrl = `${protocol}://${host}`;
 
-    console.log(`🔗 Making internal request to: ${baseUrl}/api/apify/instagram/user-id?username=${testUsername}`);
+    console.log(`🔗 Making internal request to: ${baseUrl}/api/instagram/user-id?username=${testUsername}`);
 
     // Make request to our own API
-    const response = await fetch(`${baseUrl}/api/apify/instagram/user-id?username=${testUsername}`, {
+    const response = await fetch(`${baseUrl}/api/instagram/user-id?username=${testUsername}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

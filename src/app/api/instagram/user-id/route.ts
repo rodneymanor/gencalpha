@@ -17,7 +17,7 @@ interface ErrorResponse {
 }
 
 /**
- * GET /api/apify/instagram/user-id
+ * GET /api/instagram/user-id
  *
  * Fetches Instagram user ID by username using RapidAPI Instagram scraper.
  *
