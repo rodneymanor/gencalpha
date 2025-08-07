@@ -69,7 +69,7 @@
   --popover-foreground: #34322D;
   --primary: #1A1A19;
   --primary-foreground: #FFFFFF;
-  --secondary: #0081F2;
+  --secondary: #1d293f;
   --secondary-foreground: #FFFFFF;
   --brand: #FACC15;
   --brand-foreground: #1A1A19;
@@ -81,10 +81,10 @@
   --destructive-foreground: #FFFFFF;
   --border: rgba(0,0,0,0.06);
   --input: rgba(0,0,0,0.06);
-  --ring: #0081F2;
+  --ring: #1d293f;
 
   /* Chart Colors */
-  --chart-1: #0081F2;
+  --chart-1: #1d293f;
   --chart-2: #5E5E5B;
   --chart-3: #858481;
   --chart-4: #34322D;
@@ -98,7 +98,7 @@
   --sidebar-accent: rgba(55,53,47,0.06);
   --sidebar-accent-foreground: #5E5E5B;
   --sidebar-border: rgba(0,0,0,0.06);
-  --sidebar-ring: #0081F2;
+  --sidebar-ring: #1d293f;
 
   /* Native Font Stacks */
   --font-sans: -apple-system, "system-ui", "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
@@ -132,8 +132,8 @@
   --popover-foreground: #EAEAE9;
   --primary: #FFFFFF;
   --primary-foreground: #1A1A19;
-  --secondary: #38BDF8;
-  --secondary-foreground: #1A1A19;
+  --secondary: #1d293f;
+  --secondary-foreground: #FFFFFF;
   --brand: #FACC15;
   --brand-foreground: #1A1A19;
   --muted: #1A1A19;
@@ -144,10 +144,10 @@
   --destructive-foreground: #FFFFFF;
   --border: rgba(255,255,255,0.1);
   --input: rgba(255,255,255,0.1);
-  --ring: #38BDF8;
+  --ring: #1d293f;
 
   /* Chart Colors */
-  --chart-1: #38BDF8;
+  --chart-1: #1d293f;
   --chart-2: #858481;
   --chart-3: #EAEAE9;
   --chart-4: #FFFFFF;
@@ -161,7 +161,7 @@
   --sidebar-accent: rgba(255,255,255,0.1);
   --sidebar-accent-foreground: #EAEAE9;
   --sidebar-border: rgba(255,255,255,0.1);
-  --sidebar-ring: #38BDF8;
+  --sidebar-ring: #1d293f;
 
   /* Native Font Stacks */
   --font-sans: -apple-system, "system-ui", "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
