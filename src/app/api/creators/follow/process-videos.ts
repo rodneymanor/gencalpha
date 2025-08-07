@@ -4,8 +4,8 @@
 
 import { streamToBunnyFromUrl, uploadBunnyThumbnailWithRetry } from "@/lib/bunny-stream";
 import { type CreatorVideo } from "@/lib/creator-service";
+import { scrapeVideoUrl } from "@/lib/unified-video-scraper";
 
-import { extractLowestQualityFromDashManifest } from "./dash-parser";
 import { extractHashtags } from "./hashtags";
 
 export async function processVideosWithBunnyUpload(
@@ -26,113 +26,96 @@ export async function processVideosWithBunnyUpload(
       try {
         console.log(`📹 [FOLLOW_CREATOR] Processing video ${index + 1}/${rawVideos.length}`);
 
-        console.log(`🔍 [FOLLOW_CREATOR] Raw video structure:`, {
-          hasMedia: !!rawVideo.media,
-          hasVideoDashManifest: !!rawVideo.media?.video_dash_manifest,
-          dashManifestLength: rawVideo.media?.video_dash_manifest?.length ?? 0,
-          hasVideoVersions: !!rawVideo.media?.video_versions,
-          videoVersionsCount: rawVideo.media?.video_versions?.length ?? 0,
-          firstVideoUrl: rawVideo.media?.video_versions?.[0]?.url,
-          hasImageVersions: !!rawVideo.media?.image_versions2,
-          thumbnailCandidatesCount: rawVideo.media?.image_versions2?.candidates?.length ?? 0,
-          firstThumbnailUrl: rawVideo.media?.image_versions2?.candidates?.[0]?.url,
-          platformId: rawVideo.media?.id ?? rawVideo.id,
-          code: rawVideo.media?.code ?? rawVideo.code,
-        });
+        // Build original post URL and use UnifiedVideoScraper as single source of truth
+        const isInstagram = !!(rawVideo.media ?? rawVideo.code ?? rawVideo.pk);
+        const originalUrl = isInstagram
+          ? `https://www.instagram.com/reel/${rawVideo.media?.code ?? rawVideo.code}/`
+          : `https://www.tiktok.com/@${rawVideo.author?.username ?? rawVideo.author?.uniqueId}/video/${
+              rawVideo.id ?? rawVideo.aweme_id
+            }`;
 
-        let videoData: any;
-        let videoUrl: string;
-        let thumbnailUrl: string;
-
-        if (
-          rawVideo.media?.video_dash_manifest ||
-          rawVideo.media?.video_versions?.[0]?.url ||
-          rawVideo.video_url ||
-          rawVideo.media_url
-        ) {
-          let dashVideoUrl: string | null = null;
-          if (rawVideo.media?.video_dash_manifest) {
-            dashVideoUrl = extractLowestQualityFromDashManifest(rawVideo.media.video_dash_manifest);
-          }
-
-          videoUrl =
-            dashVideoUrl ?? rawVideo.media?.video_versions?.[0]?.url ?? rawVideo.video_url ?? rawVideo.media_url ?? "";
-          thumbnailUrl = rawVideo.media?.image_versions2?.candidates?.[0]?.url ?? rawVideo.thumbnail_url ?? "";
-
-          if (dashVideoUrl) {
-            console.log("🎯 [FOLLOW_CREATOR] Using DASH manifest video URL (lowest quality)");
-          } else if (rawVideo.media?.video_versions?.[0]?.url) {
-            console.log("🎯 [FOLLOW_CREATOR] Using video_versions[0] URL (fallback)");
-          } else {
-            console.log("🎯 [FOLLOW_CREATOR] Using legacy video URL properties (fallback)");
-          }
-
-          videoData = {
-            platform: "instagram" as const,
-            platformVideoId: rawVideo.media?.id ?? rawVideo.id ?? rawVideo.pk ?? "",
-            originalUrl: `https://www.instagram.com/reel/${rawVideo.media?.code ?? rawVideo.code}/`,
-            title: rawVideo.media?.caption?.text?.substring(0, 100) ?? "Instagram Reel",
-            description: rawVideo.media?.caption?.text ?? "",
-            hashtags: extractHashtags(rawVideo.media?.caption?.text ?? ""),
-            duration: rawVideo.media?.video_duration ?? rawVideo.video_duration ?? 0,
-            metrics: {
-              views: rawVideo.media?.play_count ?? rawVideo.view_count ?? rawVideo.play_count ?? 0,
-              likes: rawVideo.media?.like_count ?? rawVideo.like_count ?? 0,
-              comments: rawVideo.media?.comment_count ?? rawVideo.comment_count ?? 0,
-              shares: rawVideo.media?.reshare_count ?? rawVideo.share_count ?? 0,
-              saves: rawVideo.save_count ?? 0,
-            },
-            author: {
-              username: rawVideo.media?.user?.username ?? rawVideo.user?.username ?? rawVideo.owner?.username ?? "",
-              displayName:
-                rawVideo.media?.user?.full_name ?? rawVideo.user?.full_name ?? rawVideo.owner?.full_name ?? "",
-              isVerified:
-                rawVideo.media?.user?.is_verified ?? rawVideo.user?.is_verified ?? rawVideo.owner?.is_verified ?? false,
-              followerCount: rawVideo.user?.follower_count ?? rawVideo.owner?.follower_count ?? 0,
-            },
-            publishedAt: rawVideo.media?.taken_at
-              ? new Date(rawVideo.media.taken_at * 1000).toISOString()
-              : rawVideo.taken_at
-                ? new Date(rawVideo.taken_at * 1000).toISOString()
-                : new Date().toISOString(),
-          };
-        } else {
-          videoUrl = rawVideo.video?.playAddr ?? rawVideo.video?.downloadAddr ?? "";
-          thumbnailUrl = rawVideo.video?.cover ?? rawVideo.video?.dynamicCover ?? "";
-
-          videoData = {
-            platform: "tiktok" as const,
-            platformVideoId: rawVideo.id ?? rawVideo.aweme_id ?? "",
-            originalUrl: `https://www.tiktok.com/@${rawVideo.author?.username}/video/${rawVideo.id}`,
-            title: rawVideo.desc ?? rawVideo.description ?? "TikTok Video",
-            description: rawVideo.desc ?? rawVideo.description ?? "",
-            hashtags: rawVideo.textExtra?.map((tag: any) => tag.hashtagName).filter(Boolean) ?? [],
-            duration: rawVideo.video?.duration ?? 0,
-            metrics: {
-              views: rawVideo.stats?.playCount ?? 0,
-              likes: rawVideo.stats?.diggCount ?? 0,
-              comments: rawVideo.stats?.commentCount ?? 0,
-              shares: rawVideo.stats?.shareCount ?? 0,
-            },
-            author: {
-              username: rawVideo.author?.username ?? rawVideo.author?.uniqueId ?? "",
-              displayName: rawVideo.author?.nickname ?? "",
-              isVerified: rawVideo.author?.verified ?? false,
-              followerCount: rawVideo.author?.stats?.followerCount ?? 0,
-            },
-            publishedAt: rawVideo.createTime
-              ? new Date(rawVideo.createTime * 1000).toISOString()
-              : new Date().toISOString(),
-          };
-        }
+        const scraped = await scrapeVideoUrl(originalUrl);
+        const videoUrl = scraped.videoUrl;
+        const thumbnailUrl = scraped.thumbnailUrl ?? "";
 
         if (!videoUrl) {
-          console.log(`⚠️ [FOLLOW_CREATOR] Skipping video - no video URL found`);
+          console.log("⚠️ [FOLLOW_CREATOR] Skipping video - unified scraper did not return a video URL");
           return null;
         }
 
+        const platform = (scraped.platform === "instagram" ? "instagram" : "tiktok") as const;
+        const platformVideoId =
+          rawVideo.media?.id ?? rawVideo.id ?? rawVideo.pk ?? rawVideo.aweme_id ?? scraped.shortCode ?? "";
+        const titleCandidate = isInstagram
+          ? rawVideo.media?.caption?.text
+          : (rawVideo.desc ?? rawVideo.description ?? scraped.title);
+        const title = (titleCandidate ?? scraped.title ?? (isInstagram ? "Instagram Reel" : "TikTok Video")).slice(
+          0,
+          100,
+        );
+        const description =
+          (isInstagram ? rawVideo.media?.caption?.text : (rawVideo.desc ?? rawVideo.description)) ??
+          scraped.description ??
+          "";
+        const hashtags = scraped.hashtags?.length ? scraped.hashtags : extractHashtags(description ?? "");
+        const duration = scraped.metadata?.duration ?? rawVideo.media?.video_duration ?? rawVideo.video?.duration ?? 0;
+        const metrics = {
+          views: scraped.metrics?.views ?? rawVideo.media?.play_count ?? rawVideo.stats?.playCount ?? 0,
+          likes: scraped.metrics?.likes ?? rawVideo.media?.like_count ?? rawVideo.stats?.diggCount ?? 0,
+          comments: scraped.metrics?.comments ?? rawVideo.media?.comment_count ?? rawVideo.stats?.commentCount ?? 0,
+          shares: scraped.metrics?.shares ?? rawVideo.media?.reshare_count ?? rawVideo.stats?.shareCount ?? 0,
+          saves: rawVideo.save_count ?? 0,
+        };
+        const author = isInstagram
+          ? {
+              username:
+                rawVideo.media?.user?.username ??
+                rawVideo.user?.username ??
+                rawVideo.owner?.username ??
+                scraped.author ??
+                "",
+              displayName:
+                rawVideo.media?.user?.full_name ?? rawVideo.user?.full_name ?? rawVideo.owner?.full_name ?? "",
+              isVerified:
+                rawVideo.media?.user?.is_verified ??
+                rawVideo.user?.is_verified ??
+                rawVideo.owner?.is_verified ??
+                scraped.metadata?.isVerified ??
+                false,
+              followerCount:
+                rawVideo.user?.follower_count ?? rawVideo.owner?.follower_count ?? scraped.metadata?.followerCount ?? 0,
+            }
+          : {
+              username: rawVideo.author?.username ?? rawVideo.author?.uniqueId ?? scraped.author ?? "",
+              displayName: rawVideo.author?.nickname ?? "",
+              isVerified: rawVideo.author?.verified ?? scraped.metadata?.isVerified ?? false,
+              followerCount: rawVideo.author?.stats?.followerCount ?? scraped.metadata?.followerCount ?? 0,
+            };
+        const publishedAt = isInstagram
+          ? rawVideo.media?.taken_at
+            ? new Date(rawVideo.media.taken_at * 1000).toISOString()
+            : rawVideo.taken_at
+              ? new Date(rawVideo.taken_at * 1000).toISOString()
+              : (scraped.metadata?.timestamp ?? new Date().toISOString())
+          : rawVideo.createTime
+            ? new Date(rawVideo.createTime * 1000).toISOString()
+            : (scraped.metadata?.timestamp ?? new Date().toISOString());
+
+        const videoData = {
+          platform,
+          platformVideoId,
+          originalUrl,
+          title,
+          description,
+          hashtags,
+          duration,
+          metrics,
+          author,
+          publishedAt,
+        } as const;
+
         console.log(`🐰 [FOLLOW_CREATOR] Uploading video to Bunny.net`);
-        const filename = `${videoData.platform}_${videoData.platformVideoId}_${Date.now()}.mp4`;
+        const filename = `${platform}_${platformVideoId}_${Date.now()}.mp4`;
         const bunnyResult = await streamToBunnyFromUrl(videoUrl, filename);
 
         const finalThumbnailUrl = thumbnailUrl;
