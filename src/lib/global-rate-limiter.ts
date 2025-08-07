@@ -4,9 +4,9 @@
  */
 
 interface QueuedRequest {
-  operation: () => Promise<any>;
-  resolve: (value: any) => void;
-  reject: (error: any) => void;
+  operation: () => Promise<unknown>;
+  resolve: (value: unknown) => void;
+  reject: (error: unknown) => void;
   key: string;
 }
 
@@ -23,13 +23,13 @@ class GlobalRateLimiter {
   /**
    * Add a request to the global queue
    */
-  async enqueue<T>(operation: () => Promise<T>, key: string = 'default'): Promise<T> {
+  async enqueue<T>(operation: () => Promise<T>, key: string = "default"): Promise<T> {
     return new Promise<T>((resolve, reject) => {
       const request: QueuedRequest = {
         operation,
         resolve,
         reject,
-        key
+        key,
       };
 
       this.queue.push(request);
@@ -55,12 +55,12 @@ class GlobalRateLimiter {
 
     while (this.queue.length > 0) {
       const request = this.queue.shift()!;
-      
+
       try {
         // Ensure minimum interval between requests
         const now = Date.now();
         const timeSinceLastRequest = now - this.lastRequestTime;
-        
+
         if (timeSinceLastRequest < this.minInterval) {
           const waitTime = this.minInterval - timeSinceLastRequest;
           console.log(`⏳ [GLOBAL_RATE_LIMITER] Waiting ${waitTime}ms before processing '${request.key}'`);
@@ -68,18 +68,17 @@ class GlobalRateLimiter {
         }
 
         console.log(`🚀 [GLOBAL_RATE_LIMITER] Processing request '${request.key}'`);
-        
+
         // Execute the operation
         const result = await request.operation();
-        
+
         // Update last request time
         this.lastRequestTime = Date.now();
-        
+
         // Resolve the promise
         request.resolve(result);
-        
+
         console.log(`✅ [GLOBAL_RATE_LIMITER] Completed request '${request.key}' (${this.queue.length} remaining)`);
-        
       } catch (error) {
         console.error(`❌ [GLOBAL_RATE_LIMITER] Failed request '${request.key}':`, error);
         request.reject(error);
@@ -97,7 +96,7 @@ class GlobalRateLimiter {
    * Sleep for specified milliseconds
    */
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
@@ -108,7 +107,7 @@ class GlobalRateLimiter {
       queueLength: this.queue.length,
       isProcessing: this.isProcessing,
       lastRequestTime: this.lastRequestTime,
-      timeSinceLastRequest: Date.now() - this.lastRequestTime
+      timeSinceLastRequest: Date.now() - this.lastRequestTime,
     };
   }
 
@@ -117,8 +116,8 @@ class GlobalRateLimiter {
    */
   clearQueue() {
     console.log(`🧹 [GLOBAL_RATE_LIMITER] Clearing queue (${this.queue.length} items)`);
-    this.queue.forEach(request => {
-      request.reject(new Error('Queue cleared'));
+    this.queue.forEach((request) => {
+      request.reject(new Error("Queue cleared"));
     });
     this.queue = [];
     this.isProcessing = false;
@@ -134,7 +133,7 @@ export const tiktokGlobalRateLimiter = new GlobalRateLimiter(1); // 1 request pe
  */
 export async function withGlobalInstagramRateLimit<T>(
   operation: () => Promise<T>,
-  key: string = 'instagram-api'
+  key: string = "instagram-api",
 ): Promise<T> {
   return instagramGlobalRateLimiter.enqueue(operation, key);
 }
@@ -144,7 +143,7 @@ export async function withGlobalInstagramRateLimit<T>(
  */
 export async function withGlobalTikTokRateLimit<T>(
   operation: () => Promise<T>,
-  key: string = 'tiktok-api'
+  key: string = "tiktok-api",
 ): Promise<T> {
   return tiktokGlobalRateLimiter.enqueue(operation, key);
 }
@@ -156,7 +155,7 @@ export async function retryWithGlobalBackoff<T>(
   operation: () => Promise<T>,
   maxRetries: number = 3,
   baseDelay: number = 1000,
-  key: string = 'retry-operation'
+  key: string = "retry-operation",
 ): Promise<T> {
   let lastError: Error | null = null;
 
@@ -166,53 +165,63 @@ export async function retryWithGlobalBackoff<T>(
     } catch (error) {
       lastError = error as Error;
 
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      console.log(`🔄 [GLOBAL_RETRY] Attempt ${attempt + 1}/${maxRetries + 1} failed for '${key}':`, errorMessage);
-
-      // Handle specific error cases
-      if (error instanceof Error || (typeof error === 'object' && error !== null)) {
-        const errorStr = String(error).toLowerCase();
-        const errorMsg = (error instanceof Error ? error.message : '').toLowerCase();
-
-        // Don't retry on permanent errors
-        if (
-          errorStr.includes('not found') ||
-          errorStr.includes('unauthorized') ||
-          errorStr.includes('forbidden') ||
-          errorMsg.includes('not found') ||
-          errorMsg.includes('unauthorized') ||
-          errorMsg.includes('forbidden')
-        ) {
-          console.log(`🚫 [GLOBAL_RETRY] Not retrying permanent error for '${key}'`);
-          throw error;
-        }
-
-        // Special handling for 429 (rate limit) errors
-        if (
-          errorStr.includes('429') ||
-          errorStr.includes('rate limit') ||
-          errorStr.includes('too many requests') ||
-          errorMsg.includes('429') ||
-          errorMsg.includes('rate limit') ||
-          errorMsg.includes('too many requests')
-        ) {
-          // For rate limit errors, wait longer
-          const rateLimitDelay = Math.min(30000, baseDelay * Math.pow(3, attempt)); // Exponential backoff with max 30s
-          console.log(`🛑 [GLOBAL_RETRY] Rate limit detected for '${key}', waiting ${rateLimitDelay}ms before retry...`);
-          await new Promise(resolve => setTimeout(resolve, rateLimitDelay));
-          continue;
-        }
-      }
-
       if (attempt === maxRetries) {
         break;
       }
 
-      const delay = Math.min(10000, baseDelay * Math.pow(2, attempt)); // Max 10s delay
-      console.log(`⏳ [GLOBAL_RETRY] Retrying '${key}' in ${delay}ms (attempt ${attempt + 2}/${maxRetries + 1})...`);
-      await new Promise(resolve => setTimeout(resolve, delay));
+      const shouldRetry = checkIfRetryable(error, key);
+      if (!shouldRetry) {
+        throw error;
+      }
+
+      const delay = calculateDelay(error, attempt, baseDelay);
+      await waitForDelay(delay, key, attempt + 2, maxRetries + 1);
     }
   }
 
-  throw lastError ?? new Error('Operation failed after all retries');
+  throw lastError ?? new Error("Operation failed after all retries");
+}
+
+function checkIfRetryable(error: unknown, key: string): boolean {
+  const errorStr = String(error).toLowerCase();
+  const errorMsg = (error instanceof Error ? error.message : "").toLowerCase();
+
+  // Don't retry on permanent errors
+  if (
+    errorStr.includes("not found") ||
+    errorStr.includes("unauthorized") ||
+    errorStr.includes("forbidden") ||
+    errorMsg.includes("not found") ||
+    errorMsg.includes("unauthorized") ||
+    errorMsg.includes("forbidden")
+  ) {
+    console.log(`🚫 [GLOBAL_RETRY] Not retrying permanent error for '${key}'`);
+    return false;
+  }
+
+  return true;
+}
+
+function calculateDelay(error: unknown, attempt: number, baseDelay: number): number {
+  const errorStr = String(error).toLowerCase();
+  const errorMsg = (error instanceof Error ? error.message : "").toLowerCase();
+
+  // Special handling for 429 (rate limit) errors
+  if (
+    errorStr.includes("429") ||
+    errorStr.includes("rate limit") ||
+    errorStr.includes("too many requests") ||
+    errorMsg.includes("429") ||
+    errorMsg.includes("rate limit") ||
+    errorMsg.includes("too many requests")
+  ) {
+    return Math.min(30000, baseDelay * Math.pow(3, attempt)); // Exponential backoff with max 30s
+  }
+
+  return Math.min(10000, baseDelay * Math.pow(2, attempt)); // Max 10s delay
+}
+
+async function waitForDelay(delay: number, key: string, nextAttempt: number, totalAttempts: number): Promise<void> {
+  console.log(`⏳ [GLOBAL_RETRY] Retrying '${key}' in ${delay}ms (attempt ${nextAttempt}/${totalAttempts})...`);
+  await new Promise((resolve) => setTimeout(resolve, delay));
 }
