@@ -50,7 +50,7 @@ export const sidebarItems: NavGroup[] = [
       },
       {
         title: "Collections",
-        url: "/dashboard/collections",
+        url: "/focus-collections",
         icon: Video,
         isNew: true,
       },
