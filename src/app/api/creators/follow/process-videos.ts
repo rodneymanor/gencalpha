@@ -6,6 +6,7 @@ import { streamToBunnyFromUrl, uploadBunnyThumbnailWithRetry } from "@/lib/bunny
 import { type CreatorVideo } from "@/lib/creator-service";
 import { scrapeVideoUrl } from "@/lib/unified-video-scraper";
 
+import { extractLowestQualityFromDashManifest } from "./dash-parser";
 import { extractHashtags } from "./hashtags";
 
 export async function processVideosWithBunnyUpload(
