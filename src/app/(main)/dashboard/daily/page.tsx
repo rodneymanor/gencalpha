@@ -24,16 +24,7 @@ export default function DailyPage() {
 
       {/* Creator Inspiration Section */}
       <div className="px-6 pb-8">
-        <div className="mb-6">
-          <h2 className="text-foreground text-2xl font-semibold">Creator Inspiration</h2>
-        </div>
-        <CreatorVideosGrid
-          videos={mockVideoData}
-          onVideoClick={(video) => {
-            // Handle video click - could open modal/slideout
-            console.log("Video clicked:", video);
-          }}
-        />
+        <CreatorVideosGrid videos={mockVideoData} />
       </div>
     </div>
   );
