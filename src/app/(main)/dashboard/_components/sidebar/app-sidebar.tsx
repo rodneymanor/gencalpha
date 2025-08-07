@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { useRouter } from "next/navigation";
+
 import { PanelLeft } from "lucide-react";
 
 import {
@@ -31,19 +33,30 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
 
 function SidebarLogo({ isPinned, onPinToggle }: { isPinned: boolean; onPinToggle: () => void }) {
   const { state } = useSidebar();
+  const router = useRouter();
   const isCollapsed = state === "collapsed";
+
+  const handleLogoClick = () => {
+    router.push("/dashboard/default");
+  };
 
   return (
     <div className="flex h-12 w-full items-center justify-between px-2">
       {isCollapsed ? (
         // Show "G" when collapsed
-        <span className="text-foreground hover:text-primary cursor-pointer text-2xl font-bold transition-colors duration-200 ease-linear">
+        <span
+          className="text-foreground hover:text-primary cursor-pointer text-2xl font-bold transition-colors duration-200 ease-linear"
+          onClick={handleLogoClick}
+        >
           G
         </span>
       ) : (
         <>
           {/* Logo on the left */}
-          <div className="hover:text-primary flex cursor-pointer items-center gap-1 transition-colors duration-200 ease-linear">
+          <div
+            className="hover:text-primary flex cursor-pointer items-center gap-1 transition-colors duration-200 ease-linear"
+            onClick={handleLogoClick}
+          >
             <span className="text-foreground text-xl font-bold">Gen</span>
             <div className="bg-brand h-2 w-2 rounded-[var(--radius-pill)]"></div>
             <span className="text-foreground text-xl font-bold">C</span>
