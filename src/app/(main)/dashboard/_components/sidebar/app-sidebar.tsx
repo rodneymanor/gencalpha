@@ -37,7 +37,7 @@ function SidebarLogo({ isPinned, onPinToggle }: { isPinned: boolean; onPinToggle
   const isCollapsed = state === "collapsed";
 
   const handleLogoClick = () => {
-    router.push("/dashboard/default");
+    router.push("/dashboard");
   };
 
   return (
