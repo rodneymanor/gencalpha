@@ -187,10 +187,15 @@ const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({ videos, onVideoCl
   };
 
   return (
-    <div className={`grid w-full ${getGridCols()} gap-6 p-6`}>
-      {videos.map((video) => (
-        <VideoCard key={video.id} video={video} onVideoClick={onVideoClick} />
-      ))}
+    <div className="space-y-6">
+      <div className="px-6">
+        <h2 className="text-foreground text-2xl font-semibold">Creator Inspiration</h2>
+      </div>
+      <div className={`grid w-full ${getGridCols()} gap-4 px-6`}>
+        {videos.map((video) => (
+          <VideoCard key={video.id} video={video} onVideoClick={onVideoClick} />
+        ))}
+      </div>
     </div>
   );
 };
