@@ -90,10 +90,14 @@ const FollowCreatorSection: React.FC<FollowCreatorProps> = ({ onCreatorFollowed 
     try {
       console.log(`🎭 Following creator: ${username}`);
 
+      // Get Firebase Auth token for API authentication
+      const token = await user.getIdToken();
+
       const response = await fetch("/api/creators/follow", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           username: username.trim(),
