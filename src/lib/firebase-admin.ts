@@ -1,3 +1,4 @@
+/* eslint-disable import/no-mutable-exports, @typescript-eslint/no-explicit-any */
 import { initializeApp, getApps, cert, ServiceAccount } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
@@ -36,6 +37,13 @@ try {
     }
 
     adminDb = getFirestore(adminApp);
+    // Ignore undefined properties to prevent write failures on optional fields
+    try {
+      adminDb.settings({ ignoreUndefinedProperties: true });
+      console.log("✅ Firestore Admin: ignoreUndefinedProperties enabled");
+    } catch (settingsError) {
+      console.warn("⚠️ Firestore Admin settings could not be applied:", settingsError);
+    }
     adminAuth = getAuth(adminApp);
   }
 } catch (error) {
