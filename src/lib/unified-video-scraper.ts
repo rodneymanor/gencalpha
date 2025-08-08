@@ -166,35 +166,13 @@ export class UnifiedVideoScraper {
    * Enhanced URL validation with specific error messages
    */
   static validateUrlWithMessage(url: string): { valid: boolean; message?: string; platform?: string } {
-    if (!url || url.trim() === "") {
-      return { valid: false, message: "URL is required" };
-    }
+    const basicError = this.getBasicValidationError(url);
+    if (basicError) return basicError;
 
-    try {
-      new URL(url); // Basic URL format validation
-    } catch {
-      return { valid: false, message: "Please enter a valid URL" };
-    }
+    const cdnPlatform = this.detectCdnPlatform(url);
+    if (cdnPlatform) return { valid: true, platform: cdnPlatform };
 
-    // Check if it's a direct Instagram CDN video URL (already scraped)
-    const isInstagramCdnUrl =
-      url.includes("scontent-") && url.includes(".cdninstagram.com") && url.includes(".mp4");
-    if (isInstagramCdnUrl) {
-      console.log("🔍 [UNIFIED_SCRAPER] Detected Instagram CDN URL for direct video download");
-      return { valid: true, platform: "instagram_cdn" };
-    }
-
-    // Check if it's a direct TikTok CDN video URL (already scraped)
-    const isTikTokCdnUrl =
-      (url.includes("tiktokcdn.com") || url.includes("tiktokv.com") || url.includes("muscdn.com")) &&
-      url.includes(".mp4");
-    if (isTikTokCdnUrl) {
-      console.log("🔍 [UNIFIED_SCRAPER] Detected TikTok CDN URL for direct video download");
-      return { valid: true, platform: "tiktok_cdn" };
-    }
-
-    // Check for Instagram post URLs specifically
-    if (url.includes("instagram.com") && url.match(/\/p\/[A-Za-z0-9_-]+/)) {
+    if (this.isInstagramPostUrl(url)) {
       return {
         valid: false,
         message:
@@ -203,15 +181,42 @@ export class UnifiedVideoScraper {
     }
 
     const platform = this.detectPlatform(url);
+    return platform === "unsupported"
+      ? { valid: false, message: "Only TikTok and Instagram video URLs are supported" }
+      : { valid: true, platform };
+  }
 
-    if (platform === "unsupported") {
-      return {
-        valid: false,
-        message: "Only TikTok and Instagram video URLs are supported",
-      };
+  private static getBasicValidationError(url: string): { valid: boolean; message: string } | null {
+    if (!url || url.trim() === "") {
+      return { valid: false, message: "URL is required" };
     }
+    try {
+      new URL(url);
+      return null;
+    } catch {
+      return { valid: false, message: "Please enter a valid URL" };
+    }
+  }
 
-    return { valid: true, platform };
+  private static detectCdnPlatform(url: string): "instagram_cdn" | "tiktok_cdn" | null {
+    if (this.isInstagramCdnUrl(url)) return "instagram_cdn";
+    if (this.isTikTokCdnUrl(url)) return "tiktok_cdn";
+    return null;
+  }
+
+  private static isInstagramCdnUrl(url: string): boolean {
+    return url.includes("scontent-") && url.includes(".cdninstagram.com") && url.includes(".mp4");
+  }
+
+  private static isTikTokCdnUrl(url: string): boolean {
+    return (
+      (url.includes("tiktokcdn.com") || url.includes("tiktokv.com") || url.includes("muscdn.com")) &&
+      url.includes(".mp4")
+    );
+  }
+
+  private static isInstagramPostUrl(url: string): boolean {
+    return url.includes("instagram.com") && /\/p\/[A-Za-z0-9_-]+/.test(url);
   }
 }
 
