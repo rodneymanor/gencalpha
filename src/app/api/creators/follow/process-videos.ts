@@ -6,7 +6,6 @@ import { streamToBunnyFromUrl, uploadBunnyThumbnailWithRetry } from "@/lib/bunny
 import { type CreatorVideo } from "@/lib/creator-service";
 import { scrapeVideoUrl } from "@/lib/unified-video-scraper";
 
-import { extractLowestQualityFromDashManifest } from "./dash-parser";
 import { extractHashtags } from "./hashtags";
 
 export async function processVideosWithBunnyUpload(
@@ -184,22 +183,26 @@ export async function processInstagramVideosWithImmediateDownload(
       let videoUrl = "";
       let thumbnailUrl = "";
 
-      const dashManifest = rawVideo.media?.video_dash_manifest;
-      if (dashManifest) {
-        console.log("🔍 [INSTAGRAM_IMMEDIATE] Found DASH manifest, extracting lowest quality");
-        const dashVideoUrl = extractLowestQualityFromDashManifest(dashManifest);
-        if (dashVideoUrl) {
-          videoUrl = dashVideoUrl;
-          console.log("✅ [INSTAGRAM_IMMEDIATE] Using DASH manifest URL");
+      // Reuse unified scraper logic to determine the best video URL (handles DASH vs standard)
+      const originalUrl = `https://www.instagram.com/reel/${rawVideo.media?.code ?? rawVideo.code}/`;
+      try {
+        const scraped = await scrapeVideoUrl(originalUrl);
+        if (scraped?.platform === "instagram") {
+          videoUrl = scraped.videoUrl ?? "";
+          thumbnailUrl = scraped.thumbnailUrl ?? "";
         }
+      } catch (e) {
+        console.log("⚠️ [INSTAGRAM_IMMEDIATE] Unified scraper failed, attempting raw fallbacks");
       }
 
+      // Fallback to first standard video version if unified scraper didn't yield a URL
       if (!videoUrl && rawVideo.media?.video_versions?.[0]?.url) {
         videoUrl = rawVideo.media.video_versions[0].url;
-        console.log("✅ [INSTAGRAM_IMMEDIATE] Using video_versions[0] URL");
+        console.log("✅ [INSTAGRAM_IMMEDIATE] Using video_versions[0] URL (fallback)");
       }
 
-      if (rawVideo.media?.image_versions2?.candidates?.[0]?.url) {
+      // Fallback thumbnail from raw payload if unified path didn’t provide one
+      if (!thumbnailUrl && rawVideo.media?.image_versions2?.candidates?.[0]?.url) {
         thumbnailUrl = rawVideo.media.image_versions2.candidates[0].url;
       }
 
