@@ -1,4 +1,4 @@
-import { Calendar, Video, type LucideIcon } from "lucide-react";
+import { Calendar, GalleryVerticalEnd, type LucideIcon } from "lucide-react";
 
 export interface NavSubItem {
   title: string;
@@ -39,7 +39,7 @@ export const sidebarItems: NavGroup[] = [
       {
         title: "Collections",
         url: "/focus-collections",
-        icon: Video,
+        icon: GalleryVerticalEnd,
         isNew: true,
       },
     ],
