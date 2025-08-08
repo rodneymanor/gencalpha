@@ -102,12 +102,26 @@ export class CreatorService {
 
       if (existingCreator) {
         console.log(`✅ [CREATOR_SERVICE] Creator exists, updating: ${existingCreator.id}`);
-        await this.updateCreator(existingCreator.id!, {
-          ...additionalData,
-          username,
-          lastFetchedAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        });
+        const adminDb = getAdminDb();
+        const useAdmin = isAdminInitialized && adminDb;
+        if (useAdmin) {
+          await adminDb
+            .collection(CreatorService.CREATORS_PATH)
+            .doc(existingCreator.id!)
+            .update({
+              ...additionalData,
+              username,
+              lastFetchedAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            });
+        } else {
+          await this.updateCreator(existingCreator.id!, {
+            ...additionalData,
+            username,
+            lastFetchedAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          });
+        }
         return existingCreator.id!;
       }
 
@@ -123,19 +137,27 @@ export class CreatorService {
         lastFetchedAt: new Date().toISOString(),
       };
 
-      if (!db) {
-        throw new Error("Firebase client database not available");
+      const adminDb = getAdminDb();
+      const useAdmin = isAdminInitialized && adminDb;
+      if (useAdmin) {
+        const docRef = await adminDb.collection(this.CREATORS_PATH).add({
+          ...creatorData,
+        });
+        console.log(`✅ [CREATOR_SERVICE] (admin) Creator created with ID: ${docRef.id}`);
+        return docRef.id;
+      } else {
+        if (!db) {
+          throw new Error("Firebase client database not available");
+        }
+        const docRef = await addDoc(collection(db, this.CREATORS_PATH), {
+          ...creatorData,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+          lastFetchedAt: serverTimestamp(),
+        });
+        console.log(`✅ [CREATOR_SERVICE] Creator created with ID: ${docRef.id}`);
+        return docRef.id;
       }
-
-      const docRef = await addDoc(collection(db, this.CREATORS_PATH), {
-        ...creatorData,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        lastFetchedAt: serverTimestamp(),
-      });
-
-      console.log(`✅ [CREATOR_SERVICE] Creator created with ID: ${docRef.id}`);
-      return docRef.id;
     } catch (error) {
       console.error(`❌ [CREATOR_SERVICE] Error creating/updating creator:`, error);
       throw new Error("Failed to create or update creator");
@@ -150,6 +172,23 @@ export class CreatorService {
     platformUserId: string,
   ): Promise<CreatorProfile | null> {
     try {
+      const adminDb = getAdminDb();
+      const useAdmin = isAdminInitialized && adminDb;
+
+      if (useAdmin) {
+        const snapshot = await adminDb
+          .collection(this.CREATORS_PATH)
+          .where("platform", "==", platform)
+          .where("platformUserId", "==", platformUserId)
+          .limit(1)
+          .get();
+
+        if (snapshot.empty) return null;
+        const doc = snapshot.docs[0];
+        const data = doc.data();
+        return this.transformCreatorData(doc.id, data);
+      }
+
       if (!db) {
         throw new Error("Firebase client database not available");
       }
