@@ -184,6 +184,12 @@ const VideoInspirationPlayer: React.FC<VideoInspirationPlayerProps> = (props) =>
                 <div className="truncate text-sm font-bold">{creatorName}</div>
                 <div className="text-muted-foreground text-xs">{followers} Followers</div>
               </div>
+              <div className="flex items-center gap-2">
+                <kbd className="bg-muted text-foreground rounded-[var(--radius-button)] border px-2 py-0.5 text-xs">
+                  Esc
+                </kbd>
+                <span className="text-muted-foreground text-xs">to close</span>
+              </div>
               <AdvancedSlidingSwitch options={switchOptions} onChange={() => setShowInsights((prev) => !prev)} />
             </div>
 
@@ -218,6 +224,12 @@ const FloatingVideoInspirationPlayer: React.FC<VideoInspirationPlayerProps> = (p
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-bold">{creatorName}</div>
                 <div className="text-muted-foreground text-xs">{followers} Followers</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <kbd className="bg-muted text-foreground rounded-[var(--radius-button)] border px-2 py-0.5 text-xs">
+                  Esc
+                </kbd>
+                <span className="text-muted-foreground text-xs">to close</span>
               </div>
               <AdvancedSlidingSwitch options={switchOptions} onChange={() => setShowInsights((prev) => !prev)} />
             </div>
