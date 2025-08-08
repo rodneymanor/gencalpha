@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { ArrowLeft, Plus, FolderOpen, Video, Star, Heart, TrendingUp, Calendar, Bookmark, Archive } from "lucide-react";
+import { ArrowLeft, Plus, Video, GalleryVerticalEnd } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -23,38 +23,6 @@ interface FocusCollectionsSidebarProps {
   className?: string;
 }
 
-// Icon mapping for title-based assignment
-const iconMap = new Map([
-  ["favorite", Heart],
-  ["fav", Heart],
-  ["trending", TrendingUp],
-  ["viral", TrendingUp],
-  ["bookmark", Bookmark],
-  ["saved", Bookmark],
-  ["archive", Archive],
-  ["old", Archive],
-  ["star", Star],
-  ["featured", Star],
-  ["calendar", Calendar],
-  ["scheduled", Calendar],
-]);
-
-// Helper function to get icon for collection based on title or use default rotation
-const getCollectionIcon = (collectionId: string, title: string) => {
-  const titleLower = title.toLowerCase();
-
-  // Find matching icon based on keywords
-  for (const [keyword, IconComponent] of iconMap) {
-    if (titleLower.includes(keyword)) {
-      return IconComponent;
-    }
-  }
-
-  // Default rotation based on collection ID (safe hash)
-  const icons = [Video, FolderOpen, Star, Heart, TrendingUp, Calendar, Bookmark, Archive];
-  const safeIndex = Math.abs(collectionId.split("").reduce((a, b) => a + b.charCodeAt(0), 0)) % icons.length;
-  return icons[safeIndex];
-};
 
 export function FocusCollectionsSidebar({
   collections,
@@ -64,7 +32,7 @@ export function FocusCollectionsSidebar({
   onCreateCollection,
   className,
 }: FocusCollectionsSidebarProps) {
-  const [hoveredCollection, setHoveredCollection] = useState<string | null>(null);
+  const [_hoveredCollection, setHoveredCollection] = useState<string | null>(null);
 
   return (
     <div className={cn("bg-sidebar text-sidebar-foreground flex h-full w-full flex-col", className)}>
@@ -136,7 +104,6 @@ export function FocusCollectionsSidebar({
 
           {/* Individual Collections */}
           {collections.map((collection) => {
-            const IconComponent = getCollectionIcon(collection.id, collection.title);
             return (
               <button
                 key={collection.id}
@@ -158,7 +125,7 @@ export function FocusCollectionsSidebar({
                       : "bg-sidebar-accent/20 text-sidebar-foreground",
                   )}
                 >
-                  <IconComponent
+                  <GalleryVerticalEnd
                     className={cn(
                       "h-4 w-4",
                       selectedCollectionId === collection.id
