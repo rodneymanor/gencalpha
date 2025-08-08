@@ -30,8 +30,8 @@ export function FloatingVideoPlayer({ isOpen, onClose, video, className, mode = 
       const panelWidth = Math.min(420, window.innerWidth * 0.9);
       const totalWidth = panelWidth + 32; // 32px for right padding (right-4 = 16px + some buffer)
 
-      // Add transition and margin to push content
-      body.style.transition = "margin-right 300ms ease-out";
+      // Add transition and margin to push content (slower for smoother layout shift)
+      body.style.transition = "margin-right 500ms ease-out";
       body.style.marginRight = `${totalWidth}px`;
     } else {
       // Remove margin when closed
@@ -39,7 +39,7 @@ export function FloatingVideoPlayer({ isOpen, onClose, video, className, mode = 
       // Clean up transition after animation
       setTimeout(() => {
         body.style.transition = "";
-      }, 300);
+      }, 500);
     }
 
     // Cleanup on unmount
@@ -71,7 +71,7 @@ export function FloatingVideoPlayer({ isOpen, onClose, video, className, mode = 
               "fixed right-4 z-50",
               // 16px padding above and below to match Clarity spacing
               "top-4 bottom-4",
-              "transition-all duration-300 ease-out",
+              "transition-all duration-500 ease-out",
               "rounded-[var(--radius-card)]",
               "h-[calc(100vh-32px)]",
               "w-[min(420px,76.5vw)]",
