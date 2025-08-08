@@ -11,9 +11,10 @@ import { FloatingVideoPlayer, useFloatingVideo } from "@/components/video/video-
 import { transformVideoDataToVideo } from "@/lib/video-player-helpers";
 
 import CreatorVideosGrid, { type VideoData } from "./_components/creator-videos-grid";
+import { DailyIdeaInboxSection } from "./_components/daily-idea-inbox-section";
 
 export default function DailyPage() {
-  const [activeIdeasSection, setActiveIdeasSection] = useState<null | "follow-creators">(null);
+  const [activeIdeasSection, setActiveIdeasSection] = useState<null | "follow-creators" | "idea-inbox">(null);
   const { isOpen, currentVideo, openVideo, closeVideo } = useFloatingVideo();
 
   const handleVideoClick = (videoData: VideoData) => {
@@ -48,7 +49,10 @@ export default function DailyPage() {
           <div className="mt-6">
             <ResourceGrid
               lgColumns={3}
-              items={getIdeasItems({ onOpenFollowCreators: () => setActiveIdeasSection("follow-creators") })}
+              items={getIdeasItems({
+                onOpenFollowCreators: () => setActiveIdeasSection("follow-creators"),
+                onOpenIdeaInbox: () => setActiveIdeasSection("idea-inbox"),
+              })}
             />
           </div>
         )}
@@ -68,12 +72,32 @@ export default function DailyPage() {
         </div>
       )}
 
+      {/* Idea Inbox Section (hidden until selected) */}
+      {activeIdeasSection === "idea-inbox" && (
+        <div className="space-y-4 px-6 pb-8">
+          <div className="flex items-center justify-between">
+            <Button variant="ghost" onClick={() => setActiveIdeasSection(null)} className="h-11 px-3">
+              <ArrowLeft className="mr-2 size-4" aria-hidden />
+              <span>Back to ideas</span>
+            </Button>
+          </div>
+
+          <DailyIdeaInboxSection />
+        </div>
+      )}
+
       {/* Floating Video Player */}
       {currentVideo && <FloatingVideoPlayer isOpen={isOpen} onClose={closeVideo} video={currentVideo} />}
     </div>
   );
 }
-function getIdeasItems({ onOpenFollowCreators }: { onOpenFollowCreators: () => void }): ResourceItem[] {
+function getIdeasItems({
+  onOpenFollowCreators,
+  onOpenIdeaInbox,
+}: {
+  onOpenFollowCreators: () => void;
+  onOpenIdeaInbox: () => void;
+}): ResourceItem[] {
   return [
     {
       id: "follow-creators",
@@ -87,6 +111,7 @@ function getIdeasItems({ onOpenFollowCreators }: { onOpenFollowCreators: () => v
       title: "Idea inbox",
       icon: <Inbox className="text-foreground/75 size-4" aria-hidden />,
       kindLabel: "Organize",
+      onClick: onOpenIdeaInbox,
     },
     {
       id: "ai-ghostwriter",
