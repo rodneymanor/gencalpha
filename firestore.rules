@@ -69,6 +69,34 @@ service cloud.firestore {
                          && request.auth.uid == request.resource.data.userId;
     }
 
+    /* ───────────────────────────────────────────────────────────────
+       Creator Management Collections
+       ─────────────────────────────────────────────────────────────── */
+    
+    /* Creators - Allow authenticated users to read/write creator profiles */
+    match /creators/{creatorId} {
+      allow read:   if request.auth != null;
+      allow write:  if request.auth != null;
+      allow create: if request.auth != null;
+    }
+    
+    /* Creator Follow Relationships - Users can manage their own follows */
+    match /creator_follows/{followId} {
+      allow read:   if request.auth != null;
+      allow write:  if request.auth != null 
+                    && (request.auth.uid == resource.data.userId || 
+                        request.auth.uid == request.resource.data.userId);
+      allow create: if request.auth != null 
+                    && request.auth.uid == request.resource.data.userId;
+    }
+    
+    /* Creator Videos - Allow authenticated users to read/write creator videos */
+    match /creator_videos/{videoId} {
+      allow read:   if request.auth != null;
+      allow write:  if request.auth != null;
+      allow create: if request.auth != null;
+    }
+
     /* ────────────────
        Catch-all deny
        ──────────────── */
