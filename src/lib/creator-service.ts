@@ -9,7 +9,6 @@ import {
   query,
   where,
   orderBy,
-  serverTimestamp,
   writeBatch,
 } from "firebase/firestore";
 
@@ -85,6 +84,25 @@ export class CreatorService {
   private static readonly CREATOR_FOLLOWS_PATH = "creator_follows";
   private static readonly CREATOR_VIDEOS_PATH = "creator_videos";
 
+  private static isPlainObject(value: unknown): value is Record<string, unknown> {
+    return Object.prototype.toString.call(value) === "[object Object]";
+  }
+
+  /** Remove keys with undefined values recursively */
+  private static sanitizeForFirestore<T extends object>(value: T): T {
+    const input: Record<string, unknown> = value as Record<string, unknown>;
+    const result: Record<string, unknown> = {};
+    for (const [key, val] of Object.entries(input)) {
+      if (val === undefined) continue;
+      if (this.isPlainObject(val)) {
+        result[key] = this.sanitizeForFirestore(val);
+      } else {
+        result[key] = val;
+      }
+    }
+    return result as T;
+  }
+
   /**
    * Create or update a creator profile
    */
@@ -104,57 +122,53 @@ export class CreatorService {
         console.log(`✅ [CREATOR_SERVICE] Creator exists, updating: ${existingCreator.id}`);
         const adminDb = getAdminDb();
         const useAdmin = isAdminInitialized && adminDb;
+        const nowIso = new Date().toISOString();
+        const updatePayload: Partial<CreatorProfile> = this.sanitizeForFirestore({
+          ...additionalData,
+          username,
+          lastFetchedAt: nowIso,
+          updatedAt: nowIso,
+        });
         if (useAdmin) {
-          await adminDb
-            .collection(CreatorService.CREATORS_PATH)
-            .doc(existingCreator.id!)
-            .update({
-              ...additionalData,
-              username,
-              lastFetchedAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            });
+          await adminDb.collection(CreatorService.CREATORS_PATH).doc(existingCreator.id!).update(updatePayload);
         } else {
-          await this.updateCreator(existingCreator.id!, {
-            ...additionalData,
-            username,
-            lastFetchedAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          });
+          await this.updateCreator(existingCreator.id!, updatePayload);
         }
         return existingCreator.id!;
       }
 
       // Create new creator
-      const creatorData: Omit<CreatorProfile, "id"> = {
+      const creatorDataRaw: Omit<CreatorProfile, "id"> = {
         platform,
         username,
         platformUserId,
         videoCount: 0,
-        ...additionalData,
+        followerCount: additionalData.followerCount ?? 0,
+        totalViews: additionalData.totalViews,
+        totalLikes: additionalData.totalLikes,
+        averageViews: additionalData.averageViews,
+        displayName: additionalData.displayName,
+        profilePictureUrl: additionalData.profilePictureUrl,
+        isVerified: additionalData.isVerified,
+        bio: additionalData.bio,
+        externalUrl: additionalData.externalUrl,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         lastFetchedAt: new Date().toISOString(),
       };
+      const creatorData = this.sanitizeForFirestore<Omit<CreatorProfile, "id">>(creatorDataRaw);
 
       const adminDb = getAdminDb();
       const useAdmin = isAdminInitialized && adminDb;
       if (useAdmin) {
-        const docRef = await adminDb.collection(this.CREATORS_PATH).add({
-          ...creatorData,
-        });
+        const docRef = await adminDb.collection(this.CREATORS_PATH).add(creatorData);
         console.log(`✅ [CREATOR_SERVICE] (admin) Creator created with ID: ${docRef.id}`);
         return docRef.id;
       } else {
         if (!db) {
           throw new Error("Firebase client database not available");
         }
-        const docRef = await addDoc(collection(db, this.CREATORS_PATH), {
-          ...creatorData,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-          lastFetchedAt: serverTimestamp(),
-        });
+        const docRef = await addDoc(collection(db, this.CREATORS_PATH), creatorData);
         console.log(`✅ [CREATOR_SERVICE] Creator created with ID: ${docRef.id}`);
         return docRef.id;
       }
@@ -229,10 +243,9 @@ export class CreatorService {
       }
 
       const docRef = doc(db, this.CREATORS_PATH, creatorId);
-      await updateDoc(docRef, {
-        ...updates,
-        updatedAt: serverTimestamp(),
-      });
+      const nowIso = new Date().toISOString();
+      const payload: Partial<CreatorProfile> = this.sanitizeForFirestore({ ...updates, updatedAt: nowIso });
+      await updateDoc(docRef, payload);
     } catch (error) {
       console.error(`❌ [CREATOR_SERVICE] Error updating creator:`, error);
       throw new Error("Failed to update creator");
@@ -282,10 +295,10 @@ export class CreatorService {
         throw new Error("Firebase client database not available");
       }
 
-      const docRef = await addDoc(collection(db, this.CREATOR_FOLLOWS_PATH), {
-        ...followData,
-        followedAt: serverTimestamp(),
-      });
+      const docRef = await addDoc(
+        collection(db, this.CREATOR_FOLLOWS_PATH),
+        this.sanitizeForFirestore(followData as Record<string, unknown>),
+      );
 
       console.log(`✅ [CREATOR_SERVICE] Follow relationship created: ${docRef.id}`);
       return docRef.id;
@@ -463,7 +476,7 @@ export class CreatorService {
   private static async fetchSingleCreatorProfile(
     creatorId: string,
     useAdmin: boolean,
-    adminDb: unknown,
+    adminDb: { collection: (path: string) => any } | null,
   ): Promise<CreatorProfile | null> {
     if (useAdmin && adminDb) {
       return this.fetchCreatorFromAdmin(creatorId, adminDb);
@@ -474,8 +487,11 @@ export class CreatorService {
   /**
    * Fetch creator using admin SDK
    */
-  private static async fetchCreatorFromAdmin(creatorId: string, adminDb: unknown): Promise<CreatorProfile | null> {
-    const creatorDoc = await (adminDb as any).collection(this.CREATORS_PATH).doc(creatorId).get();
+  private static async fetchCreatorFromAdmin(
+    creatorId: string,
+    adminDb: { collection: (path: string) => { doc: (id: string) => { get: () => Promise<any> } } },
+  ): Promise<CreatorProfile | null> {
+    const creatorDoc = await adminDb.collection(this.CREATORS_PATH).doc(creatorId).get();
     if (!creatorDoc.exists) return null;
 
     const data = creatorDoc.data();
@@ -498,13 +514,13 @@ export class CreatorService {
   /**
    * Transform creator document data
    */
-  private static transformCreatorData(id: string, data: any): CreatorProfile {
+  private static transformCreatorData(id: string, data: Record<string, unknown>): CreatorProfile {
     return {
       id,
       ...data,
-      createdAt: formatTimestamp(data.createdAt),
-      updatedAt: formatTimestamp(data.updatedAt),
-      lastFetchedAt: data.lastFetchedAt ? formatTimestamp(data.lastFetchedAt) : undefined,
+      createdAt: formatTimestamp(data.createdAt as any),
+      updatedAt: formatTimestamp(data.updatedAt as any),
+      lastFetchedAt: data.lastFetchedAt ? formatTimestamp(data.lastFetchedAt as any) : undefined,
     } as CreatorProfile;
   }
 
@@ -532,18 +548,16 @@ export class CreatorService {
             creatorId,
             fetchedAt: now,
           };
-          batch.set(videoRef, {
-            ...videoData,
-          });
+          batch.set(videoRef, this.sanitizeForFirestore(videoData));
           createdVideos.push({ id: videoRef.id, ...videoData });
         }
         // commit video writes
         await batch.commit();
         // update creator aggregate
-        await adminDb.collection(this.CREATORS_PATH).doc(creatorId).update({
-          videoCount: videos.length,
-          lastFetchedAt: now,
-        });
+        await adminDb
+          .collection(this.CREATORS_PATH)
+          .doc(creatorId)
+          .update(this.sanitizeForFirestore({ videoCount: videos.length, lastFetchedAt: now }));
 
         console.log(`✅ [CREATOR_SERVICE] (admin) Successfully stored ${videos.length} videos`);
         return createdVideos;
@@ -562,10 +576,7 @@ export class CreatorService {
           fetchedAt: now,
         };
 
-        batch.set(videoRef, {
-          ...videoData,
-          fetchedAt: serverTimestamp(),
-        });
+        batch.set(videoRef, this.sanitizeForFirestore(videoData));
 
         createdVideos.push({
           id: videoRef.id,
@@ -577,10 +588,7 @@ export class CreatorService {
       await batch.commit();
 
       // Update creator video count (client path)
-      await this.updateCreator(creatorId, {
-        videoCount: videos.length,
-        lastFetchedAt: now,
-      });
+      await this.updateCreator(creatorId, this.sanitizeForFirestore({ videoCount: videos.length, lastFetchedAt: now }));
 
       console.log(`✅ [CREATOR_SERVICE] Successfully stored ${videos.length} videos`);
       return createdVideos;
@@ -606,7 +614,7 @@ export class CreatorService {
           .limit(limit)
           .get();
 
-        const videos = snapshot.docs.map((doc: any) => {
+        const videos = snapshot.docs.map((doc: { id: string; data: () => Record<string, any> }) => {
           const data = doc.data();
           return {
             id: doc.id,
