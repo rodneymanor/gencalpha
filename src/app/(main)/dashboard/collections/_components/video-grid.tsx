@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 
 import Image from "next/image";
 
@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { Skeleton } from "@/components/ui/skeleton";
+import { CardSkeleton, LoadingBoundary, useAsyncOperation, useIsLoading } from "@/components/ui/loading";
 import { VideoSlideoutPlayer } from "@/components/video/video-slideout-player";
 import { useAuth } from "@/contexts/auth-context";
 import { RBACClientService } from "@/core/auth/rbac-client";
@@ -39,31 +39,33 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
   const [deletingVideo, setDeletingVideo] = useState<Video | null>(null);
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
 
-  const loadVideos = useCallback(async () => {
-    if (!user?.uid) return;
-
-    console.log("🔍 [Video Grid] Loading videos for collection:", collectionId, "user:", user.uid);
-    dispatch({ type: "SET_LOADING", payload: true });
-    try {
+  const { execute: loadVideos } = useAsyncOperation(
+    "collections-videos",
+    async () => {
+      if (!user?.uid) return { videos: [] as Video[] };
       const result = await RBACClientService.getCollectionVideos(
         user.uid,
         collectionId === "all-videos" ? undefined : collectionId,
       );
-
-      console.log("🔍 [Video Grid] Loaded videos:", result.videos.length);
-      dispatch({ type: "SET_VIDEOS", payload: result.videos });
-    } catch (error) {
-      console.error("❌ [Video Grid] Failed to load videos:", error);
-    } finally {
-      dispatch({ type: "SET_LOADING", payload: false });
-    }
-  }, [user?.uid, collectionId, dispatch]);
+      return result;
+    },
+    {
+      type: "section",
+      action: "fetch",
+      message: "Loading your video collection...",
+      onSuccess: (result: { videos: Video[] }) => {
+        dispatch({ type: "SET_VIDEOS", payload: result.videos });
+      },
+    },
+  );
 
   useEffect(() => {
     if (user?.uid) {
       loadVideos();
     }
-  }, [user?.uid, collectionId, loadVideos]);
+  }, [user?.uid, collectionId]);
+
+  const isLoading = useIsLoading("collections-videos");
 
   const handleVideoClick = (video: Video) => {
     setSelectedVideo(video);
@@ -254,30 +256,31 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
     </div>
   );
 
-  if (state.loading && state.videos.length === 0) {
-    return (
-      <div className="@container">
-        <div className="grid grid-cols-1 gap-6 @sm:grid-cols-2 @lg:grid-cols-3 @xl:grid-cols-4">
-          {Array.from({ length: 12 }, (_, index) => (
-            <div key={`loading-skeleton-${index}`} className="relative aspect-[9/16]">
-              <Skeleton className="h-full w-full rounded-[var(--radius-card)]" />
-            </div>
-          ))}
-        </div>
+  // Loader boundary fallback
+  const gridFallback = (
+    <div className="@container">
+      <div className="grid grid-cols-1 gap-6 @sm:grid-cols-2 @lg:grid-cols-3 @xl:grid-cols-4">
+        {Array.from({ length: 12 }, (_, index) => (
+          <div key={`loading-skeleton-${index}`} className="relative aspect-[9/16]">
+            <CardSkeleton />
+          </div>
+        ))}
       </div>
-    );
-  }
+    </div>
+  );
 
   return (
     <>
       <div className="space-y-6">
-        <div className="@container">
-          <div className="grid grid-cols-1 gap-6 @sm:grid-cols-2 @lg:grid-cols-3 @xl:grid-cols-4">
-            {state.videos.map(renderVideoCard)}
+        <LoadingBoundary id="collections-videos" fallback={gridFallback}>
+          <div className="@container">
+            <div className="grid grid-cols-1 gap-6 @sm:grid-cols-2 @lg:grid-cols-3 @xl:grid-cols-4">
+              {state.videos.map(renderVideoCard)}
+            </div>
           </div>
-        </div>
+        </LoadingBoundary>
 
-        {state.videos.length === 0 && !state.loading && (
+        {state.videos.length === 0 && !isLoading && (
           <div className="py-12 text-center">
             <Play className="text-muted-foreground mx-auto mb-4 h-16 w-16 opacity-50" />
             <h3 className="mb-2 text-lg font-semibold">No videos found</h3>

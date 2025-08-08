@@ -6,7 +6,6 @@ import { motion } from "framer-motion";
 import { Eye, Heart, MessageCircle, Share2, Lightbulb, Play, List, FileText } from "lucide-react";
 
 import { AdvancedSlidingSwitch, SwitchOption } from "@/components/ui/advanced-sliding-switch";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Video } from "@/lib/collections";
 import { formatNumber } from "@/lib/utils";
@@ -32,15 +31,6 @@ const TikTokIcon = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="currentColor">
     <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-2.43.03-4.83-.95-6.43-2.88-1.59-1.94-2.2-4.42-1.8-6.83.39-2.4 1.91-4.45 3.72-5.96 1.95-1.64 4.59-2.5 7.1-2.45v4.03c-1.11.02-2.21.22-3.23.62-.65.25-1.26.6-1.81 1.02-.33.25-.65.52-.96.81-.02-3.2.01-6.39-.01-9.58Z" />
   </svg>
-);
-
-// --- UI SUB-COMPONENTS ---
-
-const Metric = ({ icon, value }: { icon: React.ReactNode; value: string }) => (
-  <div className="text-muted-foreground flex items-center gap-1.5">
-    {icon}
-    <span className="text-xs font-medium">{value}</span>
-  </div>
 );
 
 // --- CONTENT VIEWS ---
