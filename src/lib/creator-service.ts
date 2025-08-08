@@ -664,14 +664,20 @@ export class CreatorService {
 
       const creatorIds = followedCreators.map((creator) => creator.id!);
 
-      // Get videos from all followed creators
+      // Get videos from all followed creators in parallel with error isolation
       // Note: This is a simplified approach. In production, you might want to implement
       // pagination and more sophisticated querying
-      const allVideos: CreatorVideo[] = [];
+      const videoResults = await Promise.allSettled(
+        creatorIds.map((creatorId) => this.getCreatorVideos(creatorId, 10)),
+      );
 
-      for (const creatorId of creatorIds) {
-        const videos = await this.getCreatorVideos(creatorId, 10); // Get latest 10 from each
-        allVideos.push(...videos);
+      const allVideos: CreatorVideo[] = [];
+      for (const result of videoResults) {
+        if (result.status === "fulfilled") {
+          allVideos.push(...result.value);
+        } else {
+          console.warn(`⚠️ [CREATOR_SERVICE] Skipping videos from a creator due to error:`, result.reason);
+        }
       }
 
       // Sort by published date and limit
