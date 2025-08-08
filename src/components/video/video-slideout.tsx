@@ -42,7 +42,7 @@ export function VideoSlideout({ isOpen, onClose, className }: VideoSlideoutProps
     <>
       {/* Backdrop */}
       <div
-        className="bg-background/80 fixed inset-0 z-50 backdrop-blur-sm transition-all duration-300 ease-out"
+        className="bg-background/60 fixed inset-0 z-50 backdrop-blur-md transition-all duration-300 ease-out"
         onClick={onClose}
       />
 
@@ -51,15 +51,15 @@ export function VideoSlideout({ isOpen, onClose, className }: VideoSlideoutProps
         ref={slideoutRef}
         className={cn(
           "fixed top-0 right-0 z-50 h-full w-full max-w-6xl",
-          "bg-background border-border border-l",
+          "bg-card/95 backdrop-blur-sm",
           "shadow-[var(--shadow-soft-drop)]",
           "transform transition-transform duration-300 ease-out",
-          isOpen ? "translate-x-0" : "translate-x-full",
+          "translate-x-0",
           className,
         )}
       >
         {/* Header */}
-        <div className="border-border flex items-center justify-between border-b p-6">
+        <div className="from-muted/30 flex items-center justify-between bg-gradient-to-b to-transparent p-6">
           <h2 className="text-foreground text-lg font-semibold">Video Inspiration</h2>
           <Button
             variant="ghost"
