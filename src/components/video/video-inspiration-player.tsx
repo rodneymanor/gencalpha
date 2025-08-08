@@ -41,7 +41,7 @@ const VideoPlayerView: React.FC<
   <div className="flex h-full flex-col">
     {/* Video Player - Optimized Size */}
     <div className="flex flex-shrink-0 items-center justify-center">
-      <div className="relative aspect-[9/16] w-full max-w-[280px] flex-shrink-0 overflow-hidden rounded-[var(--radius-card)] bg-black shadow-[var(--shadow-input)]">
+      <div className="relative aspect-[9/16] w-full flex-shrink-0 overflow-hidden rounded-[var(--radius-card)] bg-black shadow-[var(--shadow-input)]">
         <iframe
           className="absolute top-0 left-0 h-full w-full rounded-[var(--radius-card)]"
           src={videoUrl}
@@ -55,7 +55,7 @@ const VideoPlayerView: React.FC<
 
     {/* Unified Engagement Bar */}
     <div className="mt-4 flex-shrink-0">
-      <div className="bg-card border-border mx-auto flex w-full max-w-[280px] items-center justify-between rounded-[var(--radius-card)] border p-3 shadow-[var(--shadow-soft-drop)]">
+      <div className="bg-card border-border mx-auto flex w-full items-center justify-between rounded-[var(--radius-card)] border p-3 shadow-[var(--shadow-soft-drop)]">
         <div className="flex items-center gap-1">
           <Heart className="text-destructive h-4 w-4" />
           <span className="text-foreground text-sm font-medium">{likes}</span>
@@ -223,7 +223,7 @@ const FloatingVideoInspirationPlayer: React.FC<VideoInspirationPlayerProps> = (p
             </div>
 
             {/* Content - Takes remaining space */}
-            <div className="mt-4 flex-1 overflow-hidden">
+            <div className="mt-4 flex-1 overflow-y-auto">
               {showInsights ? <InsightsPanelView {...props} /> : <VideoPlayerView {...props} />}
             </div>
           </CardContent>
