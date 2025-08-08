@@ -44,12 +44,14 @@ export default function DailyPage() {
             Never run out of ideas — never run out of content.
           </p>
         </div>
-        <div className="mt-6">
-          <ResourceGrid
-            lgColumns={3}
-            items={getIdeasItems({ onOpenFollowCreators: () => setActiveIdeasSection("follow-creators") })}
-          />
-        </div>
+        {activeIdeasSection === null && (
+          <div className="mt-6">
+            <ResourceGrid
+              lgColumns={3}
+              items={getIdeasItems({ onOpenFollowCreators: () => setActiveIdeasSection("follow-creators") })}
+            />
+          </div>
+        )}
       </div>
 
       {/* Follow Creators Section (hidden until selected) */}
