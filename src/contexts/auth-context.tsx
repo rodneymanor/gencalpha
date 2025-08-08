@@ -374,14 +374,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Global loading gate - prevent any auth-based navigation until auth is resolved
   if (initializing) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="border-primary h-32 w-32 animate-spin rounded-full border-b-2"></div>
-          <p className="mt-4 text-lg">Loading...</p>
-        </div>
-      </div>
-    );
+    // Avoid duplicate loaders; global route loader is provided via app/loading.tsx
+    return null;
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

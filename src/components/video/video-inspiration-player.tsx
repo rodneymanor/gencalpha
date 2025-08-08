@@ -36,12 +36,7 @@ const TikTokIcon = ({ className }: { className?: string }) => (
 
 // --- UI SUB-COMPONENTS ---
 
-const Metric = ({ icon, value }: { icon: React.ReactNode; value: string }) => (
-  <div className="text-muted-foreground flex items-center gap-1.5">
-    {icon}
-    <span className="text-xs font-medium">{value}</span>
-  </div>
-);
+// Removed unused Metric component
 
 // --- CONTENT VIEWS ---
 
@@ -83,16 +78,6 @@ const VideoPlayerView: React.FC<
           <span className="text-foreground text-sm font-medium">{views}</span>
         </div>
       </div>
-    </div>
-
-    {/* Action Buttons */}
-    <div className="mt-3 flex flex-shrink-0 gap-2">
-      <Button variant="outline" className="h-10 flex-1 text-sm font-medium">
-        Remix
-      </Button>
-      <Button variant="secondary" className="h-10 flex-1 text-sm font-medium">
-        Insights
-      </Button>
     </div>
   </div>
 );
@@ -182,18 +167,19 @@ const InsightsPanelView: React.FC<Omit<VideoInspirationPlayerProps, "videoUrl" |
 // --- MAIN APP COMPONENT ---
 const VideoInspirationPlayer: React.FC<VideoInspirationPlayerProps> = (props) => {
   const { creatorName, followers } = props;
-  const [showInsights, setShowInsights] = useState(false);
+  const [activeView, setActiveView] = useState<'video' | 'insights' | 'rewrite'>('video');
 
-  const switchOptions: SwitchOption[] = [
-    { value: "ghost-write", icon: <Play className="h-4 w-4" />, tooltip: "Video" },
-    { value: "web-search", icon: <Lightbulb className="h-4 w-4" />, tooltip: "Insights" },
-  ];
+  const handleRewrite = () => {
+    // TODO: Implement rewrite functionality - open chat window with rewriting flow
+    console.log('Rewrite functionality to be implemented');
+    setActiveView('rewrite');
+  };
 
   return (
     <div className="bg-background text-foreground flex min-h-screen items-start justify-center p-4 font-sans">
       <motion.div
         className="sticky top-4"
-        animate={{ width: showInsights ? 600 : 375 }}
+        animate={{ width: activeView === 'insights' ? 600 : 375 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
         <Card className="rounded-[var(--radius-xl)] shadow-[var(--shadow-soft-drop)]">
@@ -204,11 +190,41 @@ const VideoInspirationPlayer: React.FC<VideoInspirationPlayerProps> = (props) =>
                 <div className="truncate text-sm font-bold">{creatorName}</div>
                 <div className="text-muted-foreground text-xs">{followers} Followers</div>
               </div>
-              <AdvancedSlidingSwitch options={switchOptions} onChange={() => setShowInsights((prev) => !prev)} />
+              
+              {/* Three Pill Buttons */}
+              <div className="flex gap-1 p-1 bg-muted rounded-[var(--radius-pill)]">
+                <Button
+                  variant={activeView === 'video' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setActiveView('video')}
+                  className="h-8 px-3 rounded-[var(--radius-pill)] text-xs font-medium"
+                >
+                  <Play className="h-3 w-3 mr-1" />
+                  Play
+                </Button>
+                <Button
+                  variant={activeView === 'insights' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setActiveView('insights')}
+                  className="h-8 px-3 rounded-[var(--radius-pill)] text-xs font-medium"
+                >
+                  <Lightbulb className="h-3 w-3 mr-1" />
+                  Insights
+                </Button>
+                <Button
+                  variant={activeView === 'rewrite' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={handleRewrite}
+                  className="h-8 px-3 rounded-[var(--radius-pill)] text-xs font-medium"
+                >
+                  <FileText className="h-3 w-3 mr-1" />
+                  Rewrite
+                </Button>
+              </div>
             </div>
 
             <div className="mt-4 min-h-[600px]">
-              {showInsights ? <InsightsPanelView {...props} /> : <VideoPlayerView {...props} />}
+              {activeView === 'insights' ? <InsightsPanelView {...props} /> : <VideoPlayerView {...props} />}
             </div>
           </CardContent>
         </Card>
