@@ -268,6 +268,16 @@ export class CreatorService {
         notificationsEnabled: true,
       };
 
+      const adminDb = getAdminDb();
+      const useAdmin = isAdminInitialized && adminDb;
+      if (useAdmin) {
+        const docRef = await adminDb.collection(this.CREATOR_FOLLOWS_PATH).add({
+          ...followData,
+        });
+        console.log(`✅ [CREATOR_SERVICE] (admin) Follow relationship created: ${docRef.id}`);
+        return docRef.id;
+      }
+
       if (!db) {
         throw new Error("Firebase client database not available");
       }
@@ -290,6 +300,28 @@ export class CreatorService {
    */
   static async getFollowRelationship(userId: string, creatorId: string): Promise<CreatorFollowRelationship | null> {
     try {
+      const adminDb = getAdminDb();
+      const useAdmin = isAdminInitialized && adminDb;
+
+      if (useAdmin) {
+        const snapshot = await adminDb
+          .collection(this.CREATOR_FOLLOWS_PATH)
+          .where("userId", "==", userId)
+          .where("creatorId", "==", creatorId)
+          .limit(1)
+          .get();
+
+        if (snapshot.empty) return null;
+        const doc = snapshot.docs[0];
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          followedAt: formatTimestamp(data.followedAt),
+          lastVideoFetchedAt: data.lastVideoFetchedAt ? formatTimestamp(data.lastVideoFetchedAt) : undefined,
+        } as CreatorFollowRelationship;
+      }
+
       if (!db) {
         throw new Error("Firebase client database not available");
       }
@@ -324,6 +356,18 @@ export class CreatorService {
    */
   static async updateFollowRelationship(followId: string, updates: Partial<CreatorFollowRelationship>): Promise<void> {
     try {
+      const adminDb = getAdminDb();
+      const useAdmin = isAdminInitialized && adminDb;
+      if (useAdmin) {
+        await adminDb
+          .collection(this.CREATOR_FOLLOWS_PATH)
+          .doc(followId)
+          .update({
+            ...updates,
+          });
+        return;
+      }
+
       if (!db) {
         throw new Error("Firebase client database not available");
       }
@@ -474,14 +518,42 @@ export class CreatorService {
     try {
       console.log(`🎬 [CREATOR_SERVICE] Storing ${videos.length} videos for creator ${creatorId}`);
 
+      const adminDb = getAdminDb();
+      const useAdmin = isAdminInitialized && adminDb;
+      const createdVideos: CreatorVideo[] = [];
+      const now = new Date().toISOString();
+
+      if (useAdmin) {
+        const batch = adminDb.batch();
+        for (const video of videos) {
+          const videoRef = adminDb.collection(this.CREATOR_VIDEOS_PATH).doc();
+          const videoData = {
+            ...video,
+            creatorId,
+            fetchedAt: now,
+          };
+          batch.set(videoRef, {
+            ...videoData,
+          });
+          createdVideos.push({ id: videoRef.id, ...videoData });
+        }
+        // commit video writes
+        await batch.commit();
+        // update creator aggregate
+        await adminDb.collection(this.CREATORS_PATH).doc(creatorId).update({
+          videoCount: videos.length,
+          lastFetchedAt: now,
+        });
+
+        console.log(`✅ [CREATOR_SERVICE] (admin) Successfully stored ${videos.length} videos`);
+        return createdVideos;
+      }
+
       if (!db) {
         throw new Error("Firebase client database not available");
       }
 
       const batch = writeBatch(db);
-      const createdVideos: CreatorVideo[] = [];
-      const now = new Date().toISOString();
-
       for (const video of videos) {
         const videoRef = doc(collection(db, this.CREATOR_VIDEOS_PATH));
         const videoData = {
@@ -504,7 +576,7 @@ export class CreatorService {
 
       await batch.commit();
 
-      // Update creator video count
+      // Update creator video count (client path)
       await this.updateCreator(creatorId, {
         videoCount: videos.length,
         lastFetchedAt: now,
@@ -523,6 +595,30 @@ export class CreatorService {
    */
   static async getCreatorVideos(creatorId: string, limit: number = 20): Promise<CreatorVideo[]> {
     try {
+      const adminDb = getAdminDb();
+      const useAdmin = isAdminInitialized && adminDb;
+
+      if (useAdmin) {
+        const snapshot = await adminDb
+          .collection(this.CREATOR_VIDEOS_PATH)
+          .where("creatorId", "==", creatorId)
+          .orderBy("publishedAt", "desc")
+          .limit(limit)
+          .get();
+
+        const videos = snapshot.docs.map((doc: any) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            fetchedAt: formatTimestamp(data.fetchedAt),
+            publishedAt: formatTimestamp(data.publishedAt),
+            processedAt: data.processedAt ? formatTimestamp(data.processedAt) : undefined,
+          } as CreatorVideo;
+        });
+        return videos;
+      }
+
       const q = query(
         collection(db!, this.CREATOR_VIDEOS_PATH),
         where("creatorId", "==", creatorId),
