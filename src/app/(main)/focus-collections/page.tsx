@@ -46,6 +46,8 @@ export default function FocusCollectionsPage() {
   const [selectedCollectionId, setSelectedCollectionId] = useState<string>("all-videos");
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isMobileInsightsOpen, setIsMobileInsightsOpen] = useState(false);
+  const [playerOpen, setPlayerOpen] = useState(true); // fixed player visible by default
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   // Desktop panel is always present; mobile uses overlay
 
@@ -85,6 +87,9 @@ export default function FocusCollectionsPage() {
 
   const handleVideoSelect = (video: Video) => {
     setSelectedVideo(video);
+    if (window.innerWidth < 1024) {
+      setIsMobileInsightsOpen(true);
+    }
   };
 
   const handleVideoMove = (video: Video) => {
@@ -115,9 +120,12 @@ export default function FocusCollectionsPage() {
       <MobileOverlays
         isMobileSidebarOpen={isMobileSidebarOpen}
         setIsMobileSidebarOpen={setIsMobileSidebarOpen}
+        isMobileInsightsOpen={isMobileInsightsOpen}
+        setIsMobileInsightsOpen={setIsMobileInsightsOpen}
         collections={collections}
         selectedCollectionId={selectedCollectionId}
         setSelectedCollectionId={setSelectedCollectionId}
+        selectedVideo={selectedVideo}
         onBackToDashboard={handleBackToDashboard}
         onCreateCollection={handleCreateCollection}
       />
@@ -160,15 +168,15 @@ export default function FocusCollectionsPage() {
           </div>
         </div>
 
-        {/* Unified overlay video player (fixed) */}
-        {selectedVideo && (
+        {/* Desktop: Fixed floating video player (open by default) */}
+        <div className="hidden flex-shrink-0 pr-4 lg:block">
           <FloatingVideoPlayer
-            isOpen={!!selectedVideo}
-            onClose={() => setSelectedVideo(null)}
+            isOpen={playerOpen}
+            onClose={() => setPlayerOpen(false)}
             video={selectedVideo}
             mode="fixed"
           />
-        )}
+        </div>
       </div>
     </div>
   );

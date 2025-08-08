@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 
+import { Film } from "lucide-react";
+
 import { Video } from "@/lib/collections";
 import { cn } from "@/lib/utils";
 
@@ -11,7 +13,7 @@ import { VideoInspirationPlayerWrapperFloating } from "./video-inspiration-playe
 interface FloatingVideoPlayerProps {
   isOpen: boolean;
   onClose: () => void;
-  video: Video;
+  video?: Video | null;
   className?: string;
   // overlay: fixed panel that sits above content (used on Daily page)
   // sticky: sticks within a right-hand column (used on Focus Collections)
@@ -88,8 +90,18 @@ export function FloatingVideoPlayer({ isOpen, onClose, video, className, mode = 
       )}
       onClick={() => setIsExpanded(!isExpanded)}
     >
-      <div className={cn(mode === "fixed" ? "h-full w-full" : "h-full w-full")}>
-        <VideoInspirationPlayerWrapperFloating video={video} />
+      <div className={cn("h-full w-full")}>
+        {video ? (
+          <VideoInspirationPlayerWrapperFloating video={video} />
+        ) : (
+          <div className="bg-card text-foreground flex h-full w-full items-center justify-center rounded-[var(--radius-card)] border p-6 text-center shadow-[var(--shadow-soft-drop)]">
+            <div>
+              <Film className="text-muted-foreground mx-auto mb-3 h-10 w-10" />
+              <h3 className="mb-1 text-base font-semibold">Select a video to preview</h3>
+              <p className="text-muted-foreground text-sm">Choose a video from the grid to open details and actions.</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

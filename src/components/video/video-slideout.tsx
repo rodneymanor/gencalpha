@@ -17,7 +17,6 @@ interface VideoSlideoutProps {
   video?: Video | null;
 }
 
-// Deprecated: Prefer FloatingVideoPlayer in fixed mode
 export function VideoSlideout({ isOpen, onClose, className, video }: VideoSlideoutProps) {
   const slideoutRef = useRef<HTMLDivElement>(null);
 
