@@ -2,6 +2,8 @@
 
 import React from "react";
 
+import { Eye } from "lucide-react";
+
 import { Video } from "@/lib/collections";
 import { cn } from "@/lib/utils";
 
@@ -15,9 +17,13 @@ interface FocusInsightsWrapperProps {
 export function FocusInsightsWrapper({ video, className }: FocusInsightsWrapperProps) {
   if (!video) {
     return (
-      <div className={cn("bg-background flex h-full items-center justify-center p-6", className)}>
+      <div className={cn("bg-card flex h-full items-center justify-center p-6", className)}>
         <div className="text-center">
-          <p className="text-muted-foreground">Select a video to see its insights</p>
+          <Eye className="text-muted-foreground mx-auto mb-3 h-8 w-8 opacity-60" />
+          <h3 className="mb-1 font-sans text-base font-semibold">No video selected</h3>
+          <p className="text-muted-foreground text-sm">
+            Click any video in the grid to preview it here and generate full insights on demand.
+          </p>
         </div>
       </div>
     );

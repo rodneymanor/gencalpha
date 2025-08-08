@@ -4,13 +4,13 @@ import { useState, useEffect, useCallback } from "react";
 
 import { useRouter } from "next/navigation";
 
-import { VideoSlideout } from "@/components/video/video-slideout";
 import { useAuth } from "@/contexts/auth-context";
 import { RBACClientService } from "@/core/auth/rbac-client";
 import { Video } from "@/lib/collections";
 
 import { CollectionHeader } from "./_components/collection-header";
 import { FocusCollectionsSidebar } from "./_components/focus-collections-sidebar";
+import { FocusInsightsWrapper } from "./_components/focus-insights-wrapper";
 import { FocusVideoGrid } from "./_components/focus-video-grid";
 import { MobileOverlays } from "./_components/mobile-overlays";
 
@@ -48,7 +48,7 @@ export default function FocusCollectionsPage() {
   const [loading, setLoading] = useState(true);
   const [isMobileInsightsOpen, setIsMobileInsightsOpen] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [isSlideoutOpen, setIsSlideoutOpen] = useState(false);
+  // Desktop panel is always present; mobile uses overlay
 
   // Load collections
   const loadCollections = useCallback(async () => {
@@ -88,8 +88,6 @@ export default function FocusCollectionsPage() {
     setSelectedVideo(video);
     if (window.innerWidth < 1024) {
       setIsMobileInsightsOpen(true);
-    } else {
-      setIsSlideoutOpen(true);
     }
   };
 
@@ -169,8 +167,10 @@ export default function FocusCollectionsPage() {
           </div>
         </div>
 
-        {/* Desktop: Slideout video panel for details */}
-        <VideoSlideout isOpen={isSlideoutOpen} onClose={() => setIsSlideoutOpen(false)} video={selectedVideo} />
+        {/* Desktop: Static right panel (always present) */}
+        <div className="hidden w-96 flex-shrink-0 lg:block">
+          <FocusInsightsWrapper video={selectedVideo} className="h-full" />
+        </div>
       </div>
     </div>
   );
