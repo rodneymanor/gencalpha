@@ -104,6 +104,19 @@ export class CreatorService {
   }
 
   /**
+   * Safely format timestamps that may be strings, Firestore Timestamps, or unknowns
+   */
+  private static formatUnknownTimestamp(value: unknown): string {
+    if (typeof value === "string") {
+      return value;
+    }
+    if (value !== null && typeof value === "object") {
+      return formatTimestamp(value as Record<string, unknown>);
+    }
+    return String(value ?? "");
+  }
+
+  /**
    * Create or update a creator profile
    */
   static async createOrUpdateCreator(
@@ -605,28 +618,72 @@ export class CreatorService {
     try {
       const adminDb = getAdminDb();
       const useAdmin = isAdminInitialized && adminDb;
+      return useAdmin
+        ? await this.fetchAdminCreatorVideosSorted(creatorId, limit)
+        : await this.fetchClientCreatorVideosSorted(creatorId, limit);
+    } catch (error) {
+      console.error(`❌ [CREATOR_SERVICE] Error fetching creator videos:`, error);
+      throw new Error("Failed to fetch creator videos");
+    }
+  }
 
-      if (useAdmin) {
-        const snapshot = await adminDb
+  private static async fetchAdminCreatorVideosSorted(creatorId: string, limit: number): Promise<CreatorVideo[]> {
+    const adminDb = getAdminDb();
+    // Safety: caller ensures admin is available
+    try {
+      const snapshot = await adminDb
+        .collection(this.CREATOR_VIDEOS_PATH)
+        .where("creatorId", "==", creatorId)
+        .orderBy("publishedAt", "desc")
+        .limit(limit)
+        .get();
+
+      const videos = snapshot.docs.map((doc: { id: string; data: () => Record<string, unknown> }) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          fetchedAt: this.formatUnknownTimestamp(data.fetchedAt),
+          publishedAt: this.formatUnknownTimestamp(data.publishedAt),
+          processedAt: data.processedAt ? this.formatUnknownTimestamp(data.processedAt) : undefined,
+        } as CreatorVideo;
+      });
+      return videos;
+    } catch (adminQueryError: unknown) {
+      const errorMessage = adminQueryError instanceof Error ? adminQueryError.message : String(adminQueryError);
+      if (errorMessage.includes("FAILED_PRECONDITION") || errorMessage.includes("requires an index")) {
+        console.warn(
+          "⚠️ [CREATOR_SERVICE] Missing Firestore composite index for (creatorId ==, orderBy publishedAt). Falling back to un-ordered query and in-memory sort.",
+        );
+
+        const fallbackSnapshot = await adminDb
           .collection(this.CREATOR_VIDEOS_PATH)
           .where("creatorId", "==", creatorId)
-          .orderBy("publishedAt", "desc")
-          .limit(limit)
           .get();
 
-        const videos = snapshot.docs.map((doc: { id: string; data: () => Record<string, any> }) => {
+        const fallbackVideos = fallbackSnapshot.docs.map((doc: { id: string; data: () => Record<string, unknown> }) => {
           const data = doc.data();
           return {
             id: doc.id,
             ...data,
-            fetchedAt: formatTimestamp(data.fetchedAt),
-            publishedAt: formatTimestamp(data.publishedAt),
-            processedAt: data.processedAt ? formatTimestamp(data.processedAt) : undefined,
+            fetchedAt: this.formatUnknownTimestamp(data.fetchedAt),
+            publishedAt: this.formatUnknownTimestamp(data.publishedAt),
+            processedAt: data.processedAt ? this.formatUnknownTimestamp(data.processedAt) : undefined,
           } as CreatorVideo;
         });
-        return videos;
-      }
 
+        return fallbackVideos
+          .sort(
+            (a: CreatorVideo, b: CreatorVideo) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
+          )
+          .slice(0, limit);
+      }
+      throw adminQueryError;
+    }
+  }
+
+  private static async fetchClientCreatorVideosSorted(creatorId: string, limit: number): Promise<CreatorVideo[]> {
+    try {
       const q = query(
         collection(db!, this.CREATOR_VIDEOS_PATH),
         where("creatorId", "==", creatorId),
@@ -638,15 +695,36 @@ export class CreatorService {
       const videos = querySnapshot.docs.slice(0, limit).map((doc) => ({
         id: doc.id,
         ...doc.data(),
-        fetchedAt: formatTimestamp(doc.data().fetchedAt),
-        publishedAt: formatTimestamp(doc.data().publishedAt),
-        processedAt: doc.data().processedAt ? formatTimestamp(doc.data().processedAt) : undefined,
+        fetchedAt: this.formatUnknownTimestamp(doc.data().fetchedAt),
+        publishedAt: this.formatUnknownTimestamp(doc.data().publishedAt),
+        processedAt: doc.data().processedAt ? this.formatUnknownTimestamp(doc.data().processedAt) : undefined,
       })) as CreatorVideo[];
 
       return videos;
-    } catch (error) {
-      console.error(`❌ [CREATOR_SERVICE] Error fetching creator videos:`, error);
-      throw new Error("Failed to fetch creator videos");
+    } catch (clientQueryError: unknown) {
+      const errorMessage = clientQueryError instanceof Error ? clientQueryError.message : String(clientQueryError);
+      if (errorMessage.includes("FAILED_PRECONDITION") || errorMessage.includes("requires an index")) {
+        console.warn(
+          "⚠️ [CREATOR_SERVICE] (client) Missing Firestore composite index for (creatorId ==, orderBy publishedAt). Falling back to un-ordered query and in-memory sort.",
+        );
+
+        const fallbackQuery = query(collection(db!, this.CREATOR_VIDEOS_PATH), where("creatorId", "==", creatorId));
+        const fallbackSnapshot = await getDocs(fallbackQuery);
+        const videos = fallbackSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+          fetchedAt: this.formatUnknownTimestamp(doc.data().fetchedAt),
+          publishedAt: this.formatUnknownTimestamp(doc.data().publishedAt),
+          processedAt: doc.data().processedAt ? this.formatUnknownTimestamp(doc.data().processedAt) : undefined,
+        })) as CreatorVideo[];
+
+        return videos
+          .sort(
+            (a: CreatorVideo, b: CreatorVideo) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
+          )
+          .slice(0, limit);
+      }
+      throw clientQueryError;
     }
   }
 
