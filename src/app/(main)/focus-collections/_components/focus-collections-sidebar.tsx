@@ -41,7 +41,7 @@ function HeaderActions({ onOpenVideo, onOpenCollection }: { onOpenVideo: () => v
         <DropdownMenuTrigger asChild>
           <Button
             variant="secondary"
-            className="text-sidebar-foreground w-full justify-between rounded-[var(--radius-button)]"
+            className="text-sidebar-foreground bg-card/70 w-full justify-between rounded-[var(--radius-button)] border-0 opacity-70 shadow-[var(--shadow-soft-drop)] transition-opacity hover:opacity-100"
             size="default"
           >
             <span className="flex items-center gap-2">
@@ -263,7 +263,11 @@ export function FocusCollectionsSidebar({
             <Button variant="ghost" onClick={() => setIsAddVideoOpen(false)} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button onClick={handleAddVideo} disabled={isSubmitting || !videoUrl} className="gap-2">
+            <Button
+              onClick={handleAddVideo}
+              disabled={isSubmitting || !videoUrl}
+              className="gap-2 shadow-[var(--shadow-soft-drop)]"
+            >
               {isSubmitting ? "Processing..." : "Add Video"}
             </Button>
           </DialogFooter>
@@ -295,7 +299,11 @@ export function FocusCollectionsSidebar({
             <Button variant="ghost" onClick={() => setIsCreateOpen(false)} disabled={isCreateSubmitting}>
               Cancel
             </Button>
-            <Button onClick={handleCreateCollection} disabled={isCreateSubmitting || !createTitle.trim()}>
+            <Button
+              onClick={handleCreateCollection}
+              disabled={isCreateSubmitting || !createTitle.trim()}
+              className="shadow-[var(--shadow-soft-drop)]"
+            >
               {isCreateSubmitting ? "Creating..." : "Create Collection"}
             </Button>
           </DialogFooter>
