@@ -4,13 +4,13 @@ import { useState, useEffect, useCallback } from "react";
 
 import { useRouter } from "next/navigation";
 
+import { FloatingVideoPlayer } from "@/components/video/video-slideout-player";
 import { useAuth } from "@/contexts/auth-context";
 import { RBACClientService } from "@/core/auth/rbac-client";
 import { Video } from "@/lib/collections";
 
 import { CollectionHeader } from "./_components/collection-header";
 import { FocusCollectionsSidebar } from "./_components/focus-collections-sidebar";
-import { FocusInsightsWrapper } from "./_components/focus-insights-wrapper";
 import { FocusVideoGrid } from "./_components/focus-video-grid";
 import { MobileOverlays } from "./_components/mobile-overlays";
 
@@ -46,7 +46,6 @@ export default function FocusCollectionsPage() {
   const [selectedCollectionId, setSelectedCollectionId] = useState<string>("all-videos");
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isMobileInsightsOpen, setIsMobileInsightsOpen] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   // Desktop panel is always present; mobile uses overlay
 
@@ -86,9 +85,6 @@ export default function FocusCollectionsPage() {
 
   const handleVideoSelect = (video: Video) => {
     setSelectedVideo(video);
-    if (window.innerWidth < 1024) {
-      setIsMobileInsightsOpen(true);
-    }
   };
 
   const handleVideoMove = (video: Video) => {
@@ -119,12 +115,9 @@ export default function FocusCollectionsPage() {
       <MobileOverlays
         isMobileSidebarOpen={isMobileSidebarOpen}
         setIsMobileSidebarOpen={setIsMobileSidebarOpen}
-        isMobileInsightsOpen={isMobileInsightsOpen}
-        setIsMobileInsightsOpen={setIsMobileInsightsOpen}
         collections={collections}
         selectedCollectionId={selectedCollectionId}
         setSelectedCollectionId={setSelectedCollectionId}
-        selectedVideo={selectedVideo}
         onBackToDashboard={handleBackToDashboard}
         onCreateCollection={handleCreateCollection}
       />
@@ -167,10 +160,15 @@ export default function FocusCollectionsPage() {
           </div>
         </div>
 
-        {/* Desktop: Sticky right panel using unified slideout player */}
-        <div className="hidden w-[420px] flex-shrink-0 pr-4 lg:block">
-          <FocusInsightsWrapper video={selectedVideo} className="h-full" onClose={() => setSelectedVideo(null)} />
-        </div>
+        {/* Unified overlay video player (fixed) */}
+        {selectedVideo && (
+          <FloatingVideoPlayer
+            isOpen={!!selectedVideo}
+            onClose={() => setSelectedVideo(null)}
+            video={selectedVideo}
+            mode="fixed"
+          />
+        )}
       </div>
     </div>
   );

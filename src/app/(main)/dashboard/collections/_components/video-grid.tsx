@@ -16,7 +16,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { CardSkeleton, LoadingBoundary, useAsyncOperation, useIsLoading } from "@/components/ui/loading";
-import { VideoSlideoutPlayer } from "@/components/video/video-slideout-player";
+import { FloatingVideoPlayer } from "@/components/video/video-slideout-player";
 import { useAuth } from "@/contexts/auth-context";
 import { RBACClientService } from "@/core/auth/rbac-client";
 import { useRBAC } from "@/hooks/use-rbac";
@@ -318,7 +318,7 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
       />
 
       {selectedVideo && (
-        <VideoSlideoutPlayer isOpen={!!selectedVideo} onClose={() => setSelectedVideo(null)} video={selectedVideo} />
+        <FloatingVideoPlayer isOpen={!!selectedVideo} onClose={() => setSelectedVideo(null)} video={selectedVideo} />
       )}
     </>
   );
