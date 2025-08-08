@@ -126,7 +126,8 @@ class GlobalRateLimiter {
 
 // Global instances
 // Single shared RapidAPI limiter so ALL RapidAPI calls (Instagram, TikTok, etc.) share the same bucket
-export const rapidApiGlobalRateLimiter = new GlobalRateLimiter(1); // 1 request per second
+// Use a conservative cadence of 1 request every 2 seconds to avoid provider-side burst detection
+export const rapidApiGlobalRateLimiter = new GlobalRateLimiter(0.5); // 1 request / 2s
 // Retain provider-specific instances if needed for future differentiation (unused by default wrappers)
 export const instagramGlobalRateLimiter = new GlobalRateLimiter(1);
 export const tiktokGlobalRateLimiter = new GlobalRateLimiter(1);

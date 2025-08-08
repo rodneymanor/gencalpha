@@ -1,4 +1,4 @@
-import { withInstagramRateLimit, retryWithBackoff } from "@/lib/rate-limiter";
+import { withGlobalInstagramRateLimit, retryWithGlobalBackoff } from "@/lib/global-rate-limiter";
 
 export async function fetchInstagramMetadata(shortcode: string) {
   const controller = new AbortController();
@@ -15,9 +15,9 @@ export async function fetchInstagramMetadata(shortcode: string) {
     );
   }
 
-  const response = await retryWithBackoff(
+  const response = await retryWithGlobalBackoff(
     () =>
-      withInstagramRateLimit(
+      withGlobalInstagramRateLimit(
         () =>
           fetch(
             `https://instagram-api-fast-reliable-data-scraper.p.rapidapi.com/reel_by_shortcode?shortcode=${shortcode}`,
@@ -34,6 +34,7 @@ export async function fetchInstagramMetadata(shortcode: string) {
       ),
     3,
     1000,
+    `instagram-reel-${shortcode}`,
   );
 
   clearTimeout(timeoutId);

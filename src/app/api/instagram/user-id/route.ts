@@ -64,51 +64,29 @@ export async function GET(request: NextRequest) {
     // Make request to Instagram API with rate limiting and retry logic
     const response = await retryWithGlobalBackoff(
       () =>
-        withGlobalInstagramRateLimit(
-          () =>
-            fetch(
-              `https://instagram-api-fast-reliable-data-scraper.p.rapidapi.com/user_id_by_username?username=${encodeURIComponent(cleanUsername)}`,
-              {
-                method: "GET",
-                headers: {
-                  "x-rapidapi-host": "instagram-api-fast-reliable-data-scraper.p.rapidapi.com",
-                  "x-rapidapi-key": rapidApiKey,
-                },
+        withGlobalInstagramRateLimit(async () => {
+          const res = await fetch(
+            `https://instagram-api-fast-reliable-data-scraper.p.rapidapi.com/user_id_by_username?username=${encodeURIComponent(cleanUsername)}`,
+            {
+              method: "GET",
+              headers: {
+                "x-rapidapi-host": "instagram-api-fast-reliable-data-scraper.p.rapidapi.com",
+                "x-rapidapi-key": rapidApiKey,
               },
-            ),
-          `instagram-user-id-${cleanUsername}`,
-        ),
+            },
+          );
+          if (!res.ok) {
+            const text = await res.text().catch(() => "");
+            throw new Error(`HTTP ${res.status} ${res.statusText} ${text}`);
+          }
+          return res;
+        }, `instagram-user-id-${cleanUsername}`),
       3,
       1000,
       `instagram-user-id-${cleanUsername}`,
     );
 
-    if (!response.ok) {
-      console.log(`❌ Instagram API error: ${response.status} ${response.statusText}`);
-
-      if (response.status === 404) {
-        return NextResponse.json(
-          { error: "User not found", details: "The specified username does not exist on Instagram" } as ErrorResponse,
-          { status: 404 },
-        );
-      }
-
-      if (response.status === 429) {
-        return NextResponse.json(
-          {
-            error: "Rate limit exceeded",
-            details:
-              "Instagram API rate limit exceeded. The request has been retried with backoff but still failed. Please try again later.",
-            retryAfter: 60,
-          } as ErrorResponse & { retryAfter: number },
-          { status: 429 },
-        );
-      }
-
-      return NextResponse.json({ error: "Instagram API error", details: `HTTP ${response.status}` } as ErrorResponse, {
-        status: response.status,
-      });
-    }
+    // If we reached here, response.ok is true due to throw-on-error above
 
     const data: InstagramUserIdResponse = await response.json();
 
