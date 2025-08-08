@@ -13,13 +13,17 @@ interface FloatingVideoPlayerProps {
   onClose: () => void;
   video: Video;
   className?: string;
+  // overlay: fixed panel that sits above content (used on Daily page)
+  // sticky: sticks within a right-hand column (used on Focus Collections)
+  mode?: "fixed" | "sticky";
 }
 
-export function FloatingVideoPlayer({ isOpen, onClose, video, className }: FloatingVideoPlayerProps) {
+export function FloatingVideoPlayer({ isOpen, onClose, video, className, mode = "fixed" }: FloatingVideoPlayerProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Update body margin when slideout opens/closes to push content over
   useEffect(() => {
+    if (mode === "sticky") return; // Sticky variant does not manipulate body margin
     const body = document.body;
     if (isOpen) {
       // Calculate panel width + padding for margin
@@ -43,7 +47,7 @@ export function FloatingVideoPlayer({ isOpen, onClose, video, className }: Float
       body.style.marginRight = "0px";
       body.style.transition = "";
     };
-  }, [isOpen, isExpanded]);
+  }, [isOpen, isExpanded, mode]);
 
   // Handle escape key
   useEffect(() => {
@@ -62,19 +66,29 @@ export function FloatingVideoPlayer({ isOpen, onClose, video, className }: Float
   return (
     <div
       className={cn(
-        "fixed top-[18px] right-4 bottom-[18px] z-50",
-        "transition-all duration-300 ease-out",
-        "rounded-[var(--radius-card)]",
-        "h-[calc(100vh-36px)]",
-        isExpanded
-          ? "w-[min(59.5vw,900px)]" // 70 vw → 59.5 vw  (-15 %)
-          : "w-[min(420px,76.5vw)]", // 90 vw → 76.5 vw (-15 %)
+        mode === "fixed"
+          ? cn(
+              "fixed right-4 z-50",
+              // 16px padding above and below to match Clarity spacing
+              "top-4 bottom-4",
+              "transition-all duration-300 ease-out",
+              "rounded-[var(--radius-card)]",
+              "h-[calc(100vh-32px)]",
+              isExpanded ? "w-[min(59.5vw,900px)]" : "w-[min(420px,76.5vw)]",
+            )
+          : cn(
+              // Sticky variant for collections page
+              "sticky top-4",
+              "w-full",
+              // Constrain height within viewport; allow inner scroll
+              "max-h-[calc(100vh-32px)]",
+              "rounded-[var(--radius-card)]",
+            ),
         className,
       )}
       onClick={() => setIsExpanded(!isExpanded)}
     >
-      {/* Video Player - Full Height */}
-      <div className="h-full w-full">
+      <div className={cn(mode === "fixed" ? "h-full w-full" : "h-full w-full")}>
         <VideoInspirationPlayerWrapperFloating video={video} />
       </div>
     </div>

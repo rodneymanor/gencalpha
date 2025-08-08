@@ -167,9 +167,9 @@ export default function FocusCollectionsPage() {
           </div>
         </div>
 
-        {/* Desktop: Static right panel (always present) */}
-        <div className="hidden w-96 flex-shrink-0 lg:block">
-          <FocusInsightsWrapper video={selectedVideo} className="h-full" />
+        {/* Desktop: Sticky right panel using unified slideout player */}
+        <div className="hidden w-[420px] flex-shrink-0 pr-4 lg:block">
+          <FocusInsightsWrapper video={selectedVideo} className="h-full" onClose={() => setSelectedVideo(null)} />
         </div>
       </div>
     </div>

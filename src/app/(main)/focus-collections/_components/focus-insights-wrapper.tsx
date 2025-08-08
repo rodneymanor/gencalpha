@@ -4,17 +4,17 @@ import React from "react";
 
 import { Eye } from "lucide-react";
 
+import { FloatingVideoPlayer } from "@/components/video/video-slideout-player";
 import { Video } from "@/lib/collections";
 import { cn } from "@/lib/utils";
-
-import { StaticVideoPlayer } from "./static-video-player";
 
 interface FocusInsightsWrapperProps {
   video: Video | null;
   className?: string;
+  onClose?: () => void;
 }
 
-export function FocusInsightsWrapper({ video, className }: FocusInsightsWrapperProps) {
+export function FocusInsightsWrapper({ video, className, onClose }: FocusInsightsWrapperProps) {
   if (!video) {
     return (
       <div className={cn("bg-card flex h-full items-center justify-center p-6", className)}>
@@ -29,5 +29,9 @@ export function FocusInsightsWrapper({ video, className }: FocusInsightsWrapperP
     );
   }
 
-  return <StaticVideoPlayer video={video} className={className} />;
+  return (
+    <div className={cn("h-full", className)}>
+      <FloatingVideoPlayer isOpen={!!video} onClose={onClose ?? (() => {})} video={video} mode="sticky" />
+    </div>
+  );
 }
