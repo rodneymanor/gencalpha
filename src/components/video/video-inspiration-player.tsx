@@ -49,9 +49,9 @@ const VideoPlayerView: React.FC<
   Pick<VideoInspirationPlayerProps, "videoUrl" | "views" | "likes" | "comments" | "shares">
 > = ({ videoUrl, views, likes, comments, shares }) => (
   <div className="flex h-full flex-col">
-    {/* Video Player - Enlarged */}
-    <div className="flex flex-1 items-center justify-center">
-      <div className="relative aspect-[9/16] w-full max-w-[320px] flex-shrink-0 overflow-hidden rounded-[var(--radius-card)] bg-black shadow-[var(--shadow-input)]">
+    {/* Video Player - Optimized Size */}
+    <div className="flex flex-shrink-0 items-center justify-center">
+      <div className="relative aspect-[9/16] w-full max-w-[280px] flex-shrink-0 overflow-hidden rounded-[var(--radius-card)] bg-black shadow-[var(--shadow-input)]">
         <iframe
           className="absolute top-0 left-0 h-full w-full rounded-[var(--radius-card)]"
           src={videoUrl}
@@ -64,8 +64,8 @@ const VideoPlayerView: React.FC<
     </div>
 
     {/* Unified Engagement Bar */}
-    <div className="mt-6 flex-shrink-0">
-      <div className="bg-card border-border mx-auto flex w-full max-w-[320px] items-center justify-between rounded-[var(--radius-card)] border p-3 shadow-[var(--shadow-soft-drop)]">
+    <div className="mt-4 flex-shrink-0">
+      <div className="bg-card border-border mx-auto flex w-full max-w-[280px] items-center justify-between rounded-[var(--radius-card)] border p-3 shadow-[var(--shadow-soft-drop)]">
         <div className="flex items-center gap-1">
           <Heart className="text-destructive h-4 w-4" />
           <span className="text-foreground text-sm font-medium">{likes}</span>
@@ -86,7 +86,7 @@ const VideoPlayerView: React.FC<
     </div>
 
     {/* Action Buttons */}
-    <div className="mt-4 flex flex-shrink-0 gap-2">
+    <div className="mt-3 flex flex-shrink-0 gap-2">
       <Button variant="outline" className="h-10 flex-1 text-sm font-medium">
         Remix
       </Button>
