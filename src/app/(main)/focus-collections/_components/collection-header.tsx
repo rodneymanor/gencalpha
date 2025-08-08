@@ -25,17 +25,6 @@ const getSelectedCollection = (collections: Collection[], selectedCollectionId: 
   return collections.find((c) => c.id === selectedCollectionId);
 };
 
-const getTotalVideos = (collections: Collection[]) => {
-  return collections.reduce((total, col) => total + col.videoCount, 0);
-};
-
-const getVideoCount = (selectedCollectionId: string, collections: Collection[]) => {
-  if (selectedCollectionId === "all-videos") {
-    return getTotalVideos(collections);
-  }
-  return getSelectedCollection(collections, selectedCollectionId)?.videoCount ?? 0;
-};
-
 export function CollectionHeader({
   selectedCollectionId,
   collections,
@@ -44,10 +33,9 @@ export function CollectionHeader({
   onOpenMobileInsights,
 }: CollectionHeaderProps) {
   const selectedCollection = getSelectedCollection(collections, selectedCollectionId);
-  const videoCount = getVideoCount(selectedCollectionId, collections);
 
   return (
-    <div className="border-border flex-shrink-0 border-b p-4 lg:p-6">
+    <div className="flex-shrink-0 p-4 lg:p-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {/* Mobile Menu Button */}

@@ -4,13 +4,13 @@ import { useState, useEffect, useCallback } from "react";
 
 import { useRouter } from "next/navigation";
 
+import { VideoSlideout } from "@/components/video/video-slideout";
 import { useAuth } from "@/contexts/auth-context";
 import { RBACClientService } from "@/core/auth/rbac-client";
 import { Video } from "@/lib/collections";
 
 import { CollectionHeader } from "./_components/collection-header";
 import { FocusCollectionsSidebar } from "./_components/focus-collections-sidebar";
-import { FocusInsightsWrapper } from "./_components/focus-insights-wrapper";
 import { FocusVideoGrid } from "./_components/focus-video-grid";
 import { MobileOverlays } from "./_components/mobile-overlays";
 
@@ -48,6 +48,7 @@ export default function FocusCollectionsPage() {
   const [loading, setLoading] = useState(true);
   const [isMobileInsightsOpen, setIsMobileInsightsOpen] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isSlideoutOpen, setIsSlideoutOpen] = useState(false);
 
   // Load collections
   const loadCollections = useCallback(async () => {
@@ -87,6 +88,8 @@ export default function FocusCollectionsPage() {
     setSelectedVideo(video);
     if (window.innerWidth < 1024) {
       setIsMobileInsightsOpen(true);
+    } else {
+      setIsSlideoutOpen(true);
     }
   };
 
@@ -128,8 +131,8 @@ export default function FocusCollectionsPage() {
         onCreateCollection={handleCreateCollection}
       />
 
-      {/* Desktop: Left Sidebar */}
-      <div className="border-border hidden w-80 flex-shrink-0 border-r lg:block">
+      {/* Desktop: Left Sidebar (borderless, tonal separation handled by bg) */}
+      <div className="hidden w-80 flex-shrink-0 lg:block">
         <FocusCollectionsSidebar
           collections={collections}
           selectedCollectionId={selectedCollectionId}
@@ -166,10 +169,8 @@ export default function FocusCollectionsPage() {
           </div>
         </div>
 
-        {/* Desktop: Right Panel */}
-        <div className="border-border hidden w-96 flex-shrink-0 border-l lg:block">
-          <FocusInsightsWrapper video={selectedVideo} className="h-full" />
-        </div>
+        {/* Desktop: Slideout video panel for details */}
+        <VideoSlideout isOpen={isSlideoutOpen} onClose={() => setIsSlideoutOpen(false)} video={selectedVideo} />
       </div>
     </div>
   );

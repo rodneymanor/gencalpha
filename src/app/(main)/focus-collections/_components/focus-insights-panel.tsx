@@ -21,8 +21,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { cn } from "@/lib/utils";
 import type { Video } from "@/lib/collections";
+import { cn } from "@/lib/utils";
 
 import { InsightsTabsContent } from "./insights-tabs-content";
 
@@ -139,6 +139,47 @@ const EmptyVideoState = ({ className }: { className?: string }) => (
   </div>
 );
 
+function normalizeDuration(duration: string | number | undefined) {
+  if (typeof duration === "number") {
+    return `${Math.floor(duration / 60)}:${(duration % 60).toString().padStart(2, "0")}`;
+  }
+  return duration;
+}
+
+function MetricsGrid({ metrics }: { metrics: NonNullable<Video["metrics"]> }) {
+  return (
+    <div className="grid grid-cols-4 gap-2">
+      <div className="flex items-center justify-center gap-1">
+        <Eye className="text-secondary h-4 w-4" />
+        <span className="text-sm font-semibold">{formatNumber(metrics.views)}</span>
+      </div>
+      <div className="flex items-center justify-center gap-1">
+        <Heart className="text-destructive h-4 w-4" />
+        <span className="text-sm font-semibold">{formatNumber(metrics.likes)}</span>
+      </div>
+      <div className="flex items-center justify-center gap-1">
+        <MessageCircle className="text-primary h-4 w-4" />
+        <span className="text-sm font-semibold">{formatNumber(metrics.comments)}</span>
+      </div>
+      <div className="flex items-center justify-center gap-1">
+        <Share2 className="text-brand-foreground h-4 w-4" />
+        <span className="text-sm font-semibold">{metrics.shares ? formatNumber(metrics.shares) : "0"}</span>
+      </div>
+    </div>
+  );
+}
+
+function EngagementRate({ metrics }: { metrics: NonNullable<Video["metrics"]> }) {
+  if (!metrics.views || metrics.views <= 0) return null;
+  const engagement = (((metrics.likes ?? 0) + (metrics.comments ?? 0)) / metrics.views) * 100;
+  return (
+    <div className="mt-2 flex items-center justify-center gap-1">
+      <TrendingUp className="text-secondary h-4 w-4" />
+      <span className="text-sm font-semibold">{engagement.toFixed(1)}%</span>
+    </div>
+  );
+}
+
 export function FocusInsightsPanel({ video, className }: FocusInsightsPanelProps) {
   const [activeTab, setActiveTab] = useState("hooks");
 
@@ -146,12 +187,12 @@ export function FocusInsightsPanel({ video, className }: FocusInsightsPanelProps
     return <EmptyVideoState className={className} />;
   }
 
+  const normalizedDuration = normalizeDuration(video.duration);
+
   return (
     <div className={cn("bg-background flex h-full flex-col", className)}>
-      {/* Video Header */}
-      <div className="border-border flex-shrink-0 border-b p-6">
+      <div className="flex-shrink-0 p-6">
         <div className="flex items-start gap-4">
-          {/* Thumbnail */}
           <div className="relative h-20 w-14 flex-shrink-0 overflow-hidden rounded-[var(--radius-button)]">
             {video.thumbnailUrl ? (
               <Image src={video.thumbnailUrl} alt={video.title} fill className="object-cover" />
@@ -162,32 +203,27 @@ export function FocusInsightsPanel({ video, className }: FocusInsightsPanelProps
             )}
           </div>
 
-          {/* Video Info */}
           <div className="min-w-0 flex-1">
             <div className="mb-2 flex items-center justify-between">
               <h2 className="line-clamp-1 font-sans text-lg font-semibold">
-                {video.metadata?.author ?? 'Unknown Creator'}
+                {video.metadata?.author ?? "Unknown Creator"}
               </h2>
-              <span className="text-muted-foreground text-sm">
-                Followers: N/A
-              </span>
+              <span className="text-muted-foreground text-sm">Followers: N/A</span>
             </div>
             <div className="mb-3 flex items-center gap-2">
               <Badge
                 variant={video.platform.toLowerCase() === "instagram" ? "instagram" : "secondary"}
-                className={`text-xs ${
-                  video.platform.toLowerCase() === "tiktok"
-                    ? "bg-black text-white hover:bg-black/80"
-                    : ""
-                }`}
+                className={cn(
+                  "text-xs",
+                  video.platform.toLowerCase() === "tiktok" ? "bg-black text-white hover:bg-black/80" : "",
+                )}
               >
                 {video.platform}
               </Badge>
-              {video.duration && <span className="text-muted-foreground text-xs">{video.duration}</span>}
+              {normalizedDuration && <span className="text-muted-foreground text-xs">{normalizedDuration}</span>}
               <span className="text-muted-foreground text-xs">{formatDate(video.addedAt)}</span>
             </div>
 
-            {/* Quick Actions */}
             <div className="flex gap-2">
               <Button size="sm" variant="outline" className="gap-2">
                 <ExternalLink className="h-3 w-3" />
@@ -203,41 +239,13 @@ export function FocusInsightsPanel({ video, className }: FocusInsightsPanelProps
         </div>
       </div>
 
-      {/* Performance Metrics */}
       {video.metrics && (
-        <div className="border-border flex-shrink-0 border-b p-4">
-          <div className="grid grid-cols-4 gap-2">
-            <div className="flex items-center justify-center gap-1">
-              <Eye className="text-secondary h-4 w-4" />
-              <span className="text-sm font-semibold">{formatNumber(video.metrics.views)}</span>
-            </div>
-            <div className="flex items-center justify-center gap-1">
-              <Heart className="text-destructive h-4 w-4" />
-              <span className="text-sm font-semibold">{formatNumber(video.metrics.likes)}</span>
-            </div>
-            <div className="flex items-center justify-center gap-1">
-              <MessageCircle className="text-primary h-4 w-4" />
-              <span className="text-sm font-semibold">{formatNumber(video.metrics.comments)}</span>
-            </div>
-            <div className="flex items-center justify-center gap-1">
-              <Share2 className="text-brand-foreground h-4 w-4" />
-              <span className="text-sm font-semibold">
-                {video.metrics.shares ? formatNumber(video.metrics.shares) : "0"}
-              </span>
-            </div>
-          </div>
-          {video.metrics && video.metrics.views > 0 && (
-            <div className="mt-2 flex items-center justify-center gap-1">
-              <TrendingUp className="text-secondary h-4 w-4" />
-              <span className="text-sm font-semibold">
-                {((video.metrics.likes + video.metrics.comments) / video.metrics.views * 100).toFixed(1)}%
-              </span>
-            </div>
-          )}
+        <div className="flex-shrink-0 p-4">
+          <MetricsGrid metrics={video.metrics} />
+          <EngagementRate metrics={video.metrics} />
         </div>
       )}
 
-      {/* Insights Tabs */}
       <div className="flex-1 overflow-hidden">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex h-full flex-col">
           <TabsList className="mx-6 mt-4 grid w-full grid-cols-4">
@@ -261,11 +269,7 @@ export function FocusInsightsPanel({ video, className }: FocusInsightsPanelProps
 
           <div className="flex-1 overflow-y-auto p-6">
             <InsightsTabsContent
-              video={{
-                ...video,
-                favorite: video.favorite ?? false,
-                duration: typeof video.duration === 'number' ? `${Math.floor(video.duration / 60)}:${(video.duration % 60).toString().padStart(2, '0')}` : video.duration,
-              }}
+              video={{ ...video, favorite: video.favorite ?? false, duration: normalizedDuration }}
               mockHookIdeas={mockHookIdeas}
               mockContentSuggestions={mockContentSuggestions}
               formatDate={formatDate}

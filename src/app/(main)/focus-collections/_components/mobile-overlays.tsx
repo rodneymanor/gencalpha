@@ -45,8 +45,11 @@ export function MobileOverlays({
       {/* Mobile/Tablet Sidebar Overlay */}
       {isMobileSidebarOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setIsMobileSidebarOpen(false)} />
-          <div className="bg-background absolute top-0 left-0 h-full w-80 shadow-[var(--shadow-soft-drop)]">
+          <div
+            className="bg-background/60 absolute inset-0 backdrop-blur-sm"
+            onClick={() => setIsMobileSidebarOpen(false)}
+          />
+          <div className="bg-sidebar text-sidebar-foreground absolute top-0 left-0 h-full w-80 shadow-[var(--shadow-soft-drop)]">
             <FocusCollectionsSidebar
               collections={collections}
               selectedCollectionId={selectedCollectionId}
@@ -65,10 +68,13 @@ export function MobileOverlays({
       {/* Mobile/Tablet Insights Overlay */}
       {isMobileInsightsOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setIsMobileInsightsOpen(false)} />
-          <div className="bg-background absolute top-0 right-0 h-full w-full max-w-md shadow-[var(--shadow-soft-drop)]">
+          <div
+            className="bg-background/60 absolute inset-0 backdrop-blur-sm"
+            onClick={() => setIsMobileInsightsOpen(false)}
+          />
+          <div className="bg-card absolute top-0 right-0 h-full w-full max-w-md shadow-[var(--shadow-soft-drop)]">
             <div className="flex h-full flex-col">
-              <div className="border-border flex items-center justify-between border-b p-4">
+              <div className="flex items-center justify-between p-4">
                 <h2 className="font-sans text-lg font-semibold">Video Insights</h2>
                 <Button size="icon" variant="ghost" onClick={() => setIsMobileInsightsOpen(false)}>
                   <X className="h-4 w-4" />

@@ -23,7 +23,6 @@ interface FocusCollectionsSidebarProps {
   className?: string;
 }
 
-
 export function FocusCollectionsSidebar({
   collections,
   selectedCollectionId,
@@ -32,12 +31,12 @@ export function FocusCollectionsSidebar({
   onCreateCollection,
   className,
 }: FocusCollectionsSidebarProps) {
-  const [_hoveredCollection, setHoveredCollection] = useState<string | null>(null);
+  const [hoveredCollection] = useState<string | null>(null);
 
   return (
     <div className={cn("bg-sidebar text-sidebar-foreground flex h-full w-full flex-col", className)}>
       {/* Header Section */}
-      <div className="border-sidebar-border flex-shrink-0 border-b p-6">
+      <div className="flex-shrink-0 p-6">
         <Button
           variant="ghost"
           size="sm"
@@ -51,10 +50,7 @@ export function FocusCollectionsSidebar({
         <Button
           onClick={onCreateCollection}
           variant="secondary"
-          className="text-sidebar-foreground w-full gap-2 rounded-md border-0"
-          style={{
-            boxShadow: "rgba(0, 0, 0, 0.08) 0px 0.5px 3px 0px",
-          }}
+          className="text-sidebar-foreground w-full gap-2 rounded-[var(--radius-button)]"
           size="default"
         >
           <Plus className="h-4 w-4" />
@@ -68,10 +64,10 @@ export function FocusCollectionsSidebar({
           {/* All Videos Option */}
           <button
             onClick={() => onSelectCollection("all-videos")}
-            onMouseEnter={() => setHoveredCollection("all-videos")}
-            onMouseLeave={() => setHoveredCollection(null)}
+            onMouseEnter={() => {}}
+            onMouseLeave={() => {}}
             className={cn(
-              "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex w-full items-center gap-2 rounded-md p-2 text-left text-sm transition-colors",
+              "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex w-full items-center gap-2 rounded-[var(--radius-button)] p-2 text-left text-sm transition-colors",
               selectedCollectionId === "all-videos"
                 ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                 : "text-sidebar-foreground",
@@ -79,20 +75,13 @@ export function FocusCollectionsSidebar({
           >
             <div
               className={cn(
-                "flex h-6 w-6 shrink-0 items-center justify-center rounded-md transition-colors",
+                "flex h-6 w-6 shrink-0 items-center justify-center rounded-[var(--radius-button)] transition-colors",
                 selectedCollectionId === "all-videos"
-                  ? "bg-slate-800 text-slate-200" // Dark background with light slate text
+                  ? "bg-secondary text-secondary-foreground"
                   : "bg-sidebar-accent/20 text-sidebar-foreground",
               )}
             >
-              <Video
-                className={cn(
-                  "h-4 w-4",
-                  selectedCollectionId === "all-videos"
-                    ? "stroke-slate-200 stroke-1" // Light slate stroke for selected
-                    : "stroke-2",
-                )}
-              />
+              <Video className={cn("h-4 w-4", selectedCollectionId === "all-videos" ? "stroke-1" : "stroke-2")} />
             </div>
             <div className="flex flex-1 items-center justify-between">
               <span>All Videos</span>
@@ -108,10 +97,10 @@ export function FocusCollectionsSidebar({
               <button
                 key={collection.id}
                 onClick={() => onSelectCollection(collection.id)}
-                onMouseEnter={() => setHoveredCollection(collection.id)}
-                onMouseLeave={() => setHoveredCollection(null)}
+                onMouseEnter={() => {}}
+                onMouseLeave={() => {}}
                 className={cn(
-                  "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex w-full items-center gap-2 rounded-md p-2 text-left text-sm transition-colors",
+                  "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex w-full items-center gap-2 rounded-[var(--radius-button)] p-2 text-left text-sm transition-colors",
                   selectedCollectionId === collection.id
                     ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                     : "text-sidebar-foreground",
@@ -119,19 +108,14 @@ export function FocusCollectionsSidebar({
               >
                 <div
                   className={cn(
-                    "flex h-6 w-6 shrink-0 items-center justify-center rounded-md transition-colors",
+                    "flex h-6 w-6 shrink-0 items-center justify-center rounded-[var(--radius-button)] transition-colors",
                     selectedCollectionId === collection.id
-                      ? "bg-slate-800 text-slate-200" // Dark background with light slate text
+                      ? "bg-secondary text-secondary-foreground"
                       : "bg-sidebar-accent/20 text-sidebar-foreground",
                   )}
                 >
                   <GalleryVerticalEnd
-                    className={cn(
-                      "h-4 w-4",
-                      selectedCollectionId === collection.id
-                        ? "stroke-slate-200 stroke-1" // Light slate stroke for selected
-                        : "stroke-2",
-                    )}
+                    className={cn("h-4 w-4", selectedCollectionId === collection.id ? "stroke-1" : "stroke-2")}
                   />
                 </div>
                 <div className="min-w-0 flex-1">

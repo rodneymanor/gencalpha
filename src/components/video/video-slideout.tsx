@@ -5,17 +5,19 @@ import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import type { Video } from "@/lib/collections";
 import { cn } from "@/lib/utils";
 
-import VideoInspirationPlayerWrapper from "./video-inspiration-player";
+import VideoInspirationPlayerWrapper, { VideoInspirationPlayerWrapperFloating } from "./video-inspiration-player";
 
 interface VideoSlideoutProps {
   isOpen: boolean;
   onClose: () => void;
   className?: string;
+  video?: Video | null;
 }
 
-export function VideoSlideout({ isOpen, onClose, className }: VideoSlideoutProps) {
+export function VideoSlideout({ isOpen, onClose, className, video }: VideoSlideoutProps) {
   const slideoutRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -51,7 +53,7 @@ export function VideoSlideout({ isOpen, onClose, className }: VideoSlideoutProps
         ref={slideoutRef}
         className={cn(
           "fixed top-0 right-0 z-50 h-full w-full max-w-6xl",
-          "bg-card/95 backdrop-blur-sm",
+          "bg-card",
           "shadow-[var(--shadow-soft-drop)]",
           "transform transition-transform duration-300 ease-out",
           "translate-x-0",
@@ -75,7 +77,7 @@ export function VideoSlideout({ isOpen, onClose, className }: VideoSlideoutProps
         {/* Content */}
         <div className="h-[calc(100vh-5rem)] overflow-hidden">
           <div className="h-full">
-            <VideoInspirationPlayerWrapper />
+            {video ? <VideoInspirationPlayerWrapperFloating video={video} /> : <VideoInspirationPlayerWrapper />}
           </div>
         </div>
       </div>
