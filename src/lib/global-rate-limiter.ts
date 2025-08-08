@@ -3,15 +3,15 @@
  * Ensures only ONE Instagram RapidAPI call happens at a time across the entire application
  */
 
-interface QueuedRequest {
-  operation: () => Promise<unknown>;
-  resolve: (value: unknown) => void;
+interface QueuedRequest<T = unknown> {
+  operation: () => Promise<T>;
+  resolve: (value: T) => void;
   reject: (error: unknown) => void;
   key: string;
 }
 
 class GlobalRateLimiter {
-  private queue: QueuedRequest[] = [];
+  private queue: QueuedRequest<any>[] = [];
   private isProcessing = false;
   private lastRequestTime = 0;
   private readonly minInterval: number;
@@ -25,9 +25,9 @@ class GlobalRateLimiter {
    */
   async enqueue<T>(operation: () => Promise<T>, key: string = "default"): Promise<T> {
     return new Promise<T>((resolve, reject) => {
-      const request: QueuedRequest = {
+      const request: QueuedRequest<T> = {
         operation,
-        resolve,
+        resolve: resolve as (value: T) => void,
         reject,
         key,
       };
@@ -69,11 +69,11 @@ class GlobalRateLimiter {
 
         console.log(`🚀 [GLOBAL_RATE_LIMITER] Processing request '${request.key}'`);
 
+        // Update last request time BEFORE executing (not after)
+        this.lastRequestTime = Date.now();
+
         // Execute the operation
         const result = await request.operation();
-
-        // Update last request time
-        this.lastRequestTime = Date.now();
 
         // Resolve the promise
         request.resolve(result);
