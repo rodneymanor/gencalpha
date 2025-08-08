@@ -4,8 +4,17 @@ import { useState } from "react";
 
 import { ArrowLeft, Plus, Video as VideoIcon, GalleryVerticalEnd } from "lucide-react";
 
-import { AddVideoDialog } from "@/app/(main)/dashboard/collections/_components/add-video-dialog";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/auth-context";
 import { cn } from "@/lib/utils";
 
 interface Collection {
@@ -34,6 +43,41 @@ export function FocusCollectionsSidebar({
 }: FocusCollectionsSidebarProps) {
   const [hoveredCollection] = useState<string | null>(null);
   const [isAddVideoOpen, setIsAddVideoOpen] = useState(false);
+  const [videoUrl, setVideoUrl] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const { user } = useAuth();
+
+  const handleAddVideo = async () => {
+    if (!user?.uid) return;
+    setSubmitError(null);
+    if (!videoUrl || !/^https?:\/\//.test(videoUrl)) {
+      setSubmitError("Please enter a valid video URL");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const response = await fetch("/api/video/add-to-queue", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          videoUrl,
+          collectionId: selectedCollectionId === "all-videos" ? undefined : selectedCollectionId,
+          userId: user.uid,
+        }),
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error ?? "Failed to add video to queue");
+      }
+      setVideoUrl("");
+      setIsAddVideoOpen(false);
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : "Failed to add video. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <>
@@ -154,11 +198,38 @@ export function FocusCollectionsSidebar({
           )}
         </div>
       </div>
-      <AddVideoDialog
+      <Dialog
         open={isAddVideoOpen}
-        onOpenChange={setIsAddVideoOpen}
-        selectedCollectionId={selectedCollectionId}
-      />
+        onOpenChange={(open) => {
+          setIsAddVideoOpen(open);
+          setSubmitError(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Video</DialogTitle>
+            <DialogDescription>
+              Paste a TikTok or Instagram video URL. It will be added to the selected collection.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              value={videoUrl}
+              onChange={(e) => setVideoUrl(e.target.value)}
+              placeholder="https://www.tiktok.com/@username/video/... or https://www.instagram.com/reel/..."
+            />
+            {submitError && <p className="text-destructive text-sm">{submitError}</p>}
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsAddVideoOpen(false)} disabled={isSubmitting}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddVideo} disabled={isSubmitting || !videoUrl} className="gap-2">
+              {isSubmitting ? "Processing..." : "Add Video"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
