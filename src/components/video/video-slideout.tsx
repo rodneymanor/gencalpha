@@ -52,8 +52,8 @@ export function VideoSlideout({ isOpen, onClose, className, video }: VideoSlideo
       <div
         ref={slideoutRef}
         className={cn(
-          "fixed top-4 right-0 bottom-4 z-50 w-full max-w-6xl",
-          "bg-card",
+          "fixed inset-y-4 right-0 z-50 w-full max-w-6xl",
+          "bg-card overflow-hidden rounded-[var(--radius-card)]",
           "shadow-[var(--shadow-soft-drop)]",
           "transform transition-transform duration-300 ease-out",
           "translate-x-0",
@@ -76,7 +76,7 @@ export function VideoSlideout({ isOpen, onClose, className, video }: VideoSlideo
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-hidden">
+        <div className="min-h-0 flex-1 overflow-y-auto">
           <div className="h-full">
             {video ? <VideoInspirationPlayerWrapperFloating video={video} /> : <VideoInspirationPlayerWrapper />}
           </div>
