@@ -1,4 +1,3 @@
-/* eslint max-lines: ["error", 400], complexity: "off" */
 "use client";
 
 import { createContext, useContext, useEffect, useState, useMemo, useCallback } from "react";
@@ -375,8 +374,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Global loading gate - prevent any auth-based navigation until auth is resolved
   if (initializing) {
-    // Avoid duplicate loaders; global route loader is provided via app/loading.tsx
-    return null;
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="border-primary h-32 w-32 animate-spin rounded-full border-b-2"></div>
+          <p className="mt-4 text-lg">Loading...</p>
+        </div>
+      </div>
+    );
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
