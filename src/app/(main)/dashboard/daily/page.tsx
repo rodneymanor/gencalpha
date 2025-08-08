@@ -1,8 +1,11 @@
 "use client";
 
-import { Users, Inbox, PenLine } from "lucide-react";
+import { useState } from "react";
+
+import { Users, Inbox, PenLine, ArrowLeft } from "lucide-react";
 
 import { ManusPrompt } from "@/components/manus-prompt";
+import { Button } from "@/components/ui/button";
 import ResourceGrid, { type ResourceItem } from "@/components/ui/resource-grid";
 import { FloatingVideoPlayer, useFloatingVideo } from "@/components/video/video-slideout-player";
 import { transformVideoDataToVideo } from "@/lib/video-player-helpers";
@@ -10,6 +13,7 @@ import { transformVideoDataToVideo } from "@/lib/video-player-helpers";
 import CreatorVideosGrid, { type VideoData } from "./_components/creator-videos-grid";
 
 export default function DailyPage() {
+  const [activeIdeasSection, setActiveIdeasSection] = useState<null | "follow-creators">(null);
   const { isOpen, currentVideo, openVideo, closeVideo } = useFloatingVideo();
 
   const handleVideoClick = (videoData: VideoData) => {
@@ -41,28 +45,40 @@ export default function DailyPage() {
           </p>
         </div>
         <div className="mt-6">
-          <ResourceGrid lgColumns={3} items={getIdeasItems()} />
+          <ResourceGrid
+            lgColumns={3}
+            items={getIdeasItems({ onOpenFollowCreators: () => setActiveIdeasSection("follow-creators") })}
+          />
         </div>
       </div>
 
-      {/* Creator Inspiration Section */}
-      <div className="px-6 pb-8">
-        <CreatorVideosGrid onVideoClick={handleVideoClick} showFollowButton={true} />
-      </div>
+      {/* Follow Creators Section (hidden until selected) */}
+      {activeIdeasSection === "follow-creators" && (
+        <div className="space-y-4 px-6 pb-8">
+          <div className="flex items-center justify-between">
+            <Button variant="ghost" onClick={() => setActiveIdeasSection(null)} className="h-11 px-3">
+              <ArrowLeft className="mr-2 size-4" aria-hidden />
+              <span>Back to ideas</span>
+            </Button>
+          </div>
+
+          <CreatorVideosGrid onVideoClick={handleVideoClick} showFollowButton={true} />
+        </div>
+      )}
 
       {/* Floating Video Player */}
       {currentVideo && <FloatingVideoPlayer isOpen={isOpen} onClose={closeVideo} video={currentVideo} />}
     </div>
   );
 }
-
-function getIdeasItems(): ResourceItem[] {
+function getIdeasItems({ onOpenFollowCreators }: { onOpenFollowCreators: () => void }): ResourceItem[] {
   return [
     {
       id: "follow-creators",
       title: "Follow creators",
       icon: <Users className="text-foreground/75 size-4" aria-hidden />,
       kindLabel: "Discover",
+      onClick: onOpenFollowCreators,
     },
     {
       id: "idea-inbox",
