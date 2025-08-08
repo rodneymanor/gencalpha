@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+import { useSearchParams, useRouter } from "next/navigation";
 
 import { Settings, User, CreditCard, Bell } from "lucide-react";
 
@@ -36,7 +38,17 @@ const settingsTabs = [
 type SettingsTab = (typeof settingsTabs)[number]["id"];
 
 export default function SettingsPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<SettingsTab>("account");
+
+  // Initialize from ?tab= query param if present
+  useEffect(() => {
+    const tabParam = (searchParams.get("tab") as SettingsTab | null) ?? null;
+    if (tabParam && settingsTabs.some((t) => t.id === tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
 
   const ActiveComponent = settingsTabs.find((tab) => tab.id === activeTab)?.component ?? AccountSettings;
 
@@ -64,7 +76,13 @@ export default function SettingsPage() {
                   key={tab.id}
                   variant={activeTab === tab.id ? "default" : "ghost"}
                   size="sm"
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                    // Keep URL in sync so deep links work on refresh
+                    const params = new URLSearchParams(Array.from(searchParams.entries()));
+                    params.set("tab", tab.id);
+                    router.replace(`/dashboard/settings?${params.toString()}`);
+                  }}
                   className={cn(
                     "flex items-center gap-2 whitespace-nowrap",
                     activeTab === tab.id

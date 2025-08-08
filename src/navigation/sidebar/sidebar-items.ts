@@ -1,4 +1,4 @@
-import { Calendar, Video, Settings, type LucideIcon } from "lucide-react";
+import { Calendar, Video, type LucideIcon } from "lucide-react";
 
 export interface NavSubItem {
   title: string;
@@ -44,15 +44,5 @@ export const sidebarItems: NavGroup[] = [
       },
     ],
   },
-  {
-    id: 2,
-    label: "Account",
-    items: [
-      {
-        title: "Settings",
-        url: "/dashboard/settings",
-        icon: Settings,
-      },
-    ],
-  },
+  // Settings removed from sidebar per request; accessible via profile menu
 ];
