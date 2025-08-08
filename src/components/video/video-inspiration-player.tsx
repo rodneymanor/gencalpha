@@ -190,7 +190,10 @@ const VideoInspirationPlayer: React.FC<VideoInspirationPlayerProps> = (props) =>
                 </kbd>
                 <span className="text-muted-foreground text-xs">to close</span>
               </div>
-              <AdvancedSlidingSwitch options={switchOptions} onChange={() => setShowInsights((prev) => !prev)} />
+              <AdvancedSlidingSwitch
+                options={switchOptions}
+                onChange={(_, option) => setShowInsights(option.value === "web-search")}
+              />
             </div>
 
             <div className="mt-4 min-h-[600px]">
@@ -231,7 +234,10 @@ const FloatingVideoInspirationPlayer: React.FC<VideoInspirationPlayerProps> = (p
                 </kbd>
                 <span className="text-muted-foreground text-xs">to close</span>
               </div>
-              <AdvancedSlidingSwitch options={switchOptions} onChange={() => setShowInsights((prev) => !prev)} />
+              <AdvancedSlidingSwitch
+                options={switchOptions}
+                onChange={(_, option) => setShowInsights(option.value === "web-search")}
+              />
             </div>
 
             {/* Content - Takes remaining space */}
