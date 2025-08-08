@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 
 import { Film } from "lucide-react";
 
@@ -21,15 +21,13 @@ interface FloatingVideoPlayerProps {
 }
 
 export function FloatingVideoPlayer({ isOpen, onClose, video, className, mode = "fixed" }: FloatingVideoPlayerProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  // Update body margin when slideout opens/closes to push content over
+  // Update body margin when slideout opens/closes to push content over (fixed mode only)
   useEffect(() => {
     if (mode === "sticky") return; // Sticky variant does not manipulate body margin
     const body = document.body;
     if (isOpen) {
-      // Calculate panel width + padding for margin
-      const panelWidth = isExpanded ? Math.min(window.innerWidth * 0.7, 900) : Math.min(420, window.innerWidth * 0.9);
+      // Standard container width + padding for margin
+      const panelWidth = Math.min(420, window.innerWidth * 0.9);
       const totalWidth = panelWidth + 32; // 32px for right padding (right-4 = 16px + some buffer)
 
       // Add transition and margin to push content
@@ -49,7 +47,7 @@ export function FloatingVideoPlayer({ isOpen, onClose, video, className, mode = 
       body.style.marginRight = "0px";
       body.style.transition = "";
     };
-  }, [isOpen, isExpanded, mode]);
+  }, [isOpen, mode]);
 
   // Handle escape key
   useEffect(() => {
@@ -76,7 +74,7 @@ export function FloatingVideoPlayer({ isOpen, onClose, video, className, mode = 
               "transition-all duration-300 ease-out",
               "rounded-[var(--radius-card)]",
               "h-[calc(100vh-32px)]",
-              isExpanded ? "w-[min(59.5vw,900px)]" : "w-[min(420px,76.5vw)]",
+              "w-[min(420px,76.5vw)]",
             )
           : cn(
               // Sticky variant for collections page
@@ -88,7 +86,6 @@ export function FloatingVideoPlayer({ isOpen, onClose, video, className, mode = 
             ),
         className,
       )}
-      onClick={() => setIsExpanded(!isExpanded)}
     >
       <div className={cn("h-full w-full")}>
         {video ? (
