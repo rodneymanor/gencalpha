@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { Users, Inbox, PenLine, ArrowLeft } from "lucide-react";
 
+import AIGhostwriterPage from "@/app/(main)/dashboard/ai-ghostwriter/page";
 import { ManusPrompt } from "@/components/manus-prompt";
 import { Button } from "@/components/ui/button";
 import ResourceGrid, { type ResourceItem } from "@/components/ui/resource-grid";
@@ -14,7 +15,9 @@ import CreatorVideosGrid, { type VideoData } from "./_components/creator-videos-
 import { DailyIdeaInboxSection } from "./_components/daily-idea-inbox-section";
 
 export default function DailyPage() {
-  const [activeIdeasSection, setActiveIdeasSection] = useState<null | "follow-creators" | "idea-inbox">(null);
+  const [activeIdeasSection, setActiveIdeasSection] = useState<
+    null | "follow-creators" | "idea-inbox" | "ai-ghostwriter"
+  >(null);
   const { isOpen, currentVideo, openVideo, closeVideo } = useFloatingVideo();
 
   const handleVideoClick = (videoData: VideoData) => {
@@ -52,6 +55,7 @@ export default function DailyPage() {
               items={getIdeasItems({
                 onOpenFollowCreators: () => setActiveIdeasSection("follow-creators"),
                 onOpenIdeaInbox: () => setActiveIdeasSection("idea-inbox"),
+                onOpenGhostwriter: () => setActiveIdeasSection("ai-ghostwriter"),
               })}
             />
           </div>
@@ -86,6 +90,19 @@ export default function DailyPage() {
         </div>
       )}
 
+      {/* AI Ghostwriter Section (hidden until selected) */}
+      {activeIdeasSection === "ai-ghostwriter" && (
+        <div className="space-y-4 pb-8">
+          <div className="flex items-center justify-between px-6">
+            <Button variant="ghost" onClick={() => setActiveIdeasSection(null)} className="h-11 px-3">
+              <ArrowLeft className="mr-2 size-4" aria-hidden />
+              <span>Back to ideas</span>
+            </Button>
+          </div>
+          <AIGhostwriterPage />
+        </div>
+      )}
+
       {/* Floating Video Player */}
       {currentVideo && <FloatingVideoPlayer isOpen={isOpen} onClose={closeVideo} video={currentVideo} />}
     </div>
@@ -94,9 +111,11 @@ export default function DailyPage() {
 function getIdeasItems({
   onOpenFollowCreators,
   onOpenIdeaInbox,
+  onOpenGhostwriter,
 }: {
   onOpenFollowCreators: () => void;
   onOpenIdeaInbox: () => void;
+  onOpenGhostwriter: () => void;
 }): ResourceItem[] {
   return [
     {
@@ -118,6 +137,7 @@ function getIdeasItems({
       title: "AI Ghostwriter",
       icon: <PenLine className="text-foreground/75 size-4" aria-hidden />,
       kindLabel: "Create",
+      onClick: onOpenGhostwriter,
     },
   ];
 }

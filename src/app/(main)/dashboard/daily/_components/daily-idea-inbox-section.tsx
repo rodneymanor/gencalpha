@@ -51,12 +51,15 @@ export function DailyIdeaInboxSection() {
   const loadIdeasFromDatabase = async () => {
     try {
       setIsLoading(true);
-      const notes = (await clientNotesService.getUserNotes()) as DatabaseNote[];
-      const mapped = mapNotesToIdeas(notes);
+      // Align with Idea Inbox page behavior: fetch notes with optional limit
+      const response = await clientNotesService.getNotes({ limit: 100 });
+      const mapped = mapNotesToIdeas(response.notes as DatabaseNote[]);
       setIdeas(mapped);
       setFilteredIdeas(mapped);
     } catch (error) {
       console.error("⚠️ Failed to load ideas", error);
+      setIdeas([]);
+      setFilteredIdeas([]);
     } finally {
       setIsLoading(false);
     }
