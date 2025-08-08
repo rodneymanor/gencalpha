@@ -1,4 +1,4 @@
-import { Calendar, Wand2, BookOpen, Video, ListTodo, MessageCircle, Settings, type LucideIcon } from "lucide-react";
+import { Calendar, Video, Settings, type LucideIcon } from "lucide-react";
 
 export interface NavSubItem {
   title: string;
@@ -37,33 +37,9 @@ export const sidebarItems: NavGroup[] = [
         isCustomButton: true,
       },
       {
-        title: "AI Ghostwriter",
-        url: "/dashboard/ai-ghostwriter",
-        icon: Wand2,
-        isNew: true,
-      },
-      {
-        title: "Idea Inbox",
-        url: "/dashboard/idea-inbox",
-        icon: BookOpen,
-        isNew: true,
-      },
-      {
         title: "Collections",
         url: "/focus-collections",
         icon: Video,
-        isNew: true,
-      },
-      {
-        title: "Queue",
-        url: "/dashboard/q",
-        icon: ListTodo,
-        isNew: true,
-      },
-      {
-        title: "Script Chat",
-        url: "/dashboard/script-chat",
-        icon: MessageCircle,
         isNew: true,
       },
     ],
