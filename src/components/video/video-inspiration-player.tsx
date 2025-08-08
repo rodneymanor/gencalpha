@@ -49,11 +49,11 @@ const VideoPlayerView: React.FC<
   Pick<VideoInspirationPlayerProps, "videoUrl" | "views" | "likes" | "comments" | "shares">
 > = ({ videoUrl, views, likes, comments, shares }) => (
   <div className="flex h-full flex-col">
-    <div className="flex items-center justify-center gap-4">
-      {/* Video Player */}
-      <div className="relative aspect-[9/16] w-full max-w-[240px] flex-shrink-0 overflow-hidden rounded-[var(--radius-card)] bg-black shadow-[var(--shadow-input)]">
+    {/* Video Player - Enlarged */}
+    <div className="flex flex-1 items-center justify-center">
+      <div className="relative aspect-[9/16] w-full max-w-[320px] flex-shrink-0 overflow-hidden rounded-[var(--radius-card)] bg-black shadow-[var(--shadow-input)]">
         <iframe
-          className="absolute top-0 left-0 h-full w-full rounded-b-[var(--radius-card)]"
+          className="absolute top-0 left-0 h-full w-full rounded-[var(--radius-card)]"
           src={videoUrl}
           title="Video Player"
           frameBorder="0"
@@ -61,30 +61,37 @@ const VideoPlayerView: React.FC<
           allowFullScreen
         ></iframe>
       </div>
+    </div>
 
-      {/* Metrics positioned to the right of video */}
-      <div className="flex flex-shrink-0 flex-col gap-3">
-        <div className="bg-background/80 text-foreground flex flex-col items-center gap-1 rounded-[var(--radius-card)] px-3 py-2 shadow-[var(--shadow-soft-drop)] backdrop-blur-sm">
-          <Heart className="h-4 w-4" />
-          <span className="text-xs font-medium">{likes}</span>
+    {/* Unified Engagement Bar */}
+    <div className="mt-6 flex-shrink-0">
+      <div className="bg-card border-border mx-auto flex w-full max-w-[320px] items-center justify-between rounded-[var(--radius-card)] border p-3 shadow-[var(--shadow-soft-drop)]">
+        <div className="flex items-center gap-1">
+          <Heart className="text-destructive h-4 w-4" />
+          <span className="text-foreground text-sm font-medium">{likes}</span>
         </div>
-        <div className="bg-background/80 text-foreground flex flex-col items-center gap-1 rounded-[var(--radius-card)] px-3 py-2 shadow-[var(--shadow-soft-drop)] backdrop-blur-sm">
-          <MessageCircle className="h-4 w-4" />
-          <span className="text-xs font-medium">{comments}</span>
+        <div className="flex items-center gap-1">
+          <MessageCircle className="text-secondary h-4 w-4" />
+          <span className="text-foreground text-sm font-medium">{comments}</span>
         </div>
-        <div className="bg-background/80 text-foreground flex flex-col items-center gap-1 rounded-[var(--radius-card)] px-3 py-2 shadow-[var(--shadow-soft-drop)] backdrop-blur-sm">
-          <Share2 className="h-4 w-4" />
-          <span className="text-xs font-medium">{shares}</span>
+        <div className="flex items-center gap-1">
+          <Share2 className="text-muted-foreground h-4 w-4" />
+          <span className="text-foreground text-sm font-medium">{shares}</span>
         </div>
-        <div className="bg-background/80 text-foreground flex flex-col items-center gap-1 rounded-[var(--radius-card)] px-3 py-2 shadow-[var(--shadow-soft-drop)] backdrop-blur-sm">
-          <Eye className="h-4 w-4" />
-          <span className="text-xs font-medium">{views}</span>
+        <div className="flex items-center gap-1">
+          <Eye className="text-accent-foreground h-4 w-4" />
+          <span className="text-foreground text-sm font-medium">{views}</span>
         </div>
       </div>
     </div>
-    <div className="mx-auto mt-4 w-full max-w-[280px] flex-shrink-0">
-      <Button variant="outline" className="h-10 w-full text-sm font-semibold">
+
+    {/* Action Buttons */}
+    <div className="mt-4 flex flex-shrink-0 gap-2">
+      <Button variant="outline" className="h-10 flex-1 text-sm font-medium">
         Remix
+      </Button>
+      <Button variant="secondary" className="h-10 flex-1 text-sm font-medium">
+        Insights
       </Button>
     </div>
   </div>
