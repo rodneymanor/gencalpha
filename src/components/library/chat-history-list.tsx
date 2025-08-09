@@ -32,6 +32,7 @@ export type ChatHistoryListProps = {
   showMore?: boolean;
   onShowMore?: () => void;
   className?: string;
+  fillParent?: boolean;
 };
 
 export function ChatHistoryList(props: ChatHistoryListProps) {
@@ -50,13 +51,20 @@ export function ChatHistoryList(props: ChatHistoryListProps) {
     showMore = false,
     onShowMore,
     className,
+    fillParent = false,
   } = props;
 
   const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
 
   return (
     <main
-      className={["bg-background text-foreground font-sans", "mx-auto w-full max-w-4xl", "px-4 sm:px-6", className]
+      className={[
+        "bg-background text-foreground font-sans",
+        "mx-auto w-full max-w-4xl",
+        "px-4 sm:px-6",
+        fillParent ? "flex h-full flex-col overflow-hidden" : "",
+        className,
+      ]
         .filter(Boolean)
         .join(" ")}
     >
@@ -66,7 +74,12 @@ export function ChatHistoryList(props: ChatHistoryListProps) {
 
       <HeaderLine totalCount={totalCount} selectable={selectable} onToggleSelectMode={onToggleSelectMode} />
 
-      <div className={["max-h-[28rem] min-h-[300px] overflow-auto", "-mx-2 px-2 pb-20"].join(" ")}>
+      <div
+        className={[
+          fillParent ? "flex-1 overflow-auto" : "max-h-[28rem] min-h-[300px] overflow-auto",
+          "-mx-2 px-2 pb-20",
+        ].join(" ")}
+      >
         <ul className="m-0 flex list-none flex-col space-y-3 p-0">
           {items.map((item) => (
             <ItemRow
