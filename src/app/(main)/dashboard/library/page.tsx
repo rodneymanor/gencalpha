@@ -73,7 +73,7 @@ export default function LibraryPage() {
           </div>
         </div>
 
-        <Card className="shadow-[var(--shadow-input)]">
+        <Card className="bg-transparent shadow-[var(--shadow-input)]">
           <CardContent className="flex size-full flex-col gap-4">
             <ChatHistoryList
               items={items}
