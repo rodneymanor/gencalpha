@@ -1,37 +1,38 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import { Plus, Trash2, Pencil } from "lucide-react";
+import { Plus } from "lucide-react";
 
-import { DataTable } from "@/components/data-table/data-table";
-import { DataTablePagination } from "@/components/data-table/data-table-pagination";
-import { DataTableViewOptions } from "@/components/data-table/data-table-view-options";
+import { ChatHistoryList, ChatHistoryItem } from "@/components/library/chat-history-list";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useDataTableInstance } from "@/hooks/use-data-table-instance";
 import { useScriptsApi } from "@/hooks/use-scripts-api";
-
-import { libraryColumns } from "./table-columns";
 
 export default function LibraryPage() {
   const { scripts, loading, error, fetchScripts, deleteScript } = useScriptsApi();
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     fetchScripts();
   }, [fetchScripts]);
 
-  const table = useDataTableInstance({
-    data: scripts,
-    columns: libraryColumns({
-      onDelete: (id) => deleteScript(id),
-      onEdit: (id) => {
-        // Placeholder for routing to an editor page
-        console.log("Edit script", id);
-      },
-    }),
-    getRowId: (row) => row.id,
-  });
+  const items: ChatHistoryItem[] = useMemo(
+    () =>
+      scripts
+        .filter((s) => {
+          const q = query.trim().toLowerCase();
+          if (!q) return true;
+          return s.title.toLowerCase().includes(q) || (s.summary?.toLowerCase() ?? "").includes(q);
+        })
+        .map((s) => ({
+          id: s.id,
+          title: s.title || "Untitled",
+          href: "/app/(main)/dashboard/script-writing", // adjust if a per-script route exists
+          lastMessageLabel: timeAgo(s.updatedAt || s.createdAt),
+        })),
+    [scripts, query],
+  );
 
   return (
     <div className="bg-background min-h-screen">
@@ -55,24 +56,14 @@ export default function LibraryPage() {
             <CardDescription>Your saved and generated scripts</CardDescription>
           </CardHeader>
           <CardContent className="flex size-full flex-col gap-4">
-            <div className="flex items-center justify-between">
-              <DataTableViewOptions table={table} />
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" className="gap-2">
-                  <Pencil className="h-4 w-4" />
-                  Edit Columns
-                </Button>
-                <Button variant="destructive" size="sm" className="gap-2">
-                  <Trash2 className="h-4 w-4" />
-                  Bulk Delete
-                </Button>
-              </div>
-            </div>
-
-            <div className="border-border overflow-hidden rounded-[var(--radius-card)] border">
-              <DataTable table={table} columns={table.getAllColumns().map((c) => c.columnDef)} />
-            </div>
-            <DataTablePagination table={table} />
+            <ChatHistoryList
+              items={items}
+              totalCount={scripts.length}
+              query={query}
+              onQueryChange={setQuery}
+              onDelete={(id) => void deleteScript(id)}
+              selectable
+            />
 
             {loading && <div className="text-muted-foreground text-sm">Loading…</div>}
             {error && <div className="text-destructive text-sm">{error}</div>}
@@ -81,4 +72,19 @@ export default function LibraryPage() {
       </div>
     </div>
   );
+}
+
+function timeAgo(isoDate?: string): string {
+  if (!isoDate) return "";
+  const then = new Date(isoDate).getTime();
+  const now = Date.now();
+  const diff = Math.max(0, now - then);
+  const sec = Math.floor(diff / 1000);
+  const min = Math.floor(sec / 60);
+  const hr = Math.floor(min / 60);
+  const day = Math.floor(hr / 24);
+  if (sec < 60) return `${sec} seconds ago`;
+  if (min < 60) return `${min} minutes ago`;
+  if (hr < 24) return `${hr} hours ago`;
+  return `${day} days ago`;
 }
