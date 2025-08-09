@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GenC Options</title>
+  </head>
+  <body>
+    <main style="font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, 'Apple Color Emoji', 'Segoe UI Emoji'; padding: 16px; max-width: 640px;">
+      <h1 style="font-size: 20px; margin: 0 0 16px;">GenC Extension Settings</h1>
+      <label style="display:block; margin: 0 0 8px;">API Key</label>
+      <input id="apiKey" type="password" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px;" placeholder="x-api-key" />
+      <div style="height: 16px;"></div>
+      <label style="display:block; margin: 0 0 8px;">Base URL</label>
+      <input id="baseUrl" type="text" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px;" placeholder="http://localhost:3000" />
+      <div style="height: 16px;"></div>
+      <button id="saveBtn" style="padding:8px 12px; border:1px solid #ddd; border-radius:999px; background:#fafafa; cursor:pointer;">Save</button>
+      <span id="status" style="margin-left: 12px; font-size: 12px; color: #555;"> </span>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+  </html>
