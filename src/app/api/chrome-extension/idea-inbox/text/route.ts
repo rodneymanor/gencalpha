@@ -4,8 +4,9 @@ import { authenticateApiKey } from "@/lib/api-key-auth";
 import { notesService } from "@/lib/services/notes-service";
 
 interface TextIdeaBody {
-  title: string;
-  content: string;
+  title?: string;
+  content?: string;
+  url?: string;
   tags?: string[];
 }
 
@@ -15,16 +16,24 @@ export async function POST(request: NextRequest) {
     if (authResult instanceof NextResponse) return authResult;
 
     const userId = authResult.user.uid;
-    const { title, content, tags = [] }: TextIdeaBody = await request.json();
+    const body: TextIdeaBody = await request.json();
+    const incomingTitle = (body.title ?? "").trim();
+    const resolvedContent = (body.content ?? body.url ?? "").trim();
+    const safeTags = Array.isArray(body.tags) ? body.tags.filter((t) => typeof t === "string" && t.trim()) : [];
 
-    if (!title?.trim() || !content?.trim()) {
-      return NextResponse.json({ success: false, error: "title and content are required" }, { status: 400 });
+    if (!incomingTitle && !resolvedContent) {
+      return NextResponse.json(
+        { success: false, error: "At least one of title or content/url is required" },
+        { status: 400 },
+      );
     }
 
+    const finalTitle = incomingTitle || "Saved from Extension";
+
     const noteId = await notesService.createNote(userId, {
-      title: title.trim(),
-      content: content.trim(),
-      tags: tags.filter((t) => t && t.trim()),
+      title: finalTitle,
+      content: resolvedContent,
+      tags: safeTags,
       type: "idea_inbox",
       source: "inbox",
       starred: false,
