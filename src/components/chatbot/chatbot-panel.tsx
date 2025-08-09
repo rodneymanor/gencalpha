@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 
-import { X } from "lucide-react";
+import { MessageSquare, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { PanelHeader } from "@/components/ui/panel-header";
@@ -11,28 +11,6 @@ import { cn } from "@/lib/utils";
 import { ChatInput } from "./chat-input";
 import { MessageList, Message } from "./message-list";
 import { PersonaType } from "./persona-selector";
-
-function ChatIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 100 100"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-      focusable="false"
-      className={cn("shrink-0", className)}
-    >
-      <g className="text-secondary fill-current">
-        <path d="M 85,60 A 30 30, 0, 1, 1, 60 20 Q 65 65, 85 75 Z" className="opacity-80" />
-        <path d="M 70,70 A 35 35, 0, 1, 1, 75 35 Q 40 80, 25 85 Z" />
-      </g>
-      <g className="text-primary-foreground fill-current">
-        <rect x="35" y="48" width="30" height="4" rx="2" />
-        <rect x="35" y="58" width="30" height="4" rx="2" />
-        <rect x="35" y="68" width="20" height="4" rx="2" />
-      </g>
-    </svg>
-  );
-}
 
 interface ChatbotPanelProps {
   onClose?: () => void;
@@ -144,7 +122,7 @@ export function ChatbotPanel({ onClose, className, initialPrompt, initialPersona
       <PanelHeader
         title={
           <div className="flex items-center gap-2">
-            <ChatIcon className="h-5 w-5" />
+            <MessageSquare className="h-5 w-5" />
             AI Chat Assistant
           </div>
         }
