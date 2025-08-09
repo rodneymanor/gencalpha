@@ -1,4 +1,4 @@
-import { Calendar, GalleryVerticalEnd, type LucideIcon } from "lucide-react";
+import { Calendar, GalleryVerticalEnd, LibraryBig, type LucideIcon } from "lucide-react";
 
 export interface NavSubItem {
   title: string;
@@ -35,6 +35,11 @@ export const sidebarItems: NavGroup[] = [
         url: "/dashboard/daily",
         icon: Calendar,
         isCustomButton: true,
+      },
+      {
+        title: "Library",
+        url: "/dashboard/library",
+        icon: LibraryBig,
       },
       {
         title: "Collections",
