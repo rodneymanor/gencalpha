@@ -170,7 +170,7 @@ function HeaderLine({
         <Button
           type="button"
           variant="ghost"
-          className="text-secondary hover:text-secondary ml-2 h-auto px-0"
+          className="text-secondary hover:text-secondary ml-2 h-auto px-0 underline-offset-4 hover:bg-transparent hover:underline focus-visible:bg-transparent active:bg-transparent active:underline"
           onClick={onToggleSelectMode}
         >
           {selectable ? "Done" : "Select"}
