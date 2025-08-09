@@ -6,12 +6,14 @@ import { Plus } from "lucide-react";
 
 import { ChatHistoryList, ChatHistoryItem } from "@/components/library/chat-history-list";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { useScriptsApi } from "@/hooks/use-scripts-api";
 
 export default function LibraryPage() {
   const { scripts, loading, error, fetchScripts, deleteScript } = useScriptsApi();
   const [query, setQuery] = useState("");
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   useEffect(() => {
     fetchScripts();
@@ -23,7 +25,8 @@ export default function LibraryPage() {
         .filter((s) => {
           const q = query.trim().toLowerCase();
           if (!q) return true;
-          return s.title.toLowerCase().includes(q) || (s.summary?.toLowerCase() ?? "").includes(q);
+          const summary = s.summary ? s.summary.toLowerCase() : "";
+          return s.title.toLowerCase().includes(q) || summary.includes(q);
         })
         .map((s) => ({
           id: s.id,
@@ -33,6 +36,26 @@ export default function LibraryPage() {
         })),
     [scripts, query],
   );
+
+  const handleToggleSelectMode = () => {
+    setSelectMode((s) => !s);
+    setSelectedIds([]);
+  };
+
+  const handleToggleItem = (id: string) => {
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  };
+
+  const handleToggleAll = (checked: boolean) => {
+    setSelectedIds(checked ? items.map((i) => i.id) : []);
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    await Promise.allSettled(selectedIds.map((id) => deleteScript(id)));
+    setSelectedIds([]);
+    setSelectMode(false);
+  };
 
   return (
     <div className="bg-background min-h-screen">
@@ -51,10 +74,6 @@ export default function LibraryPage() {
         </div>
 
         <Card className="shadow-[var(--shadow-input)]">
-          <CardHeader>
-            <CardTitle>Scripts</CardTitle>
-            <CardDescription>Your saved and generated scripts</CardDescription>
-          </CardHeader>
           <CardContent className="flex size-full flex-col gap-4">
             <ChatHistoryList
               items={items}
@@ -62,7 +81,12 @@ export default function LibraryPage() {
               query={query}
               onQueryChange={setQuery}
               onDelete={(id) => void deleteScript(id)}
-              selectable
+              selectable={selectMode}
+              selectedIds={selectedIds}
+              onToggleItem={handleToggleItem}
+              onToggleSelectMode={handleToggleSelectMode}
+              onToggleAll={handleToggleAll}
+              onBulkDelete={handleBulkDelete}
             />
 
             {loading && <div className="text-muted-foreground text-sm">Loading…</div>}

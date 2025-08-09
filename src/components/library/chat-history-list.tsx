@@ -27,25 +27,31 @@ export type ChatHistoryListProps = {
   selectedIds?: string[];
   onToggleItem?: (id: string) => void;
   onToggleSelectMode?: () => void;
+  onToggleAll?: (checked: boolean) => void;
+  onBulkDelete?: () => void;
   showMore?: boolean;
   onShowMore?: () => void;
   className?: string;
 };
 
-export function ChatHistoryList({
-  items,
-  totalCount,
-  query,
-  onQueryChange,
-  onDelete,
-  selectable = false,
-  selectedIds = [],
-  onToggleItem,
-  onToggleSelectMode,
-  showMore = false,
-  onShowMore,
-  className,
-}: ChatHistoryListProps) {
+export function ChatHistoryList(props: ChatHistoryListProps) {
+  const {
+    items,
+    totalCount,
+    query,
+    onQueryChange,
+    onDelete,
+    selectable = false,
+    selectedIds = [],
+    onToggleItem,
+    onToggleSelectMode,
+    onToggleAll,
+    onBulkDelete,
+    showMore = false,
+    onShowMore,
+    className,
+  } = props;
+
   const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
 
   return (
@@ -56,116 +62,22 @@ export function ChatHistoryList({
     >
       <h1 className="sr-only">Your chat history</h1>
 
-      <div
-        className={[
-          "inline-flex h-11 w-full cursor-text items-center gap-2",
-          "bg-card border-border border",
-          "rounded-[var(--radius-button)] px-3",
-          "shadow-[var(--shadow-input)]",
-          "transition-colors",
-        ].join(" ")}
-      >
-        <Search className="text-muted-foreground size-4" aria-hidden="true" />
-        <Input
-          value={query ?? ""}
-          onChange={(e) => onQueryChange?.(e.target.value)}
-          placeholder="Search your chats..."
-          className={[
-            "h-11",
-            "border-0 bg-transparent shadow-none",
-            "placeholder:text-muted-foreground/70",
-            "focus-visible:ring-0 focus-visible:ring-offset-0",
-          ].join(" ")}
-        />
-      </div>
+      <SearchInput query={query} onQueryChange={onQueryChange} />
 
-      <div className={["flex h-12 items-center gap-2", "-mx-4 px-4 sm:-mx-6 sm:px-6", "mt-2"].join(" ")}>
-        {typeof totalCount === "number" && (
-          <p className="text-muted-foreground text-sm">
-            You have {totalCount} previous chats with Claude
-            <Button
-              type="button"
-              variant="ghost"
-              className="text-secondary hover:text-secondary ml-2 h-auto px-0"
-              onClick={onToggleSelectMode}
-            >
-              Select
-            </Button>
-          </p>
-        )}
-      </div>
+      <HeaderLine totalCount={totalCount} selectable={selectable} onToggleSelectMode={onToggleSelectMode} />
 
       <div className={["max-h-[28rem] min-h-[300px] overflow-auto", "-mx-2 px-2 pb-20"].join(" ")}>
         <ul className="m-0 flex list-none flex-col space-y-3 p-0">
-          {items.map((item) => {
-            const isSelected = selectedSet.has(item.id);
-            return (
-              <li key={item.id}>
-                <div
-                  className={[
-                    "group relative",
-                    "border border-transparent",
-                    "rounded-[var(--radius-card)]",
-                    "transition-colors",
-                  ].join(" ")}
-                >
-                  {selectable && (
-                    <label className="absolute top-3 left-3 z-10 p-1">
-                      <Checkbox
-                        checked={isSelected}
-                        onCheckedChange={() => onToggleItem?.(item.id)}
-                        aria-label="Select chat"
-                        className="size-4"
-                      />
-                    </label>
-                  )}
-
-                  <div className="relative">
-                    <Link
-                      href={item.href}
-                      className={[
-                        "flex flex-col",
-                        "bg-card",
-                        "border-border border",
-                        "rounded-[var(--radius-card)]",
-                        "no-underline",
-                        "px-4 py-4",
-                        "hover:bg-accent",
-                        "transition-colors",
-                        selectable ? "pl-12" : "",
-                      ].join(" ")}
-                    >
-                      <div className="truncate text-base font-medium">{item.title}</div>
-                      <div className="mt-1 flex min-h-5 items-center gap-1.5">
-                        <div className="text-muted-foreground truncate text-xs">
-                          Last message <span className="text-muted-foreground">{item.lastMessageLabel}</span>
-                        </div>
-                      </div>
-                    </Link>
-
-                    {!!onDelete && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        aria-label="Delete conversation"
-                        onClick={() => onDelete(item.id)}
-                        className={[
-                          "absolute top-2 right-2",
-                          "opacity-0 group-hover:opacity-100",
-                          "transition-opacity",
-                          "h-11 w-11",
-                          "rounded-[var(--radius-button)]",
-                          "text-muted-foreground hover:text-foreground",
-                        ].join(" ")}
-                      >
-                        <Trash2 className="size-5" aria-hidden="true" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </li>
-            );
-          })}
+          {items.map((item) => (
+            <ItemRow
+              key={item.id}
+              item={item}
+              isSelected={selectedSet.has(item.id)}
+              selectable={selectable}
+              onToggleItem={onToggleItem}
+              onDelete={onDelete}
+            />
+          ))}
 
           {showMore && (
             <li>
@@ -188,6 +100,199 @@ export function ChatHistoryList({
           )}
         </ul>
       </div>
+
+      {selectable && selectedIds.length > 0 && (
+        <BulkActionsBar
+          total={items.length}
+          selectedCount={selectedIds.length}
+          onToggleAll={onToggleAll}
+          onBulkDelete={onBulkDelete}
+        />
+      )}
     </main>
+  );
+}
+
+function SearchInput({ query, onQueryChange }: { query?: string; onQueryChange?: (v: string) => void }) {
+  return (
+    <div
+      className={[
+        "inline-flex h-11 w-full cursor-text items-center gap-2",
+        "bg-card border-border border",
+        "rounded-[var(--radius-button)] px-3",
+        "shadow-[var(--shadow-input)]",
+        "transition-colors",
+      ].join(" ")}
+    >
+      <Search className="text-muted-foreground size-4" aria-hidden="true" />
+      <Input
+        value={query ?? ""}
+        onChange={(e) => onQueryChange?.(e.target.value)}
+        placeholder="Search your chats..."
+        className={[
+          "h-11",
+          "border-0 bg-transparent shadow-none",
+          "placeholder:text-muted-foreground/70",
+          "focus-visible:ring-0 focus-visible:ring-offset-0",
+        ].join(" ")}
+      />
+    </div>
+  );
+}
+
+function HeaderLine({
+  totalCount,
+  selectable,
+  onToggleSelectMode,
+}: {
+  totalCount?: number;
+  selectable: boolean;
+  onToggleSelectMode?: () => void;
+}) {
+  if (typeof totalCount !== "number") return null;
+  return (
+    <div className={["flex h-12 items-center gap-2", "-mx-4 px-4 sm:-mx-6 sm:px-6", "mt-2"].join(" ")}>
+      <p className="text-muted-foreground text-sm">
+        You have {totalCount} previous chats with Gen.C
+        <Button
+          type="button"
+          variant="ghost"
+          className="text-secondary hover:text-secondary ml-2 h-auto px-0"
+          onClick={onToggleSelectMode}
+        >
+          {selectable ? "Done" : "Select"}
+        </Button>
+      </p>
+    </div>
+  );
+}
+
+function ItemRow({
+  item,
+  isSelected,
+  selectable,
+  onToggleItem,
+  onDelete,
+}: {
+  item: ChatHistoryItem;
+  isSelected: boolean;
+  selectable: boolean;
+  onToggleItem?: (id: string) => void;
+  onDelete?: (id: string) => void;
+}) {
+  return (
+    <li>
+      <div
+        className={[
+          "group relative",
+          "border border-transparent",
+          "rounded-[var(--radius-card)]",
+          "transition-colors",
+        ].join(" ")}
+      >
+        {selectable && (
+          <label className="absolute top-3 left-3 z-10 p-1">
+            <Checkbox
+              checked={isSelected}
+              onCheckedChange={() => onToggleItem?.(item.id)}
+              aria-label="Select chat"
+              className="size-4"
+            />
+          </label>
+        )}
+
+        <div className="relative">
+          <Link
+            href={item.href}
+            onClick={selectable ? (e) => (e.preventDefault(), onToggleItem?.(item.id)) : undefined}
+            className={[
+              "flex flex-col",
+              "bg-card",
+              "border-border border",
+              "rounded-[var(--radius-card)]",
+              "no-underline",
+              "px-4 py-4",
+              "hover:bg-accent",
+              "transition-colors",
+              selectable ? "pl-12" : "",
+            ].join(" ")}
+          >
+            <div className="truncate text-base font-medium">{item.title}</div>
+            <div className="mt-1 flex min-h-5 items-center gap-1.5">
+              <div className="text-muted-foreground truncate text-xs">
+                Last message <span className="text-muted-foreground">{item.lastMessageLabel}</span>
+              </div>
+            </div>
+          </Link>
+
+          {!!onDelete && (
+            <Button
+              type="button"
+              variant="ghost"
+              aria-label="Delete conversation"
+              onClick={() => onDelete(item.id)}
+              className={[
+                "absolute top-2 right-2",
+                "opacity-0 group-hover:opacity-100",
+                "transition-opacity",
+                "h-11 w-11",
+                "rounded-[var(--radius-button)]",
+                "text-muted-foreground hover:text-foreground",
+              ].join(" ")}
+            >
+              <Trash2 className="size-5" aria-hidden="true" />
+            </Button>
+          )}
+        </div>
+      </div>
+    </li>
+  );
+}
+
+function BulkActionsBar({
+  total,
+  selectedCount,
+  onToggleAll,
+  onBulkDelete,
+}: {
+  total: number;
+  selectedCount: number;
+  onToggleAll?: (checked: boolean) => void;
+  onBulkDelete?: () => void;
+}) {
+  return (
+    <div
+      className={[
+        "sticky bottom-0 z-20",
+        "-mx-4 px-4 sm:-mx-6 sm:px-6",
+        "bg-background/95 backdrop-blur",
+        "border border-t",
+        "shadow-[var(--shadow-soft-drop)]",
+      ].join(" ")}
+    >
+      <div className="flex h-14 items-center justify-between">
+        <div className="flex items-center gap-3">
+          {typeof onToggleAll === "function" && (
+            <Checkbox
+              checked={selectedCount > 0 && selectedCount === total}
+              onCheckedChange={(checked) => onToggleAll(!!checked)}
+              aria-label="Select all"
+              className="size-4"
+            />
+          )}
+          <span className="text-muted-foreground text-sm">{selectedCount} selected</span>
+        </div>
+        {typeof onBulkDelete === "function" && (
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={onBulkDelete}
+            className="h-10 rounded-[var(--radius-button)] px-4"
+          >
+            <Trash2 className="mr-2 size-4" /> Delete selected
+          </Button>
+        )}
+      </div>
+    </div>
   );
 }
