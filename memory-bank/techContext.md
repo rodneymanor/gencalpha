@@ -25,6 +25,8 @@ This document provides an overview of the technologies, tools, and configuration
 - **Gemini (Google AI):** The engine used for video transcription.
 - **`ts-node`:** Used for running TypeScript scripts, such as theme generation.
 - **`husky` & `lint-staged`:** Enforce code quality via pre-commit hooks, running ESLint and Prettier.
+- **Chrome Extension Tooling (Planned):**
+  - **WXT** for MV3 extension scaffolding and build (`chrome-extension/` sub-app).
 
 ## 3. Development Environment
 
@@ -32,6 +34,10 @@ This document provides an overview of the technologies, tools, and configuration
 - **Linting:** ESLint is configured with a strict ruleset, including rules for import order and complexity.
 - **Formatting:** Prettier is used for automatic code formatting.
 - **Environment Variables:** All sensitive keys (Firebase credentials, RapidAPI keys, etc.) are managed through a `.env.local` file. The application is designed to run on Vercel, which uses its own environment variable management system.
+- **Extension Environments:**
+  - **Dev Base URL:** `http://localhost:3000`
+  - **Prod Base URL:** `https://gencpro.app`
+  - Auth from extension v1 uses API key stored in `chrome.storage.sync`.
 
 ## 4. Code Structure & Conventions
 

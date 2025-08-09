@@ -2,33 +2,33 @@
 
 This document tracks the current focus of development, recent changes, and immediate next steps. It is the most frequently updated file in the Memory Bank.
 
-_Last Updated: 2023-10-27_
+_Last Updated: 2025-08-09_
 
 ## 1. Current Focus
 
-The primary focus is on **refining and stabilizing the backend services**, particularly those related to content ingestion from social media platforms. We are moving from monolithic, complex API routes to a more modular, microservice-style architecture.
+- Building a minimal, low-debt Chrome extension that integrates with our backend via dedicated endpoints under `src/app/api/chrome-extension/`.
+- Initial authentication strategy for the extension is API key only (dual auth supported server-side for future Firebase tokens).
 
 ## 2. Recent Changes
 
-- **Refactored `/api/creators/follow`:**
-  - The large, complex `route.ts` file was broken down into smaller, single-responsibility modules located in the `/api/creators/follow/` directory.
-  - New modules include `platform-detection.ts`, `instagram.ts`, `fetch-videos.ts`, and `process-videos.ts`.
-  - The main `route.ts` now acts as an orchestrator, calling these modules in sequence.
-- **Integrated `UnifiedVideoScraper`:**
-  - The `process-videos.ts` module was updated to use the `UnifiedVideoScraper` to fetch stable CDN URLs and rich metadata, replacing the previous manual extraction logic.
-- **Implemented Global RapidAPI Rate Limiting:**
-  - A global, queue-based rate limiter was implemented in `src/lib/global-rate-limiter.ts`.
-  - All Instagram and TikTok RapidAPI calls are now routed through a single queue, enforced at 1 request per second across the entire application to prevent `429 Too Many Requests` errors.
-- **Fixed `extractLowestQualityFromDashManifest` Reference Error:**
-  - The `processInstagramVideosWithImmediateDownload` function in `process-videos.ts` was calling a function that hadn't been imported. This has been fixed by re-importing `extractLowestQualityFromDashManifest` from `./dash-parser`.
+- Added consolidated Chrome extension endpoints:
+  - `api/chrome-extension/collections` (GET/POST proxy to core collections)
+  - `api/chrome-extension/collections/add-video` (POST: add video by URL + collection title)
+  - `api/chrome-extension/creators/add` (POST: full follow + video fetch via existing orchestrator)
+  - `api/chrome-extension/idea-inbox/text` (POST: create note with `type: "idea_inbox"`, `source: "inbox"`)
+  - `api/chrome-extension/idea-inbox/video` (POST: validate/scrape TikTok/Instagram with `UnifiedVideoScraper`, store original URL + metadata as idea note)
+- All endpoints support API key and Firebase ID token, but extension v1 will use API key only.
 
 ## 3. Immediate Next Steps
 
-- **Full Memory Bank Initialization:** Complete the creation of all core Memory Bank files (`techContext.md`, `progress.md`).
-- **Validate Rate Limiting:** Although the code is in place, we need to monitor the logs to ensure the global rate limiter is effectively preventing API errors during heavy use.
-- **Address `rate-limiting.ts` Linter Errors:** The file `src/lib/rate-limiting.ts` has several TypeScript errors (missing type definitions, implicit `any`). These need to be resolved or the file should be removed if it's deprecated.
+- Scaffold `chrome-extension/` sub-app in this repo using WXT (MV3 + TS):
+  - Options page to store API key and base URL (dev: `http://localhost:3000`, prod: `https://gencpro.app`).
+  - Background service with small API client calling the new endpoints.
+  - Popup with quick actions: add text idea, add video idea, add creator, list/create collections, add video to collection.
+  - Context menu: auto-capture current tab title/URL and save to idea inbox.
+- Document usage in a `chrome-extension/README.md` and add scripts for dev/build.
 
 ## 4. Open Questions / Known Issues
 
-- The purpose of `src/lib/rate-limiting.ts` is unclear. It seems to be a separate, more complex, Firestore-based rate limiting system that is not currently in use and has linter errors. We need to decide whether to fix it, integrate it, or delete it in favor of the simpler, in-memory `src/lib/global-rate-limiter.ts`.
-- The `follow` workflow still has a separate `processInstagramVideosWithImmediateDownload` path. We should evaluate if this can be fully merged into the `processVideosWithBunnyUpload` path that uses the `UnifiedVideoScraper`, simplifying the logic further.
+- None for the extension v1; Firebase sign-in can be added later without changing the server endpoints (already dual-auth capable).
+- Continue to monitor creator follow flow for Firestore permissions if surfaced during extension usage.
