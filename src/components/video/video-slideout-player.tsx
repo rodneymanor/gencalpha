@@ -30,32 +30,9 @@ export function FloatingVideoPlayer({
   mode = "fixed",
   disableEscapeClose = false,
 }: FloatingVideoPlayerProps) {
-  // Update body margin when slideout opens/closes to push content over (fixed mode only)
+  // Overlay should not push layout; no-op effect (kept for possible future side effects)
   useEffect(() => {
-    if (mode === "sticky") return; // Sticky variant does not manipulate body margin
-    const body = document.body;
-    if (isOpen) {
-      // Standard container width + padding for margin
-      const panelWidth = Math.min(420, window.innerWidth * 0.9);
-      const totalWidth = panelWidth + 32; // 32px for right padding (right-4 = 16px + some buffer)
-
-      // Add transition and margin to push content (slower for smoother layout shift)
-      body.style.transition = "margin-right 500ms ease-out";
-      body.style.marginRight = `${totalWidth}px`;
-    } else {
-      // Remove margin when closed
-      body.style.marginRight = "0px";
-      // Clean up transition after animation
-      setTimeout(() => {
-        body.style.transition = "";
-      }, 500);
-    }
-
-    // Cleanup on unmount
-    return () => {
-      body.style.marginRight = "0px";
-      body.style.transition = "";
-    };
+    return;
   }, [isOpen, mode]);
 
   // Handle escape key (optional)

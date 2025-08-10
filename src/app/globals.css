@@ -190,11 +190,6 @@
   body {
     @apply bg-background text-foreground overscroll-none;
   }
-
-  /* Prevent layout shift when dialogs/menus lock scroll (reserve scrollbar space) */
-  html {
-    scrollbar-gutter: stable both-edges;
-  }
 }
 
 @keyframes shimmer {

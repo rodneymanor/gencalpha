@@ -64,7 +64,7 @@ export default function FocusCollectionsPage() {
       const result = await RBACClientService.getUserCollections(user.uid);
       console.log("🔍 [Focus Collections] Loaded collections:", result.collections.length);
 
-      const collectionsWithCount = transformCollections(result.collections);
+      const collectionsWithCount = transformCollections(result.collections as unknown as RawCollection[]);
       setCollections(collectionsWithCount);
     } catch (error) {
       console.error("❌ [Focus Collections] Failed to load collections:", error);
@@ -139,7 +139,6 @@ export default function FocusCollectionsPage() {
           selectedCollectionId={selectedCollectionId}
           onSelectCollection={setSelectedCollectionId}
           onBackToDashboard={handleBackToDashboard}
-          onCreateCollection={handleCreateCollection}
           className="h-full"
         />
       </div>
@@ -170,16 +169,14 @@ export default function FocusCollectionsPage() {
           </div>
         </div>
 
-        {/* Desktop: Fixed floating video player (open by default) */}
-        <div className="hidden flex-shrink-0 pr-4 lg:block">
-          <FloatingVideoPlayer
-            isOpen={playerOpen}
-            onClose={() => setPlayerOpen(false)}
-            video={selectedVideo}
-            mode="fixed"
-            disableEscapeClose
-          />
-        </div>
+      {/* Desktop: Fixed floating video player (overlay, does not contract content) */}
+      <FloatingVideoPlayer
+        isOpen={playerOpen}
+        onClose={() => setPlayerOpen(false)}
+        video={selectedVideo}
+        mode="fixed"
+        disableEscapeClose
+      />
       </div>
     </div>
   );
