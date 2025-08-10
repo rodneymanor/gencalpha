@@ -23,7 +23,12 @@ export default function WritePage() {
 
       <MessageThread messages={messages} />
 
-      <div className={cn("relative", state === "empty" ? "w-full" : "w-full border-t")}>
+      <div
+        className={cn(
+          "bg-background/80 supports-[backdrop-filter]:bg-background/60 sticky bottom-0 z-10 backdrop-blur",
+          state === "empty" ? "w-full" : "w-full border-t",
+        )}
+      >
         <ChatInput />
       </div>
     </ChatContainer>
