@@ -4,12 +4,12 @@
 import React, { useState, useEffect } from "react";
 
 import { ArrowUp, Link, AlertCircle, CheckCircle2, Bot, Globe, Pencil, X, Mic } from "lucide-react";
-import { ClarityLoader } from "@/components/ui/loading";
 
 import { PersonaSelector, PersonaType } from "@/components/chatbot/persona-selector";
 import { AdvancedSlidingSwitch, type ModeType, type SwitchOption } from "@/components/ui/advanced-sliding-switch";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ClarityLoader } from "@/components/ui/loading";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/auth-context";
 import { useResizableLayout } from "@/contexts/resizable-layout-context";
@@ -24,6 +24,8 @@ interface ManusPromptProps {
   placeholder?: string;
   className?: string;
   onSubmit?: (prompt: string, persona: PersonaType) => void;
+  /** When true (default), uses the legacy sliding panel chat. When false, only calls onSubmit */
+  useSlidingPanel?: boolean;
 }
 
 // eslint-disable-next-line complexity
@@ -33,6 +35,7 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
   placeholder = "Give Gen.C a topic to script...",
   className,
   onSubmit,
+  useSlidingPanel = true,
 }) => {
   const { user, userProfile } = useAuth();
   const [prompt, setPrompt] = useState("");
@@ -243,13 +246,11 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
         // Create a formatted message with video transcription
         const message = `Here's the transcription from the ${urlDetection.platform} video:\n\n**Title:** ${result.title}\n**Author:** @${result.author}\n\n**Transcript:**\n${result.description || "No transcript available - this video may not have spoken content."}`;
 
-        // Open the chatbot panel with the transcription and selected persona
-        toggleChatbotPanel(message, selectedPersona ?? "MiniBuddy");
-
-        // Call the optional onSubmit callback
-        if (onSubmit) {
-          onSubmit(message, selectedPersona ?? "MiniBuddy");
+        // Route either to sliding panel or to callback
+        if (useSlidingPanel) {
+          toggleChatbotPanel(message, selectedPersona ?? "MiniBuddy");
         }
+        if (onSubmit) onSubmit(message, selectedPersona ?? "MiniBuddy");
 
         // Clear the input and detection
         setPrompt("");
@@ -260,11 +261,11 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
       // Show error message to user
       const errorMessage = `Failed to process ${urlDetection.platform} video: ${error instanceof Error ? error.message : "Unknown error"}`;
 
-      // Open chatbot panel with error message
-      toggleChatbotPanel(errorMessage, selectedPersona ?? "MiniBuddy");
-      if (onSubmit) {
-        onSubmit(errorMessage, selectedPersona ?? "MiniBuddy");
+      if (useSlidingPanel) {
+        // Open chatbot panel with error message
+        toggleChatbotPanel(errorMessage, selectedPersona ?? "MiniBuddy");
       }
+      if (onSubmit) onSubmit(errorMessage, selectedPersona ?? "MiniBuddy");
     } finally {
       setIsProcessingVideo(false);
     }
@@ -279,13 +280,12 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
       return;
     }
 
-    // Open the chatbot panel with the initial prompt and persona
-    toggleChatbotPanel(prompt.trim(), selectedPersona ?? "MiniBuddy");
-
-    // Call the optional onSubmit callback with the prompt and persona
-    if (onSubmit) {
-      onSubmit(prompt.trim(), selectedPersona ?? "MiniBuddy");
+    const clean = prompt.trim();
+    if (useSlidingPanel) {
+      // Open the chatbot panel with the initial prompt and persona
+      toggleChatbotPanel(clean, selectedPersona ?? "MiniBuddy");
     }
+    if (onSubmit) onSubmit(clean, selectedPersona ?? "MiniBuddy");
 
     // Clear the input and detection
     setPrompt("");
@@ -359,7 +359,9 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
                   >
                     {isProcessingVideo ? (
                       <>
-                        <span className="mr-1 inline-flex"><ClarityLoader size="inline" /></span>
+                        <span className="mr-1 inline-flex">
+                          <ClarityLoader size="inline" />
+                        </span>
                         Processing...
                       </>
                     ) : (
