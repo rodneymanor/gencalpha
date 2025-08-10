@@ -45,27 +45,27 @@ export async function POST(request: NextRequest) {
       console.log("🔄 [INTERNAL_VIDEO] Downloading video from scraped Apify URL for transcription buffer");
       // Download the video from Apify storage to get buffer for transcription
       downloadResult = await downloadVideo(baseUrl, scrapedData.videoUrl);
-      
+
       if (downloadResult.success) {
         // Merge scraped metadata with downloaded video data (including metrics!)
         downloadResult.data = {
           ...downloadResult.data,
           platform: scrapedData.platform,
-          metrics: scrapedData.metrics || {}, // ✅ Extract metrics from scraped data
+          metrics: scrapedData.metrics ?? {}, // ✅ Extract metrics from scraped data
           additionalMetadata: {
             author: scrapedData.author,
             description: scrapedData.description,
             hashtags: scrapedData.hashtags,
-            duration: scrapedData.metadata?.duration || 0,
-            timestamp: scrapedData.metadata?.timestamp,
+            duration: scrapedData.metadata?.duration ?? 0,
+            timestamp: scrapedData.metadata?.timestamp ?? undefined,
           },
-          thumbnailUrl: scrapedData.thumbnailUrl || thumbnailUrl,
+          thumbnailUrl: scrapedData.thumbnailUrl ?? thumbnailUrl,
           metadata: {
-            ...(downloadResult.data.metadata || {}),
+            ...(downloadResult.data.metadata ?? {}),
             originalUrl: decodedUrl,
             platform: scrapedData.platform,
-            shortCode: scrapedData.metadata?.shortCode || scrapedData.shortCode || "unknown",
-            thumbnailUrl: scrapedData.thumbnailUrl || thumbnailUrl,
+            shortCode: scrapedData.metadata?.shortCode ?? scrapedData.shortCode ?? "unknown",
+            thumbnailUrl: scrapedData.thumbnailUrl ?? thumbnailUrl,
           },
         };
       } else {
@@ -85,21 +85,21 @@ export async function POST(request: NextRequest) {
         data: {
           platform: scrapedData.platform,
           videoData: null, // No buffer available
-          metrics: scrapedData.metrics || {}, // ✅ Extract metrics from scraped data
+          metrics: scrapedData.metrics ?? {}, // ✅ Extract metrics from scraped data
           additionalMetadata: {
             author: scrapedData.author,
             description: scrapedData.description,
             hashtags: scrapedData.hashtags,
-            duration: scrapedData.metadata?.duration || 0,
-            timestamp: scrapedData.metadata?.timestamp,
+            duration: scrapedData.metadata?.duration ?? 0,
+            timestamp: scrapedData.metadata?.timestamp ?? undefined,
           },
-          thumbnailUrl: scrapedData.thumbnailUrl || thumbnailUrl,
+          thumbnailUrl: scrapedData.thumbnailUrl ?? thumbnailUrl,
           metadata: {
             originalUrl: decodedUrl,
             platform: scrapedData.platform,
             downloadedAt: new Date().toISOString(),
-            shortCode: scrapedData.metadata?.shortCode || scrapedData.shortCode || "unknown",
-            thumbnailUrl: scrapedData.thumbnailUrl || thumbnailUrl,
+            shortCode: scrapedData.metadata?.shortCode ?? scrapedData.shortCode ?? "unknown",
+            thumbnailUrl: scrapedData.thumbnailUrl ?? thumbnailUrl,
           },
         },
       };
@@ -128,7 +128,10 @@ export async function POST(request: NextRequest) {
       // Stream directly from the scraped video URL
       console.log("🌊 [INTERNAL_VIDEO] Streaming directly from scraped video URL");
       const { streamToBunnyFromUrl } = await import("@/lib/bunny-stream");
-      const streamResponse = await streamToBunnyFromUrl(scrapedData.videoUrl, `${scrapedData.platform}-${Date.now()}.mp4`);
+      const streamResponse = await streamToBunnyFromUrl(
+        scrapedData.videoUrl,
+        `${scrapedData.platform}-${Date.now()}.mp4`,
+      );
 
       if (streamResponse) {
         // Extract GUID from iframe URL for thumbnail upload
@@ -153,7 +156,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: "Failed to stream video to CDN",
-          details: streamResult.error || "Failed to upload to Bunny CDN",
+          details: streamResult.error ?? "Failed to upload to Bunny CDN",
         },
         { status: 500 },
       );
@@ -186,28 +189,53 @@ export async function POST(request: NextRequest) {
       console.log("ℹ️ [INTERNAL_VIDEO] No custom thumbnail URL provided, using default");
     }
 
+    // Step 2.8: If Instagram, fetch creator profile to enrich metadata
+    let creatorProfile: any = null;
+    try {
+      const platformLower = String(downloadResult?.data?.platform ?? scrapedData?.platform ?? "").toLowerCase();
+      const igUserPk = scrapedData?.rawData?.user?.pk ?? scrapedData?.metadata?.userId ?? scrapedData?.user?.pk;
+      if (platformLower === "instagram" && igUserPk) {
+        console.log("👤 [INTERNAL_VIDEO] Fetching Instagram creator profile for pk:", igUserPk);
+        const profileRes = await fetch(`${baseUrl}/api/instagram/profile`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: igUserPk }),
+        });
+        if (profileRes.ok) {
+          const profileJson = await profileRes.json();
+          if (profileJson?.success) creatorProfile = profileJson.profile;
+        } else {
+          console.warn("⚠️ [INTERNAL_VIDEO] IG profile request failed:", profileRes.status);
+        }
+      }
+    } catch (e) {
+      console.warn("⚠️ [INTERNAL_VIDEO] IG profile enrichment error:", e);
+    }
+
     // Step 3: Add to collection with userId
     console.log("💾 [INTERNAL_VIDEO] Step 3: Adding to collection...");
     const videoData = {
       originalUrl: decodedUrl,
-      title: title || `Video from ${downloadResult.data.platform}`,
+      title: title ?? `Video from ${downloadResult.data.platform}`,
       platform: downloadResult.data.platform,
       iframeUrl: streamResult.iframeUrl,
       directUrl: streamResult.directUrl,
       guid: streamResult.guid,
-      thumbnailUrl: streamResult.thumbnailUrl || downloadResult.data.thumbnailUrl,
-      caption: downloadResult.data.additionalMetadata?.caption || downloadResult.data.additionalMetadata?.description || "",
-      hashtags: downloadResult.data.additionalMetadata?.hashtags || [],
-      metrics: downloadResult.data.metrics || {},
+      thumbnailUrl: streamResult.thumbnailUrl ?? downloadResult.data.thumbnailUrl,
+      caption:
+        downloadResult.data.additionalMetadata?.caption ?? downloadResult.data.additionalMetadata?.description ?? "",
+      hashtags: downloadResult.data.additionalMetadata?.hashtags ?? [],
+      metrics: downloadResult.data.metrics ?? {},
       metadata: {
-        ...(downloadResult.data.metadata || {}),
-        ...(downloadResult.data.additionalMetadata || {}),
+        ...(downloadResult.data.metadata ?? {}),
+        ...(downloadResult.data.additionalMetadata ?? {}),
+        creatorProfile: creatorProfile ?? undefined,
       },
       transcriptionStatus: "pending",
       userId: userId,
     };
 
-    const addResult = await addVideoToCollection(collectionId || "all-videos", videoData);
+    const addResult = await addVideoToCollection(collectionId ?? "all-videos", videoData);
 
     if (!addResult.success) {
       return NextResponse.json(
@@ -225,9 +253,9 @@ export async function POST(request: NextRequest) {
       baseUrl,
       downloadResult.data.videoData,
       addResult.videoId,
-      collectionId || "all-videos",
+      collectionId ?? "all-videos",
       downloadResult.data.platform,
-      downloadResult.data.additionalMetadata || {},
+      downloadResult.data.additionalMetadata ?? {},
       scrapedData, // Pass scraped data for URL-based transcription
       streamResult, // Pass stream result to use Bunny CDN URL
     );
@@ -260,7 +288,7 @@ function getBaseUrl(request: NextRequest): string {
     return `https://${process.env.VERCEL_URL}`;
   }
   const host = request.headers.get("host");
-  return host ? `http://${host}` : `http://localhost:${process.env.PORT || 3001}`;
+  return host ? `http://${host}` : `http://localhost:${process.env.PORT ?? 3001}`;
 }
 
 async function downloadVideo(baseUrl: string, url: string) {
@@ -293,8 +321,8 @@ async function streamToBunny(downloadData: any) {
     console.log("🐰 [INTERNAL_VIDEO] Streaming to Bunny CDN...");
 
     const buffer = Buffer.from(downloadData.videoData.buffer);
-    const filename = downloadData.videoData.filename || `${downloadData.platform}-video.mp4`;
-    const mimeType = downloadData.videoData.mimeType || "video/mp4";
+    const filename = downloadData.videoData.filename ?? `${downloadData.platform}-video.mp4`;
+    const mimeType = downloadData.videoData.mimeType ?? "video/mp4";
 
     console.log("🔍 [INTERNAL_VIDEO] Buffer info:", {
       bufferSize: buffer.length,
@@ -363,7 +391,7 @@ async function addVideoToCollection(collectionId: string, videoData: any) {
       await adminDb.runTransaction(async (transaction) => {
         const collectionDoc = await transaction.get(collectionRef);
         if (collectionDoc.exists) {
-          const currentCount = collectionDoc.data()?.videoCount || 0;
+          const currentCount = collectionDoc.data()?.videoCount ?? 0;
           transaction.update(collectionRef, {
             videoCount: currentCount + 1,
             updatedAt: new Date().toISOString(),
@@ -409,37 +437,37 @@ function startBackgroundTranscription(
       console.log("🎙️ [INTERNAL_BACKGROUND] Starting transcription for video:", videoId);
 
       console.log("🎙️ [INTERNAL_BACKGROUND] Attempting transcription...");
-      
+
       let response;
-      
+
       if (videoData && videoData.buffer) {
         // Use buffer-based transcription (no re-download needed!)
         console.log("📁 [INTERNAL_BACKGROUND] Using buffer-based transcription with original video data");
-        
+
         response = await fetch(`${baseUrl}/api/internal/video/transcribe`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "x-internal-secret": process.env.INTERNAL_API_SECRET || "",
+            "x-internal-secret": process.env.INTERNAL_API_SECRET ?? "",
           },
           body: JSON.stringify({
             videoBuffer: Array.from(new Uint8Array(videoData.buffer)),
             platform: platform,
-            useBuffer: true
+            useBuffer: true,
           }),
         });
       } else if (scrapedData) {
         // For scraped data without buffer, use original URL for transcription
         console.log("📁 [INTERNAL_BACKGROUND] Scraped data detected, using original URL for transcription");
         console.log("🔗 [INTERNAL_BACKGROUND] Original URL:", additionalMetadata?.originalUrl);
-        
+
         const originalUrl = additionalMetadata?.originalUrl;
         if (originalUrl) {
           response = await fetch(`${baseUrl}/api/internal/video/transcribe`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "x-internal-secret": process.env.INTERNAL_API_SECRET || "",
+              "x-internal-secret": process.env.INTERNAL_API_SECRET ?? "",
             },
             body: JSON.stringify({
               videoUrl: originalUrl,
@@ -452,17 +480,17 @@ function startBackgroundTranscription(
         }
       } else {
         // Try URL-based transcription with direct MP4 URL
-        const bunnyVideoUrl = streamResult?.directUrl || streamResult?.iframeUrl;
-        
+        const bunnyVideoUrl = streamResult?.directUrl ?? streamResult?.iframeUrl;
+
         if (bunnyVideoUrl) {
           console.log("🌐 [INTERNAL_BACKGROUND] Using URL-based transcription with direct MP4 URL");
           console.log("🔗 [INTERNAL_BACKGROUND] Transcription URL:", bunnyVideoUrl);
-          
+
           response = await fetch(`${baseUrl}/api/internal/video/transcribe`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "x-internal-secret": process.env.INTERNAL_API_SECRET || "",
+              "x-internal-secret": process.env.INTERNAL_API_SECRET ?? "",
             },
             body: JSON.stringify({
               videoUrl: bunnyVideoUrl,
@@ -474,20 +502,20 @@ function startBackgroundTranscription(
           });
         } else {
           console.log("⚠️ [INTERNAL_BACKGROUND] No video URL available - using metadata for transcription");
-          
+
           // Fallback to metadata-based transcription
-          const contentDescription = additionalMetadata?.description || scrapedData?.description || "";
-          const videoCaption = scrapedData?.title || additionalMetadata?.title || "";
+          const contentDescription = additionalMetadata?.description ?? scrapedData?.description ?? "";
+          const videoCaption = scrapedData?.title ?? additionalMetadata?.title ?? "";
           const combinedContent = [videoCaption, contentDescription].filter(Boolean).join(". ");
-          
+
           // Mark transcription as completed using existing content
           await updateVideoTranscription(videoId, {
-            transcript: combinedContent || "Video content processed successfully",
+            transcript: combinedContent ?? "Video content processed successfully",
             components: {
-              hook: videoCaption || "Engaging video content",
-              bridge: "Social media video", 
-              nugget: contentDescription || "Video ready for viewing",
-              wta: "Check video for full content"
+              hook: videoCaption ?? "Engaging video content",
+              bridge: "Social media video",
+              nugget: contentDescription ?? "Video ready for viewing",
+              wta: "Check video for full content",
             },
             contentMetadata: {
               platform,
@@ -498,7 +526,7 @@ function startBackgroundTranscription(
             },
             visualContext: `${platform} video processed successfully`,
           });
-          
+
           hasCompleted = true;
           clearTimeout(timeoutId);
           return;
@@ -532,7 +560,7 @@ function startBackgroundTranscription(
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-internal-secret": process.env.INTERNAL_API_SECRET || "",
+          "x-internal-secret": process.env.INTERNAL_API_SECRET ?? "",
         },
         body: JSON.stringify({ transcript }),
       });
