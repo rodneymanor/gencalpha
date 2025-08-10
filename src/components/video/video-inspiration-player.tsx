@@ -27,6 +27,7 @@ interface VideoInspirationPlayerProps {
   duration: string;
   hookIdeas?: { text: string; rating?: number }[];
   contentIdeas?: { title: string; format: string; hook: string; keyPoints: string[] }[];
+  avatarUrl?: string;
 }
 
 // --- ICON COMPONENTS ---
@@ -197,7 +198,7 @@ const InsightsPanelView: React.FC<Omit<VideoInspirationPlayerProps, "videoUrl" |
 
 // --- MAIN APP COMPONENT ---
 const VideoInspirationPlayer: React.FC<VideoInspirationPlayerProps> = (props) => {
-  const { creatorName, followers } = props;
+  const { creatorName, followers, avatarUrl } = props;
   const [showInsights, setShowInsights] = useState(false);
 
   const switchOptions: SwitchOption[] = [
@@ -215,7 +216,15 @@ const VideoInspirationPlayer: React.FC<VideoInspirationPlayerProps> = (props) =>
         <Card className="rounded-[var(--radius-xl)] shadow-[var(--shadow-soft-drop)]">
           <CardContent className="p-4">
             <div className="flex items-center gap-3 border-b pb-4">
-              <TikTokIcon className="text-foreground h-10 w-10 flex-shrink-0" />
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt={creatorName}
+                  className="border-border h-10 w-10 flex-shrink-0 rounded-[var(--radius-pill)] border object-cover"
+                />
+              ) : (
+                <TikTokIcon className="text-foreground h-10 w-10 flex-shrink-0" />
+              )}
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-bold">{creatorName}</div>
                 <div className="text-muted-foreground text-xs">{followers} Followers</div>
@@ -244,7 +253,7 @@ const VideoInspirationPlayer: React.FC<VideoInspirationPlayerProps> = (props) =>
 
 // --- FLOATING OPTIMIZED VERSION ---
 const FloatingVideoInspirationPlayer: React.FC<VideoInspirationPlayerProps> = (props) => {
-  const { creatorName, followers } = props;
+  const { creatorName, followers, avatarUrl } = props;
   const [showInsights, setShowInsights] = useState(false);
 
   const switchOptions: SwitchOption[] = [
@@ -259,7 +268,15 @@ const FloatingVideoInspirationPlayer: React.FC<VideoInspirationPlayerProps> = (p
           <CardContent className="flex h-full flex-col p-4">
             {/* Header - Fixed height */}
             <div className="flex flex-shrink-0 items-center gap-3 border-b pb-3">
-              <TikTokIcon className="text-foreground h-8 w-8 flex-shrink-0" />
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt={creatorName}
+                  className="border-border h-8 w-8 flex-shrink-0 rounded-[var(--radius-pill)] border object-cover"
+                />
+              ) : (
+                <TikTokIcon className="text-foreground h-8 w-8 flex-shrink-0" />
+              )}
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-bold">{creatorName}</div>
                 <div className="text-muted-foreground text-xs">{followers} Followers</div>
@@ -298,6 +315,18 @@ function transformVideoData(video: Video): VideoInspirationPlayerProps {
       if (typeof raw === "number") return formatNumber(raw);
       if (typeof raw === "string" && raw.trim() !== "" && !Number.isNaN(Number(raw))) return formatNumber(Number(raw));
       return "N/A";
+    })(),
+    avatarUrl: (() => {
+      const meta = (video.metadata ?? {}) as unknown as {
+        creatorProfile?: { profile_pic_url?: string };
+        authorAvatarUrl?: string;
+        thumbnailUrl?: string;
+      };
+      return (
+        meta.creatorProfile?.profile_pic_url ??
+        meta.authorAvatarUrl ??
+        (typeof video.thumbnailUrl === "string" ? video.thumbnailUrl : undefined)
+      );
     })(),
     videoUrl: video.iframeUrl ?? video.originalUrl,
     views: formatNumber(video.metrics?.views ?? 0),
@@ -348,6 +377,7 @@ export default function VideoInspirationPlayerWrapper() {
   const videoData: VideoInspirationPlayerProps = {
     creatorName: "The Art of Code",
     followers: "1.2M",
+    avatarUrl: undefined,
     videoUrl: "https://www.youtube.com/embed/wA_24AIXqgM",
     views: "2.1M",
     likes: "180K",
