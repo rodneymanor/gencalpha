@@ -478,6 +478,16 @@ async function processVideoInBackground(
       }
     }
 
+    // Build optional creatorProfile blob to align with UI expectations
+    const creatorProfile: Record<string, unknown> = {};
+    if (typeof authorFollowerCount === "number") {
+      creatorProfile.follower_count = authorFollowerCount;
+    }
+    if (authorAvatarUrl) {
+      // Align with common Instagram naming for profile image
+      creatorProfile.profile_pic_url = authorAvatarUrl;
+    }
+
     const videoPayload = {
       originalUrl: decodedUrl,
       title: title ?? `Video from ${downloadResult.data.platform}`,
@@ -498,6 +508,7 @@ async function processVideoInBackground(
         duration: downloadResult.data.additionalMetadata?.duration ?? 0,
         authorFollowerCount,
         authorAvatarUrl,
+        ...(Object.keys(creatorProfile).length > 0 ? { creatorProfile } : {}),
       },
       transcriptionStatus: "pending",
       userId: userId,
