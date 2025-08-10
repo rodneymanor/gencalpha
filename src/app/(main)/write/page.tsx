@@ -1,0 +1,31 @@
+"use client";
+
+import { ChatContainer } from "@/components/write-chat/chat-container";
+import { ChatInput } from "@/components/write-chat/chat-input";
+import { HeroSection } from "@/components/write-chat/hero-section";
+import { MessageThread } from "@/components/write-chat/message-thread";
+import { useChatStore } from "@/lib/stores/write-chat-store";
+import { cn } from "@/lib/utils";
+
+export default function WritePage() {
+  const state = useChatStore((s) => s.state);
+  const messages = useChatStore((s) => s.messages);
+
+  return (
+    <ChatContainer>
+      {state === "empty" && <HeroSection />}
+
+      {(state === "transitioning" || state === "active") && (
+        <div className="mx-auto w-full max-w-4xl px-4 py-4">
+          <h2 className="text-foreground font-sans text-xl font-semibold">Script Chat</h2>
+        </div>
+      )}
+
+      <MessageThread messages={messages} />
+
+      <div className={cn("relative", state === "empty" ? "w-full" : "w-full border-t")}>
+        <ChatInput />
+      </div>
+    </ChatContainer>
+  );
+}
