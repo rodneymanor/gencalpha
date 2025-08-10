@@ -25,7 +25,7 @@ export default function WritePage() {
 
       <div
         className={cn(
-          "bg-background/80 supports-[backdrop-filter]:bg-background/60 fixed right-0 bottom-2 z-10 backdrop-blur md:left-[var(--sidebar-width)] group-data-[collapsible=icon]:md:left-[var(--sidebar-width-icon)]",
+          "bg-background/80 supports-[backdrop-filter]:bg-background/60 fixed right-0 bottom-2 z-10 flex justify-center px-4 backdrop-blur md:left-[var(--sidebar-width)] group-data-[collapsible=icon]:md:left-[var(--sidebar-width-icon)]",
           state === "empty" ? "left-0 w-full" : "left-0 w-full border-t",
         )}
       >
