@@ -3,6 +3,7 @@
 import { Eye, RefreshCw } from "lucide-react";
 
 import { DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { useRBAC } from "@/hooks/use-rbac";
 import type { Video } from "@/lib/collections";
 
 import { VideoCardActionItems } from "./video-card-action-items";
@@ -29,6 +30,7 @@ export function VideoCardMenuItems({
   canWrite = true,
   canDelete = true,
 }: VideoCardMenuItemsProps) {
+  const { isSuperAdmin } = useRBAC();
   return (
     <>
       <DropdownMenuItem
@@ -53,7 +55,7 @@ export function VideoCardMenuItems({
       />
 
       {/* Super-admin reprocess action */}
-      {process.env.NEXT_PUBLIC_SUPER_ADMIN === "true" && (
+      {isSuperAdmin && (
         <>
           <DropdownMenuSeparator />
           <DropdownMenuItem
