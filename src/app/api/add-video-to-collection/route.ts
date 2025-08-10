@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { ApiKeyAuthService } from "@/lib/api-key-auth";
+import { uploadImageToBunnyStorage } from "@/lib/bunny-storage";
 import { uploadToBunnyStream, generateBunnyThumbnailUrl, generateBunnyPreviewUrl } from "@/lib/bunny-stream";
 import { getAdminDb, isAdminInitialized } from "@/lib/firebase-admin";
 import { buildInternalUrl } from "@/lib/utils/url";
@@ -470,11 +471,25 @@ async function processVideoInBackground(
         const profile = await fetchTikTokUserProfile(candidateUsername);
         authorFollowerCount = profile.followerCount;
         authorAvatarUrl = profile.avatarUrl;
+        if (authorAvatarUrl) {
+          const upload = await uploadImageToBunnyStorage(authorAvatarUrl, {
+            path: `avatars/tiktok`,
+            filenameBase: candidateUsername.toLowerCase(),
+          });
+          if (upload.success) authorAvatarUrl = upload.publicUrl;
+        }
       }
     } else if (platformLower === "instagram") {
       if (authorFromMeta) {
         const avatar = await fetchInstagramUserAvatar(authorFromMeta);
         authorAvatarUrl = avatar ?? authorAvatarUrl;
+        if (authorAvatarUrl) {
+          const upload = await uploadImageToBunnyStorage(authorAvatarUrl, {
+            path: `avatars/instagram`,
+            filenameBase: authorFromMeta.toLowerCase(),
+          });
+          if (upload.success) authorAvatarUrl = upload.publicUrl;
+        }
       }
     }
 
@@ -508,7 +523,14 @@ async function processVideoInBackground(
         duration: downloadResult.data.additionalMetadata?.duration ?? 0,
         authorFollowerCount,
         authorAvatarUrl,
-        ...(Object.keys(creatorProfile).length > 0 ? { creatorProfile } : {}),
+        ...(Object.keys(creatorProfile).length > 0
+          ? {
+              creatorProfile: {
+                ...creatorProfile,
+                profile_pic_url: authorAvatarUrl ?? (creatorProfile as any).profile_pic_url,
+              },
+            }
+          : {}),
       },
       transcriptionStatus: "pending",
       userId: userId,

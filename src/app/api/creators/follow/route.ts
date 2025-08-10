@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { authenticateApiKey } from "@/lib/api-key-auth";
+import { uploadImageToBunnyStorage } from "@/lib/bunny-storage";
 import { CreatorService } from "@/lib/creator-service";
 
 // Orchestrator dependencies
@@ -114,13 +115,30 @@ export async function POST(request: NextRequest) {
         ? await processInstagramVideosWithImmediateDownload(videosResult.videos!)
         : await processVideosWithBunnyUpload(videosResult.videos!);
 
-    // Step 5: Create or update creator profile
+    // Step 5: Upload avatar to Bunny Storage (best-effort) and create/update creator profile
     console.log("👤 [FOLLOW_CREATOR] Creating/updating creator profile");
+    let profilePictureUrl: string | undefined = creatorMetadata.profilePictureUrl;
+    try {
+      const rawAvatarUrl: string | undefined =
+        creatorMetadata.profilePictureUrl || creatorMetadata.profile_pic_url || creatorMetadata.avatarUrl;
+      if (rawAvatarUrl) {
+        const upload = await uploadImageToBunnyStorage(rawAvatarUrl, {
+          path: `avatars/${detectedPlatform}`,
+          filenameBase: username.toLowerCase(),
+        });
+        if (upload.success) {
+          profilePictureUrl = upload.publicUrl;
+        }
+      }
+    } catch (e) {
+      console.warn("⚠️ [FOLLOW_CREATOR] Avatar upload failed, using CDN URL fallback");
+    }
+
     const creatorId = await CreatorService.createOrUpdateCreator(detectedPlatform, username, platformUserId, {
       displayName: creatorMetadata.displayName,
       followerCount: creatorMetadata.followerCount,
       isVerified: creatorMetadata.isVerified,
-      profilePictureUrl: creatorMetadata.profilePictureUrl,
+      profilePictureUrl,
       bio: creatorMetadata.bio,
       videoCount: processedVideos.length,
     });
