@@ -595,6 +595,27 @@ function startBackgroundTranscription(
         visualContext: "", // reserved for future computer-vision analysis
       });
 
+      // 🎯 Generate 3 hooks from transcript
+      try {
+        const hooksRes = await fetch(`${baseUrl}/api/video/generate-hooks`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ transcript }),
+        });
+        if (hooksRes.ok) {
+          const { hooks, topHook } = await hooksRes.json();
+          await updateVideoTranscription(videoId, {
+            components: { ...components, hook: components.hook ?? topHook?.text ?? "" },
+            insights: { hooks },
+          });
+          console.log("✅ [INTERNAL_BACKGROUND] Hooks generated and saved for video:", videoId);
+        } else {
+          console.warn("⚠️ [INTERNAL_BACKGROUND] Hook generation failed with status:", hooksRes.status);
+        }
+      } catch (hookErr) {
+        console.warn("⚠️ [INTERNAL_BACKGROUND] Hook generation error:", hookErr);
+      }
+
       // Real-time update hook (WebSocket, etc.) could be invoked here
       console.log("📡 [INTERNAL_BACKGROUND] Transcription + analysis ready for video:", videoId);
 
