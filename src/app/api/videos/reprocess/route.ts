@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { RBACService } from "@/core/auth/rbac";
 import { getAdminDb, isAdminInitialized } from "@/lib/firebase-admin";
 
 // Reprocess a single video by deleting it and re-adding via internal workflow
@@ -14,19 +15,17 @@ async function isAuthorized(request: NextRequest): Promise<boolean> {
   const internalSecret = request.headers.get("x-internal-secret");
   if (internalSecret && internalSecret === process.env.INTERNAL_API_SECRET) return true;
 
-  // Fallback: allow authenticated super-admin via RBAC
+  // Fallback: allow authenticated super-admin via Firebase token + RBAC lookup
   const authHeader = request.headers.get("authorization") ?? request.headers.get("Authorization");
-  if (!authHeader) return false;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) return false;
+  const token = authHeader.split("Bearer ")[1];
 
   try {
-    const baseUrl = getBaseUrl(request);
-    const res = await fetch(`${baseUrl}/api/auth/rbac/context`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: authHeader },
-    });
-    if (!res.ok) return false;
-    const data = await res.json();
-    return Boolean(data?.context?.isSuperAdmin);
+    const { getAuth } = await import("firebase-admin/auth");
+    if (!isAdminInitialized) return false;
+    const decoded = await getAuth().verifyIdToken(token);
+    const context = await RBACService.getRBACContext(decoded.uid);
+    return Boolean(context?.isSuperAdmin);
   } catch {
     return false;
   }
