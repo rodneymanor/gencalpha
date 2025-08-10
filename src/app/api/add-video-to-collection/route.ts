@@ -175,6 +175,36 @@ async function fetchInstagramUserAvatar(username: string): Promise<string | unde
   }
 }
 
+async function fetchInstagramUserProfileInfo(
+  username: string,
+): Promise<{ followerCount?: number; avatarUrl?: string } | undefined> {
+  try {
+    const rapidApiKey = process.env.RAPIDAPI_KEY;
+    if (!rapidApiKey) return undefined;
+
+    const url = `https://instagram-api-fast-reliable-data-scraper.p.rapidapi.com/profile?username=${encodeURIComponent(
+      username,
+    )}`;
+    const resp = await fetch(url, {
+      method: "GET",
+      headers: {
+        "x-rapidapi-key": rapidApiKey,
+        "x-rapidapi-host": "instagram-api-fast-reliable-data-scraper.p.rapidapi.com",
+      },
+    });
+    if (!resp.ok) return undefined;
+    const json = await resp.json().catch(() => null);
+    if (!json) return undefined;
+    const data = json?.data ?? json;
+    const versions = data?.hd_profile_pic_versions as Array<{ url?: string }> | undefined;
+    const avatarUrl = versions?.[1]?.url ?? versions?.[0]?.url ?? data?.profile_pic_url ?? undefined;
+    const followerCount: number | undefined = data?.follower_count ?? undefined;
+    return { followerCount, avatarUrl };
+  } catch {
+    return undefined;
+  }
+}
+
 function extractTikTokUsernameFromUrl(url: string): string | null {
   try {
     const match = url.match(/tiktok\.com\/@([^/?#]+)/i);
@@ -481,8 +511,17 @@ async function processVideoInBackground(
       }
     } else if (platformLower === "instagram") {
       if (authorFromMeta) {
-        const avatar = await fetchInstagramUserAvatar(authorFromMeta);
-        authorAvatarUrl = avatar ?? authorAvatarUrl;
+        const profileInfo = await fetchInstagramUserProfileInfo(authorFromMeta);
+        if (profileInfo) {
+          if (typeof profileInfo.followerCount === "number") {
+            authorFollowerCount = profileInfo.followerCount;
+          }
+          authorAvatarUrl = profileInfo.avatarUrl ?? authorAvatarUrl;
+        } else {
+          // Fallback to avatar-only fetch if profile info fails
+          const avatar = await fetchInstagramUserAvatar(authorFromMeta);
+          authorAvatarUrl = avatar ?? authorAvatarUrl;
+        }
         if (authorAvatarUrl) {
           const upload = await uploadImageToBunnyStorage(authorAvatarUrl, {
             path: `avatars/instagram`,
