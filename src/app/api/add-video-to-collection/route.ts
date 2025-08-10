@@ -134,6 +134,46 @@ async function fetchTikTokUserProfile(username: string): Promise<{
   }
 }
 
+async function fetchInstagramUserAvatar(username: string): Promise<string | undefined> {
+  try {
+    const rapidApiKey = process.env.RAPIDAPI_KEY;
+    if (!rapidApiKey) {
+      console.warn("⚠️ [Add Video API] RAPIDAPI_KEY not set; skipping Instagram user avatar fetch");
+      return undefined;
+    }
+
+    const url = `https://instagram-api-fast-reliable-data-scraper.p.rapidapi.com/profile?username=${encodeURIComponent(
+      username,
+    )}`;
+    const resp = await fetch(url, {
+      method: "GET",
+      headers: {
+        "x-rapidapi-key": rapidApiKey,
+        "x-rapidapi-host": "instagram-api-fast-reliable-data-scraper.p.rapidapi.com",
+      },
+    });
+
+    if (!resp.ok) {
+      const text = await resp.text().catch(() => "");
+      console.warn(
+        `⚠️ [Add Video API] Instagram profile fetch failed: ${resp.status} ${resp.statusText} ${text.substring(0, 200)}...`,
+      );
+      return undefined;
+    }
+
+    const json = await resp.json().catch(() => null);
+    if (!json) return undefined;
+    const data = json?.data ?? json;
+
+    const versions = data?.hd_profile_pic_versions as Array<{ url?: string }> | undefined;
+    const avatarUrl = versions?.[1]?.url ?? versions?.[0]?.url ?? data?.profile_pic_url ?? undefined;
+    return avatarUrl;
+  } catch (error) {
+    console.warn("⚠️ [Add Video API] Instagram user avatar fetch errored:", error);
+    return undefined;
+  }
+}
+
 function extractTikTokUsernameFromUrl(url: string): string | null {
   try {
     const match = url.match(/tiktok\.com\/@([^/?#]+)/i);
@@ -418,17 +458,23 @@ async function processVideoInBackground(
 
     const { downloadResult, streamResult } = processingResult;
 
-    // Optionally enrich TikTok videos with author follower count and avatar
+    // Optionally enrich TikTok/Instagram with author follower count and avatar
     let authorFollowerCount: number | undefined;
     let authorAvatarUrl: string | undefined;
-    if ((downloadResult.data?.platform ?? "").toLowerCase() === "tiktok") {
+    const platformLower = (downloadResult.data?.platform ?? "").toLowerCase();
+    const authorFromMeta = downloadResult.data?.additionalMetadata?.author as string | undefined;
+    if (platformLower === "tiktok") {
       const urlUsername = extractTikTokUsernameFromUrl(decodedUrl);
-      const authorFromMeta = downloadResult.data?.additionalMetadata?.author as string | undefined;
       const candidateUsername = urlUsername ?? authorFromMeta ?? "";
       if (candidateUsername) {
         const profile = await fetchTikTokUserProfile(candidateUsername);
         authorFollowerCount = profile.followerCount;
         authorAvatarUrl = profile.avatarUrl;
+      }
+    } else if (platformLower === "instagram") {
+      if (authorFromMeta) {
+        const avatar = await fetchInstagramUserAvatar(authorFromMeta);
+        authorAvatarUrl = avatar ?? authorAvatarUrl;
       }
     }
 
