@@ -30,6 +30,13 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       data-theme-preset={themePreset}
       suppressHydrationWarning
     >
+      <head>
+        {/* Preconnect and DNS-prefetch to speed up Firebase connections */}
+        <link rel="preconnect" href="https://firebaseapp.com" />
+        <link rel="preconnect" href="https://firebaseio.com" />
+        <link rel="dns-prefetch" href="https://firebaseapp.com" />
+        <link rel="dns-prefetch" href="https://firebaseio.com" />
+      </head>
       <body className={`${inter.className} min-h-screen antialiased`}>
         <LoadingProvider>
           <PreferencesStoreProvider themeMode={themeMode} themePreset={themePreset}>

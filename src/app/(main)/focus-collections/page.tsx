@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 
 import { useRouter } from "next/navigation";
-import { ClarityLoader } from "@/components/ui/loading";
 
+import { ClarityLoader } from "@/components/ui/loading";
 import { FloatingVideoPlayer } from "@/components/video/video-slideout-player";
 import { useAuth } from "@/contexts/auth-context";
 import { RBACClientService } from "@/core/auth/rbac-client";
