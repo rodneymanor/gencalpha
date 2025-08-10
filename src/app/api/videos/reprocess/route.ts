@@ -4,12 +4,38 @@ import { getAdminDb, isAdminInitialized } from "@/lib/firebase-admin";
 
 // Reprocess a single video by deleting it and re-adding via internal workflow
 // Request body: { videoId: string }
+function getBaseUrl(request: NextRequest): string {
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  const host = request.headers.get("host");
+  return host ? `http://${host}` : `http://localhost:${process.env.PORT ?? 3001}`;
+}
+
+async function isAuthorized(request: NextRequest): Promise<boolean> {
+  const internalSecret = request.headers.get("x-internal-secret");
+  if (internalSecret && internalSecret === process.env.INTERNAL_API_SECRET) return true;
+
+  // Fallback: allow authenticated super-admin via RBAC
+  const authHeader = request.headers.get("authorization") ?? request.headers.get("Authorization");
+  if (!authHeader) return false;
+
+  try {
+    const baseUrl = getBaseUrl(request);
+    const res = await fetch(`${baseUrl}/api/auth/rbac/context`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: authHeader },
+    });
+    if (!res.ok) return false;
+    const data = await res.json();
+    return Boolean(data?.context?.isSuperAdmin);
+  } catch {
+    return false;
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const internalSecret = request.headers.get("x-internal-secret");
-    if (!internalSecret || internalSecret !== process.env.INTERNAL_API_SECRET) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const allowed = await isAuthorized(request);
+    if (!allowed) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     if (!isAdminInitialized) {
       return NextResponse.json({ error: "Firebase Admin not initialized" }, { status: 500 });
@@ -54,9 +80,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Re-run processing via internal orchestrator to keep same collection/user
-    const baseUrl = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : `http://localhost:${process.env.PORT ?? 3001}`;
+    const baseUrl = getBaseUrl(request);
     const res = await fetch(`${baseUrl}/api/internal/video/process-and-add`, {
       method: "POST",
       headers: {
