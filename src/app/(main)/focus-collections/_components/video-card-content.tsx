@@ -44,7 +44,7 @@ export function VideoCardContent({ video, isHovered, formatNumber }: VideoCardCo
 
       {/* Views pill bottom-right only */}
       {video.metrics?.views !== undefined && video.metrics.views > 0 && (
-        <div className="absolute right-2 bottom-2">
+        <div className="absolute bottom-2 left-2">
           <div className="rounded-pill flex items-center gap-1 bg-black/60 px-2 py-1 text-white">
             <Eye className="h-3 w-3" />
             <span className="font-sans text-xs">{formatNumber(video.metrics.views)}</span>
