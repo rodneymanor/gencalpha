@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 
 import { Clock, CheckCircle, AlertCircle } from "lucide-react";
+import { ClarityLoader } from "@/components/ui/loading";
 
 import { Badge } from "@/components/ui/badge";
 import type { VideoProcessingJob } from "@/lib/simple-video-queue";
@@ -39,7 +40,7 @@ export function ProcessingBadge({ jobs, className }: ProcessingBadgeProps) {
 
   if (stats.processing > 0) {
     variant = "default";
-    icon = <Clock className="h-3 w-3 animate-spin" />;
+    icon = <ClarityLoader size="inline" />;
     text = `${stats.processing} processing`;
   } else if (stats.recentFailed > 0) {
     variant = "destructive";

@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 
-import { Loader2, CheckCircle, XCircle, Clock, X } from "lucide-react";
+import { CheckCircle, XCircle, Clock, X } from "lucide-react";
+import { ClarityLoader } from "@/components/ui/loading";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -44,7 +45,7 @@ export function ProcessingNotificationBadge({ className }: ProcessingNotificatio
       case "pending":
         return <Clock className="w-3 h-3" />;
       case "processing":
-        return <Loader2 className="w-3 h-3 animate-spin" />;
+        return <ClarityLoader size="inline" />;
       case "completed":
         return <CheckCircle className="w-3 h-3 text-green-500" />;
       case "failed":
@@ -82,7 +83,7 @@ export function ProcessingNotificationBadge({ className }: ProcessingNotificatio
           )}
         >
           {hasActiveJobs ? (
-            <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
+            <ClarityLoader size="inline" />
           ) : (
             <CheckCircle className="w-4 h-4 text-green-500" />
           )}

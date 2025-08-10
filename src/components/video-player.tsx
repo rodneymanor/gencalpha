@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 
-import { Play, Loader2 } from "lucide-react";
+import { Play } from "lucide-react";
+import { ClarityLoader } from "@/components/ui/loading";
 
 import { Video } from "@/lib/collections";
 import { cn } from "@/lib/utils";
@@ -67,7 +68,7 @@ export function VideoPlayer({
       <div className={cn("relative h-full w-full", className)}>
         {isLoading && (
           <div className="bg-muted absolute inset-0 z-10 flex items-center justify-center">
-            <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
+            <ClarityLoader size="sm" />
           </div>
         )}
 
@@ -107,7 +108,7 @@ export function VideoPlayer({
 
       {isLoading && !showPlayButton && (
         <div className="bg-muted absolute inset-0 z-10 flex items-center justify-center">
-          <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
+          <ClarityLoader size="sm" />
         </div>
       )}
 

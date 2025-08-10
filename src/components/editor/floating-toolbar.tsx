@@ -3,20 +3,8 @@
 import * as React from "react";
 import { memo, useMemo } from "react";
 
-import {
-  Mic,
-  Maximize2,
-  ChevronDown,
-  MicOff,
-  Loader2,
-  Save,
-  Download,
-  Undo,
-  Redo,
-  Sparkles,
-  Type,
-  Volume2,
-} from "lucide-react";
+import { Mic, Maximize2, ChevronDown, MicOff, Save, Download, Undo, Redo, Sparkles, Type, Volume2 } from "lucide-react";
+import { ClarityLoader } from "@/components/ui/loading";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -383,7 +371,7 @@ const FloatingToolbar: React.FC<FloatingToolbarProps> = memo(
                     aria-label={isRecording ? "Stop recording" : "Start voice input"}
                   >
                     {isProcessing ? (
-                      <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
+                      <ClarityLoader size="inline" />
                     ) : isRecording ? (
                       <MicOff className="h-4 w-4 shrink-0" />
                     ) : (
@@ -420,7 +408,7 @@ const FloatingToolbar: React.FC<FloatingToolbarProps> = memo(
                     aria-label="Save script"
                   >
                     {isSaving ? (
-                      <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
+                      <ClarityLoader size="inline" />
                     ) : (
                       <Save className="h-4 w-4 shrink-0" />
                     )}

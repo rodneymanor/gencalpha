@@ -3,7 +3,8 @@
 
 import React, { useState, useEffect } from "react";
 
-import { ArrowUp, Link, AlertCircle, CheckCircle2, Loader2, Bot, Globe, Pencil, X, Mic } from "lucide-react";
+import { ArrowUp, Link, AlertCircle, CheckCircle2, Bot, Globe, Pencil, X, Mic } from "lucide-react";
+import { ClarityLoader } from "@/components/ui/loading";
 
 import { PersonaSelector, PersonaType } from "@/components/chatbot/persona-selector";
 import { AdvancedSlidingSwitch, type ModeType, type SwitchOption } from "@/components/ui/advanced-sliding-switch";
@@ -358,7 +359,7 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
                   >
                     {isProcessingVideo ? (
                       <>
-                        <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                        <span className="mr-1 inline-flex"><ClarityLoader size="inline" /></span>
                         Processing...
                       </>
                     ) : (
@@ -423,7 +424,7 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
               title={prompt.trim() ? "Send message" : isRecording ? "Stop recording" : "Start voice recording"}
             >
               {isProcessingVideo ? (
-                <Loader2 className="size-4 animate-spin" />
+                <ClarityLoader size="inline" />
               ) : prompt.trim() ? (
                 <ArrowUp className="size-4" />
               ) : isRecording ? (

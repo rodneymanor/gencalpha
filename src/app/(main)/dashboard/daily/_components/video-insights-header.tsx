@@ -1,6 +1,7 @@
 "use client";
 
-import { Loader2, User } from "lucide-react";
+import { User } from "lucide-react";
+import { ClarityLoader } from "@/components/ui/loading";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -47,7 +48,7 @@ export function VideoInsightsHeader({ video, isLoading, formatNumber }: VideoIns
               {video.platform}
             </Badge>
           </div>
-          {isLoading && <Loader2 className="text-muted-foreground h-4 w-4 animate-spin" />}
+          {isLoading && <ClarityLoader size="inline" />}
         </div>
 
         {video.metrics && (

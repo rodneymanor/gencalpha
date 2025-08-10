@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 
-import { Loader2, Play, Download, Link, AlertCircle, CheckCircle, XCircle } from "lucide-react";
+import { Play, Download, Link, AlertCircle, CheckCircle, XCircle } from "lucide-react";
+import { ClarityLoader } from "@/components/ui/loading";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -241,8 +242,8 @@ export default function TestInstagramBunnyTransferPage() {
             <Button onClick={handleTest} disabled={isLoading || !instagramUrl.trim()} className="w-full">
               {isLoading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Testing {testMethod}...
+                  <ClarityLoader size="inline" />
+                  <span className="ml-2">Testing {testMethod}...</span>
                 </>
               ) : (
                 <>

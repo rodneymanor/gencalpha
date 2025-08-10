@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 
-import { Loader2, PlayCircle, User, Video, Layers } from "lucide-react";
+import { PlayCircle, User, Video, Layers } from "lucide-react";
+import { ClarityLoader } from "@/components/ui/loading";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -216,7 +217,7 @@ export default function ApifyTestPage() {
     if (loading) {
       return (
         <div className="flex items-center justify-center p-8">
-          <Loader2 className="h-8 w-8 animate-spin" />
+          <ClarityLoader size="sm" />
           <span className="ml-2">Testing API...</span>
         </div>
       );
@@ -371,7 +372,7 @@ export default function ApifyTestPage() {
                   }
                   className="w-full"
                 >
-                  {testStates.instagramProfile.loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {testStates.instagramProfile.loading && <ClarityLoader size="inline" />}
                   Test API
                 </Button>
               </CardContent>
@@ -459,7 +460,7 @@ export default function ApifyTestPage() {
                   }
                   className="w-full"
                 >
-                  {testStates.instagramReel.loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {testStates.instagramReel.loading && <ClarityLoader size="inline" />}
                   Test API
                 </Button>
               </CardContent>
@@ -537,7 +538,7 @@ export default function ApifyTestPage() {
                   disabled={testStates.tiktokProfile.loading || (!tiktokProfile.username && !tiktokProfile.usernames)}
                   className="w-full"
                 >
-                  {testStates.tiktokProfile.loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {testStates.tiktokProfile.loading && <ClarityLoader size="inline" />}
                   Test API
                 </Button>
               </CardContent>
@@ -625,7 +626,7 @@ export default function ApifyTestPage() {
                   }
                   className="w-full"
                 >
-                  {testStates.tiktokScraper.loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {testStates.tiktokScraper.loading && <ClarityLoader size="inline" />}
                   Test API
                 </Button>
               </CardContent>
@@ -727,7 +728,7 @@ export default function ApifyTestPage() {
                   }
                   className="w-full"
                 >
-                  {testStates.orchestrator.loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {testStates.orchestrator.loading && <ClarityLoader size="inline" />}
                   Test API
                 </Button>
               </CardContent>

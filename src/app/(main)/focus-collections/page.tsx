@@ -1,3 +1,4 @@
+import { ClarityLoader } from "@/components/ui/loading";
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -111,8 +112,8 @@ export default function FocusCollectionsPage() {
     return (
       <div className="bg-background flex h-screen items-center justify-center">
         <div className="text-muted-foreground flex items-center gap-2 text-sm">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-          Loading collections...
+          <ClarityLoader size="inline" />
+          <span>Loading collections...</span>
         </div>
       </div>
     );

@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 
-import { Copy, ExternalLink, Loader2 } from "lucide-react";
+import { Copy, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ClarityLoader } from "@/components/ui/loading";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -118,7 +119,7 @@ export default function TestInstagramPage() {
               disabled={loading}
             />
             <Button onClick={() => handleSubmit()} disabled={loading || !url}>
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Test Sync"}
+              {loading ? <ClarityLoader size="inline" /> : "Test Sync"}
             </Button>
             <Button variant="outline" onClick={() => handleSubmit(undefined, "async")} disabled={loading || !url}>
               Test Async

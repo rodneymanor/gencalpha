@@ -10,5 +10,6 @@ export {
   ProgressLoader,
   StreamLoader,
   LoadingBoundary,
+  ClarityLoader,
 } from "./loading-components";
 

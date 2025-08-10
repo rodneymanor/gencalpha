@@ -28,6 +28,7 @@ import {
   Users,
   Zap
 } from "lucide-react";
+import { ClarityLoader } from "@/components/ui/loading";
 
 // Content data structures
 const CONTENT_TOPICS = {
@@ -888,8 +889,8 @@ const StepSummary = ({ back, selections }: StepProps) => {
         >
           {isCompleting ? (
             <>
-              <Sparkles className="mr-2 size-4 animate-spin" />
-              Setting up...
+              <ClarityLoader size="inline" />
+              <span className="ml-2">Setting up...</span>
             </>
           ) : (
             <>
@@ -981,7 +982,7 @@ export function OnboardingWizardModal({
           </DialogHeader>
           <div className="flex items-center justify-center p-8">
             <div className="text-center space-y-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              <ClarityLoader size="sm" />
               <p className="text-muted-foreground">Loading your brand settings...</p>
             </div>
           </div>

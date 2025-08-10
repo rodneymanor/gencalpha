@@ -16,9 +16,9 @@ import {
   Hash, 
   Lightbulb, 
   Edit3,
-  Loader2,
   Globe
 } from 'lucide-react'
+import { ClarityLoader } from "@/components/ui/loading"
 
 interface BrandSettingsSummaryModalProps {
   isOpen: boolean
@@ -97,7 +97,7 @@ export function BrandSettingsSummaryModal({
             </VisuallyHidden>
           </DialogHeader>
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin" />
+            <ClarityLoader size="sm" />
           </div>
         </DialogContent>
       </Dialog>

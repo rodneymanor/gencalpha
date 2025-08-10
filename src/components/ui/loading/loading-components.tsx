@@ -11,36 +11,66 @@ import { useLoadingContext } from "./loading-provider";
 
 type IconComponent = React.ComponentType<{ className?: string }>;
 
-const loadingConfigs: Record<string, { icon: IconComponent; defaultMessage?: string; animation?: string }> = {
-  fetch: { icon: Loader2, defaultMessage: "Loading...", animation: "animate-spin" },
+const loadingConfigs: Record<string, { icon: IconComponent; defaultMessage?: string }> = {
+  fetch: { icon: Loader2, defaultMessage: "Loading..." },
   upload: { icon: Upload, defaultMessage: "Uploading..." },
   save: { icon: Save, defaultMessage: "Saving..." },
   delete: { icon: Trash2, defaultMessage: "Deleting..." },
   search: { icon: Search, defaultMessage: "Searching..." },
   submit: { icon: Send, defaultMessage: "Submitting..." },
-  sync: { icon: RefreshCw, defaultMessage: "Syncing...", animation: "animate-spin" },
-  generate: { icon: Loader2, defaultMessage: "Working...", animation: "animate-spin" },
+  sync: { icon: RefreshCw, defaultMessage: "Syncing..." },
+  generate: { icon: Loader2, defaultMessage: "Working..." },
 };
 
-export function InlineLoader({ action = "fetch", size = "sm", className }: { action?: string; size?: "sm" | "md"; className?: string }) {
-  const cfg = Object.prototype.hasOwnProperty.call(loadingConfigs, action) ? loadingConfigs[action] : loadingConfigs.fetch;
-  const Icon = cfg.icon;
+type ClarityLoaderSize = "lg" | "md" | "sm" | "inline";
+
+export function ClarityLoader({
+  size = "md",
+  message,
+  inverted = false,
+  className,
+}: {
+  size?: ClarityLoaderSize;
+  message?: string;
+  inverted?: boolean;
+  className?: string;
+}) {
   return (
-    <span role="status" aria-live="polite" className={cn("inline-flex items-center gap-2", className)}>
-      <Icon className={cn("text-foreground", size === "sm" ? "h-4 w-4" : "h-5 w-5", cfg.animation)} />
-    </span>
+    <div
+      role="status"
+      aria-busy
+      className={cn(
+        "clarity-loader",
+        size === "lg" && "clarity-size-lg",
+        size === "md" && "clarity-size-md",
+        size === "sm" && "clarity-size-sm",
+        size === "inline" && "clarity-size-inline",
+        inverted && "clarity-inverted",
+        className,
+      )}
+    >
+      <div className="clarity-ring" />
+      <div className="clarity-ring clarity-ring-2" />
+      <div className="clarity-orb-core" />
+      <div className="clarity-dot dot-1" />
+      <div className="clarity-dot dot-2" />
+      <div className="clarity-dot dot-3" />
+      {message ? <div className="clarity-loading-text">{message}</div> : null}
+    </div>
   );
+}
+
+export function InlineLoader({ action = "fetch", size = "sm", className }: { action?: string; size?: "sm" | "md"; className?: string }) {
+  // action kept for API compatibility; message is not shown in inline
+  void action;
+  return <ClarityLoader size={size === "sm" ? "inline" : "sm"} className={className} />;
 }
 
 export function SectionLoader({ action = "fetch", message, className }: { action?: string; message?: string; className?: string }) {
   const cfg = Object.prototype.hasOwnProperty.call(loadingConfigs, action) ? loadingConfigs[action] : loadingConfigs.fetch;
-  const Icon = cfg.icon;
   return (
     <div role="status" aria-busy className={cn("flex w-full items-center justify-center p-6", className)}>
-      <div className="flex items-center gap-3 rounded-[var(--radius-card)] border border-border bg-card px-4 py-3 shadow-[var(--shadow-soft-drop)]">
-        <Icon className={cn("h-5 w-5 text-foreground", cfg.animation)} />
-        <span className="font-sans text-sm text-muted-foreground">{message ?? cfg.defaultMessage ?? "Loading..."}</span>
-      </div>
+      <ClarityLoader size="md" message={message ?? cfg.defaultMessage ?? "Loading..."} />
     </div>
   );
 }
@@ -48,7 +78,7 @@ export function SectionLoader({ action = "fetch", message, className }: { action
 export function PageLoader({ message }: { message?: string }) {
   return (
     <div role="status" aria-busy className="flex h-[60vh] w-full items-center justify-center">
-      <SectionLoader action="fetch" message={message ?? "Loading page..."} />
+      <ClarityLoader size="lg" message={message ?? "Loading page..."} />
     </div>
   );
 }
@@ -96,9 +126,8 @@ export function ProgressLoader({ action = "upload", message, progress = 0, class
 
 export function StreamLoader({ message = "Streaming...", className }: { message?: string; className?: string }) {
   return (
-    <div role="status" aria-live="polite" className={cn("flex items-center gap-3 text-muted-foreground", className)}>
-      <Loader2 className="h-4 w-4 animate-spin" />
-      <span className="font-sans text-sm">{message}</span>
+    <div role="status" aria-live="polite" className={cn("flex items-center justify-center", className)}>
+      <ClarityLoader size="sm" message={message} />
     </div>
   );
 }

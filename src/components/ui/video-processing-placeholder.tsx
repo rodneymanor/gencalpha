@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 
-import { Loader2, Clock, CheckCircle, XCircle, RefreshCw, ExternalLink } from "lucide-react";
+import { Clock, CheckCircle, XCircle, RefreshCw, ExternalLink } from "lucide-react";
+import { ClarityLoader } from "@/components/ui/loading";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -41,7 +42,7 @@ export function VideoProcessingPlaceholder({
       case "pending":
         return <Clock className="w-5 h-5 text-blue-500" />;
       case "processing":
-        return <Loader2 className="w-5 h-5 animate-spin text-blue-500" />;
+        return <ClarityLoader size="inline" />;
       case "completed":
         return <CheckCircle className="w-5 h-5 text-green-500" />;
       case "failed":

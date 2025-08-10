@@ -1,3 +1,4 @@
+import { ClarityLoader } from "@/components/ui/loading";
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -132,8 +133,8 @@ export function FocusVideoGrid({
       {loading && videos.length > 0 && (
         <div className="flex justify-center py-4">
           <div className="text-muted-foreground flex items-center gap-2 text-sm">
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-            Loading more videos...
+            <ClarityLoader size="inline" />
+            <span>Loading more videos...</span>
           </div>
         </div>
       )}

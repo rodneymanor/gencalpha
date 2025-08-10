@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { PanelRightClose, Zap, Sparkles, RefreshCw, FileText, Plus } from "lucide-react";
+import { ClarityLoader } from "@/components/ui/loading";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -155,8 +156,8 @@ export function SimpleScriptPanel({ className }: SimpleScriptPanelProps) {
                         >
                           {isGenerating ? (
                             <>
-                              <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                              Generating...
+                              <ClarityLoader size="inline" />
+                              <span className="ml-2">Generating...</span>
                             </>
                           ) : (
                             <>

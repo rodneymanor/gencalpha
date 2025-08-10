@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 
-import { Loader2 } from "lucide-react";
+import { ClarityLoader } from "@/components/ui/loading";
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -89,7 +89,7 @@ export function VideoInsightsDialogV2({
           {/* Fixed Video Column */}
           <div className="relative flex h-[600px] w-96 flex-shrink-0 items-center justify-center bg-black">
             {isLoadingInsights ? (
-              <Loader2 className="h-8 w-8 animate-spin text-white" />
+              <ClarityLoader size="sm" inverted />
             ) : (
               <VideoPreviewWithMetrics video={displayVideo} showMetrics={false} />
             )}

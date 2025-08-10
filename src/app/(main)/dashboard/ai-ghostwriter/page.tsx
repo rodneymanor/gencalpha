@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 
-import { Wand2, Sparkles, RefreshCw, BookOpen, TrendingUp } from "lucide-react";
+import { Wand2, Sparkles, BookOpen, TrendingUp } from "lucide-react";
+import { ClarityLoader } from "@/components/ui/loading";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -177,7 +178,7 @@ export default function AIGhostwriterPage() {
           </div>
 
           <Button onClick={generateNewCards} disabled={loading} className="gap-2">
-            {loading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            {loading ? <ClarityLoader size="inline" /> : <Sparkles className="h-4 w-4" />}
             {loading ? "Generating..." : "Generate New Ideas"}
           </Button>
         </div>

@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 
-import { FileText, Globe, Loader2 } from "lucide-react";
+import { FileText, Globe } from "lucide-react";
+import { ClarityLoader } from "@/components/ui/loading";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -90,8 +91,8 @@ export function ScraperConfigCard({
         <Button onClick={onScrape} disabled={loading || !url.trim()} className="w-full">
           {loading ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Scraping...
+              <ClarityLoader size="inline" />
+              <span className="ml-2">Scraping...</span>
             </>
           ) : (
             <>

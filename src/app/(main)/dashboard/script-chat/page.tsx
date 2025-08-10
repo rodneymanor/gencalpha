@@ -1,3 +1,4 @@
+import { ClarityLoader } from "@/components/ui/loading";
 "use client"
 
 import { useEffect, useRef, useState } from "react";
@@ -430,7 +431,7 @@ export default function ScriptChatPage() {
               disabled={isLoading || !input.trim()}
             >
               {isLoading ? (
-                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                <ClarityLoader size="inline" />
               ) : (
                 <Send className="w-4 h-4" />
               )}

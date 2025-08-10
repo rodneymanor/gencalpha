@@ -1,3 +1,4 @@
+import { ClarityLoader } from "@/components/ui/loading";
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -212,7 +213,9 @@ The content would be processed and cleaned up for easier reading and conversion 
         </div>
         <Card>
           <CardContent className="py-12 text-center">
-            <div className="border-secondary mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-t-transparent"></div>
+            <div className="mx-auto mb-4 flex items-center justify-center">
+              <ClarityLoader size="sm" />
+            </div>
             <p className="text-muted-foreground">Loading ideas from your database...</p>
           </CardContent>
         </Card>

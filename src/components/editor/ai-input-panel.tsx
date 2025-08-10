@@ -1,3 +1,4 @@
+import { ClarityLoader } from "@/components/ui/loading";
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -347,7 +348,7 @@ export function AIInputPanel({
           {isLoading && (
             <div className="border-border border-b p-3">
               <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+                <ClarityLoader size="inline" />
                 Processing...
               </div>
             </div>
