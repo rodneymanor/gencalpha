@@ -90,7 +90,7 @@ export function FocusVideoCard({
       <VideoCardContent video={video} isHovered={isHovered} formatNumber={formatNumber} />
 
       {/* Overlay */}
-      <div className={cn("absolute inset-0 transition-colors duration-200", isHovered ? "bg-black/50" : "bg-black/0")}>
+      <div className={cn("absolute inset-0 transition-colors duration-200", isHovered ? "bg-black/50" : "bg-black/10")}>
         {/* Play Button */}
         <div
           className={cn(
