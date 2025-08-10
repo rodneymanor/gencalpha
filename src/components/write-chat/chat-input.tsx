@@ -1,7 +1,6 @@
 "use client";
 
 import ManusPrompt from "@/components/manus-prompt";
-import { CompactChatInput } from "@/components/write-chat/compact-chat-input";
 import { useChatStore } from "@/lib/stores/write-chat-store";
 
 export function ChatInput() {
@@ -9,19 +8,16 @@ export function ChatInput() {
   const startTransition = useChatStore((s) => s.startTransition);
   const addMessage = useChatStore((s) => s.addMessage);
 
-  if (state === "empty") {
-    return (
-      <ManusPrompt
-        className="mx-auto w-full max-w-[728px] px-4 py-4"
-        useSlidingPanel={false}
-        onSubmit={(prompt) => {
-          if (!prompt.trim()) return;
-          addMessage({ id: crypto.randomUUID(), role: "user", content: prompt.trim() });
-          startTransition();
-        }}
-      />
-    );
-  }
-
-  return <CompactChatInput />;
+  // Use ManusPrompt in both phases; in empty it triggers transition, in active it just sends messages
+  return (
+    <ManusPrompt
+      className="mx-auto w-full max-w-[728px] px-4 py-4"
+      useSlidingPanel={false}
+      onSubmit={(prompt) => {
+        if (!prompt.trim()) return;
+        addMessage({ id: crypto.randomUUID(), role: "user", content: prompt.trim() });
+        if (state === "empty") startTransition();
+      }}
+    />
+  );
 }
