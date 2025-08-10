@@ -19,7 +19,7 @@ export function CompactChatInput() {
   };
 
   return (
-    <form onSubmit={onSubmit} className="mx-auto w-full max-w-4xl px-4 py-4">
+    <form onSubmit={onSubmit} className="mx-auto w-full max-w-[728px] px-4 py-4">
       <div className="bg-card flex items-center rounded-[var(--radius-input)] p-2 shadow-[var(--shadow-input)]">
         <input
           placeholder="Type your message..."

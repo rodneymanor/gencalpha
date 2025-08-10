@@ -12,7 +12,7 @@ export function ChatInput() {
   if (state === "empty") {
     return (
       <ManusPrompt
-        className="mx-auto w-full max-w-4xl px-4 py-4"
+        className="mx-auto w-full max-w-[728px] px-4 py-4"
         useSlidingPanel={false}
         onSubmit={(prompt) => {
           if (!prompt.trim()) return;
