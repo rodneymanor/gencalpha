@@ -177,6 +177,7 @@ export default function FocusCollectionsPage() {
             onClose={() => setPlayerOpen(false)}
             video={selectedVideo}
             mode="fixed"
+            disableEscapeClose
           />
         </div>
       </div>

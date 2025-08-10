@@ -18,9 +18,18 @@ interface FloatingVideoPlayerProps {
   // overlay: fixed panel that sits above content (used on Daily page)
   // sticky: sticks within a right-hand column (used on Focus Collections)
   mode?: "fixed" | "sticky";
+  // When true, pressing Escape should NOT close the panel
+  disableEscapeClose?: boolean;
 }
 
-export function FloatingVideoPlayer({ isOpen, onClose, video, className, mode = "fixed" }: FloatingVideoPlayerProps) {
+export function FloatingVideoPlayer({
+  isOpen,
+  onClose,
+  video,
+  className,
+  mode = "fixed",
+  disableEscapeClose = false,
+}: FloatingVideoPlayerProps) {
   // Update body margin when slideout opens/closes to push content over (fixed mode only)
   useEffect(() => {
     if (mode === "sticky") return; // Sticky variant does not manipulate body margin
@@ -49,17 +58,17 @@ export function FloatingVideoPlayer({ isOpen, onClose, video, className, mode = 
     };
   }, [isOpen, mode]);
 
-  // Handle escape key
+  // Handle escape key (optional)
   useEffect(() => {
+    if (disableEscapeClose) return;
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape" && isOpen) {
         onClose();
       }
     };
-
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-  }, [isOpen, onClose]);
+  }, [disableEscapeClose, isOpen, onClose]);
 
   if (!isOpen) return null;
 
