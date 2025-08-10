@@ -8,6 +8,7 @@ import { FloatingVideoPlayer } from "@/components/video/video-slideout-player";
 import { useAuth } from "@/contexts/auth-context";
 import { RBACClientService } from "@/core/auth/rbac-client";
 import { Video } from "@/lib/collections";
+import { cn } from "@/lib/utils";
 
 import { CollectionHeader } from "./_components/collection-header";
 import { FocusCollectionsSidebar } from "./_components/focus-collections-sidebar";
@@ -156,7 +157,12 @@ export default function FocusCollectionsPage() {
               onOpenMobileInsights={() => setIsMobileInsightsOpen(true)}
             />
 
-            <div className="flex-1 overflow-y-auto">
+            <div
+              className={cn(
+                "flex-1 overflow-y-auto transition-[padding] duration-300",
+                playerOpen ? "lg:pr-[452px]" : "",
+              )}
+            >
               <FocusVideoGrid
                 collectionId={selectedCollectionId}
                 selectedVideoId={selectedVideo?.id}
@@ -169,14 +175,14 @@ export default function FocusCollectionsPage() {
           </div>
         </div>
 
-      {/* Desktop: Fixed floating video player (overlay, does not contract content) */}
-      <FloatingVideoPlayer
-        isOpen={playerOpen}
-        onClose={() => setPlayerOpen(false)}
-        video={selectedVideo}
-        mode="fixed"
-        disableEscapeClose
-      />
+        {/* Desktop: Fixed floating video player (overlay, does not contract content) */}
+        <FloatingVideoPlayer
+          isOpen={playerOpen}
+          onClose={() => setPlayerOpen(false)}
+          video={selectedVideo}
+          mode="fixed"
+          disableEscapeClose
+        />
       </div>
     </div>
   );
