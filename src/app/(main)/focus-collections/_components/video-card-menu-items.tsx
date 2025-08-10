@@ -1,8 +1,8 @@
 "use client";
 
-import { Eye } from "lucide-react";
+import { Eye, RefreshCw } from "lucide-react";
 
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import type { Video } from "@/lib/collections";
 
 import { VideoCardActionItems } from "./video-card-action-items";
@@ -51,6 +51,37 @@ export function VideoCardMenuItems({
         canWrite={canWrite}
         canDelete={canDelete}
       />
+
+      {/* Super-admin reprocess action */}
+      {process.env.NEXT_PUBLIC_SUPER_ADMIN === "true" && (
+        <>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onClick={async (e) => {
+              e.stopPropagation();
+              try {
+                if (!video.id) return;
+                const res = await fetch("/api/videos/reprocess", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    "x-internal-secret": process.env.NEXT_PUBLIC_INTERNAL_API_SECRET ?? "",
+                  },
+                  body: JSON.stringify({ videoId: video.id }),
+                });
+                if (!res.ok) {
+                  console.error("Reprocess failed", await res.text());
+                }
+              } catch (err) {
+                console.error("Reprocess error", err);
+              }
+            }}
+          >
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Reprocess Video
+          </DropdownMenuItem>
+        </>
+      )}
     </>
   );
 }
