@@ -302,8 +302,13 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
     }
   };
 
+  const containerClass =
+    variant === "minimal"
+      ? "mx-auto w-full min-w-[390px] space-y-4 text-base"
+      : "mx-auto my-24 w-full max-w-3xl min-w-[390px] space-y-4 px-5 text-base";
+
   return (
-    <div className={cn("mx-auto my-24 w-full max-w-3xl min-w-[390px] space-y-4 px-5 text-base", className)}>
+    <div className={cn(containerClass, className)}>
       {/* Header */}
       {variant === "default" && (
         <header className="flex w-full items-end justify-between pb-4 pl-4">

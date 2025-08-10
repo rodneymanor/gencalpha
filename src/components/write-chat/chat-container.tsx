@@ -15,7 +15,7 @@ export function ChatContainer({ children }: { children: ReactNode }) {
     <motion.div
       className={cn(
         "relative h-full w-full transition-all duration-300",
-        state === "empty" ? "flex items-center justify-center" : "flex flex-col",
+        state === "empty" ? "flex items-center justify-center" : "flex min-h-0 flex-col",
       )}
       layout
       transition={transitions.layout}
