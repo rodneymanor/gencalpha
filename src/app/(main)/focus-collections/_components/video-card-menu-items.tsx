@@ -1,5 +1,6 @@
 "use client";
 
+import { getAuth } from "firebase/auth";
 import { Eye, RefreshCw } from "lucide-react";
 
 import { DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -63,12 +64,18 @@ export function VideoCardMenuItems({
               e.stopPropagation();
               try {
                 if (!video.id) return;
+                const auth = getAuth();
+                const idToken = await auth.currentUser?.getIdToken?.();
+                const headers: Record<string, string> = { "Content-Type": "application/json" };
+                if (idToken) headers["Authorization"] = `Bearer ${idToken}`;
+                // Optional internal secret if present in env (local testing)
+                if (process.env.NEXT_PUBLIC_INTERNAL_API_SECRET) {
+                  headers["x-internal-secret"] = process.env.NEXT_PUBLIC_INTERNAL_API_SECRET;
+                }
+
                 const res = await fetch("/api/videos/reprocess", {
                   method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                    "x-internal-secret": process.env.NEXT_PUBLIC_INTERNAL_API_SECRET ?? "",
-                  },
+                  headers,
                   body: JSON.stringify({ videoId: video.id }),
                 });
                 if (!res.ok) {
