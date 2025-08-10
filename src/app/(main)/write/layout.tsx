@@ -3,7 +3,6 @@ import { ReactNode } from "react";
 import { DashboardWrapper } from "@/app/(main)/dashboard/_components/dashboard-wrapper";
 import { AppSidebar } from "@/app/(main)/dashboard/_components/sidebar/app-sidebar";
 import { ResizableDashboardWrapper } from "@/components/dashboard/resizable-dashboard-wrapper";
-import { FloatingActionButton } from "@/components/ui/floating-action-button";
 import { ProcessingNotificationBadge } from "@/components/ui/processing-notification-badge";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { ResizableLayoutProvider } from "@/contexts/resizable-layout-context";
@@ -62,7 +61,7 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
                   </div>
                 </ResizableDashboardWrapper>
               </div>
-              <FloatingActionButton />
+              {/* FloatingActionButton removed on /write */}
             </SidebarInset>
           </SidebarProvider>
         </ResizableLayoutProvider>
