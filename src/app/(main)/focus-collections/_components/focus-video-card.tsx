@@ -75,7 +75,7 @@ export function FocusVideoCard({
   return (
     <div
       className={cn(
-        "group relative aspect-[9/16] cursor-pointer overflow-hidden rounded-[var(--radius-card)] transition-all duration-200",
+        "group relative aspect-[9/16] cursor-pointer overflow-hidden transition-all duration-200",
         isSelected
           ? "ring-secondary scale-[1.02] shadow-[var(--shadow-soft-drop)] ring-2"
           : "hover:scale-[1.02] hover:shadow-[var(--shadow-soft-drop)]",
