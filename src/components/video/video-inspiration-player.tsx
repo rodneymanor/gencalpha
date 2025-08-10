@@ -256,7 +256,13 @@ const FloatingVideoInspirationPlayer: React.FC<VideoInspirationPlayerProps> = (p
 function transformVideoData(video: Video): VideoInspirationPlayerProps {
   return {
     creatorName: video.metadata?.author ?? "Unknown Creator",
-    followers: "N/A", // Not in our data model
+    followers: (() => {
+      const meta = video.metadata as unknown as { creatorProfile?: { follower_count?: number | string } } | undefined;
+      const raw = meta?.creatorProfile?.follower_count;
+      if (typeof raw === "number") return formatNumber(raw);
+      if (typeof raw === "string" && raw.trim() !== "" && !Number.isNaN(Number(raw))) return formatNumber(Number(raw));
+      return "N/A";
+    })(),
     videoUrl: video.iframeUrl ?? video.originalUrl,
     views: formatNumber(video.metrics?.views ?? 0),
     likes: formatNumber(video.metrics?.likes ?? 0),
