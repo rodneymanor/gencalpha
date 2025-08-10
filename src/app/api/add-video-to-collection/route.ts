@@ -542,6 +542,14 @@ async function processVideoInBackground(
       creatorProfile.profile_pic_url = authorAvatarUrl;
     }
 
+    console.log("🧾 [Add Video API] Creator profile enrichment:", {
+      platform: platformLower,
+      authorFromMeta,
+      authorFollowerCount,
+      hasAuthorAvatarUrl: Boolean(authorAvatarUrl),
+      creatorProfile,
+    });
+
     const videoPayload = {
       originalUrl: decodedUrl,
       title: title ?? `Video from ${downloadResult.data.platform}`,
@@ -575,6 +583,11 @@ async function processVideoInBackground(
       userId: userId,
       collectionId: collectionId,
     };
+
+    console.log(
+      "💾 [Add Video API] Video payload metadata.creatorProfile:",
+      (videoPayload as any)?.metadata?.creatorProfile,
+    );
 
     const dbResult = await storeVideoInDatabase(collectionId, videoPayload, requestId);
     if (!dbResult.success || !dbResult.videoId) return;
