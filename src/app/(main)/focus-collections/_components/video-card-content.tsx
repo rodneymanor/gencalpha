@@ -4,6 +4,7 @@ import Image from "next/image";
 
 import { Play, Eye } from "lucide-react";
 
+import { generateBunnyThumbnailUrl } from "@/lib/bunny-stream";
 import type { Video } from "@/lib/collections";
 import { cn } from "@/lib/utils";
 
@@ -14,12 +15,14 @@ interface VideoCardContentProps {
 }
 
 export function VideoCardContent({ video, isHovered, formatNumber }: VideoCardContentProps) {
+  const bunnyThumbnail = video.guid ? generateBunnyThumbnailUrl(video.guid) : null;
+  const thumbnailSrc = bunnyThumbnail ?? video.thumbnailUrl ?? null;
   return (
     <div className="absolute inset-0">
       {/* Thumbnail */}
-      {video.thumbnailUrl ? (
+      {thumbnailSrc ? (
         <Image
-          src={video.thumbnailUrl}
+          src={thumbnailSrc}
           alt={video.title}
           fill
           className={cn("object-cover transition-transform duration-200", isHovered && "scale-105")}
@@ -37,23 +40,37 @@ export function VideoCardContent({ video, isHovered, formatNumber }: VideoCardCo
           <h3 className="line-clamp-2 font-sans text-sm font-medium text-white">{video.title}</h3>
 
           {/* Metrics */}
-          {video.metrics && (
-            <div className="flex items-center gap-3 text-xs text-white/80">
-              {video.metrics.views > 0 && (
-                <span className="flex items-center gap-1">
-                  <Eye className="h-3 w-3" />
-                  {formatNumber(video.metrics.views)}
-                </span>
-              )}
-              {video.metrics.likes > 0 && <span>❤️ {formatNumber(video.metrics.likes)}</span>}
-              {video.metrics.comments > 0 && <span>💬 {formatNumber(video.metrics.comments)}</span>}
-            </div>
-          )}
+          <VideoMetrics metrics={video.metrics} formatNumber={formatNumber} />
 
           {/* Duration */}
           {video.duration && <div className="text-xs text-white/60">{video.duration}</div>}
         </div>
       </div>
+    </div>
+  );
+}
+
+interface VideoMetricsProps {
+  metrics?: Video["metrics"];
+  formatNumber: (num: number | undefined) => string;
+}
+
+function VideoMetrics({ metrics, formatNumber }: VideoMetricsProps) {
+  if (!metrics) return null;
+  const hasViews = metrics.views > 0;
+  const hasLikes = metrics.likes > 0;
+  const hasComments = metrics.comments > 0;
+  if (!hasViews && !hasLikes && !hasComments) return null;
+  return (
+    <div className="flex items-center gap-3 text-xs text-white/80">
+      {hasViews && (
+        <span className="flex items-center gap-1">
+          <Eye className="h-3 w-3" />
+          {formatNumber(metrics.views)}
+        </span>
+      )}
+      {hasLikes && <span>❤️ {formatNumber(metrics.likes)}</span>}
+      {hasComments && <span>💬 {formatNumber(metrics.comments)}</span>}
     </div>
   );
 }
