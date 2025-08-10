@@ -25,7 +25,7 @@ export default function WritePage() {
 
       <div
         className={cn(
-          "bg-background/80 supports-[backdrop-filter]:bg-background/60 sticky bottom-2 z-10 backdrop-blur",
+          "bg-background/80 supports-[backdrop-filter]:bg-background/60 sticky bottom-2 z-10 mt-auto backdrop-blur",
           state === "empty" ? "w-full" : "w-full border-t",
         )}
       >
