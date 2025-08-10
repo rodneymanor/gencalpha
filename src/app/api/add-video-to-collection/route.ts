@@ -83,6 +83,66 @@ function validateUrl(url: string): boolean {
   return supportedPlatforms.some((platform) => url.toLowerCase().includes(platform));
 }
 
+async function fetchTikTokUserProfile(username: string): Promise<{
+  followerCount?: number;
+  avatarUrl?: string;
+}> {
+  try {
+    const rapidApiKey = process.env.RAPIDAPI_KEY;
+    if (!rapidApiKey) {
+      console.warn("⚠️ [Add Video API] RAPIDAPI_KEY not set; skipping TikTok user profile fetch");
+      return {};
+    }
+
+    const resp = await fetch(
+      `https://tiktok-scrapper-videos-music-challenges-downloader.p.rapidapi.com/user/${encodeURIComponent(username)}`,
+      {
+        method: "GET",
+        headers: {
+          "x-rapidapi-key": rapidApiKey,
+          "x-rapidapi-host": "tiktok-scrapper-videos-music-challenges-downloader.p.rapidapi.com",
+        },
+      },
+    );
+
+    if (!resp.ok) {
+      const text = await resp.text().catch(() => "");
+      console.warn(
+        `⚠️ [Add Video API] TikTok user profile fetch failed: ${resp.status} ${resp.statusText} ${text.substring(
+          0,
+          200,
+        )}...`,
+      );
+      return {};
+    }
+
+    const data = await resp.json().catch(() => null);
+    if (!data) return {};
+
+    const user = data?.data?.user ?? {};
+    const followerCount: number | undefined = user?.follower_count ?? undefined;
+    const avatarUrl: string | undefined =
+      user?.avatar_larger?.url_list?.[0] ??
+      user?.avatar_medium?.url_list?.[0] ??
+      user?.avatar_thumb?.url_list?.[0] ??
+      undefined;
+
+    return { followerCount, avatarUrl };
+  } catch (error) {
+    console.warn("⚠️ [Add Video API] TikTok user profile fetch errored:", error);
+    return {};
+  }
+}
+
+function extractTikTokUsernameFromUrl(url: string): string | null {
+  try {
+    const match = url.match(/tiktok\.com\/@([^/?#]+)/i);
+    return match?.[1] ?? null;
+  } catch {
+    return null;
+  }
+}
+
 // Use the same backend processing functions as the add video button
 async function downloadVideo(url: string) {
   try {
@@ -358,6 +418,20 @@ async function processVideoInBackground(
 
     const { downloadResult, streamResult } = processingResult;
 
+    // Optionally enrich TikTok videos with author follower count and avatar
+    let authorFollowerCount: number | undefined;
+    let authorAvatarUrl: string | undefined;
+    if ((downloadResult.data?.platform ?? "").toLowerCase() === "tiktok") {
+      const urlUsername = extractTikTokUsernameFromUrl(decodedUrl);
+      const authorFromMeta = downloadResult.data?.additionalMetadata?.author as string | undefined;
+      const candidateUsername = urlUsername ?? authorFromMeta ?? "";
+      if (candidateUsername) {
+        const profile = await fetchTikTokUserProfile(candidateUsername);
+        authorFollowerCount = profile.followerCount;
+        authorAvatarUrl = profile.avatarUrl;
+      }
+    }
+
     const videoPayload = {
       originalUrl: decodedUrl,
       title: title ?? `Video from ${downloadResult.data.platform}`,
@@ -366,14 +440,18 @@ async function processVideoInBackground(
       directUrl: streamResult.directUrl,
       guid: streamResult.guid,
       thumbnailUrl:
-        (streamResult.thumbnailUrl ?? (streamResult.guid ? generateBunnyThumbnailUrl(streamResult.guid) : null)) ??
+        streamResult.thumbnailUrl ??
+        (streamResult.guid ? generateBunnyThumbnailUrl(streamResult.guid) : null) ??
         downloadResult.data.thumbnailUrl,
-      previewUrl: streamResult.previewUrl ?? (streamResult.guid ? generateBunnyPreviewUrl(streamResult.guid) : undefined),
+      previewUrl:
+        streamResult.previewUrl ?? (streamResult.guid ? generateBunnyPreviewUrl(streamResult.guid) : undefined),
       metrics: downloadResult.data.metrics ?? {},
       metadata: {
         ...downloadResult.data.metadata,
         author: downloadResult.data.additionalMetadata?.author ?? "Unknown",
         duration: downloadResult.data.additionalMetadata?.duration ?? 0,
+        authorFollowerCount,
+        authorAvatarUrl,
       },
       transcriptionStatus: "pending",
       userId: userId,
