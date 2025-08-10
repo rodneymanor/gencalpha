@@ -1,5 +1,5 @@
-import { ClarityLoader } from "@/components/ui/loading";
 "use client";
+import { ClarityLoader } from "@/components/ui/loading";
 
 import { useState, useEffect, useCallback } from "react";
 
