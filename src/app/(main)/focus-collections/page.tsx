@@ -26,6 +26,7 @@ interface RawCollection {
   id: string;
   title: string;
   description?: string;
+  videoCount?: number;
   videos?: unknown[];
 }
 
@@ -34,7 +35,8 @@ const transformCollections = (collections: RawCollection[]): Collection[] => {
     id: col.id,
     title: col.title,
     description: col.description,
-    videoCount: col.videos?.length ?? 0,
+    // Prefer persisted counter from Firestore; fallback to array length if present
+    videoCount: typeof col.videoCount === "number" ? col.videoCount : Array.isArray(col.videos) ? col.videos.length : 0,
   }));
 };
 
