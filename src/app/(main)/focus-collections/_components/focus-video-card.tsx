@@ -103,8 +103,8 @@ export function FocusVideoCard({
           </Button>
         </div>
 
-        {/* Platform Badge */}
-        <div className="absolute top-3 left-3">
+        {/* Platform Badge (hidden per current requirement, kept for future use) */}
+        <div className="absolute top-3 left-3 hidden">
           <Badge
             variant={video.platform.toLowerCase() === "instagram" ? "instagram" : undefined}
             className={cn(

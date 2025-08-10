@@ -16,13 +16,14 @@ interface VideoCardContentProps {
 export function VideoCardContent({ video, isHovered, formatNumber }: VideoCardContentProps) {
   return (
     <div className="absolute inset-0">
-      {/* Thumbnail */}
+      {/* Static Thumbnail */}
       {video.thumbnailUrl ? (
         <Image
           src={video.thumbnailUrl}
           alt={video.title}
           fill
           className={cn("object-cover transition-transform duration-200", isHovered && "scale-105")}
+          priority={false}
         />
       ) : (
         <div className="bg-muted flex h-full w-full items-center justify-center">
@@ -30,30 +31,26 @@ export function VideoCardContent({ video, isHovered, formatNumber }: VideoCardCo
         </div>
       )}
 
-      {/* Bottom Section - Video Info */}
-      <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/80 to-transparent p-3">
-        <div className="space-y-2">
-          {/* Title */}
-          <h3 className="line-clamp-2 font-sans text-sm font-medium text-white">{video.title}</h3>
+      {/* Animated Preview on hover (if available) */}
+      {video.previewUrl && (
+        <Image
+          src={video.previewUrl}
+          alt={`${video.title} preview`}
+          fill
+          className={cn("object-cover transition-opacity duration-200", isHovered ? "opacity-100" : "opacity-0")}
+          priority={false}
+        />
+      )}
 
-          {/* Metrics */}
-          {video.metrics && (
-            <div className="flex items-center gap-3 text-xs text-white/80">
-              {video.metrics.views > 0 && (
-                <span className="flex items-center gap-1">
-                  <Eye className="h-3 w-3" />
-                  {formatNumber(video.metrics.views)}
-                </span>
-              )}
-              {video.metrics.likes > 0 && <span>❤️ {formatNumber(video.metrics.likes)}</span>}
-              {video.metrics.comments > 0 && <span>💬 {formatNumber(video.metrics.comments)}</span>}
-            </div>
-          )}
-
-          {/* Duration */}
-          {video.duration && <div className="text-xs text-white/60">{video.duration}</div>}
+      {/* Views pill bottom-right only */}
+      {video.metrics?.views !== undefined && video.metrics.views > 0 && (
+        <div className="absolute right-2 bottom-2">
+          <div className="rounded-pill flex items-center gap-1 bg-black/60 px-2 py-1 text-white">
+            <Eye className="h-3 w-3" />
+            <span className="font-sans text-xs">{formatNumber(video.metrics.views)}</span>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
