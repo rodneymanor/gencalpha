@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 "use client";
 
 import React, { useState } from "react";
@@ -43,9 +44,9 @@ const VideoPlayerView: React.FC<
   <div className="flex h-full flex-col">
     {/* Video Player - Optimized Size */}
     <div className="flex flex-shrink-0 items-center justify-center">
-      <div className="relative aspect-[9/16] w-full max-w-[268px] flex-shrink-0 overflow-hidden rounded-[var(--radius-card)] bg-black shadow-[var(--shadow-input)]">
+      <div className="relative aspect-[9/16] w-full max-w-[268px] flex-shrink-0 overflow-hidden bg-black shadow-[var(--shadow-input)]">
         <iframe
-          className="absolute top-0 left-0 h-full w-full rounded-[var(--radius-card)]"
+          className="absolute top-0 left-0 h-full w-full"
           src={videoUrl}
           title="Video Player"
           frameBorder="0"
@@ -163,7 +164,8 @@ const InsightsPanelView: React.FC<Omit<VideoInspirationPlayerProps, "videoUrl" |
         ) : (
           <div className="text-muted-foreground space-y-2">
             <p>
-              <strong>Expand on the Core Concept:</strong> A deep-dive tutorial on the main technique shown in the video.
+              <strong>Expand on the Core Concept:</strong> A deep-dive tutorial on the main technique shown in the
+              video.
             </p>
             <p>
               <strong>Behind-the-Scenes:</strong> Show the process of creating the original video, including mistakes.
