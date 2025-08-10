@@ -188,63 +188,14 @@ export function FocusInsightsPanel({ video, className }: FocusInsightsPanelProps
   }
 
   const normalizedDuration = normalizeDuration(video.duration);
+  const followerCount = (video.metadata as any)?.creatorProfile?.follower_count as number | undefined;
+  const formattedFollowers = followerCount !== undefined ? formatNumber(followerCount) : undefined;
 
   return (
     <div className={cn("bg-background flex h-full flex-col", className)}>
-      <div className="flex-shrink-0 p-6">
-        <div className="flex items-start gap-4">
-          <div className="relative h-20 w-14 flex-shrink-0 overflow-hidden rounded-[var(--radius-button)]">
-            {video.thumbnailUrl ? (
-              <Image src={video.thumbnailUrl} alt={video.title} fill className="object-cover" />
-            ) : (
-              <div className="bg-muted flex h-full w-full items-center justify-center">
-                <Play className="text-muted-foreground h-6 w-6" />
-              </div>
-            )}
-          </div>
+      <HeaderSection video={video} normalizedDuration={normalizedDuration} formattedFollowers={formattedFollowers} />
 
-          <div className="min-w-0 flex-1">
-            <div className="mb-2 flex items-center justify-between">
-              <h2 className="line-clamp-1 font-sans text-lg font-semibold">
-                {video.metadata?.author ?? "Unknown Creator"}
-              </h2>
-              <span className="text-muted-foreground text-sm">Followers: N/A</span>
-            </div>
-            <div className="mb-3 flex items-center gap-2">
-              <Badge
-                variant={video.platform.toLowerCase() === "instagram" ? "instagram" : "secondary"}
-                className={cn(
-                  "text-xs",
-                  video.platform.toLowerCase() === "tiktok" ? "bg-black text-white hover:bg-black/80" : "",
-                )}
-              >
-                {video.platform}
-              </Badge>
-              {normalizedDuration && <span className="text-muted-foreground text-xs">{normalizedDuration}</span>}
-              <span className="text-muted-foreground text-xs">{formatDate(video.addedAt)}</span>
-            </div>
-
-            <div className="flex gap-2">
-              <Button size="sm" variant="outline" className="gap-2">
-                <ExternalLink className="h-3 w-3" />
-                View
-              </Button>
-
-              <Button size="sm" variant="outline" className="gap-2">
-                <Copy className="h-3 w-3" />
-                Copy Link
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {video.metrics && (
-        <div className="flex-shrink-0 p-4">
-          <MetricsGrid metrics={video.metrics} />
-          <EngagementRate metrics={video.metrics} />
-        </div>
-      )}
+      {video.metrics && <MetricsSection metrics={video.metrics} />}
 
       <div className="flex-1 overflow-hidden">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex h-full flex-col">
@@ -279,6 +230,75 @@ export function FocusInsightsPanel({ video, className }: FocusInsightsPanelProps
           </div>
         </Tabs>
       </div>
+    </div>
+  );
+}
+
+function HeaderSection({
+  video,
+  normalizedDuration,
+  formattedFollowers,
+}: {
+  video: Video & { id: string };
+  normalizedDuration?: string;
+  formattedFollowers?: string;
+}) {
+  return (
+    <div className="flex-shrink-0 p-6">
+      <div className="flex items-start gap-4">
+        <div className="relative h-20 w-14 flex-shrink-0 overflow-hidden rounded-[var(--radius-button)]">
+          {video.thumbnailUrl ? (
+            <Image src={video.thumbnailUrl} alt={video.title} fill className="object-cover" />
+          ) : (
+            <div className="bg-muted flex h-full w-full items-center justify-center">
+              <Play className="text-muted-foreground h-6 w-6" />
+            </div>
+          )}
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="line-clamp-1 font-sans text-lg font-semibold">
+              {video.metadata?.author ?? "Unknown Creator"}
+            </h2>
+            <span className="text-muted-foreground text-sm">Followers: {formattedFollowers ?? "N/A"}</span>
+          </div>
+          <div className="mb-3 flex items-center gap-2">
+            <Badge
+              variant={video.platform.toLowerCase() === "instagram" ? "instagram" : "secondary"}
+              className={cn(
+                "text-xs",
+                video.platform.toLowerCase() === "tiktok" ? "bg-black text-white hover:bg-black/80" : "",
+              )}
+            >
+              {video.platform}
+            </Badge>
+            {normalizedDuration && <span className="text-muted-foreground text-xs">{normalizedDuration}</span>}
+            <span className="text-muted-foreground text-xs">{formatDate(video.addedAt)}</span>
+          </div>
+
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" className="gap-2">
+              <ExternalLink className="h-3 w-3" />
+              View
+            </Button>
+
+            <Button size="sm" variant="outline" className="gap-2">
+              <Copy className="h-3 w-3" />
+              Copy Link
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MetricsSection({ metrics }: { metrics: NonNullable<Video["metrics"]> }) {
+  return (
+    <div className="flex-shrink-0 p-4">
+      <MetricsGrid metrics={metrics} />
+      <EngagementRate metrics={metrics} />
     </div>
   );
 }
