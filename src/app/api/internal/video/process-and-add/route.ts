@@ -1,7 +1,12 @@
 // Internal video processing endpoint - bypasses user authentication for background processing
 import { NextRequest, NextResponse } from "next/server";
 
-import { uploadToBunnyStream, generateBunnyThumbnailUrl, uploadBunnyThumbnailWithRetry } from "@/lib/bunny-stream";
+import {
+  uploadToBunnyStream,
+  generateBunnyThumbnailUrl,
+  generateBunnyPreviewUrl,
+  uploadBunnyThumbnailWithRetry,
+} from "@/lib/bunny-stream";
 import { getAdminDb, isAdminInitialized } from "@/lib/firebase-admin";
 
 export async function POST(request: NextRequest) {
@@ -225,7 +230,10 @@ export async function POST(request: NextRequest) {
       iframeUrl: streamResult.iframeUrl,
       directUrl: streamResult.directUrl,
       guid: streamResult.guid,
-      thumbnailUrl: streamResult.thumbnailUrl ?? downloadResult.data.thumbnailUrl,
+      thumbnailUrl:
+        (streamResult.thumbnailUrl ?? (streamResult.guid ? generateBunnyThumbnailUrl(streamResult.guid) : null)) ??
+        downloadResult.data.thumbnailUrl,
+      previewUrl: streamResult.previewUrl ?? (streamResult.guid ? generateBunnyPreviewUrl(streamResult.guid) : undefined),
       caption:
         downloadResult.data.additionalMetadata?.caption ?? downloadResult.data.additionalMetadata?.description ?? "",
       hashtags: downloadResult.data.additionalMetadata?.hashtags ?? [],
@@ -346,14 +354,16 @@ async function streamToBunny(downloadData: any) {
     console.log("✅ [INTERNAL_VIDEO] Bunny stream successful:", result.cdnUrl);
 
     // Generate Bunny CDN thumbnail URL using the video ID
-    const thumbnailUrl = generateBunnyThumbnailUrl(result.filename);
+  const thumbnailUrl = generateBunnyThumbnailUrl(result.filename);
+  const previewUrl = generateBunnyPreviewUrl(result.filename);
 
-    const returnValue = {
+  const returnValue = {
       success: true,
       iframeUrl: result.cdnUrl,
       directUrl: result.cdnUrl,
       guid: result.filename, // This is actually the GUID
-      thumbnailUrl,
+    thumbnailUrl,
+    previewUrl,
     };
 
     console.log("🔍 [INTERNAL_VIDEO] Returning:", returnValue);
@@ -616,6 +626,26 @@ function startBackgroundTranscription(
         console.warn("⚠️ [INTERNAL_BACKGROUND] Hook generation error:", hookErr);
       }
 
+      // 🧠 Generate 3 fresh content ideas from transcript
+      try {
+        const ideasRes = await fetch(`${baseUrl}/api/video/generate-content-ideas`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ transcript }),
+        });
+        if (ideasRes.ok) {
+          const { ideas } = await ideasRes.json();
+          await updateVideoTranscription(videoId, {
+            insights: { contentIdeas: ideas },
+          });
+          console.log("✅ [INTERNAL_BACKGROUND] Content ideas generated and saved for video:", videoId);
+        } else {
+          console.warn("⚠️ [INTERNAL_BACKGROUND] Content ideas generation failed with status:", ideasRes.status);
+        }
+      } catch (ideasErr) {
+        console.warn("⚠️ [INTERNAL_BACKGROUND] Content ideas generation error:", ideasErr);
+      }
+
       // Real-time update hook (WebSocket, etc.) could be invoked here
       console.log("📡 [INTERNAL_BACKGROUND] Transcription + analysis ready for video:", videoId);
 
@@ -655,6 +685,15 @@ async function updateVideoTranscription(videoId: string, transcriptionData: any)
     }
     if (transcriptionData.visualContext !== undefined) {
       updateData.visualContext = transcriptionData.visualContext;
+    }
+
+    // Merge insights if provided to avoid overwriting previous insights keys
+    if (transcriptionData.insights !== undefined) {
+      const videoRef = adminDb.collection("videos").doc(videoId);
+      const current = await videoRef.get();
+      const existingInsights = (current.exists ? current.data()?.insights : undefined) ?? {};
+      // Shallow merge hooks/contentIdeas/etc.
+      updateData.insights = { ...existingInsights, ...transcriptionData.insights };
     }
 
     await adminDb.collection("videos").doc(videoId).update(updateData);

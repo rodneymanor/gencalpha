@@ -1,8 +1,11 @@
 "use client";
 
+import Image from "next/image";
+
 import { Play, Eye } from "lucide-react";
 
 import type { Video } from "@/lib/collections";
+import { cn } from "@/lib/utils";
 
 interface VideoCardContentProps {
   video: Video;
@@ -14,9 +17,18 @@ export function VideoCardContent({ video, isHovered, formatNumber }: VideoCardCo
   return (
     <div className="absolute inset-0">
       {/* Thumbnail */}
-      <div className="bg-muted flex h-full w-full items-center justify-center">
-        <Play className="text-muted-foreground h-12 w-12 opacity-50" />
-      </div>
+      {video.thumbnailUrl ? (
+        <Image
+          src={video.thumbnailUrl}
+          alt={video.title}
+          fill
+          className={cn("object-cover transition-transform duration-200", isHovered && "scale-105")}
+        />
+      ) : (
+        <div className="bg-muted flex h-full w-full items-center justify-center">
+          <Play className="text-muted-foreground h-12 w-12 opacity-50" />
+        </div>
+      )}
 
       {/* Bottom Section - Video Info */}
       <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/80 to-transparent p-3">

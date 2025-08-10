@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuPortal,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -49,17 +50,19 @@ function HeaderActions({ onOpenVideo, onOpenCollection }: { onOpenVideo: () => v
             </span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-52">
-          <DropdownMenuItem onClick={onOpenVideo} className="gap-2">
-            <VideoIcon className="h-4 w-4" />
-            Video
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={onOpenCollection} className="gap-2">
-            <GalleryVerticalEnd className="h-4 w-4" />
-            Collection
-          </DropdownMenuItem>
-        </DropdownMenuContent>
+        <DropdownMenuPortal>
+          <DropdownMenuContent align="start" side="bottom" sideOffset={8} className="w-52">
+            <DropdownMenuItem onClick={onOpenVideo} className="gap-2">
+              <VideoIcon className="h-4 w-4" />
+              Video
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={onOpenCollection} className="gap-2">
+              <GalleryVerticalEnd className="h-4 w-4" />
+              Collection
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenuPortal>
       </DropdownMenu>
     </div>
   );

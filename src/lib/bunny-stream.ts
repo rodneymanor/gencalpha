@@ -535,6 +535,25 @@ export function generateBunnyThumbnailUrl(videoId: string): string | null {
 }
 
 /**
+ * Generate a Bunny CDN animated preview URL for a video
+ * Format: https://vz-{hostname}.b-cdn.net/{videoId}/preview.webp
+ */
+export function generateBunnyPreviewUrl(videoId: string): string | null {
+  const hostname = process.env.BUNNY_CDN_HOSTNAME;
+
+  if (!hostname) {
+    console.error("❌ [BUNNY] BUNNY_CDN_HOSTNAME not configured");
+    return null;
+  }
+
+  const cleanedHost = hostname.startsWith("vz-") ? hostname : `vz-${hostname}`;
+  const previewUrl = `https://${cleanedHost}/${videoId}/preview.webp`;
+  console.log("🎞️ [BUNNY] Generated animated preview URL:", previewUrl);
+
+  return previewUrl;
+}
+
+/**
  * Extract video ID from Bunny iframe URL
  * Format: https://iframe.mediadelivery.net/embed/{libraryId}/{videoId}
  */

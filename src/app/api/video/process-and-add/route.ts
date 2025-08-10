@@ -2,7 +2,12 @@
 // Production-ready video processing and collection addition endpoint
 import { NextRequest, NextResponse } from "next/server";
 
-import { uploadToBunnyStream, uploadBunnyThumbnailWithRetry, generateBunnyThumbnailUrl } from "@/lib/bunny-stream";
+import {
+  uploadToBunnyStream,
+  uploadBunnyThumbnailWithRetry,
+  generateBunnyThumbnailUrl,
+  generateBunnyPreviewUrl,
+} from "@/lib/bunny-stream";
 import { getAdminAuth, getAdminDb, isAdminInitialized } from "@/lib/firebase-admin";
 
 export async function POST(request: NextRequest) {
@@ -191,7 +196,10 @@ export async function POST(request: NextRequest) {
       iframeUrl: streamResult.iframeUrl,
       directUrl: streamResult.directUrl,
       guid: streamResult.guid,
-      thumbnailUrl: streamResult.thumbnailUrl || downloadResult.data.thumbnailUrl,
+      thumbnailUrl:
+        (streamResult.thumbnailUrl ?? (streamResult.guid ? generateBunnyThumbnailUrl(streamResult.guid) : null)) ||
+        downloadResult.data.thumbnailUrl,
+      previewUrl: streamResult.previewUrl ?? (streamResult.guid ? generateBunnyPreviewUrl(streamResult.guid) : undefined),
       metrics: downloadResult.data.metrics || {},
       metadata: {
         ...(downloadResult.data.metadata || {}),
@@ -306,15 +314,17 @@ async function streamToBunny(downloadData: any) {
 
     console.log("✅ [VIDEO_PROCESS] Bunny stream successful:", result.cdnUrl);
 
-    // Generate Bunny CDN thumbnail URL using the video ID
-    const thumbnailUrl = generateBunnyThumbnailUrl(result.filename);
+  // Generate Bunny CDN thumbnail & preview URLs using the video ID
+  const thumbnailUrl = generateBunnyThumbnailUrl(result.filename);
+  const previewUrl = generateBunnyPreviewUrl(result.filename);
 
-    const returnValue = {
+  const returnValue = {
       success: true,
       iframeUrl: result.cdnUrl,
       directUrl: result.cdnUrl,
       guid: result.filename, // This is actually the GUID
-      thumbnailUrl,
+    thumbnailUrl,
+    previewUrl,
     };
 
     console.log("🔍 [VIDEO_PROCESS] Returning:", returnValue);

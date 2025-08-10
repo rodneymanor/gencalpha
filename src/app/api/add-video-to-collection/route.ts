@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { ApiKeyAuthService } from "@/lib/api-key-auth";
-import { uploadToBunnyStream } from "@/lib/bunny-stream";
+import { uploadToBunnyStream, generateBunnyThumbnailUrl, generateBunnyPreviewUrl } from "@/lib/bunny-stream";
 import { getAdminDb, isAdminInitialized } from "@/lib/firebase-admin";
 import { buildInternalUrl } from "@/lib/utils/url";
 
@@ -139,7 +139,8 @@ async function streamToBunny(downloadData: any) {
       iframeUrl: result.cdnUrl,
       directUrl: result.cdnUrl,
       guid: result.filename, // This is actually the GUID
-      thumbnailUrl: null,
+      thumbnailUrl: generateBunnyThumbnailUrl(result.filename),
+      previewUrl: generateBunnyPreviewUrl(result.filename),
     };
   } catch (error) {
     console.error("❌ [Add Video API] Bunny stream error:", error);
@@ -211,7 +212,7 @@ function startBackgroundTranscription(
         method: "POST",
         headers: {
           ...headers,
-          "x-internal-secret": process.env.INTERNAL_API_SECRET || "",
+          "x-internal-secret": process.env.INTERNAL_API_SECRET ?? "",
         },
         body: JSON.stringify({
           videoData,
@@ -364,7 +365,10 @@ async function processVideoInBackground(
       iframeUrl: streamResult.iframeUrl,
       directUrl: streamResult.directUrl,
       guid: streamResult.guid,
-      thumbnailUrl: downloadResult.data.thumbnailUrl ?? streamResult.thumbnailUrl,
+      thumbnailUrl:
+        (streamResult.thumbnailUrl ?? (streamResult.guid ? generateBunnyThumbnailUrl(streamResult.guid) : null)) ??
+        downloadResult.data.thumbnailUrl,
+      previewUrl: streamResult.previewUrl ?? (streamResult.guid ? generateBunnyPreviewUrl(streamResult.guid) : undefined),
       metrics: downloadResult.data.metrics ?? {},
       metadata: {
         ...downloadResult.data.metadata,
@@ -384,7 +388,7 @@ async function processVideoInBackground(
       dbResult.videoId,
       collectionId,
       downloadResult.data.platform,
-      apiKey || undefined,
+      apiKey ?? undefined,
     );
 
     console.log(`🎉 [${requestId}] PROCESSING COMPLETED SUCCESSFULLY in ${Date.now() - backgroundStartTime}ms`);

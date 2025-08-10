@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 
+import Image from "next/image";
+
 import { Play, Star, StarOff, MoreHorizontal, Eye, Trash2, Copy, Move } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -119,7 +121,15 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
     }
   };
 
-  const renderVideoThumbnail = (_video: Video) => null;
+  const renderVideoThumbnail = (video: Video) =>
+    video.thumbnailUrl ? (
+      <Image
+        src={video.thumbnailUrl}
+        alt={video.title}
+        fill
+        className="object-cover transition-transform group-hover:scale-105"
+      />
+    ) : null;
 
   const renderVideoMetrics = (video: Video) =>
     video.metrics && (

@@ -53,6 +53,7 @@ export interface Video {
   guid?: string; // Bunny CDN GUID
   platform: string;
   thumbnailUrl: string;
+  previewUrl?: string; // Bunny animated preview URL
   title: string;
   caption?: string; // The actual caption/description text
   hashtags?: string[]; // Array of hashtags extracted from caption

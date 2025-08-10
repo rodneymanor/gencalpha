@@ -25,6 +25,7 @@ interface VideoInspirationPlayerProps {
   transcript: string;
   duration: string;
   hookIdeas?: { text: string; rating?: number }[];
+  contentIdeas?: { title: string; format: string; hook: string; keyPoints: string[] }[];
 }
 
 // --- ICON COMPONENTS ---
@@ -142,17 +143,36 @@ const InsightsPanelView: React.FC<Omit<VideoInspirationPlayerProps, "videoUrl" |
           <FileText className="text-secondary h-4 w-4" />
           Content Ideas
         </h3>
-        <div className="text-muted-foreground space-y-2">
-          <p>
-            <strong>Expand on the Core Concept:</strong> A deep-dive tutorial on the main technique shown in the video.
-          </p>
-          <p>
-            <strong>Behind-the-Scenes:</strong> Show the process of creating the original video, including mistakes.
-          </p>
-          <p>
-            <strong>Tool Spotlight:</strong> Create a dedicated review or tutorial for a specific tool mentioned.
-          </p>
-        </div>
+        {props.contentIdeas && props.contentIdeas.length > 0 ? (
+          <div className="text-muted-foreground space-y-3">
+            {props.contentIdeas.slice(0, 3).map((idea) => (
+              <div key={idea.hook} className="rounded-[var(--radius-card)] border p-3">
+                <div className="text-foreground mb-1 text-sm font-semibold">{idea.title}</div>
+                <div className="text-foreground/80 mb-1 text-xs">Format: {idea.format}</div>
+                <div className="text-foreground text-xs">Hook: {idea.hook}</div>
+                {idea.keyPoints && idea.keyPoints.length > 0 && (
+                  <ul className="mt-2 list-inside list-disc text-xs">
+                    {idea.keyPoints.slice(0, 3).map((kp) => (
+                      <li key={kp}>{kp}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-muted-foreground space-y-2">
+            <p>
+              <strong>Expand on the Core Concept:</strong> A deep-dive tutorial on the main technique shown in the video.
+            </p>
+            <p>
+              <strong>Behind-the-Scenes:</strong> Show the process of creating the original video, including mistakes.
+            </p>
+            <p>
+              <strong>Tool Spotlight:</strong> Create a dedicated review or tutorial for a specific tool mentioned.
+            </p>
+          </div>
+        )}
       </div>
 
       <div>
@@ -294,6 +314,23 @@ function transformVideoData(video: Video): VideoInspirationPlayerProps {
       return rawHooks
         .filter((h) => typeof h.text === "string" && h.text.trim() !== "")
         .map((h) => ({ text: String(h.text).trim(), rating: typeof h.rating === "number" ? h.rating : undefined }));
+    })(),
+    contentIdeas: (() => {
+      const meta = video as unknown as {
+        insights?: { contentIdeas?: { title?: string; format?: string; hook?: string; keyPoints?: string[] }[] };
+      };
+      const raw = meta.insights?.contentIdeas;
+      if (!Array.isArray(raw) || raw.length === 0) return undefined;
+      return raw
+        .filter((i) => typeof i?.hook === "string" && i.hook.trim() !== "")
+        .map((i) => ({
+          title: String(i?.title ?? "Idea").trim(),
+          format: String(i?.format ?? "Video").trim(),
+          hook: String(i?.hook ?? "").trim(),
+          keyPoints: Array.isArray(i?.keyPoints)
+            ? i.keyPoints.filter((kp) => typeof kp === "string" && kp.trim() !== "").slice(0, 3)
+            : [],
+        }));
     })(),
   };
 }
