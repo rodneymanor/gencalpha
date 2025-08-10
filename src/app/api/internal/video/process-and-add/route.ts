@@ -1,6 +1,7 @@
 // Internal video processing endpoint - bypasses user authentication for background processing
 import { NextRequest, NextResponse } from "next/server";
 
+import { uploadImageToBunnyStorage } from "@/lib/bunny-storage";
 import {
   uploadToBunnyStream,
   generateBunnyThumbnailUrl,
@@ -194,27 +195,89 @@ export async function POST(request: NextRequest) {
       console.log("ℹ️ [INTERNAL_VIDEO] No custom thumbnail URL provided, using default");
     }
 
-    // Step 2.8: If Instagram, fetch creator profile to enrich metadata
+    // Step 2.8: Enrich creator profile with follower_count and avatar (Instagram/TikTok)
     let creatorProfile: any = null;
     try {
       const platformLower = String(downloadResult?.data?.platform ?? scrapedData?.platform ?? "").toLowerCase();
       const igUserPk = scrapedData?.rawData?.user?.pk ?? scrapedData?.metadata?.userId ?? scrapedData?.user?.pk;
       const igUsername = scrapedData?.rawData?.user?.username ?? scrapedData?.author ?? scrapedData?.user?.username;
+
       if (platformLower === "instagram" && (igUsername || igUserPk)) {
-        console.log(
-          "👤 [INTERNAL_VIDEO] Fetching Instagram creator profile:",
-          igUsername ? { igUsername } : { igUserPk },
-        );
-        const profileRes = await fetch(`${baseUrl}/api/instagram/profile`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(igUsername ? { username: igUsername } : { userId: igUserPk }),
-        });
-        if (profileRes.ok) {
-          const profileJson = await profileRes.json();
-          if (profileJson?.success) creatorProfile = profileJson.profile;
-        } else {
-          console.warn("⚠️ [INTERNAL_VIDEO] IG profile request failed:", profileRes.status);
+        // Use RapidAPI profile endpoint to get follower_count and avatar
+        const rapidKey = process.env.RAPIDAPI_KEY;
+        if (rapidKey && igUsername) {
+          const resp = await fetch(
+            `https://instagram-api-fast-reliable-data-scraper.p.rapidapi.com/profile?username=${encodeURIComponent(
+              igUsername,
+            )}`,
+            {
+              method: "GET",
+              headers: {
+                "x-rapidapi-key": rapidKey,
+                "x-rapidapi-host": "instagram-api-fast-reliable-data-scraper.p.rapidapi.com",
+              },
+            },
+          );
+          if (resp.ok) {
+            const json = await resp.json().catch(() => null);
+            const data = json?.data ?? json;
+            const versions = data?.hd_profile_pic_versions as Array<{ url?: string }> | undefined;
+            const avatarUrl = versions?.[1]?.url ?? versions?.[0]?.url ?? data?.profile_pic_url;
+            const followerCount = data?.follower_count;
+            creatorProfile = {
+              ...(creatorProfile ?? {}),
+              username: igUsername,
+              follower_count: typeof followerCount === "number" ? followerCount : undefined,
+              profile_pic_url: avatarUrl,
+            };
+            // Upload avatar to Bunny (best-effort)
+            if (avatarUrl) {
+              const up = await uploadImageToBunnyStorage(avatarUrl, {
+                path: `avatars/instagram`,
+                filenameBase: igUsername.toLowerCase(),
+              });
+              if (up.success) creatorProfile.profile_pic_url = up.publicUrl;
+            }
+          }
+        }
+      } else if (platformLower === "tiktok") {
+        const tkUsername = scrapedData?.author ?? scrapedData?.rawData?.author?.unique_id;
+        const rapidKey = process.env.RAPIDAPI_KEY;
+        if (rapidKey && tkUsername) {
+          const resp = await fetch(
+            `https://tiktok-scrapper-videos-music-challenges-downloader.p.rapidapi.com/user/${encodeURIComponent(
+              tkUsername,
+            )}`,
+            {
+              method: "GET",
+              headers: {
+                "x-rapidapi-key": rapidKey,
+                "x-rapidapi-host": "tiktok-scrapper-videos-music-challenges-downloader.p.rapidapi.com",
+              },
+            },
+          );
+          if (resp.ok) {
+            const json = await resp.json().catch(() => null);
+            const user = json?.data?.user ?? {};
+            const followerCount = user?.follower_count;
+            const avatarUrl =
+              user?.avatar_larger?.url_list?.[0] ??
+              user?.avatar_medium?.url_list?.[0] ??
+              user?.avatar_thumb?.url_list?.[0];
+            creatorProfile = {
+              ...(creatorProfile ?? {}),
+              username: tkUsername,
+              follower_count: typeof followerCount === "number" ? followerCount : undefined,
+              profile_pic_url: avatarUrl,
+            };
+            if (avatarUrl) {
+              const up = await uploadImageToBunnyStorage(avatarUrl, {
+                path: `avatars/tiktok`,
+                filenameBase: tkUsername.toLowerCase(),
+              });
+              if (up.success) creatorProfile.profile_pic_url = up.publicUrl;
+            }
+          }
         }
       }
     } catch (e) {
@@ -231,9 +294,11 @@ export async function POST(request: NextRequest) {
       directUrl: streamResult.directUrl,
       guid: streamResult.guid,
       thumbnailUrl:
-        (streamResult.thumbnailUrl ?? (streamResult.guid ? generateBunnyThumbnailUrl(streamResult.guid) : null)) ??
+        streamResult.thumbnailUrl ??
+        (streamResult.guid ? generateBunnyThumbnailUrl(streamResult.guid) : null) ??
         downloadResult.data.thumbnailUrl,
-      previewUrl: streamResult.previewUrl ?? (streamResult.guid ? generateBunnyPreviewUrl(streamResult.guid) : undefined),
+      previewUrl:
+        streamResult.previewUrl ?? (streamResult.guid ? generateBunnyPreviewUrl(streamResult.guid) : undefined),
       caption:
         downloadResult.data.additionalMetadata?.caption ?? downloadResult.data.additionalMetadata?.description ?? "",
       hashtags: downloadResult.data.additionalMetadata?.hashtags ?? [],
@@ -354,16 +419,16 @@ async function streamToBunny(downloadData: any) {
     console.log("✅ [INTERNAL_VIDEO] Bunny stream successful:", result.cdnUrl);
 
     // Generate Bunny CDN thumbnail URL using the video ID
-  const thumbnailUrl = generateBunnyThumbnailUrl(result.filename);
-  const previewUrl = generateBunnyPreviewUrl(result.filename);
+    const thumbnailUrl = generateBunnyThumbnailUrl(result.filename);
+    const previewUrl = generateBunnyPreviewUrl(result.filename);
 
-  const returnValue = {
+    const returnValue = {
       success: true,
       iframeUrl: result.cdnUrl,
       directUrl: result.cdnUrl,
       guid: result.filename, // This is actually the GUID
-    thumbnailUrl,
-    previewUrl,
+      thumbnailUrl,
+      previewUrl,
     };
 
     console.log("🔍 [INTERNAL_VIDEO] Returning:", returnValue);
