@@ -194,12 +194,16 @@ export async function POST(request: NextRequest) {
     try {
       const platformLower = String(downloadResult?.data?.platform ?? scrapedData?.platform ?? "").toLowerCase();
       const igUserPk = scrapedData?.rawData?.user?.pk ?? scrapedData?.metadata?.userId ?? scrapedData?.user?.pk;
-      if (platformLower === "instagram" && igUserPk) {
-        console.log("👤 [INTERNAL_VIDEO] Fetching Instagram creator profile for pk:", igUserPk);
+      const igUsername = scrapedData?.rawData?.user?.username ?? scrapedData?.author ?? scrapedData?.user?.username;
+      if (platformLower === "instagram" && (igUsername || igUserPk)) {
+        console.log(
+          "👤 [INTERNAL_VIDEO] Fetching Instagram creator profile:",
+          igUsername ? { igUsername } : { igUserPk },
+        );
         const profileRes = await fetch(`${baseUrl}/api/instagram/profile`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId: igUserPk }),
+          body: JSON.stringify(igUsername ? { username: igUsername } : { userId: igUserPk }),
         });
         if (profileRes.ok) {
           const profileJson = await profileRes.json();
@@ -388,7 +392,7 @@ async function addVideoToCollection(collectionId: string, videoData: any) {
     // Update collection video count (skip for "all-videos" as it's virtual)
     if (collectionId !== "all-videos") {
       const collectionRef = adminDb.collection("collections").doc(collectionId);
-      await adminDb.runTransaction(async (transaction) => {
+      await adminDb.runTransaction(async (transaction: any) => {
         const collectionDoc = await transaction.get(collectionRef);
         if (collectionDoc.exists) {
           const currentCount = collectionDoc.data()?.videoCount ?? 0;

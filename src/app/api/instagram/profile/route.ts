@@ -6,10 +6,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await request.json();
+    const { userId, username }: { userId?: string | number; username?: string } = await request.json();
 
-    if (!userId) {
-      return NextResponse.json({ success: false, error: "userId is required" }, { status: 400 });
+    if (!userId && !username) {
+      return NextResponse.json({ success: false, error: "username or userId is required" }, { status: 400 });
     }
 
     const rapidApiKey = process.env.RAPIDAPI_KEY;
@@ -18,11 +18,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Service not configured" }, { status: 500 });
     }
 
-    const url = `https://instagram-api-fast-reliable-data-scraper.p.rapidapi.com/profile?user_id=${encodeURIComponent(
-      String(userId),
-    )}`;
+    const query = username
+      ? `username=${encodeURIComponent(username)}`
+      : `user_id=${encodeURIComponent(String(userId as string | number))}`;
+    const url = `https://instagram-api-fast-reliable-data-scraper.p.rapidapi.com/profile?${query}`;
 
-    console.log("🔎 [IG_PROFILE] Fetching Instagram profile for userId:", userId);
+    console.log("🔎 [IG_PROFILE] Fetching Instagram profile:", username ? { username } : { userId });
 
     const response = await fetch(url, {
       method: "GET",
