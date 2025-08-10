@@ -24,6 +24,7 @@ interface VideoInspirationPlayerProps {
   caption: string;
   transcript: string;
   duration: string;
+  hookIdeas?: { text: string; rating?: number }[];
 }
 
 // --- ICON COMPONENTS ---
@@ -89,11 +90,24 @@ const InsightsPanelView: React.FC<Omit<VideoInspirationPlayerProps, "videoUrl" |
           <Lightbulb className="text-secondary h-4 w-4" />
           Hook Ideas
         </h3>
-        <ul className="text-muted-foreground list-inside list-disc space-y-1">
-          <li>&quot;You won&apos;t believe this one simple trick for...&quot;</li>
-          <li>&quot;Are you making this common mistake when...?&quot;</li>
-          <li>&quot;Stop wasting time on [problem], do this instead.&quot;</li>
-        </ul>
+        {props.hookIdeas && props.hookIdeas.length > 0 ? (
+          <ul className="text-muted-foreground list-inside list-disc space-y-1">
+            {props.hookIdeas.slice(0, 3).map((h) => (
+              <li key={h.text}>
+                {h.text}
+                {typeof h.rating === "number" && (
+                  <span className="text-foreground/70 ml-2 text-xs">{Math.round(h.rating)}%</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <ul className="text-muted-foreground list-inside list-disc space-y-1">
+            <li>&quot;You won&apos;t believe this one simple trick for...&quot;</li>
+            <li>&quot;Are you making this common mistake when...?&quot;</li>
+            <li>&quot;Stop wasting time on [problem], do this instead.&quot;</li>
+          </ul>
+        )}
       </div>
 
       <div>
@@ -273,6 +287,14 @@ function transformVideoData(video: Video): VideoInspirationPlayerProps {
     caption: video.caption ?? video.metadata?.description ?? "No caption available.",
     transcript: video.transcript ?? "No transcript available.",
     duration: video.duration?.toString() ?? "N/A",
+    hookIdeas: (() => {
+      const meta = video as unknown as { insights?: { hooks?: { text?: string; rating?: number }[] } };
+      const rawHooks = meta.insights?.hooks;
+      if (!Array.isArray(rawHooks) || rawHooks.length === 0) return undefined;
+      return rawHooks
+        .filter((h) => typeof h.text === "string" && h.text.trim() !== "")
+        .map((h) => ({ text: String(h.text).trim(), rating: typeof h.rating === "number" ? h.rating : undefined }));
+    })(),
   };
 }
 
