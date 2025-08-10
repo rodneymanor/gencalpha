@@ -33,7 +33,7 @@ let emulatorsConnected = false;
 try {
   if (
     typeof window !== "undefined" &&
-    (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === "true" || process.env.NODE_ENV === "development") &&
+    process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === "true" &&
     auth &&
     db &&
     !emulatorsConnected
