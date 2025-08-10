@@ -39,10 +39,18 @@ try {
     adminDb = getFirestore(adminApp);
     // Ignore undefined properties to prevent write failures on optional fields
     try {
-      adminDb.settings({ ignoreUndefinedProperties: true });
-      console.log("✅ Firestore Admin: ignoreUndefinedProperties enabled");
+      // Use toJSON() to avoid touching private underscored props
+      const currentSettings = typeof adminDb.toJSON === "function" ? adminDb.toJSON() : undefined;
+      const alreadySet = currentSettings?.settings?.ignoreUndefinedProperties === true;
+      if (!alreadySet) {
+        adminDb.settings({ ignoreUndefinedProperties: true });
+        console.log("✅ Firestore Admin: ignoreUndefinedProperties enabled");
+      }
     } catch (settingsError) {
-      console.warn("⚠️ Firestore Admin settings could not be applied:", settingsError);
+      const msg = settingsError instanceof Error ? settingsError.message : String(settingsError);
+      if (!msg.includes("already been initialized")) {
+        console.warn("⚠️ Firestore Admin settings could not be applied:", settingsError);
+      }
     }
     adminAuth = getAuth(adminApp);
   }
