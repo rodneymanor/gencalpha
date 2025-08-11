@@ -276,6 +276,11 @@
   }
 }
 
+/* Maintainable utility for button pulse aligned with Clarity */
+.animate-clarity-pulse {
+  animation: clarity-pulse 1.5s ease-in-out infinite;
+}
+
 @keyframes clarity-orbit {
   0% {
     transform: rotate(0deg) translateX(calc(var(--clarity-loader-size, 200px) * 0.25)) rotate(0deg);

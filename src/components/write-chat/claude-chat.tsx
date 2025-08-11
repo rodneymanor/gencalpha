@@ -17,8 +17,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button, Card, ScrollArea } from "@/components/write-chat/primitives";
+import { VideoActionsDialog } from "@/components/write-chat/video-actions-dialog";
 import { useAuth } from "@/contexts/auth-context";
 import { useScriptGeneration } from "@/hooks/use-script-generation";
+import { auth as firebaseAuth } from "@/lib/firebase";
 import { clientNotesService, type Note } from "@/lib/services/client-notes-service";
 import { detectSocialLink, type DetectionResult } from "@/lib/utils/social-link-detector";
 
@@ -50,6 +52,11 @@ export function ClaudeChat({
   const [ideaSaveMessage, setIdeaSaveMessage] = useState<string | null>(null);
   const mountedRef = useRef(true);
   const [linkDetection, setLinkDetection] = useState<DetectionResult | null>(null);
+  const [actionsOpen, setActionsOpen] = useState(false);
+  const [urlCandidate, setUrlCandidate] = useState<string | null>(null);
+  const [urlSupported, setUrlSupported] = useState<false | "instagram" | "tiktok" | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const setUrlReachable = (_v: boolean | null) => {};
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const heroInputRef = useRef<HTMLTextAreaElement | null>(null);
@@ -89,6 +96,60 @@ export function ClaudeChat({
       textareaEl.style.height = Math.min(textareaEl.scrollHeight, 200) + "px";
     }
   }, [inputValue, isHeroState]);
+
+  // Debounced URL detection + validation (300ms)
+  useEffect(() => {
+    const controller = new AbortController();
+    const handle = setTimeout(async () => {
+      const detection = detectSocialLink(inputValue);
+      if (detection.type === "instagram" || detection.type === "tiktok") {
+        setUrlCandidate(detection.url ?? null);
+        // no-op visual loading; we avoid unused state
+        try {
+          const token = await firebaseAuth?.currentUser?.getIdToken?.();
+          const res = await fetch("/api/url/validate", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(token ? { authorization: `Bearer ${token}` } : {}),
+            },
+            body: JSON.stringify({ url: detection.url }),
+            signal: controller.signal,
+          });
+          if (!res.ok) throw new Error(String(res.status));
+          const data: {
+            success: boolean;
+            isSupported: boolean;
+            isReachable: boolean;
+            platform: "instagram" | "tiktok" | null;
+          } = await res.json();
+          if (data.success && data.isSupported && data.platform) {
+            setUrlSupported(data.platform);
+            setUrlReachable(!!data.isReachable);
+          } else {
+            setUrlSupported(false);
+            setUrlReachable(false);
+          }
+        } catch {
+          setUrlSupported(false);
+          setUrlReachable(false);
+        } finally {
+          // keep UI responsive without extra state churn
+          void 0;
+        }
+      } else {
+        setUrlCandidate(null);
+        setUrlSupported(null);
+        /* no-op */
+      }
+    }, 300);
+    return () => {
+      clearTimeout(handle);
+      controller.abort();
+    };
+  }, [inputValue]);
+
+  const hasValidVideoUrl = Boolean(urlCandidate && urlSupported);
 
   const personas = useMemo(() => PERSONAS.map((p) => ({ key: p.key, label: p.label })), []);
   const getPersonaByKey = (key: PersonaType | null) => PERSONAS.find((p) => p.key === key);
@@ -274,6 +335,11 @@ export function ClaudeChat({
                       {linkDetection.extracted.contentType && <span>· {linkDetection.extracted.contentType}</span>}
                     </div>
                   )}
+                  {hasValidVideoUrl && (
+                    <div className="bg-accent text-foreground animate-in fade-in-0 rounded-[var(--radius-card)] px-3 py-2 text-sm opacity-0 duration-200">
+                      ✓ Link identified. Press submit to continue
+                    </div>
+                  )}
                   <div className="flex w-full items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
                       <Button
@@ -328,13 +394,19 @@ export function ClaudeChat({
                     </div>
                     <Button
                       size="icon"
-                      className={`size-8 transition-all ${
-                        inputValue.trim()
-                          ? "bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
-                          : "bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-600"
-                      }`}
-                      disabled={!inputValue.trim()}
-                      onClick={() => handleSend(inputValue)}
+                      className={`size-8 transition-shadow ${
+                        hasValidVideoUrl || inputValue.trim()
+                          ? `bg-primary text-primary-foreground hover:opacity-90 ${hasValidVideoUrl ? "animate-clarity-pulse shadow-[var(--shadow-soft-drop)]" : ""}`
+                          : "bg-muted text-muted-foreground"
+                      } focus-visible:ring-ring focus-visible:ring-2`}
+                      disabled={!(hasValidVideoUrl || inputValue.trim())}
+                      onClick={() => {
+                        if (hasValidVideoUrl) {
+                          setActionsOpen(true);
+                          return;
+                        }
+                        handleSend(inputValue);
+                      }}
                     >
                       <ArrowUp className="h-4 w-4" />
                     </Button>
@@ -447,16 +519,16 @@ export function ClaudeChat({
                         }
                       }}
                       placeholder="Reply to Gen.C..."
-                      className="max-h-[200px] min-h-[40px] flex-1 resize-none bg-transparent text-base leading-relaxed text-zinc-900 placeholder:text-zinc-400 focus:outline-none dark:text-zinc-100 dark:placeholder:text-zinc-600"
+                      className="text-foreground placeholder:text-muted-foreground max-h-[200px] min-h-[40px] flex-1 resize-none bg-transparent text-base leading-relaxed focus:outline-none"
                       rows={1}
                     />
                     <Button
                       size="icon"
-                      className={`size-8 transition-all ${
+                      className={`size-8 transition-shadow ${
                         inputValue.trim()
-                          ? "bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
-                          : "bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-600"
-                      }`}
+                          ? "bg-primary text-primary-foreground hover:opacity-90"
+                          : "bg-muted text-muted-foreground"
+                      } focus-visible:ring-ring focus-visible:ring-2`}
                       disabled={!inputValue.trim()}
                       onClick={() => handleSend(inputValue)}
                     >
@@ -468,6 +540,73 @@ export function ClaudeChat({
             </div>
           </div>
         </div>
+      )}
+      {hasValidVideoUrl && urlSupported && urlCandidate && (
+        <VideoActionsDialog
+          open={actionsOpen}
+          onOpenChange={setActionsOpen}
+          platform={urlSupported}
+          videoUrl={urlCandidate}
+          onResult={async ({ type, data }: { type: string; data: any }) => {
+            if (type === "transcript") {
+              const transcript: string | undefined = data?.transcript;
+              if (transcript) {
+                // persist transcript
+                try {
+                  const token = await firebaseAuth?.currentUser?.getIdToken?.();
+                  await fetch("/api/transcript/save", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      ...(token ? { authorization: `Bearer ${token}` } : {}),
+                    },
+                    body: JSON.stringify({
+                      transcript,
+                      sourceUrl: urlCandidate,
+                      platform: urlSupported === "tiktok" ? "TikTok" : "Instagram",
+                    }),
+                  });
+                } catch {
+                  // ignore persistence errors
+                }
+                setMessages((prev) => [
+                  ...prev,
+                  { id: crypto.randomUUID(), role: "assistant", content: `Transcript:\n\n${transcript}` },
+                ]);
+              }
+            }
+            if (type === "analysis") {
+              const analysis: string | undefined = data?.analysis;
+              if (analysis) {
+                setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "assistant", content: analysis }]);
+              }
+            }
+            if (type === "emulation") {
+              const script = data?.script;
+              if (script) {
+                const content = `📝 Generated Script:\n\nHook: ${script.hook}\n\nBridge: ${script.bridge}\n\nGolden Nugget: ${script.goldenNugget}\n\nCall to Action: ${script.wta}`;
+                setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "assistant", content }]);
+              }
+            }
+            if (type === "ideas") {
+              const ideas = data?.ideas as string;
+              if (ideas) {
+                setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "assistant", content: ideas }]);
+              }
+            }
+            if (type === "hooks") {
+              const hooks = data?.hooks as Array<{ hook: string; template: string }> | undefined;
+              if (hooks?.length) {
+                const list = hooks.map((h, i) => `${i + 1}. ${h.hook} (${h.template})`).join("\n");
+                setMessages((prev) => [
+                  ...prev,
+                  { id: crypto.randomUUID(), role: "assistant", content: `Hooks:\n\n${list}` },
+                ]);
+              }
+            }
+            setIsHeroState(false);
+          }}
+        />
       )}
     </div>
   );
