@@ -343,20 +343,22 @@ export function ClaudeChat({
               </Card>
             </div>
 
-            <div className="mx-auto flex w-full max-w-2xl flex-wrap justify-center gap-2">
-              {personas.map((p) => (
-                <Button
-                  key={p.key}
-                  variant={selectedPersona === p.key ? "default" : "outline"}
-                  size="sm"
-                  className="h-10 gap-2 transition-all"
-                  onClick={() => setSelectedPersona((prev) => (prev === p.key ? null : p.key))}
-                >
-                  {getPersonaByKey(p.key)?.icon}
-                  <span>{p.label}</span>
-                </Button>
-              ))}
-            </div>
+            {!isIdeaMode && (
+              <div className="mx-auto flex w-full max-w-2xl flex-wrap justify-center gap-2">
+                {personas.map((p) => (
+                  <Button
+                    key={p.key}
+                    variant={selectedPersona === p.key ? "default" : "outline"}
+                    size="sm"
+                    className="h-10 gap-2 transition-all"
+                    onClick={() => setSelectedPersona((prev) => (prev === p.key ? null : p.key))}
+                  >
+                    {getPersonaByKey(p.key)?.icon}
+                    <span>{p.label}</span>
+                  </Button>
+                ))}
+              </div>
+            )}
             {isIdeaMode && (
               <div className="mx-auto w-full max-w-2xl">
                 <div className="bg-accent text-foreground mt-2 rounded-[var(--radius-card)] px-3 py-2 text-sm">
