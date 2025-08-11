@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { authenticateApiKey } from "@/lib/api-key-auth";
 import { getAdminDb, isAdminInitialized } from "@/lib/firebase-admin";
-import contentIdeasPrompt from "@/lib/prompts/Content Ideas.md";
+import contentIdeasPrompt from "@/lib/prompts/content-ideas";
 import { generateContent } from "@/lib/services/gemini-service";
 
 interface IdeasBody {
