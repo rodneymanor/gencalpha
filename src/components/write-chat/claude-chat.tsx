@@ -45,6 +45,7 @@ export function ClaudeChat({
   const [isHeroState, setIsHeroState] = useState(true);
   const [inputValue, setInputValue] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isProcessing, setIsProcessing] = useState<string | null>(null);
   const [selectedPersona, setSelectedPersona] = useState<PersonaType | null>(initialPersona ?? null);
   const [ideas, setIdeas] = useState<Note[]>([]);
   const [ideasOpen, setIdeasOpen] = useState(false);
@@ -548,6 +549,11 @@ export function ClaudeChat({
           onOpenChange={setActionsOpen}
           platform={urlSupported}
           videoUrl={urlCandidate}
+          onStart={(status) => {
+            setIsHeroState(false);
+            setIsProcessing(status);
+            setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "assistant", content: "<processing>" }]);
+          }}
           onResult={async ({ type, data }: { type: string; data: any }) => {
             if (type === "transcript") {
               const transcript: string | undefined = data?.transcript;
@@ -570,42 +576,54 @@ export function ClaudeChat({
                 } catch {
                   // ignore persistence errors
                 }
-                setMessages((prev) => [
-                  ...prev,
-                  { id: crypto.randomUUID(), role: "assistant", content: `Transcript:\n\n${transcript}` },
-                ]);
+                setMessages((prev) => {
+                  const filtered = prev.filter((m) => m.content !== "<processing>");
+                  return [
+                    ...filtered,
+                    { id: crypto.randomUUID(), role: "assistant", content: `Transcript:\n\n${transcript}` },
+                  ];
+                });
               }
             }
             if (type === "analysis") {
               const analysis: string | undefined = data?.analysis;
               if (analysis) {
-                setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "assistant", content: analysis }]);
+                setMessages((prev) => {
+                  const filtered = prev.filter((m) => m.content !== "<processing>");
+                  return [...filtered, { id: crypto.randomUUID(), role: "assistant", content: analysis }];
+                });
               }
             }
             if (type === "emulation") {
               const script = data?.script;
               if (script) {
                 const content = `📝 Generated Script:\n\nHook: ${script.hook}\n\nBridge: ${script.bridge}\n\nGolden Nugget: ${script.goldenNugget}\n\nCall to Action: ${script.wta}`;
-                setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "assistant", content }]);
+                setMessages((prev) => {
+                  const filtered = prev.filter((m) => m.content !== "<processing>");
+                  return [...filtered, { id: crypto.randomUUID(), role: "assistant", content }];
+                });
               }
             }
             if (type === "ideas") {
               const ideas = data?.ideas as string;
               if (ideas) {
-                setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "assistant", content: ideas }]);
+                setMessages((prev) => {
+                  const filtered = prev.filter((m) => m.content !== "<processing>");
+                  return [...filtered, { id: crypto.randomUUID(), role: "assistant", content: ideas }];
+                });
               }
             }
             if (type === "hooks") {
               const hooks = data?.hooks as Array<{ hook: string; template: string }> | undefined;
               if (hooks?.length) {
                 const list = hooks.map((h, i) => `${i + 1}. ${h.hook} (${h.template})`).join("\n");
-                setMessages((prev) => [
-                  ...prev,
-                  { id: crypto.randomUUID(), role: "assistant", content: `Hooks:\n\n${list}` },
-                ]);
+                setMessages((prev) => {
+                  const filtered = prev.filter((m) => m.content !== "<processing>");
+                  return [...filtered, { id: crypto.randomUUID(), role: "assistant", content: `Hooks:\n\n${list}` }];
+                });
               }
             }
-            setIsHeroState(false);
+            setIsProcessing(null);
           }}
         />
       )}

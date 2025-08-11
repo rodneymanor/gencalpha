@@ -15,6 +15,7 @@ type Props = {
   platform: Platform;
   videoUrl: string;
   onResult: (payload: { type: string; data: unknown }) => void;
+  onStart?: (status: string) => void;
 };
 
 type ActionKey = "transcribe" | "analyze" | "emulate" | "ideas" | "hooks";
@@ -65,7 +66,7 @@ function ActionCard({
   );
 }
 
-export function VideoActionsDialog({ open, onOpenChange, platform, videoUrl, onResult }: Props) {
+export function VideoActionsDialog({ open, onOpenChange, platform, videoUrl, onResult, onStart }: Props) {
   const [submitting, setSubmitting] = useState<ActionKey | null>(null);
   const [resolvedUrl, setResolvedUrl] = useState<string | null>(null);
 
@@ -84,10 +85,11 @@ export function VideoActionsDialog({ open, onOpenChange, platform, videoUrl, onR
   const handleTranscribe = async () => {
     setSubmitting("transcribe");
     try {
+      onStart?.("Transcribing video...");
+      onOpenChange(false);
       const { url, platform: plat } = await ensureResolved();
       const data = await postJson("/api/video/transcribe", { videoUrl: url, platform: plat });
       onResult({ type: "transcript", data });
-      onOpenChange(false);
     } finally {
       setSubmitting(null);
     }
@@ -96,11 +98,12 @@ export function VideoActionsDialog({ open, onOpenChange, platform, videoUrl, onR
   const handleAnalyze = async () => {
     setSubmitting("analyze");
     try {
+      onStart?.("Analyzing style...");
+      onOpenChange(false);
       const { url, platform: plat } = await ensureResolved();
       const t = await postJson<{ transcript: string }>("/api/video/transcribe", { videoUrl: url, platform: plat });
       const data = await postJson("/api/analyze/style", { transcript: t.transcript, sourceUrl: url, platform: plat });
       onResult({ type: "analysis", data });
-      onOpenChange(false);
     } finally {
       setSubmitting(null);
     }
@@ -109,6 +112,8 @@ export function VideoActionsDialog({ open, onOpenChange, platform, videoUrl, onR
   const handleEmulate = async () => {
     setSubmitting("emulate");
     try {
+      onStart?.("Emulating style and generating script...");
+      onOpenChange(false);
       const { url, platform: plat } = await ensureResolved();
       const t = await postJson<{ transcript: string }>("/api/video/transcribe", { videoUrl: url, platform: plat });
       // The client can prompt for topic separately; send a placeholder for now
@@ -119,7 +124,6 @@ export function VideoActionsDialog({ open, onOpenChange, platform, videoUrl, onR
         newTopic: "Write a script about the core idea of this video for my audience",
       });
       onResult({ type: "emulation", data });
-      onOpenChange(false);
     } finally {
       setSubmitting(null);
     }
@@ -128,11 +132,12 @@ export function VideoActionsDialog({ open, onOpenChange, platform, videoUrl, onR
   const handleIdeas = async () => {
     setSubmitting("ideas");
     try {
+      onStart?.("Generating content ideas...");
+      onOpenChange(false);
       const { url, platform: plat } = await ensureResolved();
       const t = await postJson<{ transcript: string }>("/api/video/transcribe", { videoUrl: url, platform: plat });
       const data = await postJson("/api/content/ideas", { transcript: t.transcript, sourceUrl: url });
       onResult({ type: "ideas", data });
-      onOpenChange(false);
     } finally {
       setSubmitting(null);
     }
@@ -141,11 +146,12 @@ export function VideoActionsDialog({ open, onOpenChange, platform, videoUrl, onR
   const handleHooks = async () => {
     setSubmitting("hooks");
     try {
+      onStart?.("Generating hooks...");
+      onOpenChange(false);
       const { url, platform: plat } = await ensureResolved();
       const t = await postJson<{ transcript: string }>("/api/video/transcribe", { videoUrl: url, platform: plat });
       const data = await postJson("/api/hooks/generate", { input: t.transcript });
       onResult({ type: "hooks", data });
-      onOpenChange(false);
     } finally {
       setSubmitting(null);
     }
