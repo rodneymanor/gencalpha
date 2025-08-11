@@ -44,7 +44,7 @@ export default function WritePage({
                 value={chatTitle}
                 onChange={(e) => setChatTitle(e.target.value)}
                 placeholder="Untitled Chat"
-                className="text-foreground placeholder:text-muted-foreground focus-visible:ring-ring w-full max-w-sm rounded-[var(--radius-input)] border border-transparent bg-transparent px-3 py-2 text-sm font-medium transition-colors outline-none focus-visible:ring-1"
+                className="text-foreground placeholder:text-muted-foreground w-full max-w-sm rounded-[var(--radius-input)] border border-transparent bg-transparent px-3 py-2 text-sm font-medium outline-none"
               />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
