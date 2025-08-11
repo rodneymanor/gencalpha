@@ -16,7 +16,7 @@ interface PersonaSelectorProps {
   showCallout?: boolean;
 }
 
-const PERSONAS: Array<{
+export const PERSONAS: Array<{
   key: PersonaType;
   label: string;
   tooltip?: string;

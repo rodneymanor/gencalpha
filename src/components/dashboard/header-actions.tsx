@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 
-import { Bell, FileText, Star, MessageSquare } from "lucide-react";
+import { Bell, FileText, Star } from "lucide-react";
 
 import { useResizableLayout } from "@/contexts/resizable-layout-context";
 
@@ -25,7 +25,7 @@ export default function HeaderActions({
   onUserClick,
   hasNotifications = false,
 }: HeaderActionsProps) {
-  const { toggleNotesPanel, toggleChatbotPanel } = useResizableLayout();
+  const { toggleNotesPanel } = useResizableLayout();
   return (
     <div className="flex items-center gap-2">
       {/* Notification Button */}
@@ -40,15 +40,7 @@ export default function HeaderActions({
         {hasNotifications && <div className="bg-destructive absolute -top-1 -right-1 h-2 w-2 rounded-full" />}
       </div>
 
-      {/* Chatbot Button */}
-      <button
-        className="hover:bg-accent text-foreground outline-border relative hidden h-8 min-w-16 items-center justify-center gap-1.5 rounded-full bg-transparent px-3 text-sm font-medium whitespace-nowrap outline outline-1 -outline-offset-1 transition-colors hover:opacity-90 active:opacity-80 sm:flex"
-        onClick={() => toggleChatbotPanel()}
-        aria-label="Toggle AI chatbot panel"
-      >
-        <MessageSquare className="size-[18px]" />
-        AI Chat
-      </button>
+      {/* Chatbot Button disabled (sunset) */}
 
       {/* Notes Button */}
       <button

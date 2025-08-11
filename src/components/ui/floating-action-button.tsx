@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
+
 import { Pencil } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { useResizableLayout } from "@/contexts/resizable-layout-context";
 
 interface PenFabProps {
   onClick?: () => void;
@@ -46,7 +46,6 @@ export function PenFab({ onClick, className }: PenFabProps) {
 }
 
 export function FloatingActionButton() {
-  const { toggleChatbotPanel } = useResizableLayout();
-
-  return <PenFab onClick={toggleChatbotPanel} />;
+  // Hidden while chatbot is sunset
+  return null;
 }

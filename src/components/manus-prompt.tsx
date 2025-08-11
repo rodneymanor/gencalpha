@@ -3,6 +3,8 @@
 
 import React, { useState, useEffect } from "react";
 
+import { useRouter } from "next/navigation";
+
 import { ArrowUp, Link, AlertCircle, CheckCircle2, Bot, Globe, Pencil, X, Mic } from "lucide-react";
 
 import { PersonaSelector, PersonaType } from "@/components/chatbot/persona-selector";
@@ -12,7 +14,6 @@ import { Button } from "@/components/ui/button";
 import { ClarityLoader } from "@/components/ui/loading";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/auth-context";
-import { useResizableLayout } from "@/contexts/resizable-layout-context";
 import { auth } from "@/lib/firebase";
 import { scrapeVideoUrl } from "@/lib/unified-video-scraper";
 import { cn } from "@/lib/utils";
@@ -45,7 +46,8 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [showListening, setShowListening] = useState(true);
-  const { toggleChatbotPanel } = useResizableLayout();
+  // chatbot panel sunset — no longer used
+  const router = useRouter();
 
   // Get persona data for display
   const getPersonaData = (personaType: PersonaType) => {
@@ -243,8 +245,12 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
         // Create a formatted message with video transcription
         const message = `Here's the transcription from the ${urlDetection.platform} video:\n\n**Title:** ${result.title}\n**Author:** @${result.author}\n\n**Transcript:**\n${result.description || "No transcript available - this video may not have spoken content."}`;
 
-        // Open the chatbot panel with the transcription and selected persona
-        toggleChatbotPanel(message, selectedPersona ?? "MiniBuddy");
+        // Redirect to /write with the transcription and selected persona
+        const params = new URLSearchParams({
+          prompt: message,
+          persona: (selectedPersona ?? "MiniBuddy") as string,
+        });
+        router.push(`/write?${params.toString()}`);
 
         // Call the optional onSubmit callback
         if (onSubmit) {
@@ -260,8 +266,12 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
       // Show error message to user
       const errorMessage = `Failed to process ${urlDetection.platform} video: ${error instanceof Error ? error.message : "Unknown error"}`;
 
-      // Open chatbot panel with error message
-      toggleChatbotPanel(errorMessage, selectedPersona ?? "MiniBuddy");
+      // Redirect to /write with error message
+      const params = new URLSearchParams({
+        prompt: errorMessage,
+        persona: (selectedPersona ?? "MiniBuddy") as string,
+      });
+      router.push(`/write?${params.toString()}`);
       if (onSubmit) {
         onSubmit(errorMessage, selectedPersona ?? "MiniBuddy");
       }
@@ -279,8 +289,12 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
       return;
     }
 
-    // Open the chatbot panel with the initial prompt and persona
-    toggleChatbotPanel(prompt.trim(), selectedPersona ?? "MiniBuddy");
+    // Redirect to /write with the initial prompt and persona
+    const params = new URLSearchParams({
+      prompt: prompt.trim(),
+      persona: (selectedPersona ?? "MiniBuddy") as string,
+    });
+    router.push(`/write?${params.toString()}`);
 
     // Call the optional onSubmit callback with the prompt and persona
     if (onSubmit) {

@@ -1,211 +1,161 @@
+/* eslint-disable complexity */
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { ChevronDown, Ellipsis, Plus, Search, SendHorizonal, SlidersHorizontal, Sparkles } from "lucide-react";
+import { Plus, Search, SendHorizontal, SlidersHorizontal } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
+import { type PersonaType, PERSONAS } from "@/components/chatbot/persona-selector";
+import { Button, Card, ScrollArea } from "@/components/write-chat/primitives";
+import { useAuth } from "@/contexts/auth-context";
+import { useScriptGeneration } from "@/hooks/use-script-generation";
+import { detectSocialLink, type DetectionResult } from "@/lib/utils/social-link-detector";
 
-type Suggestion = {
-  id: string;
-  label: string;
-  icon: React.ReactNode;
-};
+// primitives moved to a separate file to reduce linter max-lines and improve reuse
 
-export type ClaudeChatProps = {
+type ChatMessage = { id: string; role: "user" | "assistant"; content: string };
+type ClaudeChatProps = {
   className?: string;
   placeholder?: string;
-  onSend?: (message: string) => void;
+  onSend?: (message: string, persona: PersonaType) => void;
+  initialPrompt?: string;
+  initialPersona?: PersonaType;
 };
 
-export function ClaudeChat({ className, placeholder = "How can I help you today?", onSend }: ClaudeChatProps) {
+export function ClaudeChat({
+  className = "",
+  placeholder = "How can I help you today?",
+  onSend,
+  initialPrompt,
+  initialPersona,
+}: ClaudeChatProps) {
   const [isHeroState, setIsHeroState] = useState(true);
-  const [title, setTitle] = useState<string>("New conversation");
-  const [inputValue, setInputValue] = useState<string>("");
-  const [messages, setMessages] = useState<Array<{ id: string; role: "user" | "assistant"; content: string }>>([]);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  // no-op ref to preserve potential future use without linter complaints
+  const [inputValue, setInputValue] = useState("");
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [selectedPersona, setSelectedPersona] = useState<PersonaType | null>(initialPersona ?? null);
+  const [linkDetection, setLinkDetection] = useState<DetectionResult | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const heroInputRef = useRef<HTMLTextAreaElement | null>(null);
+  const { user, userProfile } = useAuth();
+  const { generateScript } = useScriptGeneration();
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Initialize from props
   useEffect(() => {
-    const hour = new Date().getHours();
-    const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
-    setTitle(greeting);
-  }, []);
+    if (initialPrompt) setInputValue(initialPrompt);
+    if (initialPersona) setSelectedPersona(initialPersona);
+  }, [initialPrompt, initialPersona]);
 
-  const suggestions: Suggestion[] = useMemo(
-    () => [
-      { id: "write", label: "Write", icon: <Sparkles className="text-muted-foreground h-4 w-4" /> },
-      { id: "learn", label: "Learn", icon: <Search className="text-muted-foreground h-4 w-4" /> },
-      { id: "code", label: "Code", icon: <SlidersHorizontal className="text-muted-foreground h-4 w-4" /> },
-      { id: "plan", label: "Life stuff", icon: <Ellipsis className="text-muted-foreground h-4 w-4" /> },
-    ],
-    [],
-  );
+  // Auto-resize textarea
+  useEffect(() => {
+    const textareaEl = isHeroState ? heroInputRef.current : textareaRef.current;
+    if (textareaEl) {
+      textareaEl.style.height = "auto";
+      textareaEl.style.height = Math.min(textareaEl.scrollHeight, 200) + "px";
+    }
+  }, [inputValue, isHeroState]);
 
-  const handleSend = (value: string) => {
+  const personas = useMemo(() => PERSONAS.map((p) => ({ key: p.key, label: p.label })), []);
+  const getPersonaByKey = (key: PersonaType | null) => PERSONAS.find((p) => p.key === key);
+
+  const handleSend = async (value: string) => {
     const trimmed = value.trim();
     if (!trimmed) return;
+
+    // URL detection (for potential future embed/preview behavior)
+    const detection = detectSocialLink(trimmed);
+    setLinkDetection(detection);
 
     setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "user", content: trimmed }]);
     setInputValue("");
     setIsHeroState(false);
-    setTitle(trimmed.length > 50 ? `${trimmed.slice(0, 50)}...` : trimmed);
-    onSend?.(trimmed);
+    onSend?.(trimmed, selectedPersona ?? "MiniBuddy");
 
-    // Simulate assistant response
-    setTimeout(() => {
+    // Script command detection
+    const lower = trimmed.toLowerCase();
+    if (lower.startsWith("/script ") || lower.includes("generate script")) {
+      const idea = trimmed.replace(/^\s*\/script\s+/i, "").replace(/^(generate script\s*:?)\s*/i, "");
+      try {
+        const res = await generateScript(idea, "60");
+        if (res.success && res.script) {
+          const content = `📝 Generated Script:\n\n**Hook:** ${res.script.hook}\n\n**Bridge:** ${res.script.bridge}\n\n**Golden Nugget:** ${res.script.goldenNugget}\n\n**Call to Action:** ${res.script.wta}`;
+          setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "assistant", content }]);
+          return;
+        }
+        setMessages((prev) => [
+          ...prev,
+          { id: crypto.randomUUID(), role: "assistant", content: `Error: ${res.error ?? "Failed to generate script"}` },
+        ]);
+        return;
+      } catch (err: unknown) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            role: "assistant",
+            content: `Error: ${typeof err === "object" && err && "message" in err ? String((err as { message?: unknown }).message) : "Failed to generate script"}`,
+          },
+        ]);
+        return;
+      }
+    }
+
+    try {
+      const response = await fetch("/api/chatbot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: trimmed,
+          persona: selectedPersona ?? "MiniBuddy",
+          conversationHistory: messages.map((m) => ({ role: m.role, content: m.content })),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error ?? `HTTP error ${response.status}`);
+      }
+      const data = await response.json();
+      const assistantText = data.response ?? "I'm sorry, I didn't receive a proper response.";
+      setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "assistant", content: assistantText }]);
+    } catch (err: unknown) {
       setMessages((prev) => [
         ...prev,
         {
           id: crypto.randomUUID(),
           role: "assistant",
-          content: "I'd be happy to help you with that! Let me provide you with some information.",
+          content: `Error: ${typeof err === "object" && err && "message" in err ? String((err as { message?: unknown }).message) : "Failed to get response"}`,
         },
       ]);
-    }, 900);
+    }
   };
 
   return (
-    <div className={cn("font-sans", className)}>
-      {/* Sticky header with gradient backdrop */}
-      <div className="sticky top-0 z-20 -mb-6 h-12 w-full opacity-100 transition-all">
-        <div className="from-background to-background/0 pointer-events-none absolute inset-x-0 top-0 -bottom-5 -z-10 bg-gradient-to-b blur-sm" />
-        <div className="flex w-full items-center justify-between gap-6 pr-3 pl-8">
-          <button
-            type="button"
-            className="text-foreground hover:bg-accent inline-flex h-7 min-w-20 items-center gap-1.5 rounded-[var(--radius-button)] px-1 text-sm font-medium tracking-[var(--tracking-normal)] transition-colors"
-          >
-            <span className="truncate">{title}</span>
-            <ChevronDown className="h-4 w-4" />
-          </button>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="h-11 gap-1 rounded-[var(--radius-button)] px-3 md:h-9">
-              <Plus className="h-4 w-4" /> Share
-            </Button>
-            <Button variant="ghost" size="icon" className="h-11 w-11 rounded-[var(--radius-button)] md:h-9 md:w-9">
-              <Ellipsis className="h-5 w-5" />
-            </Button>
-          </div>
-        </div>
-      </div>
+    <div className={`font-sans ${className}`}>
+      {/* Header removed for Stage 1 */}
 
       {/* Hero State */}
       {isHeroState && (
-        <div className="flex h-[calc(100vh-6rem)] flex-col items-center px-4 pt-24 md:pt-48">
-          <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-6 pb-8 text-center">
-            <div className="text-muted-foreground inline-flex items-center gap-3 text-3xl font-semibold text-balance md:text-4xl">
-              <div className="text-brand h-8 w-8 animate-[spin_20s_linear_infinite]">●</div>
-              <span className="font-sans">{title}</span>
+        <div className="flex min-h-[calc(100vh-4rem)] flex-col items-center px-4 pt-24 md:pt-32">
+          <div className="mx-auto flex w-full max-w-2xl flex-col items-start gap-6 pb-8">
+            <div>
+              <h1 className="text-foreground text-4xl leading-10 font-bold tracking-tight">
+                {`Hello${user && (userProfile?.displayName ?? user.displayName) ? ", " + (userProfile?.displayName ?? user.displayName) : ""}`}
+                <br />
+                <span className="text-muted-foreground">What will you script today?</span>
+              </h1>
             </div>
 
             <div className="w-full max-w-2xl">
-              <Card className="bg-card border-input rounded-[var(--radius-card)] border shadow-[var(--shadow-input)] transition-shadow focus-within:shadow-[var(--shadow-soft-drop)] hover:shadow-[var(--shadow-input)]">
-                <div className="flex flex-col gap-4 p-4">
-                  <div className="relative">
-                    <div className="max-h-96 min-h-12 w-full overflow-y-auto">
-                      <div
-                        className="text-foreground placeholder:text-muted-foreground max-w-[60ch] p-1 text-base leading-relaxed break-words whitespace-pre-wrap outline-none"
-                        role="textbox"
-                        aria-label="Write your prompt"
-                        contentEditable
-                        onInput={(e) => setInputValue((e.target as HTMLDivElement).innerText)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" && !e.shiftKey) {
-                            e.preventDefault();
-                            handleSend(inputValue);
-                          }
-                        }}
-                        data-placeholder={placeholder}
-                        suppressContentEditableWarning
-                      />
-                    </div>
-                  </div>
-                  <div className="flex w-full items-center gap-3">
-                    <div className="flex flex-1 items-center gap-2">
-                      <Button variant="outline" size="sm" className="h-8 min-w-8 rounded-[var(--radius-button)] px-2">
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                      <Button variant="outline" size="sm" className="h-8 min-w-8 rounded-[var(--radius-button)] px-2">
-                        <SlidersHorizontal className="h-4 w-4" />
-                      </Button>
-                      <Button variant="outline" size="sm" className="h-8 gap-1 rounded-[var(--radius-button)] px-2">
-                        <Search className="h-4 w-4" />
-                        <span className="hidden sm:inline">Research</span>
-                      </Button>
-                    </div>
-                    <Button
-                      size="icon"
-                      className="bg-secondary text-secondary-foreground h-11 w-11 rounded-[var(--radius-button)] md:h-8 md:w-8"
-                      disabled={!inputValue.trim()}
-                      onClick={() => handleSend(inputValue)}
-                    >
-                      <SendHorizonal className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            </div>
-
-            <div className="mx-auto flex w-full max-w-2xl flex-wrap justify-center gap-2 pt-6">
-              {suggestions.map((s) => (
-                <Button
-                  key={s.id}
-                  variant="outline"
-                  size="sm"
-                  className="bg-card text-foreground hover:bg-accent hover:text-accent-foreground border-input inline-flex h-11 items-center gap-2 rounded-[var(--radius-button)] border px-3 py-2 md:h-auto"
-                  onClick={() => setInputValue(s.label)}
-                >
-                  {s.icon}
-                  <span className="sm:inline">{s.label}</span>
-                </Button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Chat State */}
-      {!isHeroState && (
-        <div className="flex h-[calc(100vh-6rem)] flex-col pt-14">
-          <ScrollArea className="h-full px-4">
-            <div className="mx-auto max-w-3xl py-6">
-              {messages.map((m) => (
-                <div key={m.id} className="animate-in fade-in-0 zoom-in-95 mb-6">
-                  {m.role === "assistant" ? (
-                    <div className="flex items-start gap-3">
-                      <div className="bg-secondary text-secondary-foreground flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-pill)] font-bold">
-                        C
-                      </div>
-                      <Card className="bg-card border-input rounded-[var(--radius-card)] border p-4">
-                        <p className="text-sm leading-relaxed">{m.content}</p>
-                      </Card>
-                    </div>
-                  ) : (
-                    <div className="flex justify-end">
-                      <Card className="bg-card rounded-[var(--radius-card)] p-4 shadow-[var(--shadow-input)]">
-                        <p className="text-sm leading-relaxed">{m.content}</p>
-                      </Card>
-                    </div>
-                  )}
-                </div>
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
-          </ScrollArea>
-          <div className="px-4 py-4">
-            <div className="mx-auto w-full max-w-3xl">
-              <Card className="bg-card border-input rounded-[var(--radius-card)] border shadow-[var(--shadow-input)]">
+              <Card className="shadow-sm transition-shadow duration-200 hover:shadow-md">
                 <div className="flex flex-col gap-3 p-4">
-                  <div className="flex items-center gap-3">
-                    <Input
+                  <div className="relative">
+                    <textarea
+                      ref={heroInputRef}
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
                       onKeyDown={(e) => {
@@ -214,28 +164,153 @@ export function ClaudeChat({ className, placeholder = "How can I help you today?
                           handleSend(inputValue);
                         }
                       }}
-                      placeholder="Reply to Claude..."
-                      className="font-sans"
+                      placeholder={placeholder}
+                      className="max-h-[200px] min-h-[48px] w-full resize-none bg-transparent text-base leading-relaxed text-zinc-900 placeholder:text-zinc-400 focus:outline-none dark:text-zinc-100 dark:placeholder:text-zinc-600"
+                      rows={1}
                     />
+                  </div>
+                  {selectedPersona && (
+                    <div className="flex items-center gap-2 text-xs">
+                      <div className="bg-secondary/10 text-secondary flex h-6 w-6 items-center justify-center rounded-[var(--radius-button)]">
+                        {getPersonaByKey(selectedPersona)?.icon}
+                      </div>
+                      <span className="text-foreground font-medium">{getPersonaByKey(selectedPersona)?.label}</span>
+                      <span className="text-muted-foreground">mode</span>
+                    </div>
+                  )}
+                  {linkDetection && linkDetection.type !== "text" && (
+                    <div className="bg-muted/80 border-border/50 text-muted-foreground flex items-center gap-2 rounded-md border p-2 text-sm">
+                      <span className="text-foreground font-medium">
+                        {linkDetection.type === "other_url" ? "Link" : linkDetection.type}
+                      </span>
+                      {linkDetection.extracted.username && <span>@{linkDetection.extracted.username}</span>}
+                      {linkDetection.extracted.postId && <span>#{linkDetection.extracted.postId}</span>}
+                      {linkDetection.extracted.contentType && <span>· {linkDetection.extracted.contentType}</span>}
+                    </div>
+                  )}
+                  <div className="flex w-full items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <SlidersHorizontal className="h-4 w-4" />
+                      </Button>
+                      <Button variant="outline" size="sm" className="h-8 gap-1.5">
+                        <Search className="h-4 w-4" />
+                        <span className="hidden sm:inline">Research</span>
+                      </Button>
+                    </div>
                     <Button
                       size="icon"
-                      className="bg-secondary text-secondary-foreground h-11 w-11 rounded-[var(--radius-button)] md:h-8 md:w-8"
+                      className={`h-8 w-8 transition-all ${
+                        inputValue.trim()
+                          ? "bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
+                          : "bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-600"
+                      }`}
                       disabled={!inputValue.trim()}
                       onClick={() => handleSend(inputValue)}
                     >
-                      <SendHorizonal className="h-4 w-4" />
+                      <SendHorizontal className="h-4 w-4" />
                     </Button>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" className="h-8 min-w-8 rounded-[var(--radius-button)] px-2">
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                    <Button variant="outline" size="sm" className="h-8 min-w-8 rounded-[var(--radius-button)] px-2">
-                      <SlidersHorizontal className="h-4 w-4" />
-                    </Button>
-                    <Button variant="outline" size="sm" className="h-8 gap-1 rounded-[var(--radius-button)] px-2">
-                      <Search className="h-4 w-4" />
-                      <span className="hidden sm:inline">Research</span>
+                </div>
+              </Card>
+            </div>
+
+            <div className="mx-auto flex w-full max-w-2xl flex-wrap justify-center gap-2">
+              {personas.map((p) => (
+                <Button
+                  key={p.key}
+                  variant={selectedPersona === p.key ? "default" : "outline"}
+                  size="sm"
+                  className="h-10 gap-2 transition-all"
+                  onClick={() => setSelectedPersona((prev) => (prev === p.key ? null : p.key))}
+                >
+                  {getPersonaByKey(p.key)?.icon}
+                  <span>{p.label}</span>
+                </Button>
+              ))}
+            </div>
+            {selectedPersona && (
+              <div className="bg-card border-border mx-auto mt-2 w-full max-w-2xl rounded-[var(--radius-card)] border p-4 text-left shadow-[var(--shadow-soft-drop)]">
+                <div className="flex items-start gap-3">
+                  <div className="bg-secondary/10 text-secondary flex h-10 w-10 items-center justify-center rounded-[var(--radius-button)]">
+                    {getPersonaByKey(selectedPersona)?.icon}
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-foreground font-semibold">
+                      {getPersonaByKey(selectedPersona)?.label} Mode Active
+                    </div>
+                    <p className="text-muted-foreground text-sm">{getPersonaByKey(selectedPersona)?.description}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Chat State */}
+      {!isHeroState && (
+        <div className="flex h-[calc(100vh-4rem)] flex-col">
+          <ScrollArea className="flex-1 px-4">
+            <div className="mx-auto max-w-3xl space-y-6 py-6">
+              {messages.map((m) => (
+                <div key={m.id} className="animate-in fade-in-0 zoom-in-95">
+                  {m.role === "assistant" ? (
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-yellow-400 to-orange-400 font-bold text-white">
+                        G
+                      </div>
+                      <Card className="flex-1 p-4 shadow-sm">
+                        <p className="text-sm leading-relaxed text-zinc-900 dark:text-zinc-100">{m.content}</p>
+                      </Card>
+                    </div>
+                  ) : (
+                    <div className="flex justify-end">
+                      <Card className="max-w-[80%] bg-zinc-900 p-4 shadow-sm dark:bg-zinc-100">
+                        <p className="text-sm leading-relaxed text-white dark:text-zinc-900">{m.content}</p>
+                      </Card>
+                    </div>
+                  )}
+                </div>
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
+          </ScrollArea>
+
+          {/* Chat Input */}
+          <div className="border-border border-t bg-transparent px-4 py-4">
+            <div className="mx-auto w-full max-w-3xl">
+              <Card className="border-border bg-transparent shadow-sm dark:bg-transparent">
+                <div className="flex flex-col gap-3 p-4">
+                  <div className="flex items-end gap-3">
+                    <textarea
+                      ref={textareaRef}
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSend(inputValue);
+                        }
+                      }}
+                      placeholder="Reply to Gen.C..."
+                      className="max-h-[200px] min-h-[40px] flex-1 resize-none bg-transparent text-base leading-relaxed text-zinc-900 placeholder:text-zinc-400 focus:outline-none dark:text-zinc-100 dark:placeholder:text-zinc-600"
+                      rows={1}
+                    />
+                    <Button
+                      size="icon"
+                      className={`h-8 w-8 transition-all ${
+                        inputValue.trim()
+                          ? "bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
+                          : "bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-600"
+                      }`}
+                      disabled={!inputValue.trim()}
+                      onClick={() => handleSend(inputValue)}
+                    >
+                      <SendHorizontal className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
