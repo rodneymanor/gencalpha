@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { ChevronDown, Share2 } from "lucide-react";
 
@@ -24,6 +24,7 @@ export function WriteClient({
   const [isHeroState, setIsHeroState] = useState(true);
   const [chatTitle, setChatTitle] = useState<string>("Untitled Chat");
   const titleInputRef = useRef<HTMLInputElement | null>(null);
+  const [sidebarGapPx, setSidebarGapPx] = useState<number>(0);
 
   const handleTitleClick = () => {
     setTimeout(() => {
@@ -38,6 +39,31 @@ export function WriteClient({
     }
   };
 
+  // Keep header aligned 32px from the visible sidebar by measuring the sidebar gap element
+  useEffect(() => {
+    let resizeObserver: ResizeObserver | null = null;
+
+    const update = () => {
+      const el = document.querySelector('[data-slot="sidebar-gap"]');
+      setSidebarGapPx(el ? (el as HTMLElement).getBoundingClientRect().width : 0);
+    };
+
+    update();
+    if (typeof ResizeObserver !== "undefined") {
+      const el = document.querySelector('[data-slot="sidebar-gap"]');
+      if (el) {
+        resizeObserver = new ResizeObserver(update);
+        resizeObserver.observe(el as HTMLElement);
+      }
+    }
+    window.addEventListener("resize", update);
+
+    return () => {
+      window.removeEventListener("resize", update);
+      if (resizeObserver) resizeObserver.disconnect();
+    };
+  }, []);
+
   return (
     <div className="flex min-h-screen flex-col">
       {!isHeroState && (
@@ -48,7 +74,10 @@ export function WriteClient({
             className="from-background via-background to-background/0 pointer-events-none absolute inset-0 -bottom-5 -z-10 bg-gradient-to-b blur-sm"
           />
 
-          <div className="ml-[calc(var(--sidebar-width,0px)+32px)] flex h-full w-full items-center justify-between gap-4 pr-3 pl-4 md:pl-0 lg:gap-6">
+          <div
+            className="flex h-full w-full items-center justify-between gap-4 pr-3 lg:gap-6"
+            style={{ paddingLeft: `${sidebarGapPx + 32}px` }}
+          >
             {/* Left Section - Title Area */}
             <div className="flex min-w-0 flex-1 items-center">
               <div className="hover:bg-accent/50 inline-flex items-center rounded-[var(--radius-button)] px-1">
