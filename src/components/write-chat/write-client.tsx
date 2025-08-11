@@ -44,24 +44,14 @@ export function WriteClient({
   return (
     <div className="flex min-h-screen flex-col">
       {!isHeroState && (
-        <div
-          className="border-border/50 bg-background/95 supports-[backdrop-filter]:bg-background/80 sticky top-0 z-50 w-full border-b backdrop-blur"
-          style={{
-            height: "52px",
-          }}
-        >
-          {/* Gradient fade effect below header */}
+        <div className="bg-background border-border sticky top-0 z-50 -mb-6 h-12 w-full border-b backdrop-blur">
+          {/* Gradient fade below header */}
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-x-0 top-full -z-10"
-            style={{
-              height: "24px",
-              background: "linear-gradient(to bottom, rgba(var(--background-rgb), 0.8), transparent)",
-              filter: "blur(8px)",
-            }}
+            className="from-background via-background to-background/0 pointer-events-none absolute inset-0 -bottom-5 -z-10 bg-gradient-to-b blur-sm"
           />
 
-          <div className="flex h-full w-full items-center justify-between px-6 lg:px-8">
+          <div className="flex h-full w-full items-center justify-between gap-4 pr-3 pl-11 lg:gap-6 lg:pl-8">
             {/* Left Section - Title Area */}
             <div className="flex min-w-0 flex-1 items-center gap-1">
               <input
