@@ -298,13 +298,14 @@ export function ClaudeChat({
                     <div className="grid grid-cols-[40px_1fr] items-start gap-x-3">
                       {m.role === "user" ? (
                         <>
-                          {/* User avatar */}
-                          <div className="bg-secondary text-secondary-foreground flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold">
-                            {(resolvedName?.[0] ?? "U").toUpperCase()}
-                          </div>
-                          {/* User message bubble */}
+                          {/* Placeholder to align with content column start */}
+                          <div aria-hidden className="h-8 w-8" />
+                          {/* User message single pill containing avatar + text */}
                           <div className="col-start-2">
-                            <div className="bg-accent text-foreground inline-block max-w-[min(85%,_60ch)] rounded-[var(--radius-input)] px-4 py-3">
+                            <div className="bg-accent text-foreground inline-flex max-w-[min(85%,_60ch)] items-center gap-2 rounded-[var(--radius-input)] px-4 py-3">
+                              <div className="bg-secondary text-secondary-foreground flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold">
+                                {(resolvedName?.[0] ?? "U").toUpperCase()}
+                              </div>
                               <p className="text-base leading-relaxed break-words whitespace-pre-wrap">{m.content}</p>
                             </div>
                           </div>
