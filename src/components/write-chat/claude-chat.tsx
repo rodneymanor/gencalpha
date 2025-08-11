@@ -4,7 +4,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { Plus, Search, SendHorizontal, SlidersHorizontal } from "lucide-react";
+import { Plus, Search, SendHorizontal, SlidersHorizontal, Share2 } from "lucide-react";
 
 import { type PersonaType, PERSONAS } from "@/components/chatbot/persona-selector";
 import { Button, Card, ScrollArea } from "@/components/write-chat/primitives";
@@ -40,6 +40,7 @@ export function ClaudeChat({
   const heroInputRef = useRef<HTMLTextAreaElement | null>(null);
   const { user, userProfile } = useAuth();
   const { generateScript } = useScriptGeneration();
+  const [chatTitle, setChatTitle] = useState<string>("Untitled Chat");
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -168,7 +169,21 @@ export function ClaudeChat({
 
   return (
     <div className={`font-sans ${className}`}>
-      {/* Header removed for Stage 1 */}
+      {/* Header */}
+      <div className="bg-background border-border sticky top-0 z-10 border-b">
+        <div className="mx-auto flex h-12 w-full max-w-3xl items-center justify-between px-4">
+          <input
+            value={chatTitle}
+            onChange={(e) => setChatTitle(e.target.value)}
+            placeholder="Untitled Chat"
+            className="text-foreground placeholder:text-muted-foreground focus-visible:ring-ring w-full max-w-sm rounded-[var(--radius-input)] border border-transparent bg-transparent px-3 py-2 text-sm font-medium transition-colors outline-none focus-visible:ring-1"
+          />
+          <Button variant="outline" size="sm" className="ml-3 h-8 gap-2 rounded-[var(--radius-button)]">
+            <Share2 className="h-4 w-4" />
+            <span className="hidden sm:inline">Share</span>
+          </Button>
+        </div>
+      </div>
 
       {/* Hero State */}
       {isHeroState && (
@@ -287,28 +302,42 @@ export function ClaudeChat({
       {!isHeroState && (
         <div className="flex h-[calc(100vh-4rem)] flex-col">
           <ScrollArea className="flex-1 px-4">
-            <div className="mx-auto max-w-3xl space-y-6 py-6">
-              {messages.map((m) => (
-                <div key={m.id} className="animate-in fade-in-0 zoom-in-95">
-                  {m.role === "assistant" ? (
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-yellow-400 to-orange-400 font-bold text-white">
-                        G
-                      </div>
-                      <Card className="flex-1 p-4 shadow-sm">
-                        <p className="text-sm leading-relaxed text-zinc-900 dark:text-zinc-100">{m.content}</p>
-                      </Card>
+            <div className="mx-auto max-w-3xl py-6">
+              <div className="space-y-6">
+                {messages.map((m) => (
+                  <div key={m.id} className="animate-in fade-in-0 zoom-in-95">
+                    {/* Two-column layout: avatar column (40px) + content column */}
+                    <div className="grid grid-cols-[40px_1fr] items-start gap-x-3">
+                      {m.role === "user" ? (
+                        <>
+                          {/* User avatar */}
+                          <div className="bg-secondary text-secondary-foreground flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold">
+                            {(resolvedName?.[0] ?? "U").toUpperCase()}
+                          </div>
+                          {/* User message bubble */}
+                          <div className="col-start-2">
+                            <div className="bg-accent text-foreground inline-block max-w-[min(85%,_60ch)] rounded-[var(--radius-input)] px-4 py-3">
+                              <p className="text-base leading-relaxed break-words whitespace-pre-wrap">{m.content}</p>
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          {/* Placeholder to align with content column start */}
+                          <div aria-hidden className="h-8 w-8" />
+                          {/* Assistant message as plain text, no container */}
+                          <div className="col-start-2">
+                            <div className="prose text-foreground max-w-none">
+                              <p className="text-base leading-relaxed break-words whitespace-pre-wrap">{m.content}</p>
+                            </div>
+                          </div>
+                        </>
+                      )}
                     </div>
-                  ) : (
-                    <div className="flex justify-end">
-                      <Card className="max-w-[80%] bg-zinc-900 p-4 shadow-sm dark:bg-zinc-100">
-                        <p className="text-sm leading-relaxed text-white dark:text-zinc-900">{m.content}</p>
-                      </Card>
-                    </div>
-                  )}
-                </div>
-              ))}
-              <div ref={messagesEndRef} />
+                  </div>
+                ))}
+                <div ref={messagesEndRef} />
+              </div>
             </div>
           </ScrollArea>
 
