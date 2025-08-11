@@ -32,7 +32,7 @@ export const sidebarItems: NavGroup[] = [
     items: [
       {
         title: "Daily",
-        url: "/dashboard/daily",
+        url: "/write",
         icon: Calendar,
         isCustomButton: true,
       },
