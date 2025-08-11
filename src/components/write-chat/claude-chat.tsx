@@ -4,7 +4,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { SendHorizontal, SlidersHorizontal, Lightbulb, Pencil } from "lucide-react";
+import { ArrowUp, SlidersHorizontal, Lightbulb, Pencil } from "lucide-react";
 
 import { type PersonaType, PERSONAS } from "@/components/chatbot/persona-selector";
 // header dropdown moved to parent wrapper
@@ -336,7 +336,7 @@ export function ClaudeChat({
                       disabled={!inputValue.trim()}
                       onClick={() => handleSend(inputValue)}
                     >
-                      <SendHorizontal className="h-4 w-4" />
+                      <ArrowUp className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
@@ -460,7 +460,7 @@ export function ClaudeChat({
                       disabled={!inputValue.trim()}
                       onClick={() => handleSend(inputValue)}
                     >
-                      <SendHorizontal className="h-4 w-4" />
+                      <ArrowUp className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
