@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/auth-context";
-import { getInitials } from "@/lib/utils";
+// removed getInitials; using first initial for avatar per design request
 
 // Helper function to get display name
 function getDisplayName(userProfile: any, user: any): string {
@@ -43,6 +43,8 @@ export function NavUser() {
 
   const displayName = getDisplayName(userProfile, user);
   const email = user.email ?? "";
+  const firstInitial =
+    typeof displayName === "string" && displayName.trim() ? displayName.trim().charAt(0).toUpperCase() : "U";
 
   return (
     <SidebarMenu>
@@ -53,8 +55,8 @@ export function NavUser() {
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <div className="bg-background text-foreground flex h-8 w-8 items-center justify-center rounded-lg border text-sm font-medium">
-                {getInitials(displayName)}
+              <div className="bg-muted text-foreground flex h-8 w-8 items-center justify-center rounded-[var(--radius-pill)] text-sm font-medium">
+                {firstInitial}
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{displayName}</span>
@@ -71,8 +73,8 @@ export function NavUser() {
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <div className="bg-background text-foreground flex h-8 w-8 items-center justify-center rounded-lg border text-sm font-medium">
-                  {getInitials(displayName)}
+                <div className="bg-muted text-foreground flex h-8 w-8 items-center justify-center rounded-[var(--radius-pill)] text-sm font-medium">
+                  {firstInitial}
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{displayName}</span>
