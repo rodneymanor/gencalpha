@@ -328,7 +328,7 @@ export function ClaudeChat({
                     </div>
                     <Button
                       size="icon"
-                      className={`h-8 w-8 transition-all ${
+                      className={`size-8 transition-all ${
                         inputValue.trim()
                           ? "bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
                           : "bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-600"
@@ -452,7 +452,7 @@ export function ClaudeChat({
                     />
                     <Button
                       size="icon"
-                      className={`h-8 w-8 transition-all ${
+                      className={`size-8 transition-all ${
                         inputValue.trim()
                           ? "bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
                           : "bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-600"
