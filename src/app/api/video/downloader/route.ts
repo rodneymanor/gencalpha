@@ -18,7 +18,14 @@ export async function POST(request: NextRequest) {
     console.log("🔍 [DOWNLOADER] Processing URL:", url);
     console.log("🔍 [DOWNLOADER] Decoded URL:", decodedUrl);
 
-    // Validate URL with detailed error message
+    // Fast path: if this looks like a direct CDN URL, skip validation entirely
+    const directCdn = detectDirectCdn(decodedUrl);
+    if (directCdn) {
+      console.log(`📦 [DOWNLOADER] Detected direct CDN URL (${directCdn}) — skipping validation`);
+      return await handleDirectVideoDownload(decodedUrl, directCdn);
+    }
+
+    // Validate only initial user-submitted page URLs
     const validation = UnifiedVideoScraper.validateUrlWithMessage(decodedUrl);
     if (!validation.valid) {
       console.error("❌ [DOWNLOADER] Invalid URL:", validation.message);
@@ -27,7 +34,7 @@ export async function POST(request: NextRequest) {
 
     console.log("🎯 [DOWNLOADER] Platform detected:", validation.platform);
 
-    // Handle direct video URLs (skip scraping, just download)
+    // Handle direct storage/CDN URLs detected by validator
     if (validation.platform === "apify_storage") {
       console.log("📦 [DOWNLOADER] Processing Apify storage URL directly");
       return await handleApifyStorageDownload(decodedUrl);
@@ -56,7 +63,7 @@ export async function POST(request: NextRequest) {
     console.log(`  - Platform: ${videoData.platform}`);
     console.log(`  - Author: @${videoData.author}`);
     console.log(`  - Title: ${videoData.title}`);
-    console.log(`  - Views: ${videoData.metrics.views}`);
+    console.log(`  - Views: ${videoData.metrics.views ?? 0}`);
 
     // For now, we'll simulate video download by fetching the video URL
     // In the future, you might want to actually download the video buffer
@@ -77,7 +84,7 @@ export async function POST(request: NextRequest) {
         description: videoData.description,
         caption: videoData.description, // Use description as caption for consistency
         hashtags: videoData.hashtags,
-        duration: videoData.metadata.duration || 0,
+        duration: videoData.metadata.duration ?? 0,
         timestamp: videoData.metadata.timestamp,
       },
       thumbnailUrl: videoData.thumbnailUrl, // Add at top level for easy access
@@ -107,16 +114,17 @@ export async function POST(request: NextRequest) {
  */
 async function downloadVideoBuffer(videoUrl: string): Promise<ArrayBuffer> {
   console.log("⬇️ [DOWNLOADER] Downloading video from:", videoUrl);
-  
+
   // Check if this is an Apify URL (key-value store)
-  if (videoUrl.includes('api.apify.com/v2/key-value-stores')) {
+  if (videoUrl.includes("api.apify.com/v2/key-value-stores")) {
     console.log("🔍 [DOWNLOADER] Detected Apify key-value store URL, fetching directly");
   }
 
   const response = await fetch(videoUrl, {
     headers: {
-      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-    }
+      "User-Agent":
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    },
   });
 
   console.log(`🔍 [DOWNLOADER] Response status: ${response.status}`);
@@ -130,7 +138,7 @@ async function downloadVideoBuffer(videoUrl: string): Promise<ArrayBuffer> {
 
   const contentType = response.headers.get("content-type");
   const contentLength = response.headers.get("content-length");
-  
+
   console.log(`📋 [DOWNLOADER] Content-Type: ${contentType}`);
   console.log(`📋 [DOWNLOADER] Content-Length: ${contentLength}`);
 
@@ -140,7 +148,7 @@ async function downloadVideoBuffer(videoUrl: string): Promise<ArrayBuffer> {
   }
 
   // Verify we're getting video content
-  if (contentType && !contentType.includes('video') && !contentType.includes('application/octet-stream')) {
+  if (contentType && !contentType.includes("video") && !contentType.includes("application/octet-stream")) {
     console.warn(`⚠️ [DOWNLOADER] Unexpected content type: ${contentType}`);
   }
 
@@ -157,19 +165,48 @@ async function downloadVideoBuffer(videoUrl: string): Promise<ArrayBuffer> {
 }
 
 /**
+ * Detect direct CDN URLs (instagram/tiktok) to bypass validation
+ */
+function detectDirectCdn(url: string): "instagram_cdn" | "tiktok_cdn" | null {
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.toLowerCase();
+    const isMp4 = parsed.pathname.toLowerCase().endsWith(".mp4");
+
+    // Instagram CDN patterns
+    if (
+      host.includes("cdninstagram.com") ||
+      (host.startsWith("scontent-") && host.includes(".cdninstagram.com")) ||
+      (isMp4 && host.includes("fbcdn"))
+    ) {
+      return "instagram_cdn";
+    }
+
+    // TikTok CDN patterns (broaden to cover regional domains)
+    if (host.includes("tiktokcdn") || host.includes("tiktokv.com") || host.includes("muscdn.com")) {
+      return "tiktok_cdn";
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Handle direct download from Apify storage URL
  */
 async function handleApifyStorageDownload(url: string) {
   try {
     console.log("📦 [APIFY] Downloading video from Apify storage:", url);
-    
+
     const videoBuffer = await downloadVideoBuffer(url);
-    
+
     // Extract platform and metadata from the Apify URL
-    const urlParts = url.split('/');
-    const filename = urlParts[urlParts.length - 1] || 'apify-video';
+    const urlParts = url.split("/");
+    const filename = urlParts[urlParts.length - 1] || "apify-video";
     const platformMatch = filename.match(/video-(\w+)-/);
-    const detectedPlatform = platformMatch ? platformMatch[1] : 'unknown';
+    const detectedPlatform = platformMatch ? platformMatch[1] : "unknown";
 
     return NextResponse.json({
       success: true,
@@ -183,7 +220,7 @@ async function handleApifyStorageDownload(url: string) {
       metrics: {
         downloadSpeed: "direct_storage",
         fileSize: videoBuffer.byteLength,
-        duration: 0 // Not available from storage URL
+        duration: 0, // Not available from storage URL
       },
       additionalMetadata: {
         author: "unknown", // Will be populated from scraped data
@@ -198,7 +235,7 @@ async function handleApifyStorageDownload(url: string) {
         platform: detectedPlatform,
         downloadedAt: new Date().toISOString(),
         shortCode: filename,
-        method: "apify_storage"
+        method: "apify_storage",
       },
     });
   } catch (error) {
@@ -219,13 +256,13 @@ async function handleApifyStorageDownload(url: string) {
 async function handleDirectVideoDownload(url: string, platform: string) {
   try {
     console.log(`📦 [${platform.toUpperCase()}] Downloading video from CDN:`, url);
-    
+
     const videoBuffer = await downloadVideoBuffer(url);
-    
+
     // Extract basic info from URL
-    const urlParts = url.split('/');
-    const filename = urlParts[urlParts.length - 1]?.split('?')[0] || 'cdn-video';
-    const platformName = platform.replace('_cdn', '');
+    const urlParts = url.split("/");
+    const filename = urlParts[urlParts.length - 1]?.split("?")[0] || "cdn-video";
+    const platformName = platform.replace("_cdn", "");
 
     return NextResponse.json({
       success: true,
@@ -239,7 +276,7 @@ async function handleDirectVideoDownload(url: string, platform: string) {
       metrics: {
         downloadSpeed: "direct_cdn",
         fileSize: videoBuffer.byteLength,
-        duration: 0 // Not available from CDN URL
+        duration: 0, // Not available from CDN URL
       },
       additionalMetadata: {
         author: "unknown", // Will be populated from scraped data if available
@@ -254,7 +291,7 @@ async function handleDirectVideoDownload(url: string, platform: string) {
         platform: platformName,
         downloadedAt: new Date().toISOString(),
         shortCode: filename,
-        method: "direct_cdn"
+        method: "direct_cdn",
       },
     });
   } catch (error) {
