@@ -47,11 +47,6 @@ export const sidebarItems: NavGroup[] = [
         icon: GalleryVerticalEnd,
         isNew: true,
       },
-      {
-        title: "Write",
-        url: "/write",
-        icon: LibraryBig,
-      },
     ],
   },
   // Settings removed from sidebar per request; accessible via profile menu

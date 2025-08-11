@@ -24,10 +24,6 @@ interface ManusPromptProps {
   placeholder?: string;
   className?: string;
   onSubmit?: (prompt: string, persona: PersonaType) => void;
-  /** When true (default), uses the legacy sliding panel chat. When false, only calls onSubmit */
-  useSlidingPanel?: boolean;
-  /** When set to 'minimal', the UI shows only the textarea and the submit/mic button */
-  variant?: "default" | "minimal";
 }
 
 // eslint-disable-next-line complexity
@@ -37,8 +33,6 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
   placeholder = "Give Gen.C a topic to script...",
   className,
   onSubmit,
-  useSlidingPanel = true,
-  variant = "default",
 }) => {
   const { user, userProfile } = useAuth();
   const [prompt, setPrompt] = useState("");
@@ -67,7 +61,7 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
 
   // Blinking animation for "listening" text
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
+    let interval: NodeJS.Timeout;
     if (isRecording) {
       interval = setInterval(() => {
         setShowListening((prev) => !prev);
@@ -249,11 +243,13 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
         // Create a formatted message with video transcription
         const message = `Here's the transcription from the ${urlDetection.platform} video:\n\n**Title:** ${result.title}\n**Author:** @${result.author}\n\n**Transcript:**\n${result.description || "No transcript available - this video may not have spoken content."}`;
 
-        // Route either to sliding panel or to callback
-        if (useSlidingPanel) {
-          toggleChatbotPanel(message, selectedPersona ?? "MiniBuddy");
+        // Open the chatbot panel with the transcription and selected persona
+        toggleChatbotPanel(message, selectedPersona ?? "MiniBuddy");
+
+        // Call the optional onSubmit callback
+        if (onSubmit) {
+          onSubmit(message, selectedPersona ?? "MiniBuddy");
         }
-        if (onSubmit) onSubmit(message, selectedPersona ?? "MiniBuddy");
 
         // Clear the input and detection
         setPrompt("");
@@ -264,11 +260,11 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
       // Show error message to user
       const errorMessage = `Failed to process ${urlDetection.platform} video: ${error instanceof Error ? error.message : "Unknown error"}`;
 
-      if (useSlidingPanel) {
-        // Open chatbot panel with error message
-        toggleChatbotPanel(errorMessage, selectedPersona ?? "MiniBuddy");
+      // Open chatbot panel with error message
+      toggleChatbotPanel(errorMessage, selectedPersona ?? "MiniBuddy");
+      if (onSubmit) {
+        onSubmit(errorMessage, selectedPersona ?? "MiniBuddy");
       }
-      if (onSubmit) onSubmit(errorMessage, selectedPersona ?? "MiniBuddy");
     } finally {
       setIsProcessingVideo(false);
     }
@@ -283,12 +279,13 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
       return;
     }
 
-    const clean = prompt.trim();
-    if (useSlidingPanel) {
-      // Open the chatbot panel with the initial prompt and persona
-      toggleChatbotPanel(clean, selectedPersona ?? "MiniBuddy");
+    // Open the chatbot panel with the initial prompt and persona
+    toggleChatbotPanel(prompt.trim(), selectedPersona ?? "MiniBuddy");
+
+    // Call the optional onSubmit callback with the prompt and persona
+    if (onSubmit) {
+      onSubmit(prompt.trim(), selectedPersona ?? "MiniBuddy");
     }
-    if (onSubmit) onSubmit(clean, selectedPersona ?? "MiniBuddy");
 
     // Clear the input and detection
     setPrompt("");
@@ -302,26 +299,19 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
     }
   };
 
-  const containerClass =
-    variant === "minimal"
-      ? "mx-auto w-full min-w-[390px] space-y-4 text-base"
-      : "mx-auto my-24 w-full max-w-3xl min-w-[390px] space-y-4 px-5 text-base";
-
   return (
-    <div className={cn(containerClass, className)}>
+    <div className={cn("mx-auto my-24 w-full max-w-3xl min-w-[390px] space-y-4 px-5 text-base", className)}>
       {/* Header */}
-      {variant === "default" && (
-        <header className="flex w-full items-end justify-between pb-4 pl-4">
-          <h1 className="text-foreground text-4xl leading-10 font-bold tracking-tight">
-            {greeting}
-            {user &&
-              (userProfile?.displayName ?? user.displayName) &&
-              `, ${userProfile?.displayName ?? user.displayName}`}
-            <br />
-            <span className="text-muted-foreground">{subtitle}</span>
-          </h1>
-        </header>
-      )}
+      <header className="flex w-full items-end justify-between pb-4 pl-4">
+        <h1 className="text-foreground text-4xl leading-10 font-bold tracking-tight">
+          {greeting}
+          {user &&
+            (userProfile?.displayName ?? user.displayName) &&
+            `, ${userProfile?.displayName ?? user.displayName}`}
+          <br />
+          <span className="text-muted-foreground">{subtitle}</span>
+        </h1>
+      </header>
 
       {/* Input Card */}
       <div className="bg-card rounded-3xl border shadow-md">
@@ -384,165 +374,132 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
           </div>
 
           {/* Controls */}
-          {variant === "default" ? (
-            <div className="flex items-center gap-2 px-3">
-              {/* Idea Inbox Toggle Button */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleToggleIdeaInbox}
-                className={cn(
-                  "hover:bg-accent hover:text-accent-foreground size-8 rounded-full p-0 transition-all",
-                  showIdeaInbox && "ring-ring ring-2 ring-offset-2",
-                )}
-                title="Toggle Idea Inbox"
-              >
-                <Pencil className="h-4 w-4" />
-              </Button>
-
-              <AdvancedSlidingSwitch options={switchOptions} onChange={handleSwitchChange} disabled={showIdeaInbox} />
-
-              {/* Persona Badge */}
-              {personaSelected && (
-                <Badge
-                  variant="secondary"
-                  className="bg-secondary/10 text-secondary border-secondary/20 hover:bg-secondary/20 ml-2 flex h-8 items-center rounded-[var(--radius-pill)] px-3 text-xs font-medium"
-                >
-                  <span className="mr-2">{selectedPersona ? getPersonaData(selectedPersona)?.icon : ""}</span>
-                  {selectedPersona ? getPersonaData(selectedPersona)?.label : ""}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleRemovePersona}
-                    className="hover:bg-destructive/20 hover:text-destructive ml-2 h-4 w-4 rounded-full p-0"
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                </Badge>
+          <div className="flex items-center gap-2 px-3">
+            {/* Idea Inbox Toggle Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleToggleIdeaInbox}
+              className={cn(
+                "hover:bg-accent hover:text-accent-foreground size-8 rounded-full p-0 transition-all",
+                showIdeaInbox && "ring-ring ring-2 ring-offset-2",
               )}
+              title="Toggle Idea Inbox"
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
 
-              <span className="flex-1" />
+            <AdvancedSlidingSwitch options={switchOptions} onChange={handleSwitchChange} disabled={showIdeaInbox} />
 
-              <Button
-                onClick={prompt.trim() ? handleSubmit : handleVoiceRecording}
-                disabled={isProcessingVideo}
-                className={cn(
-                  "size-9 rounded-full transition-colors",
-                  prompt.trim() && !isProcessingVideo
-                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                    : isRecording
-                      ? "animate-pulse bg-red-500 text-white hover:bg-red-600"
-                      : "bg-background text-foreground border-border hover:bg-accent hover:text-accent-foreground border",
-                )}
-                title={prompt.trim() ? "Send message" : isRecording ? "Stop recording" : "Start voice recording"}
+            {/* Persona Badge */}
+            {personaSelected && (
+              <Badge
+                variant="secondary"
+                className="bg-secondary/10 text-secondary border-secondary/20 hover:bg-secondary/20 ml-2 flex h-8 items-center rounded-[var(--radius-pill)] px-3 text-xs font-medium"
               >
-                {isProcessingVideo ? (
-                  <ClarityLoader size="inline" />
-                ) : prompt.trim() ? (
-                  <ArrowUp className="size-4" />
-                ) : isRecording ? (
-                  <Mic className="size-4" />
-                ) : (
-                  <Mic className="size-4" />
-                )}
-              </Button>
-            </div>
-          ) : (
-            <div className="flex items-center justify-end px-3">
-              <Button
-                onClick={prompt.trim() ? handleSubmit : handleVoiceRecording}
-                disabled={isProcessingVideo}
-                className={cn(
-                  "size-9 rounded-full transition-colors",
-                  prompt.trim() && !isProcessingVideo
-                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                    : isRecording
-                      ? "animate-pulse bg-red-500 text-white hover:bg-red-600"
-                      : "bg-background text-foreground border-border hover:bg-accent hover:text-accent-foreground border",
-                )}
-                title={prompt.trim() ? "Send message" : isRecording ? "Stop recording" : "Start voice recording"}
-              >
-                {isProcessingVideo ? (
-                  <ClarityLoader size="inline" />
-                ) : prompt.trim() ? (
-                  <ArrowUp className="size-4" />
-                ) : isRecording ? (
-                  <Mic className="size-4" />
-                ) : (
-                  <Mic className="size-4" />
-                )}
-              </Button>
-            </div>
-          )}
+                <span className="mr-2">{selectedPersona ? getPersonaData(selectedPersona)?.icon : ""}</span>
+                {selectedPersona ? getPersonaData(selectedPersona)?.label : ""}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleRemovePersona}
+                  className="hover:bg-destructive/20 hover:text-destructive ml-2 h-4 w-4 rounded-full p-0"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </Badge>
+            )}
+
+            <span className="flex-1" />
+
+            <Button
+              onClick={prompt.trim() ? handleSubmit : handleVoiceRecording}
+              disabled={isProcessingVideo}
+              className={cn(
+                "size-9 rounded-full transition-colors",
+                prompt.trim() && !isProcessingVideo
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                  : isRecording
+                    ? "animate-pulse bg-red-500 text-white hover:bg-red-600"
+                    : "bg-background text-foreground border-border hover:bg-accent hover:text-accent-foreground border",
+              )}
+              title={prompt.trim() ? "Send message" : isRecording ? "Stop recording" : "Start voice recording"}
+            >
+              {isProcessingVideo ? (
+                <ClarityLoader size="inline" />
+              ) : prompt.trim() ? (
+                <ArrowUp className="size-4" />
+              ) : isRecording ? (
+                <Mic className="size-4" />
+              ) : (
+                <Mic className="size-4" />
+              )}
+            </Button>
+          </div>
         </div>
       </div>
 
-      {variant === "default" && (
-        <div className="space-y-3">
-          {showIdeaInbox ? (
-            <div className="bg-card border-border rounded-[var(--radius-card)] border p-6 shadow-[var(--shadow-soft-drop)]">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0">
-                  <div className="bg-secondary/10 flex h-12 w-12 items-center justify-center rounded-[var(--radius-button)]">
-                    <Pencil className="text-secondary h-6 w-6" />
-                  </div>
+      {/* Persona Selector or Idea Inbox Explanation */}
+      <div className="space-y-3">
+        {showIdeaInbox ? (
+          <div className="bg-card border-border rounded-[var(--radius-card)] border p-6 shadow-[var(--shadow-soft-drop)]">
+            <div className="flex items-start space-x-4">
+              <div className="flex-shrink-0">
+                <div className="bg-secondary/10 flex h-12 w-12 items-center justify-center rounded-[var(--radius-button)]">
+                  <Pencil className="text-secondary h-6 w-6" />
                 </div>
-                <div className="flex-1">
-                  <div className="mb-2 flex items-center space-x-2">
-                    <h3 className="text-foreground font-semibold">Idea Inbox - Your Save Everything Hub</h3>
+              </div>
+              <div className="flex-1">
+                <div className="mb-2 flex items-center space-x-2">
+                  <h3 className="text-foreground font-semibold">Idea Inbox - Your Save Everything Hub</h3>
+                </div>
+                <p className="text-muted-foreground mb-4 text-sm">
+                  Capture your ideas, thoughts, inspiration, and random sparks of creativity here. Think of this as your
+                  digital notebook where nothing gets lost.
+                </p>
+                <div className="space-y-2">
+                  <div className="flex items-start space-x-2">
+                    <div className="bg-primary/10 text-primary mt-0.5 flex h-5 w-5 items-center justify-center rounded-full text-xs font-semibold">
+                      1
+                    </div>
+                    <p className="text-sm">
+                      <span className="font-medium">Save Everything:</span> Jot down video ideas, hooks, story concepts,
+                      or any creative thoughts
+                    </p>
                   </div>
-                  <p className="text-muted-foreground mb-4 text-sm">
-                    Capture your ideas, thoughts, inspiration, and random sparks of creativity here. Think of this as
-                    your digital notebook where nothing gets lost.
-                  </p>
-                  <div className="space-y-2">
-                    <div className="flex items-start space-x-2">
-                      <div className="bg-primary/10 text-primary mt-0.5 flex h-5 w-5 items-center justify-center rounded-full text-xs font-semibold">
-                        1
-                      </div>
-                      <p className="text-sm">
-                        <span className="font-medium">Save Everything:</span> Jot down video ideas, hooks, story
-                        concepts, or any creative thoughts
-                      </p>
+                  <div className="flex items-start space-x-2">
+                    <div className="bg-primary/10 text-primary mt-0.5 flex h-5 w-5 items-center justify-center rounded-full text-xs font-semibold">
+                      2
                     </div>
-                    <div className="flex items-start space-x-2">
-                      <div className="bg-primary/10 text-primary mt-0.5 flex h-5 w-5 items-center justify-center rounded-full text-xs font-semibold">
-                        2
-                      </div>
-                      <p className="text-sm">
-                        <span className="font-medium">Come Back Later:</span> Your ideas are automatically saved in your
-                        Idea Inbox dashboard
-                      </p>
+                    <p className="text-sm">
+                      <span className="font-medium">Come Back Later:</span> Your ideas are automatically saved in your
+                      Idea Inbox dashboard
+                    </p>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <div className="bg-primary/10 text-primary mt-0.5 flex h-5 w-5 items-center justify-center rounded-full text-xs font-semibold">
+                      3
                     </div>
-                    <div className="flex items-start space-x-2">
-                      <div className="bg-primary/10 text-primary mt-0.5 flex h-5 w-5 items-center justify-center rounded-full text-xs font-semibold">
-                        3
-                      </div>
-                      <p className="text-sm">
-                        <span className="font-medium">Turn into Scripts:</span> Transform any saved idea into a full
-                        script with AI assistance
-                      </p>
-                    </div>
+                    <p className="text-sm">
+                      <span className="font-medium">Turn into Scripts:</span> Transform any saved idea into a full
+                      script with AI assistance
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
-          ) : (
-            <PersonaSelector
-              selectedPersona={selectedPersona}
-              onPersonaChange={handlePersonaChange}
-              className="justify-center"
-              showCallout={personaSelected}
-            />
-          )}
-        </div>
-      )}
+          </div>
+        ) : (
+          <PersonaSelector
+            selectedPersona={selectedPersona}
+            onPersonaChange={handlePersonaChange}
+            className="justify-center"
+            showCallout={personaSelected}
+          />
+        )}
+      </div>
     </div>
   );
 };
-
-export const ManusPromptMinimal: React.FC<Omit<ManusPromptProps, "variant">> = (props) => (
-  <ManusPrompt variant="minimal" {...props} />
-);
 
 export default ManusPrompt;
