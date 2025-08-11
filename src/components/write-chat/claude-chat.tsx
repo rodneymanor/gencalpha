@@ -302,7 +302,7 @@ export function ClaudeChat({
                           <div aria-hidden className="h-8 w-8" />
                           {/* User message single pill containing avatar + text */}
                           <div className="col-start-2">
-                            <div className="bg-accent text-foreground inline-flex max-w-[min(85%,_60ch)] items-center gap-2 rounded-[var(--radius-input)] px-4 py-3">
+                            <div className="bg-accent text-foreground inline-flex max-w-[min(85%,_60ch)] items-center gap-2 rounded-[var(--radius-sm)] px-4 py-3">
                               <div className="bg-secondary text-secondary-foreground flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold">
                                 {(resolvedName?.[0] ?? "U").toUpperCase()}
                               </div>
