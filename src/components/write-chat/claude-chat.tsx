@@ -102,6 +102,7 @@ export function ClaudeChat({
     const controller = new AbortController();
     const handle = setTimeout(async () => {
       const detection = detectSocialLink(inputValue);
+      setLinkDetection(detection);
       if (detection.type === "instagram" || detection.type === "tiktok") {
         setUrlCandidate(detection.url ?? null);
         // no-op visual loading; we avoid unused state
@@ -336,7 +337,7 @@ export function ClaudeChat({
                     </div>
                   )}
                   {hasValidVideoUrl && (
-                    <div className="bg-accent text-foreground animate-in fade-in-0 rounded-[var(--radius-card)] px-3 py-2 text-sm opacity-0 duration-200">
+                    <div className="bg-accent text-foreground animate-in fade-in-0 rounded-[var(--radius-card)] px-3 py-2 text-sm duration-200">
                       ✓ Link identified. Press submit to continue
                     </div>
                   )}
