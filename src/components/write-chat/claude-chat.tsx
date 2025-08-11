@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 /* eslint-disable complexity */
 "use client";
 
@@ -61,6 +62,7 @@ export function ClaudeChat({
 
   const personas = useMemo(() => PERSONAS.map((p) => ({ key: p.key, label: p.label })), []);
   const getPersonaByKey = (key: PersonaType | null) => PERSONAS.find((p) => p.key === key);
+  const resolvedName = userProfile?.displayName ?? user?.displayName;
 
   const handleSend = async (value: string) => {
     const trimmed = value.trim();
@@ -74,6 +76,36 @@ export function ClaudeChat({
     setInputValue("");
     setIsHeroState(false);
     onSend?.(trimmed, selectedPersona ?? "MiniBuddy");
+
+    // If no persona selected, treat the input as a script idea and run Speed Write
+    if (!selectedPersona) {
+      try {
+        const res = await generateScript(trimmed, "60");
+        if (res.success && res.script) {
+          const content = `📝 Generated Script:\n\n**Hook:** ${res.script.hook}\n\n**Bridge:** ${res.script.bridge}\n\n**Golden Nugget:** ${res.script.goldenNugget}\n\n**Call to Action:** ${res.script.wta}`;
+          setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "assistant", content }]);
+        } else {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: crypto.randomUUID(),
+              role: "assistant",
+              content: `Error: ${res.error ?? "Failed to generate script"}`,
+            },
+          ]);
+        }
+      } catch (err: unknown) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            role: "assistant",
+            content: `Error: ${typeof err === "object" && err && "message" in err ? String((err as { message?: unknown }).message) : "Failed to generate script"}`,
+          },
+        ]);
+      }
+      return;
+    }
 
     // Script command detection
     const lower = trimmed.toLowerCase();
@@ -110,7 +142,7 @@ export function ClaudeChat({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: trimmed,
-          persona: selectedPersona ?? "MiniBuddy",
+          persona: selectedPersona,
           conversationHistory: messages.map((m) => ({ role: m.role, content: m.content })),
         }),
       });
@@ -144,7 +176,7 @@ export function ClaudeChat({
           <div className="mx-auto flex w-full max-w-2xl flex-col items-start gap-6 pb-8">
             <div>
               <h1 className="text-foreground text-4xl leading-10 font-bold tracking-tight">
-                {`Hello${user && (userProfile?.displayName ?? user.displayName) ? ", " + (userProfile?.displayName ?? user.displayName) : ""}`}
+                {`Hello${resolvedName ? ", " + resolvedName : ""}`}
                 <br />
                 <span className="text-muted-foreground">What will you script today?</span>
               </h1>
