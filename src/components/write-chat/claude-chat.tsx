@@ -326,7 +326,7 @@ export function ClaudeChat({
                       <span className="text-muted-foreground">mode</span>
                     </div>
                   )}
-                  {linkDetection && linkDetection.type !== "text" && (
+                  {linkDetection && linkDetection.type !== "text" && !hasValidVideoUrl && (
                     <div className="bg-muted/80 border-border/50 text-muted-foreground flex items-center gap-2 rounded-md border p-2 text-sm">
                       <span className="text-foreground font-medium">
                         {linkDetection.type === "other_url" ? "Link" : linkDetection.type}
