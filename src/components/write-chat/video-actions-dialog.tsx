@@ -67,11 +67,25 @@ function ActionCard({
 
 export function VideoActionsDialog({ open, onOpenChange, platform, videoUrl, onResult }: Props) {
   const [submitting, setSubmitting] = useState<ActionKey | null>(null);
+  const [resolvedUrl, setResolvedUrl] = useState<string | null>(null);
+
+  const ensureResolved = async (): Promise<{ url: string; platform: Platform }> => {
+    if (resolvedUrl) return { url: resolvedUrl, platform };
+    // Resolve via unified scraper
+    const res = await postJson<{ success: boolean; videoUrl?: string; platform?: Platform }>("/api/video/resolve", {
+      url: videoUrl,
+    });
+    const finalUrl = res?.videoUrl ?? videoUrl;
+    const finalPlatform = res?.platform ?? platform;
+    setResolvedUrl(finalUrl);
+    return { url: finalUrl, platform: finalPlatform };
+  };
 
   const handleTranscribe = async () => {
     setSubmitting("transcribe");
     try {
-      const data = await postJson("/api/video/transcribe", { videoUrl, platform });
+      const { url, platform: plat } = await ensureResolved();
+      const data = await postJson("/api/video/transcribe", { videoUrl: url, platform: plat });
       onResult({ type: "transcript", data });
       onOpenChange(false);
     } finally {
@@ -82,8 +96,9 @@ export function VideoActionsDialog({ open, onOpenChange, platform, videoUrl, onR
   const handleAnalyze = async () => {
     setSubmitting("analyze");
     try {
-      const t = await postJson<{ transcript: string }>("/api/video/transcribe", { videoUrl, platform });
-      const data = await postJson("/api/analyze/style", { transcript: t.transcript, sourceUrl: videoUrl, platform });
+      const { url, platform: plat } = await ensureResolved();
+      const t = await postJson<{ transcript: string }>("/api/video/transcribe", { videoUrl: url, platform: plat });
+      const data = await postJson("/api/analyze/style", { transcript: t.transcript, sourceUrl: url, platform: plat });
       onResult({ type: "analysis", data });
       onOpenChange(false);
     } finally {
@@ -94,12 +109,13 @@ export function VideoActionsDialog({ open, onOpenChange, platform, videoUrl, onR
   const handleEmulate = async () => {
     setSubmitting("emulate");
     try {
-      const t = await postJson<{ transcript: string }>("/api/video/transcribe", { videoUrl, platform });
+      const { url, platform: plat } = await ensureResolved();
+      const t = await postJson<{ transcript: string }>("/api/video/transcribe", { videoUrl: url, platform: plat });
       // The client can prompt for topic separately; send a placeholder for now
       const data = await postJson("/api/style/emulate", {
         transcript: t.transcript,
-        sourceUrl: videoUrl,
-        platform,
+        sourceUrl: url,
+        platform: plat,
         newTopic: "Write a script about the core idea of this video for my audience",
       });
       onResult({ type: "emulation", data });
@@ -112,8 +128,9 @@ export function VideoActionsDialog({ open, onOpenChange, platform, videoUrl, onR
   const handleIdeas = async () => {
     setSubmitting("ideas");
     try {
-      const t = await postJson<{ transcript: string }>("/api/video/transcribe", { videoUrl, platform });
-      const data = await postJson("/api/content/ideas", { transcript: t.transcript, sourceUrl: videoUrl });
+      const { url, platform: plat } = await ensureResolved();
+      const t = await postJson<{ transcript: string }>("/api/video/transcribe", { videoUrl: url, platform: plat });
+      const data = await postJson("/api/content/ideas", { transcript: t.transcript, sourceUrl: url });
       onResult({ type: "ideas", data });
       onOpenChange(false);
     } finally {
@@ -124,7 +141,8 @@ export function VideoActionsDialog({ open, onOpenChange, platform, videoUrl, onR
   const handleHooks = async () => {
     setSubmitting("hooks");
     try {
-      const t = await postJson<{ transcript: string }>("/api/video/transcribe", { videoUrl, platform });
+      const { url, platform: plat } = await ensureResolved();
+      const t = await postJson<{ transcript: string }>("/api/video/transcribe", { videoUrl: url, platform: plat });
       const data = await postJson("/api/hooks/generate", { input: t.transcript });
       onResult({ type: "hooks", data });
       onOpenChange(false);
