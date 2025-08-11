@@ -41,7 +41,7 @@ export function WriteClient({
   return (
     <div className="flex min-h-screen flex-col">
       {!isHeroState && (
-        <div className="bg-background border-border sticky top-0 z-50 -mb-6 h-12 w-full border-b backdrop-blur">
+        <div className="bg-background border-border fixed inset-x-0 top-0 z-50 h-12 w-full border-b backdrop-blur">
           {/* Gradient fade below header */}
           <div
             aria-hidden
@@ -112,7 +112,7 @@ export function WriteClient({
         </div>
       )}
 
-      <main className="min-h-0 flex-1 overflow-y-auto">
+      <main className="min-h-0 flex-1 overflow-y-auto pt-12">
         <div className="mx-auto max-w-3xl px-4 md:px-6">
           <ClaudeChat
             initialPrompt={initialPrompt}
