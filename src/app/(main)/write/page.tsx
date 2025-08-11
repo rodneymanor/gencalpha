@@ -1,8 +1,6 @@
 import { type PersonaType } from "@/components/chatbot/persona-selector";
 import { WriteClient } from "@/components/write-chat/write-client";
 
-import IdeasSection from "./_components/ideas-section";
-
 export default function WritePage({
   searchParams,
 }: {
@@ -13,9 +11,6 @@ export default function WritePage({
   return (
     <div className="font-sans">
       <WriteClient initialPrompt={initialPrompt} initialPersona={initialPersona} />
-      <div className="mt-12">
-        <IdeasSection />
-      </div>
     </div>
   );
 }

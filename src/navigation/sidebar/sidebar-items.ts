@@ -1,4 +1,4 @@
-import { Calendar, GalleryVerticalEnd, LibraryBig, type LucideIcon } from "lucide-react";
+import { Calendar, GalleryVerticalEnd, LibraryBig, Inbox, PenLine, Users, type LucideIcon } from "lucide-react";
 
 export interface NavSubItem {
   title: string;
@@ -46,6 +46,27 @@ export const sidebarItems: NavGroup[] = [
         url: "/focus-collections",
         icon: GalleryVerticalEnd,
         isNew: true,
+      },
+    ],
+  },
+  {
+    id: 2,
+    label: "Ideas",
+    items: [
+      {
+        title: "Creators",
+        url: "/dashboard/ideas/creators",
+        icon: Users,
+      },
+      {
+        title: "Idea inbox",
+        url: "/dashboard/ideas/idea-inbox",
+        icon: Inbox,
+      },
+      {
+        title: "Ghostwriter",
+        url: "/dashboard/ideas/ghostwriter",
+        icon: PenLine,
       },
     ],
   },
