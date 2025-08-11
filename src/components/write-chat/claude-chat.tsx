@@ -239,7 +239,7 @@ export function ClaudeChat({
             <div className="w-full max-w-2xl">
               <Card className="shadow-sm transition-shadow duration-200 hover:shadow-md">
                 <div className="flex flex-col gap-3 p-4">
-                  <div className={`relative ${isIdeaMode ? "ring-ring rounded-[var(--radius-input)] ring-2" : ""}`}>
+                  <div className={`relative ${isIdeaMode ? "rounded-[var(--radius-input)]" : ""}`}>
                     <textarea
                       ref={heroInputRef}
                       value={inputValue}
