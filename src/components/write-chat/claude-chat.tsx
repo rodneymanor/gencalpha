@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
 
 type Suggestion = {
   id: string;
@@ -73,7 +74,7 @@ export function ClaudeChat({ className, placeholder = "How can I help you today?
   };
 
   return (
-    <div className={className}>
+    <div className={cn("font-sans", className)}>
       {/* Sticky header with gradient backdrop */}
       <div className="sticky top-0 z-20 -mb-6 h-12 w-full opacity-100 transition-all">
         <div className="from-background to-background/0 pointer-events-none absolute inset-x-0 top-0 -bottom-5 -z-10 bg-gradient-to-b blur-sm" />
@@ -86,10 +87,10 @@ export function ClaudeChat({ className, placeholder = "How can I help you today?
             <ChevronDown className="h-4 w-4" />
           </button>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="h-9 gap-1 rounded-[var(--radius-button)] px-3">
+            <Button variant="outline" size="sm" className="h-11 gap-1 rounded-[var(--radius-button)] px-3 md:h-9">
               <Plus className="h-4 w-4" /> Share
             </Button>
-            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-[var(--radius-button)]">
+            <Button variant="ghost" size="icon" className="h-11 w-11 rounded-[var(--radius-button)] md:h-9 md:w-9">
               <Ellipsis className="h-5 w-5" />
             </Button>
           </div>
@@ -99,13 +100,13 @@ export function ClaudeChat({ className, placeholder = "How can I help you today?
       {/* Hero State */}
       {isHeroState && (
         <div className="flex h-[calc(100vh-6rem)] flex-col items-center px-4 pt-24 md:pt-48">
-          <div className="mx-auto flex w-full max-w-[672px] flex-col items-center gap-6 pb-8 text-center">
+          <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-6 pb-8 text-center">
             <div className="text-muted-foreground inline-flex items-center gap-3 text-3xl font-semibold text-balance md:text-4xl">
               <div className="text-brand h-8 w-8 animate-[spin_20s_linear_infinite]">●</div>
               <span className="font-sans">{title}</span>
             </div>
 
-            <div className="w-full max-w-[672px]">
+            <div className="w-full max-w-2xl">
               <Card className="bg-card border-input rounded-[var(--radius-card)] border shadow-[var(--shadow-input)] transition-shadow focus-within:shadow-[var(--shadow-soft-drop)] hover:shadow-[var(--shadow-input)]">
                 <div className="flex flex-col gap-4 p-4">
                   <div className="relative">
@@ -142,7 +143,7 @@ export function ClaudeChat({ className, placeholder = "How can I help you today?
                     </div>
                     <Button
                       size="icon"
-                      className="bg-secondary text-secondary-foreground h-8 w-8 rounded-[var(--radius-button)]"
+                      className="bg-secondary text-secondary-foreground h-11 w-11 rounded-[var(--radius-button)] md:h-8 md:w-8"
                       disabled={!inputValue.trim()}
                       onClick={() => handleSend(inputValue)}
                     >
@@ -153,13 +154,13 @@ export function ClaudeChat({ className, placeholder = "How can I help you today?
               </Card>
             </div>
 
-            <div className="mx-auto flex w-full max-w-[672px] flex-wrap justify-center gap-2 pt-6">
+            <div className="mx-auto flex w-full max-w-2xl flex-wrap justify-center gap-2 pt-6">
               {suggestions.map((s) => (
                 <Button
                   key={s.id}
                   variant="outline"
                   size="sm"
-                  className="bg-card text-foreground hover:bg-accent hover:text-accent-foreground border-input inline-flex items-center gap-2 rounded-[var(--radius-button)] border px-3 py-2"
+                  className="bg-card text-foreground hover:bg-accent hover:text-accent-foreground border-input inline-flex h-11 items-center gap-2 rounded-[var(--radius-button)] border px-3 py-2 md:h-auto"
                   onClick={() => setInputValue(s.label)}
                 >
                   {s.icon}
@@ -218,7 +219,7 @@ export function ClaudeChat({ className, placeholder = "How can I help you today?
                     />
                     <Button
                       size="icon"
-                      className="bg-secondary text-secondary-foreground h-8 w-8 rounded-[var(--radius-button)]"
+                      className="bg-secondary text-secondary-foreground h-11 w-11 rounded-[var(--radius-button)] md:h-8 md:w-8"
                       disabled={!inputValue.trim()}
                       onClick={() => handleSend(inputValue)}
                     >
