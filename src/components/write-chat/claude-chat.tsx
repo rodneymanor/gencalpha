@@ -313,7 +313,7 @@ export function ClaudeChat({
           </ScrollArea>
 
           {/* Chat Input */}
-          <div className="border-border border-t bg-transparent px-4 pt-2 pb-2">
+          <div className="bg-transparent px-4 pt-2 pb-2">
             <div className="mx-auto w-full max-w-3xl">
               <Card className="border-border bg-transparent shadow-sm dark:bg-transparent">
                 <div className="flex flex-col gap-3 p-4">
