@@ -143,19 +143,21 @@ export function WriteClient({
 
       <main className="min-h-0 flex-1 overflow-y-auto pt-12">
         <div className="mx-auto max-w-3xl px-4 md:px-6">
-          <ClaudeChat
-            initialPrompt={initialPrompt}
-            initialPersona={initialPersona}
-            onSend={(msg: string) => {
-              if (isHeroState && msg.trim()) {
-                setIsHeroState(false);
-                if (chatTitle === "Untitled Chat" && msg.length > 0) {
-                  const truncatedTitle = msg.length > 30 ? msg.substring(0, 30) + "..." : msg;
-                  setChatTitle(truncatedTitle);
+          <div className={isHeroState ? "-mt-24 md:-mt-32" : ""}>
+            <ClaudeChat
+              initialPrompt={initialPrompt}
+              initialPersona={initialPersona}
+              onSend={(msg: string) => {
+                if (isHeroState && msg.trim()) {
+                  setIsHeroState(false);
+                  if (chatTitle === "Untitled Chat" && msg.length > 0) {
+                    const truncatedTitle = msg.length > 30 ? msg.substring(0, 30) + "..." : msg;
+                    setChatTitle(truncatedTitle);
+                  }
                 }
-              }
-            }}
-          />
+              }}
+            />
+          </div>
         </div>
       </main>
     </div>
