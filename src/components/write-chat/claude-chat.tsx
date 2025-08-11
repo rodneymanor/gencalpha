@@ -4,9 +4,15 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { Plus, Search, SendHorizontal, SlidersHorizontal, Share2 } from "lucide-react";
+import { Plus, Search, SendHorizontal, SlidersHorizontal, Share2, ChevronDown } from "lucide-react";
 
 import { type PersonaType, PERSONAS } from "@/components/chatbot/persona-selector";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Button, Card, ScrollArea } from "@/components/write-chat/primitives";
 import { useAuth } from "@/contexts/auth-context";
 import { useScriptGeneration } from "@/hooks/use-script-generation";
@@ -41,6 +47,7 @@ export function ClaudeChat({
   const { user, userProfile } = useAuth();
   const { generateScript } = useScriptGeneration();
   const [chatTitle, setChatTitle] = useState<string>("Untitled Chat");
+  const titleInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -170,16 +177,51 @@ export function ClaudeChat({
   return (
     <div className={`font-sans ${className}`}>
       {/* Header */}
-      <div className="bg-background border-border sticky top-0 z-10 border-b">
-        <div className="mx-auto flex h-12 w-full max-w-3xl items-center justify-between px-4">
-          <input
-            value={chatTitle}
-            onChange={(e) => setChatTitle(e.target.value)}
-            placeholder="Untitled Chat"
-            className="text-foreground placeholder:text-muted-foreground focus-visible:ring-ring w-full max-w-sm rounded-[var(--radius-input)] border border-transparent bg-transparent px-3 py-2 text-sm font-medium transition-colors outline-none focus-visible:ring-1"
-          />
-          <Button variant="outline" size="sm" className="ml-3 h-8 gap-2 rounded-[var(--radius-button)]">
-            <Share2 className="h-4 w-4" />
+      <div className="bg-background border-border sticky top-0 z-10 -mb-6 border-b">
+        {/* Fade overlay below header */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 -z-10"
+          style={{
+            bottom: "-20px",
+            backgroundImage: "linear-gradient(var(--background), var(--background) 65%, rgba(0,0,0,0))",
+            filter: "blur(4px)",
+          }}
+        />
+        <div className="mx-auto flex h-12 w-full max-w-3xl items-center justify-between pr-3 pl-8">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <input
+              ref={titleInputRef}
+              value={chatTitle}
+              onChange={(e) => setChatTitle(e.target.value)}
+              placeholder="Untitled Chat"
+              className="text-foreground placeholder:text-muted-foreground focus-visible:ring-ring w-full max-w-sm rounded-[var(--radius-input)] border border-transparent bg-transparent px-3 py-2 text-sm font-medium transition-colors outline-none focus-visible:ring-1"
+            />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-7 w-7 rounded-[var(--radius-button)]">
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-40">
+                <DropdownMenuItem
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    const el = titleInputRef.current;
+                    if (el) {
+                      el.focus();
+                      el.select();
+                    }
+                  }}
+                >
+                  Rename title
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Edit options</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          <Button variant="outline" size="sm" className="ml-3 h-9 rounded-[var(--radius-button)] pr-3 pl-2">
+            <Share2 className="mr-1.5 h-4 w-4" />
             <span className="hidden sm:inline">Share</span>
           </Button>
         </div>
