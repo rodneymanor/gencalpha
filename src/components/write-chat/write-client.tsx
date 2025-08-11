@@ -48,7 +48,7 @@ export function WriteClient({
             className="from-background via-background to-background/0 pointer-events-none absolute inset-0 -bottom-5 -z-10 bg-gradient-to-b blur-sm"
           />
 
-          <div className="flex h-full w-full items-center justify-between gap-4 pr-3 pl-4 md:pl-[calc(var(--sidebar-width,0px)+24px)] lg:gap-6">
+          <div className="ml-[calc(var(--sidebar-width,0px)+32px)] flex h-full w-full items-center justify-between gap-4 pr-3 pl-4 md:pl-0 lg:gap-6">
             {/* Left Section - Title Area */}
             <div className="flex min-w-0 flex-1 items-center">
               <div className="hover:bg-accent/50 inline-flex items-center rounded-[var(--radius-button)] px-1">
