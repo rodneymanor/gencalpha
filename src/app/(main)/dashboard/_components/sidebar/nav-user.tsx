@@ -51,11 +51,8 @@ export function NavUser() {
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton
-              size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-            >
-              <div className="bg-muted text-foreground flex h-8 w-8 items-center justify-center rounded-[var(--radius-pill)] text-sm font-medium">
+            <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+              <div className="bg-muted text-foreground flex size-4 items-center justify-center rounded-[var(--radius-pill)] text-[10px] leading-none font-medium">
                 {firstInitial}
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
