@@ -23,11 +23,9 @@ export function WriteClient({
 }) {
   const [isHeroState, setIsHeroState] = useState(true);
   const [chatTitle, setChatTitle] = useState<string>("Untitled Chat");
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
   const titleInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleTitleClick = () => {
-    setIsEditingTitle(true);
     setTimeout(() => {
       titleInputRef.current?.focus();
       titleInputRef.current?.select();
@@ -35,7 +33,6 @@ export function WriteClient({
   };
 
   const handleTitleBlur = () => {
-    setIsEditingTitle(false);
     if (!chatTitle.trim()) {
       setChatTitle("Untitled Chat");
     }
@@ -53,53 +50,51 @@ export function WriteClient({
 
           <div className="flex h-full w-full items-center justify-between gap-4 pr-3 pl-11 lg:gap-6 lg:pl-8">
             {/* Left Section - Title Area */}
-            <div className="flex min-w-0 flex-1 items-center gap-1">
-              <input
-                ref={titleInputRef}
-                value={chatTitle}
-                onChange={(e) => setChatTitle(e.target.value)}
-                onBlur={handleTitleBlur}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.currentTarget.blur();
-                  }
-                }}
-                onClick={handleTitleClick}
-                placeholder="Untitled Chat"
-                className={`text-foreground placeholder:text-muted-foreground max-w-xs truncate bg-transparent px-2 py-1 text-sm font-medium transition-all duration-200 outline-none ${
-                  isEditingTitle
-                    ? "bg-accent/50 ring-primary/20 rounded-md ring-2"
-                    : "hover:bg-accent/50 cursor-pointer hover:rounded-md"
-                }`}
-                style={{
-                  minWidth: "120px",
-                  maxWidth: "300px",
-                }}
-              />
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="hover:bg-accent h-8 w-8 rounded-md">
-                    <ChevronDown className="text-muted-foreground h-4 w-4" />
-                    <span className="sr-only">Chat options</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48">
-                  <DropdownMenuItem
-                    onSelect={(e) => {
-                      e.preventDefault();
-                      handleTitleClick();
-                    }}
-                  >
-                    Rename chat
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Duplicate chat</DropdownMenuItem>
-                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Archive chat</DropdownMenuItem>
-                  <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
-                    Delete chat
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+            <div className="flex min-w-0 flex-1 items-center">
+              <div className="hover:bg-accent/50 inline-flex items-center rounded-[var(--radius-button)] px-1">
+                <input
+                  ref={titleInputRef}
+                  value={chatTitle}
+                  onChange={(e) => setChatTitle(e.target.value)}
+                  onBlur={handleTitleBlur}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.currentTarget.blur();
+                    }
+                  }}
+                  onClick={handleTitleClick}
+                  placeholder="Untitled Chat"
+                  className="text-foreground placeholder:text-muted-foreground max-w-sm truncate bg-transparent px-1 py-1 text-base font-semibold tracking-tight outline-none"
+                  style={{ minWidth: "120px", maxWidth: "300px" }}
+                />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="hover:bg-accent/50 h-7 w-7 rounded-[var(--radius-button)]"
+                    >
+                      <ChevronDown className="text-muted-foreground h-4 w-4" />
+                      <span className="sr-only">Chat options</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-48">
+                    <DropdownMenuItem
+                      onSelect={(e) => {
+                        e.preventDefault();
+                        handleTitleClick();
+                      }}
+                    >
+                      Rename chat
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Duplicate chat</DropdownMenuItem>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Archive chat</DropdownMenuItem>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                      Delete chat
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
 
             {/* Right Section - Actions */}
