@@ -4,13 +4,22 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { Plus, Search, SendHorizontal, SlidersHorizontal } from "lucide-react";
+import { SendHorizontal, SlidersHorizontal, Lightbulb, Pencil } from "lucide-react";
 
 import { type PersonaType, PERSONAS } from "@/components/chatbot/persona-selector";
 // header dropdown moved to parent wrapper
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Button, Card, ScrollArea } from "@/components/write-chat/primitives";
 import { useAuth } from "@/contexts/auth-context";
 import { useScriptGeneration } from "@/hooks/use-script-generation";
+import { clientNotesService, type Note } from "@/lib/services/client-notes-service";
 import { detectSocialLink, type DetectionResult } from "@/lib/utils/social-link-detector";
 
 // primitives moved to a separate file to reduce linter max-lines and improve reuse
@@ -35,6 +44,11 @@ export function ClaudeChat({
   const [inputValue, setInputValue] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [selectedPersona, setSelectedPersona] = useState<PersonaType | null>(initialPersona ?? null);
+  const [ideas, setIdeas] = useState<Note[]>([]);
+  const [ideasOpen, setIdeasOpen] = useState(false);
+  const [isIdeaMode, setIsIdeaMode] = useState(false);
+  const [ideaSaveMessage, setIdeaSaveMessage] = useState<string | null>(null);
+  const mountedRef = useRef(true);
   const [linkDetection, setLinkDetection] = useState<DetectionResult | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -46,6 +60,20 @@ export function ClaudeChat({
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Prefetch ideas on mount to keep the menu snappy
+  useEffect(() => {
+    mountedRef.current = true;
+    clientNotesService
+      .getIdeaInboxNotes()
+      .then((res) => {
+        if (mountedRef.current) setIdeas(res.notes || []);
+      })
+      .catch(() => void 0);
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   // Initialize from props
   useEffect(() => {
@@ -69,6 +97,29 @@ export function ClaudeChat({
   const handleSend = async (value: string) => {
     const trimmed = value.trim();
     if (!trimmed) return;
+
+    // Idea Inbox submission from hero input when Idea Mode is active
+    if (isHeroState && isIdeaMode) {
+      try {
+        const firstLine = trimmed.split("\n")[0]?.trim() ?? "Untitled";
+        const title = firstLine.length > 60 ? firstLine.slice(0, 60) + "…" : firstLine || "Untitled";
+        await clientNotesService.createNote({
+          title,
+          content: trimmed,
+          type: "idea_inbox",
+          source: "manual",
+          starred: false,
+        });
+        setIdeaSaveMessage("Saved to Idea Inbox");
+        setTimeout(() => setIdeaSaveMessage(null), 3000);
+        setInputValue("");
+        return; // do not transition to chat state
+      } catch {
+        setIdeaSaveMessage("Failed to save idea");
+        setTimeout(() => setIdeaSaveMessage(null), 4000);
+        return;
+      }
+    }
 
     // URL detection (for potential future embed/preview behavior)
     const detection = detectSocialLink(trimmed);
@@ -175,7 +226,7 @@ export function ClaudeChat({
 
       {/* Hero State */}
       {isHeroState && (
-        <div className="flex min-h-[calc(100vh-4rem)] flex-col items-center px-4 pt-24 md:pt-32">
+        <div className="flex min-h-[calc(100vh-4rem)] flex-col items-center px-4 pt-24 md:pt-52">
           <div className="mx-auto flex w-full max-w-2xl flex-col items-start gap-6 pb-8">
             <div>
               <h1 className="text-foreground text-4xl leading-10 font-bold tracking-tight">
@@ -188,7 +239,7 @@ export function ClaudeChat({
             <div className="w-full max-w-2xl">
               <Card className="shadow-sm transition-shadow duration-200 hover:shadow-md">
                 <div className="flex flex-col gap-3 p-4">
-                  <div className="relative">
+                  <div className={`relative ${isIdeaMode ? "ring-ring rounded-[var(--radius-input)] ring-2" : ""}`}>
                     <textarea
                       ref={heroInputRef}
                       value={inputValue}
@@ -225,16 +276,55 @@ export function ClaudeChat({
                   )}
                   <div className="flex w-full items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <Plus className="h-4 w-4" />
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className={`!h-8 !w-8 ${isIdeaMode ? "bg-accent" : ""}`}
+                        onClick={() => {
+                          setIsIdeaMode((v) => !v);
+                          setTimeout(() => heroInputRef.current?.focus(), 0);
+                        }}
+                        title="Write to Idea Inbox"
+                      >
+                        <Pencil className="h-3 w-3" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <SlidersHorizontal className="h-4 w-4" />
+                      <Button variant="outline" size="icon" className="!h-8 !w-8">
+                        <SlidersHorizontal className="h-3 w-3" />
                       </Button>
-                      <Button variant="outline" size="sm" className="h-8 gap-1.5">
-                        <Search className="h-4 w-4" />
-                        <span className="hidden sm:inline">Research</span>
-                      </Button>
+                      <DropdownMenu open={ideasOpen} onOpenChange={setIdeasOpen}>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm" className="!h-8 gap-1.5">
+                            <Lightbulb className="h-3 w-3" />
+                            <span className="hidden sm:inline">Ideas</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-[280px]">
+                          <DropdownMenuLabel>Idea Inbox</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          {ideas.length === 0 ? (
+                            <DropdownMenuItem disabled>No ideas yet</DropdownMenuItem>
+                          ) : (
+                            ideas.slice(0, 12).map((note) => (
+                              <DropdownMenuItem
+                                key={note.id}
+                                onSelect={(e) => {
+                                  e.preventDefault();
+                                  const text = note.title ? `${note.title}: ${note.content}` : note.content;
+                                  setInputValue(text);
+                                  setIdeasOpen(false);
+                                  // Focus the textarea in chat input (non-hero state)
+                                  requestAnimationFrame(() => textareaRef.current?.focus());
+                                }}
+                              >
+                                <div className="flex min-w-0 flex-col">
+                                  <span className="truncate text-sm font-medium">{note.title || "Untitled"}</span>
+                                  <span className="text-muted-foreground truncate text-xs">{note.content}</span>
+                                </div>
+                              </DropdownMenuItem>
+                            ))
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                     <Button
                       size="icon"
@@ -267,6 +357,14 @@ export function ClaudeChat({
                 </Button>
               ))}
             </div>
+            {isIdeaMode && (
+              <div className="mx-auto w-full max-w-2xl">
+                <div className="bg-accent text-foreground mt-2 rounded-[var(--radius-card)] px-3 py-2 text-sm">
+                  Idea mode is active. Your input will be saved to your Idea Inbox.
+                </div>
+                {ideaSaveMessage && <div className="text-muted-foreground mt-1 text-xs">{ideaSaveMessage}</div>}
+              </div>
+            )}
             {selectedPersona && (
               <div className="bg-card border-border mx-auto mt-2 w-full max-w-2xl rounded-[var(--radius-card)] border p-4 text-left shadow-[var(--shadow-soft-drop)]">
                 <div className="flex items-start gap-3">
