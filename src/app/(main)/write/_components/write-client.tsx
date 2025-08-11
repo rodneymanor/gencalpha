@@ -38,7 +38,7 @@ export function WriteClient({
               filter: "blur(4px)",
             }}
           />
-          <div className="mx-auto flex h-12 w-full max-w-6xl items-center justify-between pr-3 pl-8">
+          <div className="mx-auto flex h-12 w-full max-w-screen-2xl items-center justify-between pr-3 pl-8">
             <div className="flex min-w-0 flex-1 items-center gap-2">
               <input
                 ref={titleInputRef}
