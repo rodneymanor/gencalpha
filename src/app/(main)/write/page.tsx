@@ -1,6 +1,4 @@
-import dynamic from "next/dynamic";
-
-const ClaudeChat = dynamic(() => import("@/components/write-chat/claude-chat"), { ssr: false });
+import ClaudeChat from "@/components/write-chat/claude-chat";
 
 export default function WritePage() {
   return (
