@@ -2,33 +2,29 @@
 
 This document tracks the current focus of development, recent changes, and immediate next steps. It is the most frequently updated file in the Memory Bank.
 
-_Last Updated: 2025-08-09_
+_Last Updated: 2025-08-11_
 
 ## 1. Current Focus
 
-- Building a minimal, low-debt Chrome extension that integrates with our backend via dedicated endpoints under `src/app/api/chrome-extension/`.
-- Initial authentication strategy for the extension is API key only (dual auth supported server-side for future Firebase tokens).
+- Simplifying the Write experience and reducing cognitive load by splitting Ideas features into dedicated pages under `dashboard/ideas/` using the dashboard layout.
+- Maintaining strict adherence to the Clarity Design System across new routes and interactions (spacing, radii, rings, shadows).
 
 ## 2. Recent Changes
 
-- Added consolidated Chrome extension endpoints:
-  - `api/chrome-extension/collections` (GET/POST proxy to core collections)
-  - `api/chrome-extension/collections/add-video` (POST: add video by URL + collection title)
-  - `api/chrome-extension/creators/add` (POST: full follow + video fetch via existing orchestrator)
-  - `api/chrome-extension/idea-inbox/text` (POST: create note with `type: "idea_inbox"`, `source: "inbox"`)
-  - `api/chrome-extension/idea-inbox/video` (POST: validate/scrape TikTok/Instagram with `UnifiedVideoScraper`, store original URL + metadata as idea note)
-- All endpoints support API key and Firebase ID token, but extension v1 will use API key only.
+- Created separate Ideas routes under `dashboard/ideas/`:
+  - `creators` (uses `CreatorVideosGrid` with floating player)
+  - `idea-inbox` (uses `DailyIdeaInboxSection`)
+  - `ghostwriter` (reuses `AIGhostwriterPage`)
+- Added a new “Ideas” group to the sidebar with links to the above pages.
+- Removed the combined Ideas section from `write/page.tsx` to keep the Write page focused.
+- In Write Chat, removed the focus ring in idea mode and hid persona buttons during idea mode; updated submit icon to `ArrowUp` and set buttons to `size-8`.
 
 ## 3. Immediate Next Steps
 
-- Scaffold `chrome-extension/` sub-app in this repo using WXT (MV3 + TS):
-  - Options page to store API key and base URL (dev: `http://localhost:3000`, prod: `https://gencpro.app`).
-  - Background service with small API client calling the new endpoints.
-  - Popup with quick actions: add text idea, add video idea, add creator, list/create collections, add video to collection.
-  - Context menu: auto-capture current tab title/URL and save to idea inbox.
-- Document usage in a `chrome-extension/README.md` and add scripts for dev/build.
+- Add route-level docs or help text sections for each Ideas page to clarify purpose.
+- Evaluate if the existing Ghostwriter page should be moved fully under `ideas/` in the future for consistency (currently reused in-place).
+- Plan feature flags for gating Ideas pages in a later release.
 
 ## 4. Open Questions / Known Issues
 
-- None for the extension v1; Firebase sign-in can be added later without changing the server endpoints (already dual-auth capable).
-- Continue to monitor creator follow flow for Firestore permissions if surfaced during extension usage.
+- None specific to the new Ideas routes. Monitor navigation discoverability and spacing consistency across pages.

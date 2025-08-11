@@ -18,6 +18,21 @@ This document describes architectural patterns and key decisions.
 - Responses follow `{ success: boolean, ... }` with friendly error messages.
 - Extension v1 uses API key only; server remains dual-auth capable for future Firebase tokens.
 
+## Frontend Navigation & Layout Patterns
+
+- Ideas features are split into dedicated routes under `src/app/(main)/dashboard/ideas/` to reduce cognitive load:
+  - `creators/` → discovery via `CreatorVideosGrid` with floating player
+  - `idea-inbox/` → capture/organize via `DailyIdeaInboxSection`
+  - `ghostwriter/` → script generation reusing `AIGhostwriterPage`
+- Sidebar includes a distinct “Ideas” group linking to each page, using `lucide-react` icons.
+- Write page remains focused (no combined Ideas section).
+
+## Clarity Design System Enforcement
+
+- Remove ad-hoc focus rings in contexts like idea mode; rely on `ring-ring` tokens only when needed.
+- Hide persona buttons when idea mode is active to prevent mode conflicts; restore when off.
+- Use semantic classes and variables for spacing, radius, and shadows; submit buttons standardized to `size-8` and `ArrowUp` icon.
+
 ## Background Processing
 
 - Use `setTimeout` for non-blocking background tasks where applicable.

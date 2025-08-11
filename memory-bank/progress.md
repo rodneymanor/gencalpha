@@ -2,7 +2,7 @@
 
 This document provides a high-level overview of the project's status, tracking what is complete, what is in progress, and what remains to be done.
 
-_Last Updated: 2025-08-09_
+_Last Updated: 2025-08-11_
 
 ## 1. What Works / Completed
 
@@ -18,11 +18,15 @@ _Last Updated: 2025-08-09_
   - `api/chrome-extension/creators/add` (POST)
   - `api/chrome-extension/idea-inbox/text` (POST)
   - `api/chrome-extension/idea-inbox/video` (POST)
+- **UI/Navigation:**
+  - Added Ideas group to sidebar with routes for Creators, Idea Inbox, and Ghostwriter under `dashboard/ideas/`.
+  - Write Chat: idea mode hides persona buttons, removes focus ring; submit buttons use `ArrowUp` icon and `size-8`.
 
 ## 2. In Progress / Needs Validation
 
 - **End-to-End Extension Calls:** Validate each endpoint from a background script using API key on dev (`http://localhost:3000`).
 - **Add Video to Collection (By Title):** Confirm auto-create of collection if title doesn’t exist, then forwarding to `add-video-to-collection` succeeds.
+- **Ideas Pages QA:** Verify all three Ideas pages for spacing, accessibility (focus states), and responsive behavior.
 
 ## 3. To-Do / Not Started
 
@@ -33,6 +37,7 @@ _Last Updated: 2025-08-09_
   - Implement context menu to auto-capture tab title/URL into idea inbox.
   - Add README and build scripts.
 - **Optional Auth:** Add Firebase sign-in to extension later (Google, Email/Password).
+- **Feature Flags:** Introduce gating for Ideas pages in a later release if needed.
 
 ## 4. Known Issues / Blockers
 
