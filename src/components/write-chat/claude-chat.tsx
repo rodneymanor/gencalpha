@@ -45,7 +45,8 @@ export function ClaudeChat({
   const [isHeroState, setIsHeroState] = useState(true);
   const [inputValue, setInputValue] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [isProcessing, setIsProcessing] = useState<string | null>(null);
+  // Processing UI managed via messages; keep variable for future state hooks if needed
+  const [, setIsProcessing] = useState<string | null>(null);
   const [selectedPersona, setSelectedPersona] = useState<PersonaType | null>(initialPersona ?? null);
   const [ideas, setIdeas] = useState<Note[]>([]);
   const [ideasOpen, setIdeasOpen] = useState(false);
@@ -75,7 +76,8 @@ export function ClaudeChat({
     clientNotesService
       .getIdeaInboxNotes()
       .then((res) => {
-        if (mountedRef.current) setIdeas(res.notes || []);
+        // Set immediately; in-flight cleanup will prevent later updates
+        setIdeas(res.notes || []);
       })
       .catch(() => void 0);
     return () => {
@@ -108,7 +110,10 @@ export function ClaudeChat({
         setUrlCandidate(detection.url ?? null);
         // no-op visual loading; we avoid unused state
         try {
-          const token = await firebaseAuth?.currentUser?.getIdToken?.();
+          const token =
+            firebaseAuth && firebaseAuth.currentUser && typeof firebaseAuth.currentUser.getIdToken === "function"
+              ? await firebaseAuth.currentUser.getIdToken()
+              : undefined;
           const res = await fetch("/api/url/validate", {
             method: "POST",
             headers: {
@@ -161,6 +166,32 @@ export function ClaudeChat({
     const trimmed = value.trim();
     if (!trimmed) return;
 
+    // Helper: create a short acknowledgement message describing the task.
+    // This gives immediate feedback and sets expectations while we "think".
+    const createAcknowledgementFor = (text: string): string => {
+      const lower = text.toLowerCase();
+      const extractTopic = (src: string) =>
+        src
+          .replace(/^\s*\/script\s+/i, "")
+          .replace(/^(generate script\s*:?)\s*/i, "")
+          .trim()
+          .split(/\s+/)
+          .slice(0, 12)
+          .join(" ");
+      if (/(^|\s)#?hooks?\b/.test(lower)) return "I'll help you write 20 hooks.";
+      if (/\bscript\b/.test(lower) || /^\s*\/script\b/i.test(lower) || /generate script/i.test(lower)) {
+        const topic = extractTopic(text) || "your idea";
+        return `I'll help you write a script about ${topic}.`;
+      }
+      if (/\bideas?\b/.test(lower)) return "I'll help you create 10 content ideas.";
+      if (/analys(is|e|is report)|\breport\b/.test(lower)) return "I'll help you generate an analysis report.";
+      return "I'll help you with that.";
+    };
+
+    // Helper: ensure a minimum perceived thinking time for smoother UX
+    const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
+    const MIN_ACK_MS = 3000; // Minimum time to keep acknowledgement visible
+
     // Idea Inbox submission from hero input when Idea Mode is active
     if (isHeroState && isIdeaMode) {
       try {
@@ -188,15 +219,29 @@ export function ClaudeChat({
     const detection = detectSocialLink(trimmed);
     setLinkDetection(detection);
 
-    setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "user", content: trimmed }]);
+    // 1) Push user message immediately
+    const userMessageId = crypto.randomUUID();
+    // 2) Push acknowledgement message immediately below user message
+    const ackMessageId = crypto.randomUUID();
+    const ackText = createAcknowledgementFor(trimmed);
+    setMessages((prev) => [
+      ...prev,
+      { id: userMessageId, role: "user", content: trimmed },
+      { id: ackMessageId, role: "assistant", content: ackText },
+    ]);
     setInputValue("");
     setIsHeroState(false);
     onSend?.(trimmed, selectedPersona ?? "MiniBuddy");
 
     // If no persona selected, treat the input as a script idea and run Speed Write
     if (!selectedPersona) {
+      // Start timer to enforce a minimum acknowledgement visibility
+      const startTs = Date.now();
       try {
         const res = await generateScript(trimmed, "60");
+        const elapsed = Date.now() - startTs;
+        const waitMore = Math.max(0, MIN_ACK_MS - elapsed);
+        await delay(waitMore);
         if (res.success && res.script) {
           const content = `📝 Generated Script:\n\n**Hook:** ${res.script.hook}\n\n**Bridge:** ${res.script.bridge}\n\n**Golden Nugget:** ${res.script.goldenNugget}\n\n**Call to Action:** ${res.script.wta}`;
           setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "assistant", content }]);
@@ -211,6 +256,9 @@ export function ClaudeChat({
           ]);
         }
       } catch (err: unknown) {
+        const elapsed = Date.now() - startTs;
+        const waitMore = Math.max(0, MIN_ACK_MS - elapsed);
+        await delay(waitMore);
         setMessages((prev) => [
           ...prev,
           {
@@ -227,8 +275,12 @@ export function ClaudeChat({
     const lower = trimmed.toLowerCase();
     if (lower.startsWith("/script ") || lower.includes("generate script")) {
       const idea = trimmed.replace(/^\s*\/script\s+/i, "").replace(/^(generate script\s*:?)\s*/i, "");
+      const startTs = Date.now();
       try {
         const res = await generateScript(idea, "60");
+        const elapsed = Date.now() - startTs;
+        const waitMore = Math.max(0, MIN_ACK_MS - elapsed);
+        await delay(waitMore);
         if (res.success && res.script) {
           const content = `📝 Generated Script:\n\n**Hook:** ${res.script.hook}\n\n**Bridge:** ${res.script.bridge}\n\n**Golden Nugget:** ${res.script.goldenNugget}\n\n**Call to Action:** ${res.script.wta}`;
           setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "assistant", content }]);
@@ -240,6 +292,9 @@ export function ClaudeChat({
         ]);
         return;
       } catch (err: unknown) {
+        const elapsed = Date.now() - startTs;
+        const waitMore = Math.max(0, MIN_ACK_MS - elapsed);
+        await delay(waitMore);
         setMessages((prev) => [
           ...prev,
           {
@@ -253,6 +308,7 @@ export function ClaudeChat({
     }
 
     try {
+      const startTs = Date.now();
       const response = await fetch("/api/chatbot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -269,8 +325,14 @@ export function ClaudeChat({
       }
       const data = await response.json();
       const assistantText = data.response ?? "I'm sorry, I didn't receive a proper response.";
+      const elapsed = Date.now() - startTs;
+      const waitMore = Math.max(0, MIN_ACK_MS - elapsed);
+      // Ensure acknowledgement stays visible long enough before showing the real answer
+      await delay(waitMore);
       setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "assistant", content: assistantText }]);
     } catch (err: unknown) {
+      // Also honor the minimum acknowledgement visibility on error
+      await delay(600); // small grace to avoid instant error pop
       setMessages((prev) => [
         ...prev,
         {
@@ -554,28 +616,37 @@ export function ClaudeChat({
             setIsProcessing(status);
             setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "assistant", content: "<processing>" }]);
           }}
-          onResult={async ({ type, data }: { type: string; data: any }) => {
+          onResult={({ type, data }: { type: string; data: unknown }) => {
+            const safeData: Record<string, unknown> =
+              data && typeof data === "object" ? (data as Record<string, unknown>) : {};
             if (type === "transcript") {
-              const transcript: string | undefined = data?.transcript;
+              const transcript = typeof safeData.transcript === "string" ? safeData.transcript : undefined;
               if (transcript) {
                 // persist transcript
-                try {
-                  const token = await firebaseAuth?.currentUser?.getIdToken?.();
-                  await fetch("/api/transcript/save", {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                      ...(token ? { authorization: `Bearer ${token}` } : {}),
-                    },
-                    body: JSON.stringify({
-                      transcript,
-                      sourceUrl: urlCandidate,
-                      platform: urlSupported === "tiktok" ? "TikTok" : "Instagram",
-                    }),
-                  });
-                } catch {
-                  // ignore persistence errors
-                }
+                (async () => {
+                  try {
+                    const token =
+                      firebaseAuth &&
+                      firebaseAuth.currentUser &&
+                      typeof firebaseAuth.currentUser.getIdToken === "function"
+                        ? await firebaseAuth.currentUser.getIdToken()
+                        : undefined;
+                    await fetch("/api/transcript/save", {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                        ...(token ? { authorization: `Bearer ${token}` } : {}),
+                      },
+                      body: JSON.stringify({
+                        transcript,
+                        sourceUrl: urlCandidate,
+                        platform: urlSupported === "tiktok" ? "TikTok" : "Instagram",
+                      }),
+                    });
+                  } catch {
+                    // ignore persistence errors
+                  }
+                })();
                 setMessages((prev) => {
                   const filtered = prev.filter((m) => m.content !== "<processing>");
                   return [
@@ -586,7 +657,7 @@ export function ClaudeChat({
               }
             }
             if (type === "analysis") {
-              const analysis: string | undefined = data?.analysis;
+              const analysis = typeof safeData.analysis === "string" ? safeData.analysis : undefined;
               if (analysis) {
                 setMessages((prev) => {
                   const filtered = prev.filter((m) => m.content !== "<processing>");
@@ -595,7 +666,12 @@ export function ClaudeChat({
               }
             }
             if (type === "emulation") {
-              const script = data?.script;
+              const script = (safeData.script ?? null) as {
+                hook?: string;
+                bridge?: string;
+                goldenNugget?: string;
+                wta?: string;
+              } | null;
               if (script) {
                 const content = `📝 Generated Script:\n\nHook: ${script.hook}\n\nBridge: ${script.bridge}\n\nGolden Nugget: ${script.goldenNugget}\n\nCall to Action: ${script.wta}`;
                 setMessages((prev) => {
@@ -605,7 +681,7 @@ export function ClaudeChat({
               }
             }
             if (type === "ideas") {
-              const ideas = data?.ideas as string;
+              const ideas = typeof safeData.ideas === "string" ? safeData.ideas : undefined;
               if (ideas) {
                 setMessages((prev) => {
                   const filtered = prev.filter((m) => m.content !== "<processing>");
@@ -614,7 +690,12 @@ export function ClaudeChat({
               }
             }
             if (type === "hooks") {
-              const hooks = data?.hooks as Array<{ hook: string; template: string }> | undefined;
+              const hooks = Array.isArray((safeData as { hooks?: unknown }).hooks)
+                ? ((safeData as { hooks?: Array<{ hook: string; template: string }> }).hooks as Array<{
+                    hook: string;
+                    template: string;
+                  }>)
+                : undefined;
               if (hooks?.length) {
                 const list = hooks.map((h, i) => `${i + 1}. ${h.hook} (${h.template})`).join("\n");
                 setMessages((prev) => {
