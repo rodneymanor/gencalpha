@@ -54,15 +54,11 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
             >
               <div className="min-h-0 flex-1 overflow-y-auto">
                 <ResizableDashboardWrapper className="h-full">
-                  <div className="mx-auto max-w-6xl">
-                    <div className="relative">
-                      <div className="absolute top-6 right-6 z-10">
-                        <ProcessingNotificationBadge />
-                      </div>
+                  <div className="relative h-full w-full">
+                    <div className="absolute top-6 right-6 z-10">
+                      <ProcessingNotificationBadge />
                     </div>
-                    <div className="px-4 py-6 md:px-6 md:pt-8 md:pb-0">
-                      <SlideoutWrapper slideout={<ContentViewer className="h-full" />}>{children}</SlideoutWrapper>
-                    </div>
+                    <SlideoutWrapper slideout={<ContentViewer className="h-full" />}>{children}</SlideoutWrapper>
                   </div>
                 </ResizableDashboardWrapper>
               </div>
