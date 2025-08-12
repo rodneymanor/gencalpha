@@ -16,6 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { InlineLoader } from "@/components/ui/loading";
 import { Button, Card, ScrollArea } from "@/components/write-chat/primitives";
 import { VideoActionsDialog } from "@/components/write-chat/video-actions-dialog";
 import { useAuth } from "@/contexts/auth-context";
@@ -170,21 +171,48 @@ export function ClaudeChat({
     // This gives immediate feedback and sets expectations while we "think".
     const createAcknowledgementFor = (text: string): string => {
       const lower = text.toLowerCase();
-      const extractTopic = (src: string) =>
-        src
-          .replace(/^\s*\/script\s+/i, "")
-          .replace(/^(generate script\s*:?)\s*/i, "")
-          .trim()
-          .split(/\s+/)
-          .slice(0, 12)
-          .join(" ");
-      if (/(^|\s)#?hooks?\b/.test(lower)) return "I'll help you write 20 hooks.";
-      if (/\bscript\b/.test(lower) || /^\s*\/script\b/i.test(lower) || /generate script/i.test(lower)) {
-        const topic = extractTopic(text) || "your idea";
-        return `I'll help you write a script about ${topic}.`;
+
+      // 1) Script intent has top priority (even if the text also mentions "ideas")
+      const hasScriptIntent = Boolean(
+        lower.match(/\bwrite\s+(?:a\s+)?script\b/i) ??
+          lower.match(/\bscript\b/i) ??
+          lower.match(/^\s*\/script\b/i) ??
+          lower.match(/generate\s+script/i),
+      );
+      if (hasScriptIntent) {
+        // Try to extract the topic from common patterns
+        const topicAboutMatch = text.match(/\b(?:about|on)\s+([^.!?\n\r]{3,})/i);
+        const topicFromAbout = topicAboutMatch ? topicAboutMatch[1].trim() : undefined;
+        const topic = topicFromAbout
+          ? topicFromAbout.split(/\s+/).slice(0, 10).join(" ")
+          : text
+              .replace(/^\s*\/script\s+/i, "")
+              .replace(/^(generate\s+script\s*:?)\s*/i, "")
+              .replace(/\bwrite\s+(a\s+)?script\b/i, "")
+              .replace(/\bscript\b/i, "")
+              .trim()
+              .split(/\s+/)
+              .slice(0, 10)
+              .join(" ");
+        const safeTopic = topic ?? "your idea";
+        return `I'll help you write a script about ${safeTopic}.`;
       }
-      if (/\bideas?\b/.test(lower)) return "I'll help you create 10 content ideas.";
-      if (/analys(is|e|is report)|\breport\b/.test(lower)) return "I'll help you generate an analysis report.";
+
+      // 2) Hooks
+      if (/(^|\s)#?hooks?\b/.test(lower)) {
+        return "I'll help you write 20 hooks.";
+      }
+
+      // 3) Analysis
+      if (/analys(is|e)|\breport\b/.test(lower)) {
+        return "I'll help you generate an analysis report.";
+      }
+
+      // 4) Ideas (lowest priority among the above)
+      if (/\bideas?\b/.test(lower)) {
+        return "I'll help you create 10 content ideas.";
+      }
+
       return "I'll help you with that.";
     };
 
@@ -223,11 +251,14 @@ export function ClaudeChat({
     const userMessageId = crypto.randomUUID();
     // 2) Push acknowledgement message immediately below user message
     const ackMessageId = crypto.randomUUID();
+    const ackLoadingId = crypto.randomUUID();
     const ackText = createAcknowledgementFor(trimmed);
     setMessages((prev) => [
       ...prev,
       { id: userMessageId, role: "user", content: trimmed },
       { id: ackMessageId, role: "assistant", content: ackText },
+      // 2.1) Small loading indicator placeholder shown during analysis phase
+      { id: ackLoadingId, role: "assistant", content: "<ack-loading>" },
     ]);
     setInputValue("");
     setIsHeroState(false);
@@ -244,29 +275,38 @@ export function ClaudeChat({
         await delay(waitMore);
         if (res.success && res.script) {
           const content = `📝 Generated Script:\n\n**Hook:** ${res.script.hook}\n\n**Bridge:** ${res.script.bridge}\n\n**Golden Nugget:** ${res.script.goldenNugget}\n\n**Call to Action:** ${res.script.wta}`;
-          setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "assistant", content }]);
+          setMessages((prev) => {
+            const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== "<ack-loading>");
+            return [...filtered, { id: crypto.randomUUID(), role: "assistant", content }];
+          });
         } else {
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: crypto.randomUUID(),
-              role: "assistant",
-              content: `Error: ${res.error ?? "Failed to generate script"}`,
-            },
-          ]);
+          setMessages((prev) => {
+            const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== "<ack-loading>");
+            return [
+              ...filtered,
+              {
+                id: crypto.randomUUID(),
+                role: "assistant",
+                content: `Error: ${res.error ?? "Failed to generate script"}`,
+              },
+            ];
+          });
         }
       } catch (err: unknown) {
         const elapsed = Date.now() - startTs;
         const waitMore = Math.max(0, MIN_ACK_MS - elapsed);
         await delay(waitMore);
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: crypto.randomUUID(),
-            role: "assistant",
-            content: `Error: ${typeof err === "object" && err && "message" in err ? String((err as { message?: unknown }).message) : "Failed to generate script"}`,
-          },
-        ]);
+        setMessages((prev) => {
+          const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== "<ack-loading>");
+          return [
+            ...filtered,
+            {
+              id: crypto.randomUUID(),
+              role: "assistant",
+              content: `Error: ${typeof err === "object" && err && "message" in err ? String((err as { message?: unknown }).message) : "Failed to generate script"}`,
+            },
+          ];
+        });
       }
       return;
     }
@@ -283,26 +323,39 @@ export function ClaudeChat({
         await delay(waitMore);
         if (res.success && res.script) {
           const content = `📝 Generated Script:\n\n**Hook:** ${res.script.hook}\n\n**Bridge:** ${res.script.bridge}\n\n**Golden Nugget:** ${res.script.goldenNugget}\n\n**Call to Action:** ${res.script.wta}`;
-          setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "assistant", content }]);
+          setMessages((prev) => {
+            const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== "<ack-loading>");
+            return [...filtered, { id: crypto.randomUUID(), role: "assistant", content }];
+          });
           return;
         }
-        setMessages((prev) => [
-          ...prev,
-          { id: crypto.randomUUID(), role: "assistant", content: `Error: ${res.error ?? "Failed to generate script"}` },
-        ]);
+        setMessages((prev) => {
+          const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== "<ack-loading>");
+          return [
+            ...filtered,
+            {
+              id: crypto.randomUUID(),
+              role: "assistant",
+              content: `Error: ${res.error ?? "Failed to generate script"}`,
+            },
+          ];
+        });
         return;
       } catch (err: unknown) {
         const elapsed = Date.now() - startTs;
         const waitMore = Math.max(0, MIN_ACK_MS - elapsed);
         await delay(waitMore);
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: crypto.randomUUID(),
-            role: "assistant",
-            content: `Error: ${typeof err === "object" && err && "message" in err ? String((err as { message?: unknown }).message) : "Failed to generate script"}`,
-          },
-        ]);
+        setMessages((prev) => {
+          const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== "<ack-loading>");
+          return [
+            ...filtered,
+            {
+              id: crypto.randomUUID(),
+              role: "assistant",
+              content: `Error: ${typeof err === "object" && err && "message" in err ? String((err as { message?: unknown }).message) : "Failed to generate script"}`,
+            },
+          ];
+        });
         return;
       }
     }
@@ -329,18 +382,24 @@ export function ClaudeChat({
       const waitMore = Math.max(0, MIN_ACK_MS - elapsed);
       // Ensure acknowledgement stays visible long enough before showing the real answer
       await delay(waitMore);
-      setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "assistant", content: assistantText }]);
+      setMessages((prev) => {
+        const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== "<ack-loading>");
+        return [...filtered, { id: crypto.randomUUID(), role: "assistant", content: assistantText }];
+      });
     } catch (err: unknown) {
       // Also honor the minimum acknowledgement visibility on error
       await delay(600); // small grace to avoid instant error pop
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          role: "assistant",
-          content: `Error: ${typeof err === "object" && err && "message" in err ? String((err as { message?: unknown }).message) : "Failed to get response"}`,
-        },
-      ]);
+      setMessages((prev) => {
+        const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== "<ack-loading>");
+        return [
+          ...filtered,
+          {
+            id: crypto.randomUUID(),
+            role: "assistant",
+            content: `Error: ${typeof err === "object" && err && "message" in err ? String((err as { message?: unknown }).message) : "Failed to get response"}`,
+          },
+        ];
+      });
     }
   };
 
@@ -552,9 +611,16 @@ export function ClaudeChat({
                           <div aria-hidden className="h-8 w-8" />
                           {/* Assistant message as plain text, no container */}
                           <div className="col-start-2">
-                            <div className="prose text-foreground max-w-none">
-                              <p className="text-base leading-relaxed break-words whitespace-pre-wrap">{m.content}</p>
-                            </div>
+                            {m.content === "<ack-loading>" ? (
+                              <div className="mt-1 ml-1 flex items-center gap-2">
+                                <InlineLoader action="generate" size="sm" />
+                                <span className="sr-only">Analyzing…</span>
+                              </div>
+                            ) : (
+                              <div className="prose text-foreground max-w-none">
+                                <p className="text-base leading-relaxed break-words whitespace-pre-wrap">{m.content}</p>
+                              </div>
+                            )}
                           </div>
                         </>
                       )}
