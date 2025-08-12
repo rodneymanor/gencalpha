@@ -18,24 +18,22 @@ export function WriteShell({
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen w-full flex-col font-sans">
-      <div className="bg-background border-border sticky top-0 z-40 border-b">
-        <div className="mx-auto flex h-12 w-full max-w-6xl items-center justify-between px-4">
-          <div className="text-sm font-medium">Write</div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="rounded-[var(--radius-button)]"
-            onClick={() => setIsOpen((v) => !v)}
-          >
-            {isOpen ? "Close Test Slideout" : "Open Test Slideout"}
-          </Button>
-        </div>
+    <div className="flex min-h-[100dvh] w-full flex-col font-sans">
+      {/* Toggle control (temporary test button) */}
+      <div className="mb-4 flex w-full justify-end">
+        <Button
+          variant="outline"
+          size="sm"
+          className="rounded-[var(--radius-button)]"
+          onClick={() => setIsOpen((v) => !v)}
+        >
+          {isOpen ? "Close Test Slideout" : "Open Test Slideout"}
+        </Button>
       </div>
 
-      <div className={cn("flex flex-1 overflow-hidden")}>
+      <div className={cn("relative flex flex-1 overflow-hidden")}>
         {/* Left: Main content area (Claude chat) */}
-        <div className={cn("transition-all duration-300", isOpen ? "hidden lg:flex lg:w-1/2" : "flex w-full")}>
+        <div className={cn("min-h-0 transition-all duration-300", isOpen ? "hidden lg:flex lg:w-1/2" : "flex w-full")}>
           <div className="flex w-full flex-col">
             <WriteClient initialPrompt={initialPrompt} initialPersona={initialPersona} />
           </div>
@@ -44,7 +42,7 @@ export function WriteShell({
         {/* Right: Slideout panel (standalone) */}
         <div
           className={cn(
-            "bg-card border-border fixed inset-y-12 right-0 z-30 w-full max-w-full border-l shadow-[var(--shadow-soft-drop)] transition-transform duration-300 lg:static lg:inset-auto lg:h-auto lg:w-1/2",
+            "border-border bg-card absolute inset-y-0 right-0 z-30 w-full max-w-full border-l shadow-[var(--shadow-soft-drop)] transition-transform duration-300 lg:static lg:h-auto lg:w-1/2",
             isOpen ? "translate-x-0" : "translate-x-full lg:hidden lg:translate-x-0",
           )}
         >
