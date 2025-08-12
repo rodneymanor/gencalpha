@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { ChevronRight, Plus } from "lucide-react";
 
@@ -35,19 +35,23 @@ const IsComingSoon = () => (
 );
 
 const CustomDailyButton = ({ url }: { url: string }) => {
+  const router = useRouter();
+  const handleClick = () => {
+    // Force a fresh navigation to /write even if already there
+    router.push(`${url}?new=${Date.now()}`);
+  };
+
   return (
     <SidebarMenuButton
-      asChild
       isActive={false}
       tooltip="New Script"
+      onClick={handleClick}
       className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground data-[active=true]:bg-transparent data-[active=true]:font-normal"
     >
-      <Link href={url}>
-        <div className="bg-primary hover:bg-primary/90 flex h-4 w-4 shrink-0 items-center justify-center rounded-[var(--radius-pill)] shadow-[var(--shadow-soft-drop)] transition-all duration-200 ease-linear">
-          <Plus className="text-primary-foreground h-3 w-3" />
-        </div>
-        <span>New Script</span>
-      </Link>
+      <div className="bg-primary hover:bg-primary/90 flex h-4 w-4 shrink-0 items-center justify-center rounded-[var(--radius-pill)] shadow-[var(--shadow-soft-drop)] transition-all duration-200 ease-linear">
+        <Plus className="text-primary-foreground h-3 w-3" />
+      </div>
+      <span>New Script</span>
     </SidebarMenuButton>
   );
 };
