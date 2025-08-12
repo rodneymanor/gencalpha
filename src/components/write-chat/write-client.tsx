@@ -66,83 +66,71 @@ export function WriteClient({
 
   return (
     <div className="flex min-h-screen flex-col">
-      {!isHeroState && (
-        <div className="bg-background border-border fixed inset-x-0 top-0 z-50 h-12 w-full border-b backdrop-blur">
-          {/* Gradient fade below header */}
-          <div
-            aria-hidden
-            className="from-background via-background to-background/0 pointer-events-none absolute inset-0 -bottom-5 -z-10 bg-gradient-to-b blur-sm"
-          />
-
-          <div
-            className="flex h-full w-full items-center justify-between gap-4 pr-3 lg:gap-6"
-            style={{ paddingLeft: `${sidebarGapPx + 32}px` }}
-          >
-            {/* Left Section - Title Area */}
-            <div className="flex min-w-0 flex-1 items-center">
-              <div className="hover:bg-accent/50 inline-flex items-center rounded-[var(--radius-button)] px-1">
-                <input
-                  ref={titleInputRef}
-                  value={chatTitle}
-                  onChange={(e) => setChatTitle(e.target.value)}
-                  onBlur={handleTitleBlur}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.currentTarget.blur();
-                    }
-                  }}
-                  onClick={handleTitleClick}
-                  placeholder="Untitled Chat"
-                  className="text-foreground placeholder:text-muted-foreground max-w-sm truncate bg-transparent px-1 py-1 text-base font-semibold tracking-tight outline-none"
-                  style={{ minWidth: "120px", maxWidth: "300px" }}
-                />
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="hover:bg-accent/50 h-7 w-7 rounded-[var(--radius-button)]"
-                    >
-                      <ChevronDown className="text-muted-foreground h-4 w-4" />
-                      <span className="sr-only">Chat options</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-48">
-                    <DropdownMenuItem
-                      onSelect={(e) => {
-                        e.preventDefault();
-                        handleTitleClick();
-                      }}
-                    >
-                      Rename chat
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Duplicate chat</DropdownMenuItem>
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Archive chat</DropdownMenuItem>
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
-                      Delete chat
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+      <main className="min-h-0 flex-1 overflow-y-auto">
+        <div className="mx-auto max-w-3xl px-4 md:px-6">
+          {!isHeroState && (
+            <div
+              className="flex items-center justify-between gap-4 pt-3 pb-3 lg:gap-6"
+              style={{ paddingLeft: `${sidebarGapPx + 0}px` }}
+            >
+              <div className="flex min-w-0 flex-1 items-center">
+                <div className="hover:bg-accent/50 inline-flex items-center rounded-[var(--radius-button)] px-1">
+                  <input
+                    ref={titleInputRef}
+                    value={chatTitle}
+                    onChange={(e) => setChatTitle(e.target.value)}
+                    onBlur={handleTitleBlur}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.currentTarget.blur();
+                      }
+                    }}
+                    onClick={handleTitleClick}
+                    placeholder="Untitled Chat"
+                    className="text-foreground placeholder:text-muted-foreground max-w-sm truncate bg-transparent px-1 py-1 text-base font-semibold tracking-tight outline-none"
+                    style={{ minWidth: "120px", maxWidth: "300px" }}
+                  />
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="hover:bg-accent/50 h-7 w-7 rounded-[var(--radius-button)]"
+                      >
+                        <ChevronDown className="text-muted-foreground h-4 w-4" />
+                        <span className="sr-only">Chat options</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-48">
+                      <DropdownMenuItem
+                        onSelect={(e) => {
+                          e.preventDefault();
+                          handleTitleClick();
+                        }}
+                      >
+                        Rename chat
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Duplicate chat</DropdownMenuItem>
+                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Archive chat</DropdownMenuItem>
+                      <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                        Delete chat
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 pl-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-border/50 hover:bg-accent hover:border-border h-9 rounded-md"
+                >
+                  <Share2 className="h-4 w-4" />
+                  <span className="ml-2 hidden sm:inline">Share</span>
+                </Button>
               </div>
             </div>
-
-            {/* Right Section - Actions */}
-            <div className="flex items-center gap-2 pl-4">
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-border/50 hover:bg-accent hover:border-border h-9 rounded-md"
-              >
-                <Share2 className="h-4 w-4" />
-                <span className="ml-2 hidden sm:inline">Share</span>
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <main className="min-h-0 flex-1 overflow-y-auto pt-12">
-        <div className="mx-auto max-w-3xl px-4 md:px-6">
+          )}
           <div className={isHeroState ? "-mt-24 md:-mt-32" : ""}>
             <ClaudeChat
               initialPrompt={initialPrompt}
@@ -154,6 +142,12 @@ export function WriteClient({
                     const truncatedTitle = msg.length > 30 ? msg.substring(0, 30) + "..." : msg;
                     setChatTitle(truncatedTitle);
                   }
+                }
+              }}
+              // When an assistant answer is appended, broadcast a DOM event so SlideoutWrapper can open
+              onAnswerReady={() => {
+                if (typeof window !== "undefined") {
+                  window.dispatchEvent(new CustomEvent("write:answer-ready"));
                 }
               }}
             />

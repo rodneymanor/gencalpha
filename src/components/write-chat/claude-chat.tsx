@@ -4,7 +4,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { ArrowUp, SlidersHorizontal, Lightbulb, Pencil } from "lucide-react";
+import { ArrowUp, SlidersHorizontal, Lightbulb, Pencil, Loader2 } from "lucide-react";
 
 import { type PersonaType, PERSONAS } from "@/components/chatbot/persona-selector";
 // header dropdown moved to parent wrapper
@@ -16,7 +16,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { InlineLoader } from "@/components/ui/loading";
 import { Button, Card, ScrollArea } from "@/components/write-chat/primitives";
 import { VideoActionsDialog } from "@/components/write-chat/video-actions-dialog";
 import { useAuth } from "@/contexts/auth-context";
@@ -32,6 +31,7 @@ type ClaudeChatProps = {
   className?: string;
   placeholder?: string;
   onSend?: (message: string, persona: PersonaType) => void;
+  onAnswerReady?: () => void;
   initialPrompt?: string;
   initialPersona?: PersonaType;
 };
@@ -40,6 +40,7 @@ export function ClaudeChat({
   className = "",
   placeholder = "How can I help you today?",
   onSend,
+  onAnswerReady,
   initialPrompt,
   initialPersona,
 }: ClaudeChatProps) {
@@ -216,9 +217,10 @@ export function ClaudeChat({
       return "I'll help you with that.";
     };
 
-    // Helper: ensure a minimum perceived thinking time for smoother UX
+    // Helper: timing utilities for staged UX
     const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
-    const MIN_ACK_MS = 3000; // Minimum time to keep acknowledgement visible
+    const ACK_BEFORE_SLIDE_MS = 1500; // how long the ack+loader shows before slideout
+    const SLIDE_DURATION_MS = 350; // approximate slideout animation time
 
     // Idea Inbox submission from hero input when Idea Mode is active
     if (isHeroState && isIdeaMode) {
@@ -266,23 +268,25 @@ export function ClaudeChat({
 
     // If no persona selected, treat the input as a script idea and run Speed Write
     if (!selectedPersona) {
-      // Start timer to enforce a minimum acknowledgement visibility
       const startTs = Date.now();
       try {
         const res = await generateScript(trimmed, "60");
-        const elapsed = Date.now() - startTs;
-        const waitMore = Math.max(0, MIN_ACK_MS - elapsed);
-        await delay(waitMore);
+        await delay(ACK_BEFORE_SLIDE_MS);
         if (res.success && res.script) {
           const content = `📝 Generated Script:\n\n**Hook:** ${res.script.hook}\n\n**Bridge:** ${res.script.bridge}\n\n**Golden Nugget:** ${res.script.goldenNugget}\n\n**Call to Action:** ${res.script.wta}`;
-          setMessages((prev) => {
+          if (onAnswerReady) onAnswerReady();
+          await delay(SLIDE_DURATION_MS);
+          setMessages((prev): ChatMessage[] => {
             const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== "<ack-loading>");
-            return [...filtered, { id: crypto.randomUUID(), role: "assistant", content }];
+            const next: ChatMessage[] = [...filtered, { id: crypto.randomUUID(), role: "assistant", content }];
+            return next;
           });
         } else {
-          setMessages((prev) => {
+          if (onAnswerReady) onAnswerReady();
+          await delay(SLIDE_DURATION_MS);
+          setMessages((prev): ChatMessage[] => {
             const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== "<ack-loading>");
-            return [
+            const next: ChatMessage[] = [
               ...filtered,
               {
                 id: crypto.randomUUID(),
@@ -290,15 +294,16 @@ export function ClaudeChat({
                 content: `Error: ${res.error ?? "Failed to generate script"}`,
               },
             ];
+            return next;
           });
         }
       } catch (err: unknown) {
-        const elapsed = Date.now() - startTs;
-        const waitMore = Math.max(0, MIN_ACK_MS - elapsed);
-        await delay(waitMore);
-        setMessages((prev) => {
+        await delay(ACK_BEFORE_SLIDE_MS);
+        if (onAnswerReady) onAnswerReady();
+        await delay(SLIDE_DURATION_MS);
+        setMessages((prev): ChatMessage[] => {
           const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== "<ack-loading>");
-          return [
+          const next: ChatMessage[] = [
             ...filtered,
             {
               id: crypto.randomUUID(),
@@ -306,6 +311,7 @@ export function ClaudeChat({
               content: `Error: ${typeof err === "object" && err && "message" in err ? String((err as { message?: unknown }).message) : "Failed to generate script"}`,
             },
           ];
+          return next;
         });
       }
       return;
@@ -318,20 +324,23 @@ export function ClaudeChat({
       const startTs = Date.now();
       try {
         const res = await generateScript(idea, "60");
-        const elapsed = Date.now() - startTs;
-        const waitMore = Math.max(0, MIN_ACK_MS - elapsed);
-        await delay(waitMore);
+        await delay(ACK_BEFORE_SLIDE_MS);
         if (res.success && res.script) {
           const content = `📝 Generated Script:\n\n**Hook:** ${res.script.hook}\n\n**Bridge:** ${res.script.bridge}\n\n**Golden Nugget:** ${res.script.goldenNugget}\n\n**Call to Action:** ${res.script.wta}`;
-          setMessages((prev) => {
+          if (onAnswerReady) onAnswerReady();
+          await delay(SLIDE_DURATION_MS);
+          setMessages((prev): ChatMessage[] => {
             const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== "<ack-loading>");
-            return [...filtered, { id: crypto.randomUUID(), role: "assistant", content }];
+            const next: ChatMessage[] = [...filtered, { id: crypto.randomUUID(), role: "assistant", content }];
+            return next;
           });
           return;
         }
-        setMessages((prev) => {
+        if (onAnswerReady) onAnswerReady();
+        await delay(SLIDE_DURATION_MS);
+        setMessages((prev): ChatMessage[] => {
           const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== "<ack-loading>");
-          return [
+          const next: ChatMessage[] = [
             ...filtered,
             {
               id: crypto.randomUUID(),
@@ -339,15 +348,16 @@ export function ClaudeChat({
               content: `Error: ${res.error ?? "Failed to generate script"}`,
             },
           ];
+          return next;
         });
         return;
       } catch (err: unknown) {
-        const elapsed = Date.now() - startTs;
-        const waitMore = Math.max(0, MIN_ACK_MS - elapsed);
-        await delay(waitMore);
-        setMessages((prev) => {
+        await delay(ACK_BEFORE_SLIDE_MS);
+        if (onAnswerReady) onAnswerReady();
+        await delay(SLIDE_DURATION_MS);
+        setMessages((prev): ChatMessage[] => {
           const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== "<ack-loading>");
-          return [
+          const next: ChatMessage[] = [
             ...filtered,
             {
               id: crypto.randomUUID(),
@@ -355,6 +365,7 @@ export function ClaudeChat({
               content: `Error: ${typeof err === "object" && err && "message" in err ? String((err as { message?: unknown }).message) : "Failed to generate script"}`,
             },
           ];
+          return next;
         });
         return;
       }
@@ -378,18 +389,24 @@ export function ClaudeChat({
       }
       const data = await response.json();
       const assistantText = data.response ?? "I'm sorry, I didn't receive a proper response.";
-      const elapsed = Date.now() - startTs;
-      const waitMore = Math.max(0, MIN_ACK_MS - elapsed);
-      // Ensure acknowledgement stays visible long enough before showing the real answer
-      await delay(waitMore);
-      setMessages((prev) => {
+      // Stage timing: ack -> (1.5s) -> slideout -> (slide duration) -> show answer
+      await delay(ACK_BEFORE_SLIDE_MS);
+      if (onAnswerReady) onAnswerReady();
+      await delay(SLIDE_DURATION_MS);
+      setMessages((prev): ChatMessage[] => {
         const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== "<ack-loading>");
-        return [...filtered, { id: crypto.randomUUID(), role: "assistant", content: assistantText }];
+        const next: ChatMessage[] = [
+          ...filtered,
+          { id: crypto.randomUUID(), role: "assistant", content: assistantText },
+        ];
+        return next;
       });
     } catch (err: unknown) {
-      // Also honor the minimum acknowledgement visibility on error
-      await delay(600); // small grace to avoid instant error pop
-      setMessages((prev) => {
+      // Stage timing on error as well
+      await delay(ACK_BEFORE_SLIDE_MS);
+      if (onAnswerReady) onAnswerReady();
+      await delay(SLIDE_DURATION_MS);
+      setMessages((prev): ChatMessage[] => {
         const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== "<ack-loading>");
         return [
           ...filtered,
@@ -612,8 +629,8 @@ export function ClaudeChat({
                           {/* Assistant message as plain text, no container */}
                           <div className="col-start-2">
                             {m.content === "<ack-loading>" ? (
-                              <div className="mt-1 ml-1 flex items-center gap-2">
-                                <InlineLoader action="generate" size="sm" />
+                              <div className="flex items-center gap-2 pt-1 pl-1">
+                                <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
                                 <span className="sr-only">Analyzing…</span>
                               </div>
                             ) : (
