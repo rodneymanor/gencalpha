@@ -12,7 +12,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import ClaudeChat from "@/components/write-chat/claude-chat";
+import { PreviewSlideout } from "@/components/write-chat/preview-slideout";
 import { Button } from "@/components/write-chat/primitives";
+import { cn } from "@/lib/utils";
 
 export function WriteClient({
   initialPrompt,
@@ -25,6 +27,7 @@ export function WriteClient({
   const [chatTitle, setChatTitle] = useState<string>("Untitled Chat");
   const titleInputRef = useRef<HTMLInputElement | null>(null);
   const [sidebarGapPx, setSidebarGapPx] = useState<number>(0);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const handleTitleClick = () => {
     setTimeout(() => {
@@ -136,26 +139,45 @@ export function WriteClient({
                 <Share2 className="h-4 w-4" />
                 <span className="ml-2 hidden sm:inline">Share</span>
               </Button>
+              <Button
+                variant="default"
+                size="sm"
+                className="h-9 rounded-[var(--radius-button)]"
+                onClick={() => setIsPreviewOpen((v) => !v)}
+              >
+                {isPreviewOpen ? "Close Preview" : "Open Preview"}
+              </Button>
             </div>
           </div>
         </div>
       )}
 
       <main className="min-h-0 flex-1 overflow-y-auto pt-12">
-        <div className="mx-auto max-w-3xl px-4 md:px-6">
-          <div className={isHeroState ? "-mt-24 md:-mt-32" : ""}>
-            <ClaudeChat
-              initialPrompt={initialPrompt}
-              initialPersona={initialPersona}
-              onSend={(msg: string) => {
-                if (isHeroState && msg.trim()) {
-                  setIsHeroState(false);
-                  if (chatTitle === "Untitled Chat" && msg.length > 0) {
-                    const truncatedTitle = msg.length > 30 ? msg.substring(0, 30) + "..." : msg;
-                    setChatTitle(truncatedTitle);
-                  }
-                }
-              }}
+        <div className={cn("px-4 md:px-6", isPreviewOpen ? "" : "mx-auto max-w-3xl")}>
+          <div className={cn(isPreviewOpen ? "flex flex-col gap-6 lg:flex-row" : "")}>
+            <div className={cn("min-w-0", isPreviewOpen ? "w-full lg:w-1/2" : "")}>
+              <div className={isHeroState ? "-mt-24 md:-mt-32" : ""}>
+                <ClaudeChat
+                  initialPrompt={initialPrompt}
+                  initialPersona={initialPersona}
+                  onSend={(msg: string) => {
+                    if (isHeroState && msg.trim()) {
+                      setIsHeroState(false);
+                      if (chatTitle === "Untitled Chat" && msg.length > 0) {
+                        const truncatedTitle = msg.length > 30 ? msg.substring(0, 30) + "..." : msg;
+                        setChatTitle(truncatedTitle);
+                      }
+                    }
+                  }}
+                />
+              </div>
+            </div>
+
+            <PreviewSlideout
+              open={isPreviewOpen}
+              onClose={() => setIsPreviewOpen(false)}
+              onCopy={() => {}}
+              onPublish={() => {}}
             />
           </div>
         </div>
