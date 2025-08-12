@@ -3,6 +3,8 @@ import { ReactNode } from "react";
 import { DashboardWrapper } from "@/app/(main)/dashboard/_components/dashboard-wrapper";
 import { AppSidebar } from "@/app/(main)/dashboard/_components/sidebar/app-sidebar";
 import { ResizableDashboardWrapper } from "@/components/dashboard/resizable-dashboard-wrapper";
+import ContentViewer from "@/components/standalone/content-viewer";
+import SlideoutWrapper from "@/components/standalone/slideout-wrapper";
 import { FloatingActionButton } from "@/components/ui/floating-action-button";
 import { ProcessingNotificationBadge } from "@/components/ui/processing-notification-badge";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -58,7 +60,9 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
                         <ProcessingNotificationBadge />
                       </div>
                     </div>
-                    <div className="px-4 py-6 md:px-6 md:pt-8 md:pb-0">{children}</div>
+                    <div className="px-4 py-6 md:px-6 md:pt-8 md:pb-0">
+                      <SlideoutWrapper slideout={<ContentViewer className="h-full" />}>{children}</SlideoutWrapper>
+                    </div>
                   </div>
                 </ResizableDashboardWrapper>
               </div>
