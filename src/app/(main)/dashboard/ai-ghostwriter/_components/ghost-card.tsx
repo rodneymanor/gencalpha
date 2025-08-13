@@ -1,4 +1,15 @@
-import { TrendingUp, Heart, MessageSquare, Share, Clock, Target, Lightbulb, BookOpen, Zap } from "lucide-react";
+import {
+  TrendingUp,
+  Heart,
+  MessageSquare,
+  Share,
+  Clock,
+  Target,
+  Lightbulb,
+  BookOpen,
+  Zap,
+  Bookmark,
+} from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,6 +22,7 @@ interface GhostCardProps {
   card: GhostWritingCard;
   onGenerateScript: (card: GhostWritingCard) => void;
   onSave: (card: GhostWritingCard) => void;
+  isSaved?: boolean;
 }
 
 const getCategoryIcon = (category: string) => {
@@ -31,12 +43,28 @@ const getDifficultyColor = (difficulty: "easy" | "medium" | "hard") => {
   return colorMap[difficulty] || "bg-gray-100 text-gray-800";
 };
 
-export function GhostCard({ card, onGenerateScript, onSave }: GhostCardProps) {
+export function GhostCard({ card, onGenerateScript, onSave, isSaved = false }: GhostCardProps) {
   return (
     <Card className="group relative overflow-hidden transition-all duration-200 hover:shadow-lg">
+      {/* Bookmark Icon */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onSave(card);
+        }}
+        className="bg-background/80 hover:bg-background absolute top-3 right-3 z-10 rounded-full p-1 transition-colors"
+      >
+        <Bookmark
+          className={cn(
+            "h-4 w-4 transition-colors",
+            isSaved ? "fill-primary text-primary" : "text-muted-foreground hover:text-foreground",
+          )}
+        />
+      </button>
+
       {card.trending && (
-        <div className="absolute top-4 right-4">
-          <Badge className="border-0 bg-gradient-to-r from-orange-500 to-pink-500 text-white">
+        <div className="absolute top-3 left-3">
+          <Badge className="border-0 bg-gradient-to-r from-orange-500 to-pink-500 text-xs text-white">
             <TrendingUp className="mr-1 h-3 w-3" />
             Trending
           </Badge>
@@ -74,8 +102,17 @@ export function GhostCard({ card, onGenerateScript, onSave }: GhostCardProps) {
           </div>
         </div>
 
-        {/* Engagement Stats */}
-        <div className="text-muted-foreground flex items-center justify-between border-t pt-3 text-xs">
+        {/* Metadata */}
+        <div className="text-muted-foreground border-t pt-3 text-xs">
+          <div className="mb-2 flex items-center justify-between">
+            <span>Generated 2 hours ago</span>
+            <div className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              {card.estimatedDuration}
+            </div>
+          </div>
+
+          {/* Engagement Stats */}
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1">
               <Heart className="h-3 w-3" />
@@ -90,20 +127,13 @@ export function GhostCard({ card, onGenerateScript, onSave }: GhostCardProps) {
               {card.engagement.shares}
             </div>
           </div>
-          <div className="flex items-center gap-1">
-            <Clock className="h-3 w-3" />
-            {card.estimatedDuration}
-          </div>
         </div>
 
         {/* Actions */}
-        <div className="flex gap-2 pt-2">
-          <Button size="sm" className="flex-1 gap-1" onClick={() => onGenerateScript(card)}>
+        <div className="pt-2">
+          <Button size="sm" className="w-full gap-1" onClick={() => onGenerateScript(card)}>
             <Zap className="h-3 w-3" />
             Generate Script
-          </Button>
-          <Button size="sm" variant="outline" onClick={() => onSave(card)}>
-            Save
           </Button>
         </div>
       </CardContent>
