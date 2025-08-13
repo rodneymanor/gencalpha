@@ -74,6 +74,7 @@ export function ClaudeChat({
   const [actionsOpen, setActionsOpen] = useState(false);
   const [urlCandidate, setUrlCandidate] = useState<string | null>(null);
   const [urlSupported, setUrlSupported] = useState<false | "instagram" | "tiktok" | null>(null);
+  const [isUrlProcessing, setIsUrlProcessing] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const setUrlReachable = (_v: boolean | null) => {};
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -138,7 +139,7 @@ export function ClaudeChat({
       setLinkDetection(detection);
       if (detection.type === "instagram" || detection.type === "tiktok") {
         setUrlCandidate(detection.url ?? null);
-        // no-op visual loading; we avoid unused state
+        setIsUrlProcessing(true);
         try {
           const token =
             firebaseAuth && firebaseAuth.currentUser && typeof firebaseAuth.currentUser.getIdToken === "function"
@@ -171,13 +172,12 @@ export function ClaudeChat({
           setUrlSupported(false);
           setUrlReachable(false);
         } finally {
-          // keep UI responsive without extra state churn
-          void 0;
+          setIsUrlProcessing(false);
         }
       } else {
         setUrlCandidate(null);
         setUrlSupported(null);
-        /* no-op */
+        setIsUrlProcessing(false);
       }
     }, 300);
     return () => {
@@ -705,7 +705,9 @@ export function ClaudeChat({
                       onKeyDown={(e) => {
                         if (e.key === "Enter" && !e.shiftKey) {
                           e.preventDefault();
-                          handleSend(inputValue);
+                          if (!isUrlProcessing && (hasValidVideoUrl || inputValue.trim())) {
+                            handleSend(inputValue);
+                          }
                         }
                       }}
                       placeholder={placeholder}
@@ -732,7 +734,14 @@ export function ClaudeChat({
                       {linkDetection.extracted.contentType && <span>· {linkDetection.extracted.contentType}</span>}
                     </div>
                   )}
-                  {hasValidVideoUrl && (
+                  {isUrlProcessing &&
+                    linkDetection &&
+                    (linkDetection.type === "instagram" || linkDetection.type === "tiktok") && (
+                      <div className="bg-muted text-muted-foreground animate-in fade-in-0 rounded-[var(--radius-card)] px-3 py-2 text-sm duration-200">
+                        🔄 Validating URL...
+                      </div>
+                    )}
+                  {hasValidVideoUrl && !isUrlProcessing && (
                     <div className="bg-accent text-foreground animate-in fade-in-0 rounded-[var(--radius-card)] px-3 py-2 text-sm duration-200">
                       ✓ Link identified. Press submit to continue
                     </div>
@@ -792,16 +801,18 @@ export function ClaudeChat({
                     <Button
                       size="icon"
                       className={`size-8 transition-shadow ${
-                        hasValidVideoUrl || inputValue.trim()
+                        !isUrlProcessing && (hasValidVideoUrl || inputValue.trim())
                           ? `bg-primary text-primary-foreground hover:opacity-90 ${hasValidVideoUrl ? "animate-clarity-pulse shadow-[var(--shadow-soft-drop)]" : ""}`
                           : "bg-muted text-muted-foreground"
                       } focus-visible:ring-ring focus-visible:ring-2`}
-                      disabled={!(hasValidVideoUrl || inputValue.trim())}
+                      disabled={isUrlProcessing || !(hasValidVideoUrl || inputValue.trim())}
                       onClick={() => {
-                        handleSend(inputValue);
+                        if (!isUrlProcessing) {
+                          handleSend(inputValue);
+                        }
                       }}
                     >
-                      <ArrowUp className="h-4 w-4" />
+                      {isUrlProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-4 w-4" />}
                     </Button>
                   </div>
                 </div>
@@ -1027,7 +1038,9 @@ export function ClaudeChat({
                       onKeyDown={(e) => {
                         if (e.key === "Enter" && !e.shiftKey) {
                           e.preventDefault();
-                          handleSend(inputValue);
+                          if (!isUrlProcessing && (hasValidVideoUrl || inputValue.trim())) {
+                            handleSend(inputValue);
+                          }
                         }
                       }}
                       placeholder="Reply to Gen.C..."
@@ -1037,14 +1050,18 @@ export function ClaudeChat({
                     <Button
                       size="icon"
                       className={`size-8 transition-shadow ${
-                        inputValue.trim()
+                        !isUrlProcessing && (hasValidVideoUrl || inputValue.trim())
                           ? "bg-primary text-primary-foreground hover:opacity-90"
                           : "bg-muted text-muted-foreground"
                       } focus-visible:ring-ring focus-visible:ring-2`}
-                      disabled={!inputValue.trim()}
-                      onClick={() => handleSend(inputValue)}
+                      disabled={isUrlProcessing || !(hasValidVideoUrl || inputValue.trim())}
+                      onClick={() => {
+                        if (!isUrlProcessing) {
+                          handleSend(inputValue);
+                        }
+                      }}
                     >
-                      <ArrowUp className="h-4 w-4" />
+                      {isUrlProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-4 w-4" />}
                     </Button>
                   </div>
                 </div>
