@@ -7,7 +7,33 @@ function Card({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card"
       className={cn(
-        "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm",
+        "bg-card text-card-foreground flex flex-col gap-6 rounded-[var(--radius-card)] border border-border p-6 transition-all duration-200 ease-out",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function CardElevated({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="card"
+      className={cn(
+        "bg-card text-card-foreground flex flex-col gap-6 rounded-[var(--radius-card)] p-6 shadow-sm transition-all duration-200 ease-out hover:shadow-md",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function CardInteractive({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="card"
+      className={cn(
+        "bg-card text-card-foreground flex flex-col gap-6 rounded-[var(--radius-card)] border border-border p-6 cursor-pointer transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md hover:border-ring",
         className
       )}
       {...props}
@@ -83,6 +109,8 @@ function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
 
 export {
   Card,
+  CardElevated,
+  CardInteractive,
   CardHeader,
   CardFooter,
   CardTitle,
