@@ -48,6 +48,16 @@ export function SlideoutWrapper({ children, slideout: _slideout, className, cont
     };
   }, []);
 
+  // Close slideout when requested via global event (e.g., from new script button)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const closeOnRequest = () => setIsOpen(false);
+    window.addEventListener("write:close-slideout", closeOnRequest as EventListener);
+    return () => {
+      window.removeEventListener("write:close-slideout", closeOnRequest as EventListener);
+    };
+  }, []);
+
   // Handle contextual interactions from read-only editor
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -106,7 +116,7 @@ export function SlideoutWrapper({ children, slideout: _slideout, className, cont
         {/* Slideout panel */}
         <div
           className={cn(
-            "border-border bg-card absolute inset-y-0 right-0 z-30 w-full max-w-full border-l shadow-[var(--shadow-soft-drop)] transition-transform duration-300 lg:static lg:h-auto lg:w-1/2",
+            "border-border bg-card absolute inset-y-0 right-0 z-40 w-full max-w-full border-l shadow-[var(--shadow-soft-drop)] transition-transform duration-300 lg:static lg:h-auto lg:w-1/2",
             isOpen ? "translate-x-0" : "translate-x-full lg:hidden lg:translate-x-0",
           )}
         >

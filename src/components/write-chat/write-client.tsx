@@ -144,6 +144,9 @@ export function WriteClient({
                   }
                 }
               }}
+              onHeroStateChange={(isHero: boolean) => {
+                setIsHeroState(isHero);
+              }}
               // When an assistant answer is appended, broadcast a DOM event so SlideoutWrapper can open
               onAnswerReady={() => {
                 if (typeof window !== "undefined") {

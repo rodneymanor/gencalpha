@@ -37,8 +37,13 @@ const IsComingSoon = () => (
 const CustomDailyButton = ({ url }: { url: string }) => {
   const router = useRouter();
   const handleClick = () => {
-    // Force a fresh navigation to /write even if already there
-    router.push(`${url}?new=${Date.now()}`);
+    // Close slideout wrapper by dispatching a global event
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("write:close-slideout"));
+    }
+    
+    // Force a page reload to ensure fresh state
+    window.location.href = `${url}?new=${Date.now()}`;
   };
 
   return (

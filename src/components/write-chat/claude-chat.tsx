@@ -32,6 +32,7 @@ type ClaudeChatProps = {
   placeholder?: string;
   onSend?: (message: string, persona: PersonaType) => void;
   onAnswerReady?: () => void;
+  onHeroStateChange?: (isHero: boolean) => void;
   initialPrompt?: string;
   initialPersona?: PersonaType;
 };
@@ -41,6 +42,7 @@ export function ClaudeChat({
   placeholder = "How can I help you today?",
   onSend,
   onAnswerReady,
+  onHeroStateChange,
   initialPrompt,
   initialPersona,
 }: ClaudeChatProps) {
@@ -96,6 +98,11 @@ export function ClaudeChat({
     if (initialPrompt) setInputValue(initialPrompt);
     if (initialPersona) setSelectedPersona(initialPersona);
   }, [initialPrompt, initialPersona]);
+
+  // Notify parent when hero state changes
+  useEffect(() => {
+    onHeroStateChange?.(isHeroState);
+  }, [isHeroState, onHeroStateChange]);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -609,8 +616,9 @@ export function ClaudeChat({
 
       {/* Chat State */}
       {!isHeroState && (
-        <div className="flex h-[calc(100vh-4rem)] flex-col">
-          <ScrollArea className="flex-1 px-4">
+        <div className="relative flex h-[calc(100vh-4rem)] flex-col">
+          {/* Messages Area with bottom padding for sticky input */}
+          <ScrollArea className="flex-1 px-4 pb-32">
             <div className="mx-auto max-w-3xl py-6">
               <div className="space-y-6">
                 {messages.map((m) => (
@@ -658,10 +666,10 @@ export function ClaudeChat({
             </div>
           </ScrollArea>
 
-          {/* Chat Input */}
-          <div className="bg-transparent px-4 pt-2 pb-2">
+          {/* Sticky Chat Input */}
+          <div className="absolute bottom-0 left-0 right-0 z-10 bg-background/95 backdrop-blur-sm border-t border-border px-4 py-4">
             <div className="mx-auto w-full max-w-3xl">
-              <Card className="border-border bg-transparent shadow-sm dark:bg-transparent">
+              <Card className="border-border bg-card/95 backdrop-blur-sm shadow-[var(--shadow-soft-drop)]">
                 <div className="flex flex-col gap-3 p-4">
                   <div className="flex items-end gap-3">
                     <textarea
@@ -703,14 +711,30 @@ export function ClaudeChat({
           onOpenChange={setActionsOpen}
           platform={urlSupported}
           videoUrl={urlCandidate}
-          onStart={(status) => {
+          onStart={(acknowledgment) => {
+            // Transition from hero to chat state and add acknowledgment message
             setIsHeroState(false);
-            setIsProcessing(status);
-            setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "assistant", content: "<processing>" }]);
+            setInputValue(""); // Clear input field
+            const ackMessageId = crypto.randomUUID();
+            const ackLoadingId = crypto.randomUUID();
+            setMessages((prev) => [
+              ...prev,
+              { id: crypto.randomUUID(), role: "user", content: `Process video: ${urlCandidate}` },
+              { id: ackMessageId, role: "assistant", content: acknowledgment },
+              { id: ackLoadingId, role: "assistant", content: "<ack-loading>" },
+            ]);
+            setIsProcessing(acknowledgment);
+          }}
+          onChatTransition={() => {
+            // This callback is no longer needed since we handle transition in onStart
           }}
           onResult={({ type, data }: { type: string; data: unknown }) => {
             const safeData: Record<string, unknown> =
               data && typeof data === "object" ? (data as Record<string, unknown>) : {};
+            
+            // Remove loading indicator
+            setMessages((prev) => prev.filter((m) => m.content !== "<ack-loading>"));
+            
             if (type === "transcript") {
               const transcript = typeof safeData.transcript === "string" ? safeData.transcript : undefined;
               if (transcript) {
@@ -739,68 +763,24 @@ export function ClaudeChat({
                     // ignore persistence errors
                   }
                 })();
-                setMessages((prev) => {
-                  const filtered = prev.filter((m) => m.content !== "<processing>");
-                  return [
-                    ...filtered,
-                    { id: crypto.randomUUID(), role: "assistant", content: `Transcript:\n\n${transcript}` },
-                  ];
-                });
               }
-            }
-            if (type === "analysis") {
-              const analysis = typeof safeData.analysis === "string" ? safeData.analysis : undefined;
-              if (analysis) {
-                const markdown = `# Video Analysis\n\n${analysis}`;
-                if (typeof window !== "undefined") {
-                  window.dispatchEvent(new CustomEvent("write:editor-set-content", { detail: { markdown } }));
-                }
+              // Transcript now goes to slideout, just trigger onAnswerReady
+              if (safeData.success) {
                 onAnswerReady?.();
-                setMessages((prev) => prev.filter((m) => m.content !== "<processing>"));
               }
-            }
-            if (type === "emulation") {
-              const script = (safeData.script ?? null) as {
-                hook?: string;
-                bridge?: string;
-                goldenNugget?: string;
-                wta?: string;
-              } | null;
-              if (script) {
-                const markdown = `# Generated Script\n\n## Hook\n${script.hook ?? ""}\n\n## Bridge\n${script.bridge ?? ""}\n\n## Golden Nugget\n${script.goldenNugget ?? ""}\n\n## Call to Action\n${script.wta ?? ""}`;
-                if (typeof window !== "undefined") {
-                  window.dispatchEvent(new CustomEvent("write:editor-set-content", { detail: { markdown } }));
-                }
+            } else if (type === "ideas" || type === "analysis" || type === "emulation" || type === "hooks") {
+              // All structured content is handled by slideout in the dialog, just trigger onAnswerReady
+              if (safeData.success) {
                 onAnswerReady?.();
-                setMessages((prev) => prev.filter((m) => m.content !== "<processing>"));
               }
+            } else if (type === "error") {
+              const error = typeof safeData.error === "string" ? safeData.error : "An error occurred";
+              setMessages((prev) => [
+                ...prev,
+                { id: crypto.randomUUID(), role: "assistant", content: `Error: ${error}` },
+              ]);
             }
-            if (type === "ideas") {
-              const ideas = typeof safeData.ideas === "string" ? safeData.ideas : undefined;
-              if (ideas) {
-                setMessages((prev) => {
-                  const filtered = prev.filter((m) => m.content !== "<processing>");
-                  return [...filtered, { id: crypto.randomUUID(), role: "assistant", content: ideas }];
-                });
-              }
-            }
-            if (type === "hooks") {
-              const hooks = Array.isArray((safeData as { hooks?: unknown }).hooks)
-                ? ((safeData as { hooks?: Array<{ hook: string; template: string }> }).hooks as Array<{
-                    hook: string;
-                    template: string;
-                  }>)
-                : undefined;
-              if (hooks?.length) {
-                const list = hooks.map((h, i) => `${i + 1}. ${h.hook} (Template: ${h.template})`).join("\n");
-                const markdown = `# Hooks\n\n${list}`;
-                if (typeof window !== "undefined") {
-                  window.dispatchEvent(new CustomEvent("write:editor-set-content", { detail: { markdown } }));
-                }
-                onAnswerReady?.();
-                setMessages((prev) => prev.filter((m) => m.content !== "<processing>"));
-              }
-            }
+            
             setIsProcessing(null);
           }}
         />

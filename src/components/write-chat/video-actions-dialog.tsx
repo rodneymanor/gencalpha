@@ -6,6 +6,7 @@ import { FileText, Sparkles, CopyCheck, Lightbulb, Megaphone } from "lucide-reac
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { scrapeVideoUrl } from "@/lib/unified-video-scraper";
 
 type Platform = "instagram" | "tiktok";
 
@@ -16,6 +17,7 @@ type Props = {
   videoUrl: string;
   onResult: (payload: { type: string; data: unknown }) => void;
   onStart?: (status: string) => void;
+  onChatTransition?: () => void; // New callback to transition to chat state
 };
 
 type ActionKey = "transcribe" | "analyze" | "emulate" | "ideas" | "hooks";
@@ -66,9 +68,25 @@ function ActionCard({
   );
 }
 
-export function VideoActionsDialog({ open, onOpenChange, platform, videoUrl, onResult, onStart }: Props) {
+export function VideoActionsDialog({ open, onOpenChange, platform, videoUrl, onResult, onStart, onChatTransition }: Props) {
   const [submitting, setSubmitting] = useState<ActionKey | null>(null);
   const [resolvedUrl, setResolvedUrl] = useState<string | null>(null);
+
+  // Helper: route structured content to slideout BlockNote editor (same as main chat)
+  const sendToSlideout = (markdown: string) => {
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("write:editor-set-content", {
+          detail: { markdown },
+        }),
+      );
+    }
+  };
+
+  // Helper: timing utilities for staged UX (same as main chat)
+  const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
+  const ACK_BEFORE_SLIDE_MS = 1500; // how long the ack+loader shows before slideout
+  const SLIDE_DURATION_MS = 350; // approximate slideout animation time
 
   const ensureResolved = async (): Promise<{ url: string; platform: Platform }> => {
     if (resolvedUrl) return { url: resolvedUrl, platform };
@@ -85,11 +103,50 @@ export function VideoActionsDialog({ open, onOpenChange, platform, videoUrl, onR
   const handleTranscribe = async () => {
     setSubmitting("transcribe");
     try {
-      onStart?.("Transcribing video...");
+      // Follow main chat pattern: acknowledge immediately, transition to chat, then process
+      onStart?.("I'll transcribe this video for you.");
       onOpenChange(false);
-      const { url, platform: plat } = await ensureResolved();
-      const data = await postJson("/api/video/transcribe", { videoUrl: url, platform: plat });
-      onResult({ type: "transcript", data });
+      
+      // Try unified video scraper first, but expect it won't have transcripts
+      let transcriptData: { transcript: string; success: boolean } | null = null;
+      
+      try {
+        const videoData = await scrapeVideoUrl(videoUrl);
+        
+        // Check if scraper provided a transcript (unlikely but possible)
+        if (videoData.transcript) {
+          transcriptData = { transcript: videoData.transcript, success: true };
+        } else if (videoData.description && videoData.description.length > 50) {
+          // Use description as transcript only if it's substantial
+          transcriptData = { transcript: videoData.description, success: true };
+        }
+      } catch (scraperError) {
+        // Scraper failed, continue to API transcription
+        console.log("🔍 [VideoActions] Unified scraper failed, using API transcription:", scraperError);
+      }
+      
+      // If no transcript from scraper, use the transcription API
+      if (!transcriptData) {
+        const { url, platform: plat } = await ensureResolved();
+        transcriptData = await postJson<{ transcript: string }>("/api/video/transcribe", { videoUrl: url, platform: plat });
+        transcriptData = { ...transcriptData, success: true };
+      }
+      
+      // Wait for acknowledgment timing, then send to slideout
+      await delay(ACK_BEFORE_SLIDE_MS);
+      
+      if (transcriptData.transcript) {
+        const markdown = `# Transcript\n\n${transcriptData.transcript}`;
+        sendToSlideout(markdown);
+        await delay(SLIDE_DURATION_MS);
+        onResult({ type: "transcript", data: transcriptData });
+      } else {
+        throw new Error("No transcript received from any source");
+      }
+    } catch (error) {
+      await delay(ACK_BEFORE_SLIDE_MS);
+      const errorMessage = error instanceof Error ? error.message : "Transcription failed";
+      onResult({ type: "error", data: { error: errorMessage } });
     } finally {
       setSubmitting(null);
     }
@@ -98,12 +155,40 @@ export function VideoActionsDialog({ open, onOpenChange, platform, videoUrl, onR
   const handleAnalyze = async () => {
     setSubmitting("analyze");
     try {
-      onStart?.("Analyzing style...");
+      onStart?.("I'll perform advanced stylometric analysis using Gemini AI.");
       onOpenChange(false);
+      
+      // Get transcript using server-side API transcription
       const { url, platform: plat } = await ensureResolved();
       const t = await postJson<{ transcript: string }>("/api/video/transcribe", { videoUrl: url, platform: plat });
-      const data = await postJson("/api/analyze/style", { transcript: t.transcript, sourceUrl: url, platform: plat });
-      onResult({ type: "analysis", data });
+      if (!t.transcript) {
+        throw new Error("Could not get transcript for analysis");
+      }
+      const transcript = t.transcript;
+      console.log("✅ [VideoActions] Got transcript from API transcription");
+      
+      // Send transcript to Gemini for comprehensive stylometric analysis
+      const analysisData = await postJson<{ analysis: string }>("/api/gemini/stylometric-analysis", { 
+        transcript,
+        sourceUrl: videoUrl,
+        platform 
+      });
+      
+      // Wait for acknowledgment timing, then send to slideout
+      await delay(ACK_BEFORE_SLIDE_MS);
+      
+      if (analysisData.analysis) {
+        const markdown = `# Advanced Stylometric Analysis\n\n${analysisData.analysis}`;
+        sendToSlideout(markdown);
+        await delay(SLIDE_DURATION_MS);
+        onResult({ type: "stylometric-analysis", data: { success: true, transcript, analysis: analysisData.analysis } });
+      } else {
+        throw new Error("No analysis data received from Gemini API");
+      }
+    } catch (error) {
+      await delay(ACK_BEFORE_SLIDE_MS);
+      const errorMessage = error instanceof Error ? error.message : "Stylometric analysis failed";
+      onResult({ type: "error", data: { error: errorMessage } });
     } finally {
       setSubmitting(null);
     }
@@ -112,18 +197,39 @@ export function VideoActionsDialog({ open, onOpenChange, platform, videoUrl, onR
   const handleEmulate = async () => {
     setSubmitting("emulate");
     try {
-      onStart?.("Emulating style and generating script...");
+      onStart?.("I'll help you write a script about the core idea of this video.");
       onOpenChange(false);
+      
       const { url, platform: plat } = await ensureResolved();
+      
+      // First get transcript, then emulate
       const t = await postJson<{ transcript: string }>("/api/video/transcribe", { videoUrl: url, platform: plat });
-      // The client can prompt for topic separately; send a placeholder for now
-      const data = await postJson("/api/style/emulate", {
+      if (!t.transcript) {
+        throw new Error("Could not get transcript for script generation");
+      }
+      
+      const emulationData = await postJson<{ script: { hook: string; bridge: string; goldenNugget: string; wta: string } }>("/api/style/emulate", {
         transcript: t.transcript,
         sourceUrl: url,
         platform: plat,
         newTopic: "Write a script about the core idea of this video for my audience",
       });
-      onResult({ type: "emulation", data });
+      
+      // Wait for acknowledgment timing, then send to slideout
+      await delay(ACK_BEFORE_SLIDE_MS);
+      
+      if (emulationData.script && emulationData.script.hook) {
+        const markdown = `# Generated Script\n\n## Hook\n${emulationData.script.hook}\n\n## Bridge\n${emulationData.script.bridge}\n\n## Golden Nugget\n${emulationData.script.goldenNugget}\n\n## Call to Action\n${emulationData.script.wta}`;
+        sendToSlideout(markdown);
+        await delay(SLIDE_DURATION_MS);
+        onResult({ type: "emulation", data: { success: true } });
+      } else {
+        throw new Error("No valid script data received from API");
+      }
+    } catch (error) {
+      await delay(ACK_BEFORE_SLIDE_MS);
+      const errorMessage = error instanceof Error ? error.message : "Script generation failed";
+      onResult({ type: "error", data: { error: errorMessage } });
     } finally {
       setSubmitting(null);
     }
@@ -132,12 +238,37 @@ export function VideoActionsDialog({ open, onOpenChange, platform, videoUrl, onR
   const handleIdeas = async () => {
     setSubmitting("ideas");
     try {
-      onStart?.("Generating content ideas...");
+      onStart?.("I'll help you create 10 content ideas.");
       onOpenChange(false);
+      
       const { url, platform: plat } = await ensureResolved();
+      
+      // First get transcript, then generate ideas
       const t = await postJson<{ transcript: string }>("/api/video/transcribe", { videoUrl: url, platform: plat });
-      const data = await postJson("/api/content/ideas", { transcript: t.transcript, sourceUrl: url });
-      onResult({ type: "ideas", data });
+      if (!t.transcript) {
+        throw new Error("Could not get transcript for idea generation");
+      }
+      
+      const ideasData = await postJson<{ ideas: string }>("/api/content/ideas", { 
+        transcript: t.transcript, 
+        sourceUrl: url 
+      });
+      
+      // Wait for acknowledgment timing, then send to slideout
+      await delay(ACK_BEFORE_SLIDE_MS);
+      
+      if (ideasData.ideas) {
+        const markdown = `# Content Ideas\n\n${ideasData.ideas}`;
+        sendToSlideout(markdown);
+        await delay(SLIDE_DURATION_MS);
+        onResult({ type: "ideas", data: { success: true } });
+      } else {
+        throw new Error("No ideas data received from API");
+      }
+    } catch (error) {
+      await delay(ACK_BEFORE_SLIDE_MS);
+      const errorMessage = error instanceof Error ? error.message : "Ideas generation failed";
+      onResult({ type: "error", data: { error: errorMessage } });
     } finally {
       setSubmitting(null);
     }
@@ -146,12 +277,37 @@ export function VideoActionsDialog({ open, onOpenChange, platform, videoUrl, onR
   const handleHooks = async () => {
     setSubmitting("hooks");
     try {
-      onStart?.("Generating hooks...");
+      onStart?.("I'll help you write 20 hooks.");
       onOpenChange(false);
+      
       const { url, platform: plat } = await ensureResolved();
+      
+      // First get transcript, then generate hooks
       const t = await postJson<{ transcript: string }>("/api/video/transcribe", { videoUrl: url, platform: plat });
-      const data = await postJson("/api/hooks/generate", { input: t.transcript });
-      onResult({ type: "hooks", data });
+      if (!t.transcript) {
+        throw new Error("Could not get transcript for hook generation");
+      }
+      
+      const hooksData = await postJson<{ hooks: Array<{ hook: string; template: string }> }>("/api/hooks/generate", { 
+        input: t.transcript 
+      });
+      
+      // Wait for acknowledgment timing, then send to slideout
+      await delay(ACK_BEFORE_SLIDE_MS);
+      
+      if (hooksData.hooks && Array.isArray(hooksData.hooks) && hooksData.hooks.length > 0) {
+        const hooksList = hooksData.hooks.map((h, i) => `${i + 1}. ${h.hook} (Template: ${h.template})`).join("\n");
+        const markdown = `# Hooks\n\n${hooksList}`;
+        sendToSlideout(markdown);
+        await delay(SLIDE_DURATION_MS);
+        onResult({ type: "hooks", data: { success: true } });
+      } else {
+        throw new Error("No valid hooks data received from API");
+      }
+    } catch (error) {
+      await delay(ACK_BEFORE_SLIDE_MS);
+      const errorMessage = error instanceof Error ? error.message : "Hooks generation failed";
+      onResult({ type: "error", data: { error: errorMessage } });
     } finally {
       setSubmitting(null);
     }
@@ -175,8 +331,8 @@ export function VideoActionsDialog({ open, onOpenChange, platform, videoUrl, onR
           />
           <ActionCard
             icon={<Sparkles className="h-5 w-5" />}
-            title="Analyze (@Analyze)"
-            desc="Deep stylometric analysis"
+            title="Advanced Stylometric Analysis"
+            desc="Deep linguistic forensics & voice replication analysis"
             onClick={handleAnalyze}
             active={submitting === "analyze"}
           />

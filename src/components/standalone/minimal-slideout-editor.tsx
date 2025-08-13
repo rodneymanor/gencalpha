@@ -36,6 +36,55 @@ export function MinimalSlideoutEditor({
   // Intentionally minimal to keep payloads small and rendering predictable for script/analysis/hooks.
   type AnyPartialBlock = PartialBlock<any>;
 
+  // Parse inline markdown formatting (bold, italic, code) into styled text content
+  const parseInlineMarkdown = React.useCallback((text: string) => {
+    const content: Array<{ type: "text"; text: string; styles: Record<string, boolean> }> = [];
+    let currentIndex = 0;
+
+    // Pattern to match **bold**, *italic*, and `code`
+    const inlinePattern = /(\*\*([^*]+)\*\*|\*([^*]+)\*|`([^`]+)`)/g;
+    let match;
+
+    while ((match = inlinePattern.exec(text)) !== null) {
+      // Add plain text before the match
+      if (match.index > currentIndex) {
+        const plainText = text.slice(currentIndex, match.index);
+        if (plainText) {
+          content.push({ type: "text", text: plainText, styles: {} });
+        }
+      }
+
+      // Add styled text
+      if (match[2]) {
+        // Bold text **text**
+        content.push({ type: "text", text: match[2], styles: { bold: true } });
+      } else if (match[3]) {
+        // Italic text *text*
+        content.push({ type: "text", text: match[3], styles: { italic: true } });
+      } else if (match[4]) {
+        // Code text `code`
+        content.push({ type: "text", text: match[4], styles: { code: true } });
+      }
+
+      currentIndex = match.index + match[0].length;
+    }
+
+    // Add remaining plain text
+    if (currentIndex < text.length) {
+      const remainingText = text.slice(currentIndex);
+      if (remainingText) {
+        content.push({ type: "text", text: remainingText, styles: {} });
+      }
+    }
+
+    // If no formatting was found, return simple text content
+    if (content.length === 0) {
+      content.push({ type: "text", text, styles: {} });
+    }
+
+    return content;
+  }, []);
+
   const markdownToBlocks = React.useCallback((markdown: string): AnyPartialBlock[] => {
     const lines = markdown.replace(/\r\n?/g, "\n").split("\n");
     const blocks: AnyPartialBlock[] = [];
@@ -61,7 +110,7 @@ export function MinimalSlideoutEditor({
             level,
             ...(isScriptComponent && { className: "script-component", "data-script-component": "true" }),
           },
-          content: [{ type: "text", text, styles: {} }],
+          content: parseInlineMarkdown(text),
           children: [],
         } as AnyPartialBlock);
         continue;
@@ -73,7 +122,7 @@ export function MinimalSlideoutEditor({
           id: newId(),
           type: "paragraph",
           props: {},
-          content: [{ type: "text", text, styles: {} }],
+          content: parseInlineMarkdown(text),
           children: [],
         } as AnyPartialBlock);
         continue;
@@ -85,7 +134,7 @@ export function MinimalSlideoutEditor({
           id: newId(),
           type: "paragraph",
           props: {},
-          content: [{ type: "text", text, styles: {} }],
+          content: parseInlineMarkdown(text),
           children: [],
         } as AnyPartialBlock);
         continue;
@@ -94,7 +143,7 @@ export function MinimalSlideoutEditor({
         id: newId(),
         type: "paragraph",
         props: {},
-        content: [{ type: "text", text: line, styles: {} }],
+        content: parseInlineMarkdown(line),
         children: [],
       } as AnyPartialBlock);
     }
@@ -103,7 +152,7 @@ export function MinimalSlideoutEditor({
       blocks.push({ id: newId(), type: "paragraph", props: {}, content: [], children: [] } as AnyPartialBlock);
     }
     return blocks;
-  }, []);
+  }, [parseInlineMarkdown]);
 
   // (Re)mounts a new BlockNote instance with provided content and wires change propagation.
   const mountEditor = React.useCallback(
