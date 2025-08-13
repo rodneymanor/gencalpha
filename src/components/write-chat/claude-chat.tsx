@@ -4,7 +4,17 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { ArrowUp, SlidersHorizontal, Lightbulb, Pencil, Loader2 } from "lucide-react";
+import {
+  ArrowUp,
+  SlidersHorizontal,
+  Lightbulb,
+  Pencil,
+  Loader2,
+  FileText,
+  Sparkles,
+  CopyCheck,
+  Megaphone,
+} from "lucide-react";
 
 import { type PersonaType, PERSONAS } from "@/components/chatbot/persona-selector";
 // header dropdown moved to parent wrapper
@@ -17,7 +27,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button, Card, ScrollArea } from "@/components/write-chat/primitives";
-import { VideoActionsDialog } from "@/components/write-chat/video-actions-dialog";
 import { useAuth } from "@/contexts/auth-context";
 import { useScriptGeneration } from "@/hooks/use-script-generation";
 import { auth as firebaseAuth } from "@/lib/firebase";
@@ -73,6 +82,14 @@ export function ClaudeChat({
   const { user, userProfile } = useAuth();
   const { generateScript } = useScriptGeneration();
   // header state moved to parent wrapper
+
+  // Inline video action selection state
+  const [videoPanel, setVideoPanel] = useState<{ url: string; platform: "instagram" | "tiktok" } | null>(null);
+  const [activeAction, setActiveAction] = useState<null | "transcribe" | "analyze" | "emulate" | "ideas" | "hooks">(
+    null,
+  );
+  const [awaitingEmulateInput, setAwaitingEmulateInput] = useState(false);
+  const [emulateIdea, setEmulateIdea] = useState("");
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -232,6 +249,21 @@ export function ClaudeChat({
     const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
     const ACK_BEFORE_SLIDE_MS = 1500; // how long the ack+loader shows before slideout
     const SLIDE_DURATION_MS = 350; // approximate slideout animation time
+
+    // If a valid social video URL is present, transition to chat and show inline action options
+    if (hasValidVideoUrl && urlCandidate && urlSupported) {
+      setIsHeroState(false);
+      // Append the user message for context
+      setMessages((prev) => [
+        ...prev,
+        { id: crypto.randomUUID(), role: "user", content: trimmed },
+        { id: crypto.randomUUID(), role: "assistant", content: "Choose an action to process this video:" },
+        { id: crypto.randomUUID(), role: "assistant", content: "<video-actions>" },
+      ]);
+      setVideoPanel({ url: urlCandidate, platform: urlSupported });
+      setInputValue("");
+      return;
+    }
 
     // Idea Inbox submission from hero input when Idea Mode is active
     if (isHeroState && isIdeaMode) {
@@ -436,6 +468,215 @@ export function ClaudeChat({
     }
   };
 
+  // Helpers for inline actions
+  const buildAuthHeaders = async (): Promise<HeadersInit> => {
+    const token =
+      firebaseAuth && firebaseAuth.currentUser && typeof firebaseAuth.currentUser.getIdToken === "function"
+        ? await firebaseAuth.currentUser.getIdToken()
+        : undefined;
+    const headers: HeadersInit = { "Content-Type": "application/json" };
+    if (token) headers["authorization"] = `Bearer ${token}`;
+    return headers;
+  };
+
+  const postJson = async <T,>(path: string, body: unknown): Promise<T> => {
+    const headers = await buildAuthHeaders();
+    const res = await fetch(path, { method: "POST", headers, body: JSON.stringify(body) });
+    if (!res.ok) throw new Error(`${path} failed: ${res.status}`);
+    return (await res.json()) as T;
+  };
+
+  const ensureResolved = async (input: {
+    url: string;
+    platform: "instagram" | "tiktok";
+  }): Promise<{ url: string; platform: "instagram" | "tiktok" }> => {
+    try {
+      const res = await postJson<{ success: boolean; videoUrl?: string; platform?: "instagram" | "tiktok" }>(
+        "/api/video/resolve",
+        { url: input.url },
+      );
+      return { url: res.videoUrl ?? input.url, platform: (res.platform as typeof input.platform) ?? input.platform };
+    } catch {
+      return input;
+    }
+  };
+
+  const sendToSlideout = (markdown: string) => {
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("write:editor-set-content", {
+          detail: { markdown },
+        }),
+      );
+    }
+  };
+
+  const startAckWithLoader = (ackText: string) => {
+    const ackMessageId = crypto.randomUUID();
+    const ackLoadingId = crypto.randomUUID();
+    setMessages((prev) => [
+      ...prev,
+      { id: ackMessageId, role: "assistant", content: ackText },
+      { id: ackLoadingId, role: "assistant", content: "<ack-loading>" },
+    ]);
+  };
+
+  const finishAndRemoveLoader = () => {
+    setMessages((prev) => prev.filter((m) => m.content !== "<ack-loading>"));
+    setIsProcessing(null);
+  };
+
+  const handleInlineTranscribe = async () => {
+    if (!videoPanel) return;
+    setActiveAction("transcribe");
+    startAckWithLoader("I'll transcribe this video for you.");
+    try {
+      const { url, platform } = await ensureResolved(videoPanel);
+      const t = await postJson<{ transcript: string }>("/api/video/transcribe", { videoUrl: url, platform });
+      if (!t.transcript) throw new Error("No transcript received from server");
+      const markdown = `# Transcript\n\n${t.transcript}`;
+      sendToSlideout(markdown);
+      finishAndRemoveLoader();
+      onAnswerReady?.();
+    } catch (error) {
+      finishAndRemoveLoader();
+      const errorMessage = error instanceof Error ? error.message : "Transcription failed";
+      setMessages((prev) => [
+        ...prev,
+        { id: crypto.randomUUID(), role: "assistant", content: `Error: ${errorMessage}` },
+      ]);
+    } finally {
+      setActiveAction(null);
+    }
+  };
+
+  const handleInlineAnalyze = async () => {
+    if (!videoPanel) return;
+    setActiveAction("analyze");
+    startAckWithLoader("I'll perform advanced stylometric analysis using Gemini AI.");
+    try {
+      const { url, platform } = await ensureResolved(videoPanel);
+      const t = await postJson<{ transcript: string }>("/api/video/transcribe", { videoUrl: url, platform });
+      if (!t.transcript) throw new Error("Could not get transcript for analysis");
+      const analysisData = await postJson<{ analysis: string }>("/api/gemini/stylometric-analysis", {
+        transcript: t.transcript,
+        sourceUrl: url,
+        platform,
+      });
+      const markdown = `# Advanced Stylometric Analysis\n\n${analysisData.analysis}`;
+      sendToSlideout(markdown);
+      finishAndRemoveLoader();
+      onAnswerReady?.();
+    } catch (error) {
+      finishAndRemoveLoader();
+      const errorMessage = error instanceof Error ? error.message : "Stylometric analysis failed";
+      setMessages((prev) => [
+        ...prev,
+        { id: crypto.randomUUID(), role: "assistant", content: `Error: ${errorMessage}` },
+      ]);
+    } finally {
+      setActiveAction(null);
+    }
+  };
+
+  const handleInlineEmulateStart = () => {
+    setAwaitingEmulateInput(true);
+    setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "assistant", content: "<emulate-input>" }]);
+  };
+
+  const handleInlineEmulateSubmit = async () => {
+    if (!videoPanel || !emulateIdea.trim()) return;
+    setActiveAction("emulate");
+    startAckWithLoader("I'll help you write a script about your idea in this creator's style.");
+    try {
+      const { url, platform } = await ensureResolved(videoPanel);
+      const t = await postJson<{ transcript: string }>("/api/video/transcribe", { videoUrl: url, platform });
+      if (!t.transcript) throw new Error("Could not get transcript for script generation");
+      const emulationData = await postJson<{
+        script: { hook: string; bridge: string; goldenNugget: string; wta: string };
+      }>("/api/style/emulate", {
+        transcript: t.transcript,
+        sourceUrl: url,
+        platform,
+        newTopic: emulateIdea.trim(),
+      });
+      const markdown = `# Generated Script\n\n## Hook\n${emulationData.script.hook}\n\n## Bridge\n${emulationData.script.bridge}\n\n## Golden Nugget\n${emulationData.script.goldenNugget}\n\n## Call to Action\n${emulationData.script.wta}`;
+      sendToSlideout(markdown);
+      finishAndRemoveLoader();
+      onAnswerReady?.();
+      setAwaitingEmulateInput(false);
+      setEmulateIdea("");
+    } catch (error) {
+      finishAndRemoveLoader();
+      const errorMessage = error instanceof Error ? error.message : "Script generation failed";
+      setMessages((prev) => [
+        ...prev,
+        { id: crypto.randomUUID(), role: "assistant", content: `Error: ${errorMessage}` },
+      ]);
+    } finally {
+      setActiveAction(null);
+    }
+  };
+
+  const handleInlineIdeas = async () => {
+    if (!videoPanel) return;
+    setActiveAction("ideas");
+    startAckWithLoader("I'll help you create 10 content ideas.");
+    try {
+      const { url, platform } = await ensureResolved(videoPanel);
+      const t = await postJson<{ transcript: string }>("/api/video/transcribe", { videoUrl: url, platform });
+      if (!t.transcript) throw new Error("Could not get transcript for idea generation");
+      const ideasData = await postJson<{ ideas: string }>("/api/content/ideas", {
+        transcript: t.transcript,
+        sourceUrl: url,
+      });
+      const markdown = `# Content Ideas\n\n${ideasData.ideas}`;
+      sendToSlideout(markdown);
+      finishAndRemoveLoader();
+      onAnswerReady?.();
+    } catch (error) {
+      finishAndRemoveLoader();
+      const errorMessage = error instanceof Error ? error.message : "Ideas generation failed";
+      setMessages((prev) => [
+        ...prev,
+        { id: crypto.randomUUID(), role: "assistant", content: `Error: ${errorMessage}` },
+      ]);
+    } finally {
+      setActiveAction(null);
+    }
+  };
+
+  const handleInlineHooks = async () => {
+    if (!videoPanel) return;
+    setActiveAction("hooks");
+    startAckWithLoader("I'll help you write hooks.");
+    try {
+      const { url, platform } = await ensureResolved(videoPanel);
+      const t = await postJson<{ transcript: string }>("/api/video/transcribe", { videoUrl: url, platform });
+      if (!t.transcript) throw new Error("Could not get transcript for hook generation");
+      const hooksResp = await postJson<{
+        success: boolean;
+        hooks: Array<{ text: string; rating: number; focus: string; rationale: string }>;
+        topHook: { text: string; rating: number };
+      }>("/api/video/generate-hooks", { transcript: t.transcript });
+      if (!hooksResp.success || !Array.isArray(hooksResp.hooks)) throw new Error("Hook generation failed");
+      const list = hooksResp.hooks.map((h, i) => `${i + 1}. ${h.text} — ${h.rating}/100 (${h.focus})`).join("\n");
+      const markdown = `# Hooks\n\n${list}\n\n**Top Hook:** ${hooksResp.topHook.text} (${hooksResp.topHook.rating}/100)`;
+      sendToSlideout(markdown);
+      finishAndRemoveLoader();
+      onAnswerReady?.();
+    } catch (error) {
+      finishAndRemoveLoader();
+      const errorMessage = error instanceof Error ? error.message : "Hooks generation failed";
+      setMessages((prev) => [
+        ...prev,
+        { id: crypto.randomUUID(), role: "assistant", content: `Error: ${errorMessage}` },
+      ]);
+    } finally {
+      setActiveAction(null);
+    }
+  };
+
   return (
     <div className={`font-sans ${className}`}>
       {/* Header */}
@@ -557,10 +798,6 @@ export function ClaudeChat({
                       } focus-visible:ring-ring focus-visible:ring-2`}
                       disabled={!(hasValidVideoUrl || inputValue.trim())}
                       onClick={() => {
-                        if (hasValidVideoUrl) {
-                          setActionsOpen(true);
-                          return;
-                        }
                         handleSend(inputValue);
                       }}
                     >
@@ -643,12 +880,123 @@ export function ClaudeChat({
                         <>
                           {/* Placeholder to align with content column start */}
                           <div aria-hidden className="h-8 w-8" />
-                          {/* Assistant message as plain text, no container */}
+                          {/* Assistant message */}
                           <div className="col-start-2">
                             {m.content === "<ack-loading>" ? (
                               <div className="flex items-center gap-2 pt-1 pl-1">
                                 <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
                                 <span className="sr-only">Analyzing…</span>
+                              </div>
+                            ) : m.content === "<video-actions>" && videoPanel ? (
+                              <div className="bg-card border-border text-card-foreground rounded-[var(--radius-card)] border p-4 shadow-[var(--shadow-soft-drop)]">
+                                <div className="text-foreground mb-3 font-semibold">Choose an action</div>
+                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                  <button
+                                    className={`bg-card text-card-foreground hover:bg-accent/70 border-border rounded-[var(--radius-card)] border p-4 text-left shadow-[var(--shadow-soft-drop)] transition-transform duration-150 hover:scale-[1.01] ${activeAction ? "opacity-70" : ""}`}
+                                    onClick={handleInlineTranscribe}
+                                    disabled={activeAction !== null}
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      <div className="bg-secondary/10 text-secondary flex h-10 w-10 items-center justify-center rounded-[var(--radius-button)]">
+                                        <FileText className="h-5 w-5" />
+                                      </div>
+                                      <div>
+                                        <div className="text-foreground font-semibold">Transcribe</div>
+                                        <div className="text-muted-foreground text-sm">
+                                          Extract plain text transcript
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </button>
+                                  <button
+                                    className={`bg-card text-card-foreground hover:bg-accent/70 border-border rounded-[var(--radius-card)] border p-4 text-left shadow-[var(--shadow-soft-drop)] transition-transform duration-150 hover:scale-[1.01] ${activeAction ? "opacity-70" : ""}`}
+                                    onClick={handleInlineAnalyze}
+                                    disabled={activeAction !== null}
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      <div className="bg-secondary/10 text-secondary flex h-10 w-10 items-center justify-center rounded-[var(--radius-button)]">
+                                        <Sparkles className="h-5 w-5" />
+                                      </div>
+                                      <div>
+                                        <div className="text-foreground font-semibold">
+                                          Advanced Stylometric Analysis
+                                        </div>
+                                        <div className="text-muted-foreground text-sm">
+                                          Deep linguistic forensics & voice replication analysis
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </button>
+                                  <button
+                                    className={`bg-card text-card-foreground hover:bg-accent/70 border-border rounded-[var(--radius-card)] border p-4 text-left shadow-[var(--shadow-soft-drop)] transition-transform duration-150 hover:scale-[1.01] ${activeAction ? "opacity-70" : ""}`}
+                                    onClick={handleInlineEmulateStart}
+                                    disabled={activeAction !== null}
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      <div className="bg-secondary/10 text-secondary flex h-10 w-10 items-center justify-center rounded-[var(--radius-button)]">
+                                        <CopyCheck className="h-5 w-5" />
+                                      </div>
+                                      <div>
+                                        <div className="text-foreground font-semibold">Emulate Style (@Analyze)</div>
+                                        <div className="text-muted-foreground text-sm">
+                                          Generate new script in source style
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </button>
+                                  <button
+                                    className={`bg-card text-card-foreground hover:bg-accent/70 border-border rounded-[var(--radius-card)] border p-4 text-left shadow-[var(--shadow-soft-drop)] transition-transform duration-150 hover:scale-[1.01] ${activeAction ? "opacity-70" : ""}`}
+                                    onClick={handleInlineIdeas}
+                                    disabled={activeAction !== null}
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      <div className="bg-secondary/10 text-secondary flex h-10 w-10 items-center justify-center rounded-[var(--radius-button)]">
+                                        <Lightbulb className="h-5 w-5" />
+                                      </div>
+                                      <div>
+                                        <div className="text-foreground font-semibold">
+                                          Create Content Ideas (@Content Ideas.md)
+                                        </div>
+                                        <div className="text-muted-foreground text-sm">
+                                          New content angles using PEQ
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </button>
+                                  <button
+                                    className={`bg-card text-card-foreground hover:bg-accent/70 border-border rounded-[var(--radius-card)] border p-4 text-left shadow-[var(--shadow-soft-drop)] transition-transform duration-150 hover:scale-[1.01] ${activeAction ? "opacity-70" : ""}`}
+                                    onClick={handleInlineHooks}
+                                    disabled={activeAction !== null}
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      <div className="bg-secondary/10 text-secondary flex h-10 w-10 items-center justify-center rounded-[var(--radius-button)]">
+                                        <Megaphone className="h-5 w-5" />
+                                      </div>
+                                      <div>
+                                        <div className="text-foreground font-semibold">Hook Generation</div>
+                                        <div className="text-muted-foreground text-sm">
+                                          High-performing hooks for Shorts
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </button>
+                                </div>
+                              </div>
+                            ) : m.content === "<emulate-input>" && awaitingEmulateInput ? (
+                              <div className="bg-card border-border text-card-foreground rounded-[var(--radius-card)] border p-4 shadow-[var(--shadow-soft-drop)]">
+                                <div className="text-foreground mb-2 font-semibold">Describe your video idea</div>
+                                <div className="flex items-end gap-2">
+                                  <textarea
+                                    value={emulateIdea}
+                                    onChange={(e) => setEmulateIdea(e.target.value)}
+                                    rows={2}
+                                    className="text-foreground placeholder:text-muted-foreground bg-background/60 w-full resize-none rounded-[var(--radius-input)] p-2 text-sm focus:outline-none"
+                                    placeholder="e.g., Teach the simplest habit that boosted my productivity"
+                                  />
+                                  <Button size="sm" disabled={!emulateIdea.trim()} onClick={handleInlineEmulateSubmit}>
+                                    Generate
+                                  </Button>
+                                </div>
                               </div>
                             ) : (
                               <div className="prose text-foreground max-w-none">
@@ -667,9 +1015,9 @@ export function ClaudeChat({
           </ScrollArea>
 
           {/* Sticky Chat Input */}
-          <div className="absolute bottom-0 left-0 right-0 z-10 bg-background/95 backdrop-blur-sm border-t border-border px-4 py-4">
+          <div className="bg-background/95 border-border absolute right-0 bottom-0 left-0 z-10 border-t px-4 py-4 backdrop-blur-sm">
             <div className="mx-auto w-full max-w-3xl">
-              <Card className="border-border bg-card/95 backdrop-blur-sm shadow-[var(--shadow-soft-drop)]">
+              <Card className="border-border bg-card/95 shadow-[var(--shadow-soft-drop)] backdrop-blur-sm">
                 <div className="flex flex-col gap-3 p-4">
                   <div className="flex items-end gap-3">
                     <textarea
@@ -705,86 +1053,7 @@ export function ClaudeChat({
           </div>
         </div>
       )}
-      {hasValidVideoUrl && urlSupported && urlCandidate && (
-        <VideoActionsDialog
-          open={actionsOpen}
-          onOpenChange={setActionsOpen}
-          platform={urlSupported}
-          videoUrl={urlCandidate}
-          onStart={(acknowledgment) => {
-            // Transition from hero to chat state and add acknowledgment message
-            setIsHeroState(false);
-            setInputValue(""); // Clear input field
-            const ackMessageId = crypto.randomUUID();
-            const ackLoadingId = crypto.randomUUID();
-            setMessages((prev) => [
-              ...prev,
-              { id: crypto.randomUUID(), role: "user", content: `Process video: ${urlCandidate}` },
-              { id: ackMessageId, role: "assistant", content: acknowledgment },
-              { id: ackLoadingId, role: "assistant", content: "<ack-loading>" },
-            ]);
-            setIsProcessing(acknowledgment);
-          }}
-          onChatTransition={() => {
-            // This callback is no longer needed since we handle transition in onStart
-          }}
-          onResult={({ type, data }: { type: string; data: unknown }) => {
-            const safeData: Record<string, unknown> =
-              data && typeof data === "object" ? (data as Record<string, unknown>) : {};
-            
-            // Remove loading indicator
-            setMessages((prev) => prev.filter((m) => m.content !== "<ack-loading>"));
-            
-            if (type === "transcript") {
-              const transcript = typeof safeData.transcript === "string" ? safeData.transcript : undefined;
-              if (transcript) {
-                // persist transcript
-                (async () => {
-                  try {
-                    const token =
-                      firebaseAuth &&
-                      firebaseAuth.currentUser &&
-                      typeof firebaseAuth.currentUser.getIdToken === "function"
-                        ? await firebaseAuth.currentUser.getIdToken()
-                        : undefined;
-                    await fetch("/api/transcript/save", {
-                      method: "POST",
-                      headers: {
-                        "Content-Type": "application/json",
-                        ...(token ? { authorization: `Bearer ${token}` } : {}),
-                      },
-                      body: JSON.stringify({
-                        transcript,
-                        sourceUrl: urlCandidate,
-                        platform: urlSupported === "tiktok" ? "TikTok" : "Instagram",
-                      }),
-                    });
-                  } catch {
-                    // ignore persistence errors
-                  }
-                })();
-              }
-              // Transcript now goes to slideout, just trigger onAnswerReady
-              if (safeData.success) {
-                onAnswerReady?.();
-              }
-            } else if (type === "ideas" || type === "analysis" || type === "emulation" || type === "hooks") {
-              // All structured content is handled by slideout in the dialog, just trigger onAnswerReady
-              if (safeData.success) {
-                onAnswerReady?.();
-              }
-            } else if (type === "error") {
-              const error = typeof safeData.error === "string" ? safeData.error : "An error occurred";
-              setMessages((prev) => [
-                ...prev,
-                { id: crypto.randomUUID(), role: "assistant", content: `Error: ${error}` },
-              ]);
-            }
-            
-            setIsProcessing(null);
-          }}
-        />
-      )}
+      {/* Inline actions replace the modal; no modal rendering here */}
     </div>
   );
 }
