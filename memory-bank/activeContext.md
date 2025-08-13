@@ -30,6 +30,10 @@ _Last Updated: 2025-08-13_
   - Replaced magic strings with constants for system message tokens
   - Removed dead code and normalized repeated filters
 
+- Phase 2 refactor for `write-chat` (presentational extraction):
+  - Added `messages/AckLoader.tsx`, `messages/VideoActionsPanel.tsx`, `messages/EmulateInputPanel.tsx`
+  - Replaced inline JSX branches in `claude-chat.tsx` with these components, passing callbacks via props
+
 ## 3. Immediate Next Steps
 
 - Add optional toolbar actions on slideout editor: Copy/Publish pipeline and status toasts.

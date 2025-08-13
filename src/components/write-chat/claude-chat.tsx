@@ -5,17 +5,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 //
-import {
-  ArrowUp,
-  SlidersHorizontal,
-  Lightbulb,
-  Pencil,
-  Loader2,
-  FileText,
-  Sparkles,
-  CopyCheck,
-  Megaphone,
-} from "lucide-react";
+import { ArrowUp, SlidersHorizontal, Lightbulb, Pencil, Loader2 } from "lucide-react";
 
 import { type PersonaType, PERSONAS } from "@/components/chatbot/persona-selector";
 // header dropdown moved to parent wrapper
@@ -35,6 +25,9 @@ import {
   VIDEO_ACTIONS,
   EMULATE_INPUT,
 } from "@/components/write-chat/constants";
+import { AckLoader } from "@/components/write-chat/messages/ack-loader";
+import { EmulateInputPanel } from "@/components/write-chat/messages/emulate-input-panel";
+import { VideoActionsPanel } from "@/components/write-chat/messages/video-actions-panel";
 import { Button, Card, ScrollArea } from "@/components/write-chat/primitives";
 import { type ChatMessage } from "@/components/write-chat/types";
 import { sendToSlideout, delay } from "@/components/write-chat/utils";
@@ -874,121 +867,23 @@ export function ClaudeChat({
                           {/* Assistant message */}
                           <div className="col-start-2">
                             {m.content === ACK_LOADING ? (
-                              <div className="flex items-center gap-2 pt-1 pl-1">
-                                <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
-                                <span className="sr-only">Analyzing…</span>
-                              </div>
+                              <AckLoader />
                             ) : m.content === VIDEO_ACTIONS && videoPanel ? (
-                              <div className="bg-card border-border text-card-foreground rounded-[var(--radius-card)] border p-4 shadow-[var(--shadow-soft-drop)]">
-                                <div className="text-foreground mb-3 font-semibold">Choose an action</div>
-                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                  <button
-                                    className={`bg-card text-card-foreground hover:bg-accent/70 border-border rounded-[var(--radius-card)] border p-4 text-left shadow-[var(--shadow-soft-drop)] transition-transform duration-150 hover:scale-[1.01] ${activeAction ? "opacity-70" : ""}`}
-                                    onClick={handleInlineTranscribe}
-                                    disabled={activeAction !== null}
-                                  >
-                                    <div className="flex items-center gap-3">
-                                      <div className="bg-secondary/10 text-secondary flex h-10 w-10 items-center justify-center rounded-[var(--radius-button)]">
-                                        <FileText className="h-5 w-5" />
-                                      </div>
-                                      <div>
-                                        <div className="text-foreground font-semibold">Transcribe</div>
-                                        <div className="text-muted-foreground text-sm">
-                                          Extract plain text transcript
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </button>
-                                  <button
-                                    className={`bg-card text-card-foreground hover:bg-accent/70 border-border rounded-[var(--radius-card)] border p-4 text-left shadow-[var(--shadow-soft-drop)] transition-transform duration-150 hover:scale-[1.01] ${activeAction ? "opacity-70" : ""}`}
-                                    onClick={handleInlineAnalyze}
-                                    disabled={activeAction !== null}
-                                  >
-                                    <div className="flex items-center gap-3">
-                                      <div className="bg-secondary/10 text-secondary flex h-10 w-10 items-center justify-center rounded-[var(--radius-button)]">
-                                        <Sparkles className="h-5 w-5" />
-                                      </div>
-                                      <div>
-                                        <div className="text-foreground font-semibold">
-                                          Advanced Stylometric Analysis
-                                        </div>
-                                        <div className="text-muted-foreground text-sm">
-                                          Deep linguistic forensics & voice replication analysis
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </button>
-                                  <button
-                                    className={`bg-card text-card-foreground hover:bg-accent/70 border-border rounded-[var(--radius-card)] border p-4 text-left shadow-[var(--shadow-soft-drop)] transition-transform duration-150 hover:scale-[1.01] ${activeAction ? "opacity-70" : ""}`}
-                                    onClick={handleInlineEmulateStart}
-                                    disabled={activeAction !== null}
-                                  >
-                                    <div className="flex items-center gap-3">
-                                      <div className="bg-secondary/10 text-secondary flex h-10 w-10 items-center justify-center rounded-[var(--radius-button)]">
-                                        <CopyCheck className="h-5 w-5" />
-                                      </div>
-                                      <div>
-                                        <div className="text-foreground font-semibold">Emulate Style (@Analyze)</div>
-                                        <div className="text-muted-foreground text-sm">
-                                          Generate new script in source style
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </button>
-                                  <button
-                                    className={`bg-card text-card-foreground hover:bg-accent/70 border-border rounded-[var(--radius-card)] border p-4 text-left shadow-[var(--shadow-soft-drop)] transition-transform duration-150 hover:scale-[1.01] ${activeAction ? "opacity-70" : ""}`}
-                                    onClick={handleInlineIdeas}
-                                    disabled={activeAction !== null}
-                                  >
-                                    <div className="flex items-center gap-3">
-                                      <div className="bg-secondary/10 text-secondary flex h-10 w-10 items-center justify-center rounded-[var(--radius-button)]">
-                                        <Lightbulb className="h-5 w-5" />
-                                      </div>
-                                      <div>
-                                        <div className="text-foreground font-semibold">
-                                          Create Content Ideas (@Content Ideas.md)
-                                        </div>
-                                        <div className="text-muted-foreground text-sm">
-                                          New content angles using PEQ
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </button>
-                                  <button
-                                    className={`bg-card text-card-foreground hover:bg-accent/70 border-border rounded-[var(--radius-card)] border p-4 text-left shadow-[var(--shadow-soft-drop)] transition-transform duration-150 hover:scale-[1.01] ${activeAction ? "opacity-70" : ""}`}
-                                    onClick={handleInlineHooks}
-                                    disabled={activeAction !== null}
-                                  >
-                                    <div className="flex items-center gap-3">
-                                      <div className="bg-secondary/10 text-secondary flex h-10 w-10 items-center justify-center rounded-[var(--radius-button)]">
-                                        <Megaphone className="h-5 w-5" />
-                                      </div>
-                                      <div>
-                                        <div className="text-foreground font-semibold">Hook Generation</div>
-                                        <div className="text-muted-foreground text-sm">
-                                          High-performing hooks for Shorts
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </button>
-                                </div>
-                              </div>
+                              <VideoActionsPanel
+                                active={activeAction === null}
+                                onTranscribe={handleInlineTranscribe}
+                                onAnalyze={handleInlineAnalyze}
+                                onEmulate={handleInlineEmulateStart}
+                                onIdeas={handleInlineIdeas}
+                                onHooks={handleInlineHooks}
+                              />
                             ) : m.content === EMULATE_INPUT && awaitingEmulateInput ? (
-                              <div className="bg-card border-border text-card-foreground rounded-[var(--radius-card)] border p-4 shadow-[var(--shadow-soft-drop)]">
-                                <div className="text-foreground mb-2 font-semibold">Describe your video idea</div>
-                                <div className="flex items-end gap-2">
-                                  <textarea
-                                    value={emulateIdea}
-                                    onChange={(e) => setEmulateIdea(e.target.value)}
-                                    rows={2}
-                                    className="text-foreground placeholder:text-muted-foreground bg-background/60 w-full resize-none rounded-[var(--radius-input)] p-2 text-sm focus:outline-none"
-                                    placeholder="e.g., Teach the simplest habit that boosted my productivity"
-                                  />
-                                  <Button size="sm" disabled={!emulateIdea.trim()} onClick={handleInlineEmulateSubmit}>
-                                    Generate
-                                  </Button>
-                                </div>
-                              </div>
+                              <EmulateInputPanel
+                                value={emulateIdea}
+                                onChange={setEmulateIdea}
+                                onSubmit={handleInlineEmulateSubmit}
+                                disabled={!emulateIdea.trim()}
+                              />
                             ) : (
                               <div className="prose text-foreground max-w-none">
                                 <p className="text-base leading-relaxed break-words whitespace-pre-wrap">{m.content}</p>
