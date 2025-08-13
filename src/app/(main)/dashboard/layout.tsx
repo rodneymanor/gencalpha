@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 
 import { DashboardWrapper } from "@/app/(main)/dashboard/_components/dashboard-wrapper";
 import { AppSidebar } from "@/app/(main)/dashboard/_components/sidebar/app-sidebar";
+import { MobileSidebarToggle } from "@/app/(main)/dashboard/_components/sidebar/mobile-sidebar-toggle";
 import { ResizableDashboardWrapper } from "@/components/dashboard/resizable-dashboard-wrapper";
 import { FloatingActionButton } from "@/components/ui/floating-action-button";
 // import removed: OnboardingProgress
@@ -44,6 +45,7 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
               variant={sidebarVariant}
               collapsible={sidebarCollapsible}
               layoutPreferences={layoutPreferences}
+              className="data-[mobile=true]:w-80"
             />
             <SidebarInset
               data-content-layout={contentLayout}
@@ -55,21 +57,21 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
                 "flex h-screen flex-col",
               )}
             >
-              {/* <header className="flex h-12 shrink-0 items-center gap-2 border-b transition-[width,height]">
-                <div className="flex w-full items-center justify-between px-4 lg:px-6">
+              <header className="flex h-12 shrink-0 items-center gap-2 transition-[width,height] md:hidden">
+                <div className="flex w-full items-center justify-between px-4">
                   <div className="flex items-center gap-2">
-                    <HeaderTitle />
+                    <MobileSidebarToggle />
                   </div>
                   <div className="flex items-center gap-2">
-                    <HeaderActions />
+                    <ProcessingNotificationBadge />
                   </div>
                 </div>
-              </header> */}
+              </header>
               <div className="min-h-0 flex-1 overflow-y-auto">
                 <ResizableDashboardWrapper className="h-full">
                   <div className="mx-auto max-w-6xl">
                     <div className="relative">
-                      <div className="absolute top-6 right-6 z-10">
+                      <div className="absolute top-6 right-6 z-10 hidden md:block">
                         <ProcessingNotificationBadge />
                       </div>
                     </div>

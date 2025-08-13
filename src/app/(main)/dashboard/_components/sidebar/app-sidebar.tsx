@@ -75,7 +75,7 @@ function SidebarLogo({ isPinned, onPinToggle }: { isPinned: boolean; onPinToggle
 }
 
 export function AppSidebar({ layoutPreferences, ...props }: AppSidebarProps) {
-  const { setOpen } = useSidebar();
+  const { setOpen, isMobile } = useSidebar();
   const sidebarRef = useRef<HTMLDivElement>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout>();
   const initializedRef = useRef(false);
@@ -102,8 +102,14 @@ export function AppSidebar({ layoutPreferences, ...props }: AppSidebarProps) {
     }
   }, [isPinned]);
 
-  // Set up hover listeners
+  // Set up hover listeners (disabled on mobile)
   useEffect(() => {
+    // Skip hover behavior on mobile
+    if (isMobile) {
+      console.log("🔍 [Sidebar] Mobile detected, skipping hover listeners");
+      return;
+    }
+
     console.log("🔍 [Sidebar] useEffect running, setting up hover listeners");
 
     const sidebar = sidebarRef.current;
@@ -144,7 +150,7 @@ export function AppSidebar({ layoutPreferences, ...props }: AppSidebarProps) {
         clearTimeout(hoverTimeoutRef.current);
       }
     };
-  }, [isPinned, setOpen]); // Include both isPinned and setOpen in dependencies
+  }, [isPinned, setOpen, isMobile]); // Include isMobile in dependencies
 
   const handlePinToggle = () => {
     console.log("🔍 [Sidebar] Pin toggle - current state:", isPinned);
