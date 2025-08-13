@@ -427,7 +427,6 @@ const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({
       {showFollowButton && <FollowCreatorSection onCreatorFollowed={handleCreatorFollowed} />}
       <div className="px-6">
         <h2 className="text-foreground text-2xl font-semibold">Creator Inspiration</h2>
-        <p className="text-muted-foreground mt-1 text-sm">Latest videos from {videos.length} creators you follow</p>
       </div>
       <div className={`grid w-full ${getGridCols()} gap-4 px-6`}>
         {videos.map((video) => (

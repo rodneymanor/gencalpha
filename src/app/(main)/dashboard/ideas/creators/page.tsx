@@ -26,7 +26,7 @@ export default function IdeasCreatorsPage() {
       <div className="px-6 pt-6 pb-8">
         <div className="flex items-start justify-between">
           <div className="space-y-2">
-            <h1 className="text-foreground text-xl font-semibold md:text-2xl">Follow creators</h1>
+            <h1 className="text-foreground text-xl font-semibold md:text-2xl">Creator Inspiration</h1>
             <p className="text-muted-foreground text-sm md:text-base">
               Discover creators and track their latest content.
             </p>
