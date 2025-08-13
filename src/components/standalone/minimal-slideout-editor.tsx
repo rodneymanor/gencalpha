@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import { BlockNoteEditor, BlockNoteSchema, defaultBlockSpecs } from "@blocknote/core";
+import { BlockNoteEditor, BlockNoteSchema, defaultBlockSpecs, type PartialBlock } from "@blocknote/core";
 
 export function MinimalSlideoutEditor({
   initialValue = "",
@@ -20,65 +20,131 @@ export function MinimalSlideoutEditor({
     replaceBlocks?: (from: unknown, to: unknown) => Promise<void> | void;
   };
   const editorRef = React.useRef<MinimalBlockNote | null>(null);
+  const schemaRef = React.useRef(
+    BlockNoteSchema.create({
+      blockSpecs: defaultBlockSpecs,
+    }),
+  );
+
+  // Very small markdown -> BlockNote blocks mapper for headings, paragraphs and simple list-like lines.
+  // This is intentionally minimal and only aims to render common script/analysis outputs nicely.
+  type AnyPartialBlock = PartialBlock<any>;
+
+  const markdownToBlocks = React.useCallback((markdown: string): AnyPartialBlock[] => {
+    const lines = markdown.replace(/\r\n?/g, "\n").split("\n");
+    const blocks: AnyPartialBlock[] = [];
+    const newId = () => `bn-${Math.random().toString(36).slice(2)}`;
+
+    for (const raw of lines) {
+      const line = raw.trimEnd();
+      if (!line.trim()) {
+        // Add an empty paragraph to create visual spacing between sections
+        blocks.push({ id: newId(), type: "paragraph", props: {}, content: [], children: [] } as AnyPartialBlock);
+        continue;
+      }
+      const headingMatch = /^(#{1,6})\s+(.*)$/.exec(line);
+      if (headingMatch) {
+        const level = Math.min(3, headingMatch[1].length);
+        const text = headingMatch[2];
+        blocks.push({
+          id: newId(),
+          type: "heading",
+          props: { level },
+          content: [{ type: "text", text, styles: {} }],
+          children: [],
+        } as AnyPartialBlock);
+        continue;
+      }
+      const bulletMatch = /^[-*]\s+(.*)$/.exec(line);
+      if (bulletMatch) {
+        const text = `• ${bulletMatch[1]}`;
+        blocks.push({
+          id: newId(),
+          type: "paragraph",
+          props: {},
+          content: [{ type: "text", text, styles: {} }],
+          children: [],
+        } as AnyPartialBlock);
+        continue;
+      }
+      const orderedMatch = /^\d+\.\s+(.*)$/.exec(line);
+      if (orderedMatch) {
+        const text = orderedMatch[0];
+        blocks.push({
+          id: newId(),
+          type: "paragraph",
+          props: {},
+          content: [{ type: "text", text, styles: {} }],
+          children: [],
+        } as AnyPartialBlock);
+        continue;
+      }
+      blocks.push({
+        id: newId(),
+        type: "paragraph",
+        props: {},
+        content: [{ type: "text", text: line, styles: {} }],
+        children: [],
+      } as AnyPartialBlock);
+    }
+    // Ensure at least one paragraph exists
+    if (blocks.length === 0) {
+      blocks.push({ id: newId(), type: "paragraph", props: {}, content: [], children: [] } as AnyPartialBlock);
+    }
+    return blocks;
+  }, []);
+
+  const mountEditor = React.useCallback(
+    (contentAsBlocks: AnyPartialBlock[]) => {
+      if (!editorHostRef.current) return;
+      // Clean up previous editor if present
+      try {
+        editorRef.current?.unmount?.();
+      } catch {
+        /* no-op */
+      }
+      const editor = BlockNoteEditor.create({
+        schema: schemaRef.current,
+        initialContent: contentAsBlocks,
+        _tiptapOptions: {
+          editorProps: {
+            handleTripleClick: () => true,
+            handleDOMEvents: { tripleclick: () => true },
+          },
+        },
+      });
+      editor.mount(editorHostRef.current);
+      editor.onChange(() => {
+        try {
+          const next = JSON.stringify(editor.document);
+          onChange?.(next);
+        } catch {
+          /* no-op */
+        }
+      });
+      editorRef.current = editor as unknown as MinimalBlockNote;
+    },
+    [onChange],
+  );
 
   React.useEffect(() => {
     if (!editorHostRef.current || editorRef.current) return;
-
-    const schema = BlockNoteSchema.create({
-      // full default specs to support markdown-like blocks and richer content
-      blockSpecs: defaultBlockSpecs,
-    });
-
-    const toBlocks = (content: string) => {
+    // Initialize with provided value (JSON blocks preferred, fallback to markdown-ish mapping)
+    const toBlocks = (content: string): AnyPartialBlock[] => {
       if (!content.trim()) {
-        return [
-          {
-            id: "intro-paragraph",
-            type: "paragraph",
-            props: {},
-            content: [],
-            children: [],
-          },
-        ];
+        return [{ id: "intro-paragraph", type: "paragraph", props: {}, content: [], children: [] } as AnyPartialBlock];
       }
       try {
         const parsed = JSON.parse(content);
         return Array.isArray(parsed) && parsed.length > 0
-          ? parsed
-          : [{ id: "intro-paragraph", type: "paragraph", props: {}, content: [], children: [] }];
+          ? (parsed as AnyPartialBlock[])
+          : [{ id: "intro-paragraph", type: "paragraph", props: {}, content: [], children: [] } as AnyPartialBlock];
       } catch {
-        return [
-          {
-            id: `text-${Date.now()}`,
-            type: "paragraph",
-            props: {},
-            content: [{ type: "text", text: content, styles: {} }],
-            children: [],
-          },
-        ];
+        return markdownToBlocks(content);
       }
     };
 
-    const editor = BlockNoteEditor.create({
-      schema,
-      initialContent: toBlocks(initialValue),
-      _tiptapOptions: {
-        editorProps: {
-          handleTripleClick: () => true,
-          handleDOMEvents: { tripleclick: () => true },
-        },
-      },
-    });
-    editor.mount(editorHostRef.current);
-    editor.onChange(() => {
-      try {
-        const next = JSON.stringify(editor.document);
-        onChange?.(next);
-      } catch {
-        /* no-op */
-      }
-    });
-    editorRef.current = editor as unknown as MinimalBlockNote;
+    mountEditor(toBlocks(initialValue));
 
     return () => {
       try {
@@ -88,7 +154,29 @@ export function MinimalSlideoutEditor({
         /* no-op */
       }
     };
-  }, [initialValue, onChange]);
+  }, [initialValue, markdownToBlocks, mountEditor]);
+
+  // Listen for global content update events from the chat system
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handler = (e: Event) => {
+      const anyEvent = e as CustomEvent<{
+        markdown?: string;
+        blocks?: AnyPartialBlock[];
+        title?: string;
+      }>;
+      const detail = anyEvent.detail || {};
+      const blocks =
+        Array.isArray(detail.blocks) && detail.blocks.length > 0
+          ? detail.blocks
+          : markdownToBlocks(String(detail.markdown ?? ""));
+      mountEditor(blocks);
+    };
+    window.addEventListener("write:editor-set-content", handler as EventListener);
+    return () => {
+      window.removeEventListener("write:editor-set-content", handler as EventListener);
+    };
+  }, [markdownToBlocks, mountEditor]);
 
   return (
     <div className="px-11 py-6">

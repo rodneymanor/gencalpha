@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState, type ReactNode } from "react";
 
+import { usePathname } from "next/navigation";
+
 import { ChevronDown, Copy, X } from "lucide-react";
 
 import MinimalSlideoutEditor from "@/components/standalone/minimal-slideout-editor";
@@ -17,16 +19,22 @@ export interface SlideoutWrapperProps {
 
 export function SlideoutWrapper({ children, slideout: _slideout, className, contentClassName }: SlideoutWrapperProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
   // Reference to satisfy linter while we intentionally ignore external slideout content
   void _slideout;
+
+  // Close slideout on page navigation
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
 
   // Open slideout when an answer is displayed in chat
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const handler = () => setIsOpen(true);
-    window.addEventListener("write:answer-ready", handler as EventListener);
+    const openOnStructuredAnswer = () => setIsOpen(true);
+    window.addEventListener("write:editor-set-content", openOnStructuredAnswer as EventListener);
     return () => {
-      window.removeEventListener("write:answer-ready", handler as EventListener);
+      window.removeEventListener("write:editor-set-content", openOnStructuredAnswer as EventListener);
     };
   }, []);
 

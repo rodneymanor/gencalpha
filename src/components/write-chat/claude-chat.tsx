@@ -266,6 +266,17 @@ export function ClaudeChat({
     setIsHeroState(false);
     onSend?.(trimmed, selectedPersona ?? "MiniBuddy");
 
+    // Helper: route structured content to slideout BlockNote editor
+    const sendToSlideout = (markdown: string) => {
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("write:editor-set-content", {
+            detail: { markdown },
+          }),
+        );
+      }
+    };
+
     // If no persona selected, treat the input as a script idea and run Speed Write
     if (!selectedPersona) {
       const startTs = Date.now();
@@ -273,16 +284,16 @@ export function ClaudeChat({
         const res = await generateScript(trimmed, "60");
         await delay(ACK_BEFORE_SLIDE_MS);
         if (res.success && res.script) {
-          const content = `📝 Generated Script:\n\n**Hook:** ${res.script.hook}\n\n**Bridge:** ${res.script.bridge}\n\n**Golden Nugget:** ${res.script.goldenNugget}\n\n**Call to Action:** ${res.script.wta}`;
-          if (onAnswerReady) onAnswerReady();
+          const markdown = `# Generated Script\n\n## Hook\n${res.script.hook}\n\n## Bridge\n${res.script.bridge}\n\n## Golden Nugget\n${res.script.goldenNugget}\n\n## Call to Action\n${res.script.wta}`;
+          sendToSlideout(markdown);
+          onAnswerReady?.();
           await delay(SLIDE_DURATION_MS);
-          setMessages((prev): ChatMessage[] => {
-            const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== "<ack-loading>");
-            const next: ChatMessage[] = [...filtered, { id: crypto.randomUUID(), role: "assistant", content }];
-            return next;
-          });
+          // Remove loader only; do not append structured answer to chat
+          setMessages((prev): ChatMessage[] =>
+            prev.filter((m) => m.id !== ackLoadingId && m.content !== "<ack-loading>"),
+          );
         } else {
-          if (onAnswerReady) onAnswerReady();
+          // Keep error in chat; do not open slideout
           await delay(SLIDE_DURATION_MS);
           setMessages((prev): ChatMessage[] => {
             const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== "<ack-loading>");
@@ -299,7 +310,6 @@ export function ClaudeChat({
         }
       } catch (err: unknown) {
         await delay(ACK_BEFORE_SLIDE_MS);
-        if (onAnswerReady) onAnswerReady();
         await delay(SLIDE_DURATION_MS);
         setMessages((prev): ChatMessage[] => {
           const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== "<ack-loading>");
@@ -326,17 +336,15 @@ export function ClaudeChat({
         const res = await generateScript(idea, "60");
         await delay(ACK_BEFORE_SLIDE_MS);
         if (res.success && res.script) {
-          const content = `📝 Generated Script:\n\n**Hook:** ${res.script.hook}\n\n**Bridge:** ${res.script.bridge}\n\n**Golden Nugget:** ${res.script.goldenNugget}\n\n**Call to Action:** ${res.script.wta}`;
-          if (onAnswerReady) onAnswerReady();
+          const markdown = `# Generated Script\n\n## Hook\n${res.script.hook}\n\n## Bridge\n${res.script.bridge}\n\n## Golden Nugget\n${res.script.goldenNugget}\n\n## Call to Action\n${res.script.wta}`;
+          sendToSlideout(markdown);
+          onAnswerReady?.();
           await delay(SLIDE_DURATION_MS);
-          setMessages((prev): ChatMessage[] => {
-            const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== "<ack-loading>");
-            const next: ChatMessage[] = [...filtered, { id: crypto.randomUUID(), role: "assistant", content }];
-            return next;
-          });
+          setMessages((prev): ChatMessage[] =>
+            prev.filter((m) => m.id !== ackLoadingId && m.content !== "<ack-loading>"),
+          );
           return;
         }
-        if (onAnswerReady) onAnswerReady();
         await delay(SLIDE_DURATION_MS);
         setMessages((prev): ChatMessage[] => {
           const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== "<ack-loading>");
@@ -353,7 +361,6 @@ export function ClaudeChat({
         return;
       } catch (err: unknown) {
         await delay(ACK_BEFORE_SLIDE_MS);
-        if (onAnswerReady) onAnswerReady();
         await delay(SLIDE_DURATION_MS);
         setMessages((prev): ChatMessage[] => {
           const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== "<ack-loading>");
@@ -391,7 +398,6 @@ export function ClaudeChat({
       const assistantText = data.response ?? "I'm sorry, I didn't receive a proper response.";
       // Stage timing: ack -> (1.5s) -> slideout -> (slide duration) -> show answer
       await delay(ACK_BEFORE_SLIDE_MS);
-      if (onAnswerReady) onAnswerReady();
       await delay(SLIDE_DURATION_MS);
       setMessages((prev): ChatMessage[] => {
         const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== "<ack-loading>");
@@ -404,7 +410,6 @@ export function ClaudeChat({
     } catch (err: unknown) {
       // Stage timing on error as well
       await delay(ACK_BEFORE_SLIDE_MS);
-      if (onAnswerReady) onAnswerReady();
       await delay(SLIDE_DURATION_MS);
       setMessages((prev): ChatMessage[] => {
         const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== "<ack-loading>");
@@ -427,7 +432,7 @@ export function ClaudeChat({
 
       {/* Hero State */}
       {isHeroState && (
-        <div className="flex min-h-[calc(100vh-4rem)] flex-col items-center px-4 pt-24 md:pt-52">
+        <div className="mt-18 flex min-h-[calc(100vh-4rem)] flex-col items-center px-4 pt-24 md:pt-52">
           <div className="mx-auto flex w-full max-w-2xl flex-col items-start gap-6 pb-8">
             <div>
               <h1 className="text-foreground text-4xl leading-10 font-bold tracking-tight">
@@ -562,7 +567,7 @@ export function ClaudeChat({
                     key={p.key}
                     variant={selectedPersona === p.key ? "default" : "outline"}
                     size="sm"
-                    className="h-10 gap-2 transition-all"
+                    className="rounded-pill h-8 gap-2 px-4 transition-all"
                     onClick={() => setSelectedPersona((prev) => (prev === p.key ? null : p.key))}
                   >
                     {getPersonaByKey(p.key)?.icon}
@@ -742,10 +747,12 @@ export function ClaudeChat({
             if (type === "analysis") {
               const analysis = typeof safeData.analysis === "string" ? safeData.analysis : undefined;
               if (analysis) {
-                setMessages((prev) => {
-                  const filtered = prev.filter((m) => m.content !== "<processing>");
-                  return [...filtered, { id: crypto.randomUUID(), role: "assistant", content: analysis }];
-                });
+                const markdown = `# Video Analysis\n\n${analysis}`;
+                if (typeof window !== "undefined") {
+                  window.dispatchEvent(new CustomEvent("write:editor-set-content", { detail: { markdown } }));
+                }
+                onAnswerReady?.();
+                setMessages((prev) => prev.filter((m) => m.content !== "<processing>"));
               }
             }
             if (type === "emulation") {
@@ -756,11 +763,12 @@ export function ClaudeChat({
                 wta?: string;
               } | null;
               if (script) {
-                const content = `📝 Generated Script:\n\nHook: ${script.hook}\n\nBridge: ${script.bridge}\n\nGolden Nugget: ${script.goldenNugget}\n\nCall to Action: ${script.wta}`;
-                setMessages((prev) => {
-                  const filtered = prev.filter((m) => m.content !== "<processing>");
-                  return [...filtered, { id: crypto.randomUUID(), role: "assistant", content }];
-                });
+                const markdown = `# Generated Script\n\n## Hook\n${script.hook ?? ""}\n\n## Bridge\n${script.bridge ?? ""}\n\n## Golden Nugget\n${script.goldenNugget ?? ""}\n\n## Call to Action\n${script.wta ?? ""}`;
+                if (typeof window !== "undefined") {
+                  window.dispatchEvent(new CustomEvent("write:editor-set-content", { detail: { markdown } }));
+                }
+                onAnswerReady?.();
+                setMessages((prev) => prev.filter((m) => m.content !== "<processing>"));
               }
             }
             if (type === "ideas") {
@@ -780,11 +788,13 @@ export function ClaudeChat({
                   }>)
                 : undefined;
               if (hooks?.length) {
-                const list = hooks.map((h, i) => `${i + 1}. ${h.hook} (${h.template})`).join("\n");
-                setMessages((prev) => {
-                  const filtered = prev.filter((m) => m.content !== "<processing>");
-                  return [...filtered, { id: crypto.randomUUID(), role: "assistant", content: `Hooks:\n\n${list}` }];
-                });
+                const list = hooks.map((h, i) => `${i + 1}. ${h.hook} (Template: ${h.template})`).join("\n");
+                const markdown = `# Hooks\n\n${list}`;
+                if (typeof window !== "undefined") {
+                  window.dispatchEvent(new CustomEvent("write:editor-set-content", { detail: { markdown } }));
+                }
+                onAnswerReady?.();
+                setMessages((prev) => prev.filter((m) => m.content !== "<processing>"));
               }
             }
             setIsProcessing(null);
