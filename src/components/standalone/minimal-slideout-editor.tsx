@@ -4,6 +4,12 @@ import React from "react";
 
 import { BlockNoteEditor, BlockNoteSchema, defaultBlockSpecs, type PartialBlock } from "@blocknote/core";
 
+// Minimal BlockNote wrapper used inside the slideout. It supports two input modes:
+// 1) JSON blocks (serialized BlockNote document)
+// 2) Simple markdown-like text mapped to basic blocks (headings, paragraphs, bullets)
+//
+// It also listens for a global CustomEvent("write:editor-set-content", { detail: { markdown?, blocks? } })
+// to replace the entire editor content and is the integration point for chat → editor routing.
 export function MinimalSlideoutEditor({
   initialValue = "",
   onChange,
@@ -26,8 +32,8 @@ export function MinimalSlideoutEditor({
     }),
   );
 
-  // Very small markdown -> BlockNote blocks mapper for headings, paragraphs and simple list-like lines.
-  // This is intentionally minimal and only aims to render common script/analysis outputs nicely.
+  // Very small markdown → BlockNote blocks mapper for headings, paragraphs and simple list-like lines.
+  // Intentionally minimal to keep payloads small and rendering predictable for script/analysis/hooks.
   type AnyPartialBlock = PartialBlock<any>;
 
   const markdownToBlocks = React.useCallback((markdown: string): AnyPartialBlock[] => {
@@ -94,6 +100,7 @@ export function MinimalSlideoutEditor({
     return blocks;
   }, []);
 
+  // (Re)mounts a new BlockNote instance with provided content and wires change propagation.
   const mountEditor = React.useCallback(
     (contentAsBlocks: AnyPartialBlock[]) => {
       if (!editorHostRef.current) return;
@@ -127,6 +134,7 @@ export function MinimalSlideoutEditor({
     [onChange],
   );
 
+  // Initial mount: prefer JSON blocks, fallback to markdown mapping.
   React.useEffect(() => {
     if (!editorHostRef.current || editorRef.current) return;
     // Initialize with provided value (JSON blocks preferred, fallback to markdown-ish mapping)
@@ -156,7 +164,8 @@ export function MinimalSlideoutEditor({
     };
   }, [initialValue, markdownToBlocks, mountEditor]);
 
-  // Listen for global content update events from the chat system
+  // Listen for global content update events from the chat system.
+  // This is the single integration surface for routing structured answers into the editor.
   React.useEffect(() => {
     if (typeof window === "undefined") return;
     const handler = (e: Event) => {

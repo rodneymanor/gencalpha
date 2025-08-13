@@ -27,6 +27,14 @@ This document describes architectural patterns and key decisions.
 - Sidebar includes a distinct “Ideas” group linking to each page, using `lucide-react` icons.
 - Write page remains focused (no combined Ideas section).
 
+## Chat → Editor Routing Pattern (New)
+
+- Structured AI outputs (scripts, analysis, hooks) are not appended to the chat thread.
+- Instead, the chat dispatches a DOM CustomEvent `write:editor-set-content` with `{ markdown?: string, blocks?: PartialBlock[] }`.
+- `SlideoutWrapper` listens for this event to open the slideout; `MinimalSlideoutEditor` listens to replace content.
+- The editor supports two input modes: serialized BlockNote blocks or a small markdown subset mapped to headings/paragraphs/bullets.
+- Conversational text and errors remain in the main chat for readability.
+
 ## Clarity Design System Enforcement
 
 - Remove ad-hoc focus rings in contexts like idea mode; rely on `ring-ring` tokens only when needed.

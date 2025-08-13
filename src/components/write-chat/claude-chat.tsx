@@ -44,6 +44,10 @@ export function ClaudeChat({
   initialPrompt,
   initialPersona,
 }: ClaudeChatProps) {
+  // Chat renders conversational text; structured results (scripts, analysis, hooks) are sent to the
+  // BlockNote slideout via a global event. The slideout listens for `write:editor-set-content` and
+  // replaces its content, opening automatically. This keeps the chat thread clean while preserving
+  // a rich, editable surface for AI deliverables.
   const [isHeroState, setIsHeroState] = useState(true);
   const [inputValue, setInputValue] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);

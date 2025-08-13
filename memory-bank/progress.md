@@ -2,7 +2,7 @@
 
 This document provides a high-level overview of the project's status, tracking what is complete, what is in progress, and what remains to be done.
 
-_Last Updated: 2025-08-11_
+_Last Updated: 2025-08-13_
 
 ## 1. What Works / Completed
 
@@ -21,12 +21,13 @@ _Last Updated: 2025-08-11_
 - **UI/Navigation:**
   - Added Ideas group to sidebar with routes for Creators, Idea Inbox, and Ghostwriter under `dashboard/ideas/`.
   - Write Chat: idea mode hides persona buttons, removes focus ring; submit buttons use `ArrowUp` icon and `size-8`.
+  - New event-driven routing for structured AI results to the slideout BlockNote editor; conversational text remains in chat.
 
 ## 2. In Progress / Needs Validation
 
 - **End-to-End Extension Calls:** Validate each endpoint from a background script using API key on dev (`http://localhost:3000`).
 - **Add Video to Collection (By Title):** Confirm auto-create of collection if title doesn’t exist, then forwarding to `add-video-to-collection` succeeds.
-- **Ideas Pages QA:** Verify all three Ideas pages for spacing, accessibility (focus states), and responsive behavior.
+- **Ideas Pages & Slideout QA:** Verify Ideas pages and the new chat→editor routing for spacing, accessibility (focus states), and responsive behavior.
 
 ## 3. To-Do / Not Started
 

@@ -28,7 +28,8 @@ export function SlideoutWrapper({ children, slideout: _slideout, className, cont
     setIsOpen(false);
   }, [pathname]);
 
-  // Open slideout when an answer is displayed in chat
+  // Open slideout when structured content is sent to the editor. The editor itself
+  // is updated by the event payload; this effect only toggles visibility.
   useEffect(() => {
     if (typeof window === "undefined") return;
     const openOnStructuredAnswer = () => setIsOpen(true);
