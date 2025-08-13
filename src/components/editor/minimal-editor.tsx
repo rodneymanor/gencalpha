@@ -48,15 +48,15 @@ const parseAndValidateContent = (content: string) => {
 
     // Validate each block has required properties
     const validatedContent = parsed.map((block, index) => ({
-      id: block.id || `block-${index}`,
-      type: block.type || "paragraph",
-      props: block.props || {},
-      content: block.content || [],
-      children: block.children || [],
+      id: block.id ?? `block-${index}`,
+      type: block.type ?? "paragraph",
+      props: block.props ?? {},
+      content: block.content ?? [],
+      children: block.children ?? [],
     }));
 
     return validatedContent;
-  } catch (error) {
+  } catch {
     console.log("Converting plain text to BlockNote format:", content);
     // Convert plain text to valid BlockNote format
     return [
@@ -105,6 +105,12 @@ export function MinimalEditor({ value, onChange }: MinimalEditorProps) {
       const newEditor = BlockNoteEditor.create({
         schema,
         initialContent,
+        _tiptapOptions: {
+          editorProps: {
+            handleTripleClick: () => true,
+            handleDOMEvents: { tripleclick: () => true },
+          },
+        },
       });
 
       // Mount the editor safely
@@ -129,9 +135,9 @@ export function MinimalEditor({ value, onChange }: MinimalEditorProps) {
         setIsReady(true);
         console.log("Editor created and mounted successfully");
       }
-    } catch (error) {
+    } catch (e) {
       console.error("Error creating minimal editor:", error);
-      setError(error instanceof Error ? error.message : String(error));
+      setError(e instanceof Error ? e.message : String(e));
     }
 
     return () => {
@@ -143,7 +149,7 @@ export function MinimalEditor({ value, onChange }: MinimalEditorProps) {
         }
       }
     };
-  }, []); // Only run once on mount
+  }, [value, onChange]); // ensure stable deps
 
   // Handle content updates from outside
   React.useEffect(() => {
@@ -151,8 +157,8 @@ export function MinimalEditor({ value, onChange }: MinimalEditorProps) {
       try {
         const newContent = parseAndValidateContent(value);
         editor.replaceBlocks(editor.document, newContent);
-      } catch (error) {
-        console.error("Error updating editor content:", error);
+      } catch (e) {
+        console.error("Error updating editor content:", e);
       }
     }
   }, [value, editor, isReady]);

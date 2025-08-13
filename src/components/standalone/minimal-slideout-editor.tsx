@@ -62,6 +62,12 @@ export function MinimalSlideoutEditor({
     const editor = BlockNoteEditor.create({
       schema,
       initialContent: toBlocks(initialValue),
+      _tiptapOptions: {
+        editorProps: {
+          handleTripleClick: () => true,
+          handleDOMEvents: { tripleclick: () => true },
+        },
+      },
     });
     editor.mount(editorHostRef.current);
     editor.onChange(() => {

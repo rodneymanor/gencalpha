@@ -32,13 +32,13 @@ const createSafeContent = (content: string) => {
     if (Array.isArray(parsed) && parsed.length > 0) {
       // Validate and fix existing BlockNote content
       return parsed.map((block, index) => ({
-        id: block.id || `safe-block-${index}-${Date.now()}`,
-        type: block.type || "paragraph",
+        id: block.id ?? `safe-block-${index}-${Date.now()}`,
+        type: block.type ?? "paragraph",
         props: {
           textColor: "default",
           backgroundColor: "default",
           textAlignment: "left",
-          ...block.props,
+          ...(block.props ?? {}),
         },
         content: Array.isArray(block.content) ? block.content : [],
         children: Array.isArray(block.children) ? block.children : [],
@@ -106,6 +106,13 @@ export function StableEditor({ value, onChange }: StableEditorProps) {
           _tiptapOptions: {
             enableInputRules: false, // Disable input rules that might cause position issues
             enablePasteRules: false, // Disable paste rules
+            editorProps: {
+              // Prevent ProseMirror table triple-click handler from running
+              handleTripleClick: () => true,
+              handleDOMEvents: {
+                tripleclick: () => true,
+              },
+            },
           },
         });
 
@@ -174,15 +181,15 @@ export function StableEditor({ value, onChange }: StableEditorProps) {
           // Use a safer method to update content
           await editorRef.current.replaceBlocks(editorRef.current.document, newContent);
         }
-      } catch (err) {
-        console.error("❌ Error updating content:", err);
+      } catch (e) {
+        console.error("❌ Error updating content:", e);
       }
     };
 
     // Debounce external updates
     const updateTimeout = setTimeout(updateContent, 300);
     return () => clearTimeout(updateTimeout);
-  }, [value, isReady]);
+  }, [value, isReady, onChange]);
 
   if (error) {
     return (

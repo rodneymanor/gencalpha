@@ -36,9 +36,9 @@ const createSafeCustomContent = (content: string) => {
     if (Array.isArray(parsed) && parsed.length > 0) {
       // Validate and return existing content
       return parsed.map((block, index) => ({
-        id: block.id || `custom-block-${index}-${Date.now()}`,
-        type: block.type || "paragraph",
-        props: block.props || {},
+        id: block.id ?? `custom-block-${index}-${Date.now()}`,
+        type: block.type ?? "paragraph",
+        props: block.props ?? {},
         content: Array.isArray(block.content) ? block.content : [],
         children: Array.isArray(block.children) ? block.children : [],
       }));
@@ -85,6 +85,12 @@ export function CustomBlockEditor({ value, onChange }: CustomBlockEditorProps) {
         const editor = BlockNoteEditor.create({
           schema: customBlockSchema,
           initialContent,
+          _tiptapOptions: {
+            editorProps: {
+              handleTripleClick: () => true,
+              handleDOMEvents: { tripleclick: () => true },
+            },
+          },
         });
 
         await new Promise((resolve) => setTimeout(resolve, 100));
@@ -145,14 +151,14 @@ export function CustomBlockEditor({ value, onChange }: CustomBlockEditorProps) {
           const newContent = createSafeCustomContent(value);
           await editorRef.current.replaceBlocks(editorRef.current.document, newContent);
         }
-      } catch (err) {
-        console.error("❌ Error updating custom content:", err);
+      } catch (e) {
+        console.error("❌ Error updating custom content:", e);
       }
     };
 
     const updateTimeout = setTimeout(updateContent, 300);
     return () => clearTimeout(updateTimeout);
-  }, [value, isReady]);
+  }, [value, isReady, onChange]);
 
   if (error) {
     return (
@@ -208,7 +214,7 @@ export function CustomBlockEditor({ value, onChange }: CustomBlockEditorProps) {
 
       <div className="mt-3 space-y-1 text-xs text-gray-500">
         <p>
-          💡 <strong>Tips:</strong> Type "/" to access custom blocks
+          💡 <strong>Tips:</strong> Type &quot;/&quot; to access custom blocks
         </p>
         <div className="flex gap-4 text-xs">
           <span>🪝 /hook - Add hooks</span>
