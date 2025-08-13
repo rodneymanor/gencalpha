@@ -35,6 +35,17 @@ This document describes architectural patterns and key decisions.
 - The editor supports two input modes: serialized BlockNote blocks or a small markdown subset mapped to headings/paragraphs/bullets.
 - Conversational text and errors remain in the main chat for readability.
 
+## Write Chat Refactor Pattern (Phase 1)
+
+- Replace magic control tokens with constants in `src/components/write-chat/constants.ts`:
+  - `ACK_LOADING`, `VIDEO_ACTIONS`, `EMULATE_INPUT`
+- Centralize timing constants `ACK_BEFORE_SLIDE_MS`, `SLIDE_DURATION_MS` in the same module.
+- Co-locate UI-agnostic helpers:
+  - `sendToSlideout`, `delay`, `removeAckLoader` in `utils.ts`
+  - `startAckWithLoader`, `finishAndRemoveLoader` in `ack-helpers.ts`
+  - HTTP helpers under `src/lib/http/` and video resolver under `src/lib/video/`
+- Keep stateful logic in the main component; extracted modules remain pure and side-effect free.
+
 ## Clarity Design System Enforcement
 
 - Remove ad-hoc focus rings in contexts like idea mode; rely on `ring-ring` tokens only when needed.

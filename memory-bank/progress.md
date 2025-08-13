@@ -22,6 +22,7 @@ _Last Updated: 2025-08-13_
   - Added Ideas group to sidebar with routes for Creators, Idea Inbox, and Ghostwriter under `dashboard/ideas/`.
   - Write Chat: idea mode hides persona buttons, removes focus ring; submit buttons use `ArrowUp` icon and `size-8`.
   - New event-driven routing for structured AI results to the slideout BlockNote editor; conversational text remains in chat.
+  - Refactor Phase 1: safe extraction of helpers/constants/types for `write-chat` to reduce complexity and duplication.
 
 ## 2. In Progress / Needs Validation
 

@@ -1,9 +1,10 @@
 /* eslint-disable max-lines */
 /* eslint-disable complexity */
 "use client";
-
+//
 import { useEffect, useMemo, useRef, useState } from "react";
 
+//
 import {
   ArrowUp,
   SlidersHorizontal,
@@ -26,16 +27,27 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { startAckWithLoader, finishAndRemoveLoader } from "@/components/write-chat/ack-helpers";
+import {
+  ACK_BEFORE_SLIDE_MS,
+  SLIDE_DURATION_MS,
+  ACK_LOADING,
+  VIDEO_ACTIONS,
+  EMULATE_INPUT,
+} from "@/components/write-chat/constants";
 import { Button, Card, ScrollArea } from "@/components/write-chat/primitives";
+import { type ChatMessage } from "@/components/write-chat/types";
+import { sendToSlideout, delay } from "@/components/write-chat/utils";
 import { useAuth } from "@/contexts/auth-context";
 import { useScriptGeneration } from "@/hooks/use-script-generation";
 import { auth as firebaseAuth } from "@/lib/firebase";
+import { buildAuthHeaders } from "@/lib/http/auth-headers";
+import { postJson } from "@/lib/http/post-json";
 import { clientNotesService, type Note } from "@/lib/services/client-notes-service";
 import { detectSocialLink, type DetectionResult } from "@/lib/utils/social-link-detector";
+import { ensureResolved } from "@/lib/video/ensure-resolved";
 
 // primitives moved to a separate file to reduce linter max-lines and improve reuse
-
-type ChatMessage = { id: string; role: "user" | "assistant"; content: string };
 type ClaudeChatProps = {
   className?: string;
   placeholder?: string;
@@ -62,8 +74,7 @@ export function ClaudeChat({
   const [isHeroState, setIsHeroState] = useState(true);
   const [inputValue, setInputValue] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  // Processing UI managed via messages; keep variable for future state hooks if needed
-  const [, setIsProcessing] = useState<string | null>(null);
+  // Processing UI is represented via ACK_LOADING messages
   const [selectedPersona, setSelectedPersona] = useState<PersonaType | null>(initialPersona ?? null);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [ideas, setIdeas] = useState<Note[]>([]);
@@ -72,7 +83,7 @@ export function ClaudeChat({
   const [ideaSaveMessage, setIdeaSaveMessage] = useState<string | null>(null);
   const mountedRef = useRef(true);
   const [linkDetection, setLinkDetection] = useState<DetectionResult | null>(null);
-  const [actionsOpen, setActionsOpen] = useState(false);
+  // removed unused: actionsOpen state
   const [urlCandidate, setUrlCandidate] = useState<string | null>(null);
   const [urlSupported, setUrlSupported] = useState<false | "instagram" | "tiktok" | null>(null);
   const [isUrlProcessing, setIsUrlProcessing] = useState(false);
@@ -115,7 +126,7 @@ export function ClaudeChat({
   // Initialize from props
   useEffect(() => {
     if (initialPrompt) setInputValue(initialPrompt);
-    if (initialPersona) setSelectedPersona(initialPersona);
+    setSelectedPersona(initialPersona ?? null);
   }, [initialPrompt, initialPersona]);
 
   // Notify parent when hero state changes
@@ -246,10 +257,7 @@ export function ClaudeChat({
       return "I'll help you with that.";
     };
 
-    // Helper: timing utilities for staged UX
-    const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
-    const ACK_BEFORE_SLIDE_MS = 1500; // how long the ack+loader shows before slideout
-    const SLIDE_DURATION_MS = 350; // approximate slideout animation time
+    // Timing utilities and constants imported from helpers
 
     // If a valid social video URL is present, transition to chat and show inline action options
     if (hasValidVideoUrl && urlCandidate && urlSupported) {
@@ -259,7 +267,7 @@ export function ClaudeChat({
         ...prev,
         { id: crypto.randomUUID(), role: "user", content: trimmed },
         { id: crypto.randomUUID(), role: "assistant", content: "Choose an action to process this video:" },
-        { id: crypto.randomUUID(), role: "assistant", content: "<video-actions>" },
+        { id: crypto.randomUUID(), role: "assistant", content: VIDEO_ACTIONS },
       ]);
       setVideoPanel({ url: urlCandidate, platform: urlSupported });
       setInputValue("");
@@ -304,7 +312,7 @@ export function ClaudeChat({
       { id: userMessageId, role: "user", content: trimmed },
       { id: ackMessageId, role: "assistant", content: ackText },
       // 2.1) Small loading indicator placeholder shown during analysis phase
-      { id: ackLoadingId, role: "assistant", content: "<ack-loading>" },
+      { id: ackLoadingId, role: "assistant", content: ACK_LOADING },
     ]);
     setInputValue("");
     setIsHeroState(false);
@@ -337,19 +345,9 @@ export function ClaudeChat({
     })();
 
     // Helper: route structured content to slideout BlockNote editor
-    const sendToSlideout = (markdown: string) => {
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(
-          new CustomEvent("write:editor-set-content", {
-            detail: { markdown },
-          }),
-        );
-      }
-    };
 
     // If no persona selected, treat the input as a script idea and run Speed Write
     if (!selectedPersona) {
-      const startTs = Date.now();
       try {
         const res = await generateScript(trimmed, "60");
         await delay(ACK_BEFORE_SLIDE_MS);
@@ -359,14 +357,12 @@ export function ClaudeChat({
           onAnswerReady?.();
           await delay(SLIDE_DURATION_MS);
           // Remove loader only; do not append structured answer to chat
-          setMessages((prev): ChatMessage[] =>
-            prev.filter((m) => m.id !== ackLoadingId && m.content !== "<ack-loading>"),
-          );
+          setMessages((prev): ChatMessage[] => prev.filter((m) => m.id !== ackLoadingId && m.content !== ACK_LOADING));
         } else {
           // Keep error in chat; do not open slideout
           await delay(SLIDE_DURATION_MS);
           setMessages((prev): ChatMessage[] => {
-            const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== "<ack-loading>");
+            const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== ACK_LOADING);
             const next: ChatMessage[] = [
               ...filtered,
               {
@@ -382,7 +378,7 @@ export function ClaudeChat({
         await delay(ACK_BEFORE_SLIDE_MS);
         await delay(SLIDE_DURATION_MS);
         setMessages((prev): ChatMessage[] => {
-          const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== "<ack-loading>");
+          const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== ACK_LOADING);
           const next: ChatMessage[] = [
             ...filtered,
             {
@@ -401,7 +397,7 @@ export function ClaudeChat({
     const lower = trimmed.toLowerCase();
     if (lower.startsWith("/script ") || lower.includes("generate script")) {
       const idea = trimmed.replace(/^\s*\/script\s+/i, "").replace(/^(generate script\s*:?)\s*/i, "");
-      const startTs = Date.now();
+
       try {
         const res = await generateScript(idea, "60");
         await delay(ACK_BEFORE_SLIDE_MS);
@@ -410,14 +406,12 @@ export function ClaudeChat({
           sendToSlideout(markdown);
           onAnswerReady?.();
           await delay(SLIDE_DURATION_MS);
-          setMessages((prev): ChatMessage[] =>
-            prev.filter((m) => m.id !== ackLoadingId && m.content !== "<ack-loading>"),
-          );
+          setMessages((prev): ChatMessage[] => prev.filter((m) => m.id !== ackLoadingId && m.content !== ACK_LOADING));
           return;
         }
         await delay(SLIDE_DURATION_MS);
         setMessages((prev): ChatMessage[] => {
-          const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== "<ack-loading>");
+          const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== ACK_LOADING);
           const next: ChatMessage[] = [
             ...filtered,
             {
@@ -433,7 +427,7 @@ export function ClaudeChat({
         await delay(ACK_BEFORE_SLIDE_MS);
         await delay(SLIDE_DURATION_MS);
         setMessages((prev): ChatMessage[] => {
-          const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== "<ack-loading>");
+          const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== ACK_LOADING);
           const next: ChatMessage[] = [
             ...filtered,
             {
@@ -449,10 +443,10 @@ export function ClaudeChat({
     }
 
     try {
-      const startTs = Date.now();
+      const authHeaders = await buildAuthHeaders();
       const response = await fetch("/api/chatbot", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders,
         body: JSON.stringify({
           message: trimmed,
           persona: selectedPersona,
@@ -461,7 +455,7 @@ export function ClaudeChat({
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        const errorData = (await response.json().catch(() => ({}))) as { error?: string };
         throw new Error(errorData.error ?? `HTTP error ${response.status}`);
       }
       const data = await response.json();
@@ -470,7 +464,7 @@ export function ClaudeChat({
       await delay(ACK_BEFORE_SLIDE_MS);
       await delay(SLIDE_DURATION_MS);
       setMessages((prev): ChatMessage[] => {
-        const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== "<ack-loading>");
+        const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== ACK_LOADING);
         const next: ChatMessage[] = [
           ...filtered,
           { id: crypto.randomUUID(), role: "assistant", content: assistantText },
@@ -497,7 +491,7 @@ export function ClaudeChat({
       await delay(ACK_BEFORE_SLIDE_MS);
       await delay(SLIDE_DURATION_MS);
       setMessages((prev): ChatMessage[] => {
-        const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== "<ack-loading>");
+        const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== ACK_LOADING);
         return [
           ...filtered,
           {
@@ -510,78 +504,22 @@ export function ClaudeChat({
     }
   };
 
-  // Helpers for inline actions
-  const buildAuthHeaders = async (): Promise<HeadersInit> => {
-    const token =
-      firebaseAuth && firebaseAuth.currentUser && typeof firebaseAuth.currentUser.getIdToken === "function"
-        ? await firebaseAuth.currentUser.getIdToken()
-        : undefined;
-    const headers: HeadersInit = { "Content-Type": "application/json" };
-    if (token) headers["authorization"] = `Bearer ${token}`;
-    return headers;
-  };
-
-  const postJson = async <T,>(path: string, body: unknown): Promise<T> => {
-    const headers = await buildAuthHeaders();
-    const res = await fetch(path, { method: "POST", headers, body: JSON.stringify(body) });
-    if (!res.ok) throw new Error(`${path} failed: ${res.status}`);
-    return (await res.json()) as T;
-  };
-
-  const ensureResolved = async (input: {
-    url: string;
-    platform: "instagram" | "tiktok";
-  }): Promise<{ url: string; platform: "instagram" | "tiktok" }> => {
-    try {
-      const res = await postJson<{ success: boolean; videoUrl?: string; platform?: "instagram" | "tiktok" }>(
-        "/api/video/resolve",
-        { url: input.url },
-      );
-      return { url: res.videoUrl ?? input.url, platform: (res.platform as typeof input.platform) ?? input.platform };
-    } catch {
-      return input;
-    }
-  };
-
-  const sendToSlideout = (markdown: string) => {
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(
-        new CustomEvent("write:editor-set-content", {
-          detail: { markdown },
-        }),
-      );
-    }
-  };
-
-  const startAckWithLoader = (ackText: string) => {
-    const ackMessageId = crypto.randomUUID();
-    const ackLoadingId = crypto.randomUUID();
-    setMessages((prev) => [
-      ...prev,
-      { id: ackMessageId, role: "assistant", content: ackText },
-      { id: ackLoadingId, role: "assistant", content: "<ack-loading>" },
-    ]);
-  };
-
-  const finishAndRemoveLoader = () => {
-    setMessages((prev) => prev.filter((m) => m.content !== "<ack-loading>"));
-    setIsProcessing(null);
-  };
+  // Helpers for inline actions are imported
 
   const handleInlineTranscribe = async () => {
     if (!videoPanel) return;
     setActiveAction("transcribe");
-    startAckWithLoader("I'll transcribe this video for you.");
+    startAckWithLoader(setMessages, "I'll transcribe this video for you.");
     try {
       const { url, platform } = await ensureResolved(videoPanel);
       const t = await postJson<{ transcript: string }>("/api/video/transcribe", { videoUrl: url, platform });
       if (!t.transcript) throw new Error("No transcript received from server");
       const markdown = `# Transcript\n\n${t.transcript}`;
       sendToSlideout(markdown);
-      finishAndRemoveLoader();
+      finishAndRemoveLoader(setMessages);
       onAnswerReady?.();
     } catch (error) {
-      finishAndRemoveLoader();
+      finishAndRemoveLoader(setMessages);
       const errorMessage = error instanceof Error ? error.message : "Transcription failed";
       setMessages((prev) => [
         ...prev,
@@ -595,7 +533,7 @@ export function ClaudeChat({
   const handleInlineAnalyze = async () => {
     if (!videoPanel) return;
     setActiveAction("analyze");
-    startAckWithLoader("I'll perform advanced stylometric analysis using Gemini AI.");
+    startAckWithLoader(setMessages, "I'll perform advanced stylometric analysis using Gemini AI.");
     try {
       const { url, platform } = await ensureResolved(videoPanel);
       const t = await postJson<{ transcript: string }>("/api/video/transcribe", { videoUrl: url, platform });
@@ -607,10 +545,10 @@ export function ClaudeChat({
       });
       const markdown = `# Advanced Stylometric Analysis\n\n${analysisData.analysis}`;
       sendToSlideout(markdown);
-      finishAndRemoveLoader();
+      finishAndRemoveLoader(setMessages);
       onAnswerReady?.();
     } catch (error) {
-      finishAndRemoveLoader();
+      finishAndRemoveLoader(setMessages);
       const errorMessage = error instanceof Error ? error.message : "Stylometric analysis failed";
       setMessages((prev) => [
         ...prev,
@@ -623,13 +561,13 @@ export function ClaudeChat({
 
   const handleInlineEmulateStart = () => {
     setAwaitingEmulateInput(true);
-    setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "assistant", content: "<emulate-input>" }]);
+    setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "assistant", content: EMULATE_INPUT }]);
   };
 
   const handleInlineEmulateSubmit = async () => {
     if (!videoPanel || !emulateIdea.trim()) return;
     setActiveAction("emulate");
-    startAckWithLoader("I'll help you write a script about your idea in this creator's style.");
+    startAckWithLoader(setMessages, "I'll help you write a script about your idea in this creator's style.");
     try {
       const { url, platform } = await ensureResolved(videoPanel);
       const t = await postJson<{ transcript: string }>("/api/video/transcribe", { videoUrl: url, platform });
@@ -644,12 +582,12 @@ export function ClaudeChat({
       });
       const markdown = `# Generated Script\n\n## Hook\n${emulationData.script.hook}\n\n## Bridge\n${emulationData.script.bridge}\n\n## Golden Nugget\n${emulationData.script.goldenNugget}\n\n## Call to Action\n${emulationData.script.wta}`;
       sendToSlideout(markdown);
-      finishAndRemoveLoader();
+      finishAndRemoveLoader(setMessages);
       onAnswerReady?.();
       setAwaitingEmulateInput(false);
       setEmulateIdea("");
     } catch (error) {
-      finishAndRemoveLoader();
+      finishAndRemoveLoader(setMessages);
       const errorMessage = error instanceof Error ? error.message : "Script generation failed";
       setMessages((prev) => [
         ...prev,
@@ -663,7 +601,7 @@ export function ClaudeChat({
   const handleInlineIdeas = async () => {
     if (!videoPanel) return;
     setActiveAction("ideas");
-    startAckWithLoader("I'll help you create 10 content ideas.");
+    startAckWithLoader(setMessages, "I'll help you create 10 content ideas.");
     try {
       const { url, platform } = await ensureResolved(videoPanel);
       const t = await postJson<{ transcript: string }>("/api/video/transcribe", { videoUrl: url, platform });
@@ -674,10 +612,10 @@ export function ClaudeChat({
       });
       const markdown = `# Content Ideas\n\n${ideasData.ideas}`;
       sendToSlideout(markdown);
-      finishAndRemoveLoader();
+      finishAndRemoveLoader(setMessages);
       onAnswerReady?.();
     } catch (error) {
-      finishAndRemoveLoader();
+      finishAndRemoveLoader(setMessages);
       const errorMessage = error instanceof Error ? error.message : "Ideas generation failed";
       setMessages((prev) => [
         ...prev,
@@ -691,7 +629,7 @@ export function ClaudeChat({
   const handleInlineHooks = async () => {
     if (!videoPanel) return;
     setActiveAction("hooks");
-    startAckWithLoader("I'll help you write hooks.");
+    startAckWithLoader(setMessages, "I'll help you write hooks.");
     try {
       const { url, platform } = await ensureResolved(videoPanel);
       const t = await postJson<{ transcript: string }>("/api/video/transcribe", { videoUrl: url, platform });
@@ -705,10 +643,10 @@ export function ClaudeChat({
       const list = hooksResp.hooks.map((h, i) => `${i + 1}. ${h.text} — ${h.rating}/100 (${h.focus})`).join("\n");
       const markdown = `# Hooks\n\n${list}\n\n**Top Hook:** ${hooksResp.topHook.text} (${hooksResp.topHook.rating}/100)`;
       sendToSlideout(markdown);
-      finishAndRemoveLoader();
+      finishAndRemoveLoader(setMessages);
       onAnswerReady?.();
     } catch (error) {
-      finishAndRemoveLoader();
+      finishAndRemoveLoader(setMessages);
       const errorMessage = error instanceof Error ? error.message : "Hooks generation failed";
       setMessages((prev) => [
         ...prev,
@@ -935,12 +873,12 @@ export function ClaudeChat({
                           <div aria-hidden className="h-8 w-8" />
                           {/* Assistant message */}
                           <div className="col-start-2">
-                            {m.content === "<ack-loading>" ? (
+                            {m.content === ACK_LOADING ? (
                               <div className="flex items-center gap-2 pt-1 pl-1">
                                 <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
                                 <span className="sr-only">Analyzing…</span>
                               </div>
-                            ) : m.content === "<video-actions>" && videoPanel ? (
+                            ) : m.content === VIDEO_ACTIONS && videoPanel ? (
                               <div className="bg-card border-border text-card-foreground rounded-[var(--radius-card)] border p-4 shadow-[var(--shadow-soft-drop)]">
                                 <div className="text-foreground mb-3 font-semibold">Choose an action</div>
                                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -1035,7 +973,7 @@ export function ClaudeChat({
                                   </button>
                                 </div>
                               </div>
-                            ) : m.content === "<emulate-input>" && awaitingEmulateInput ? (
+                            ) : m.content === EMULATE_INPUT && awaitingEmulateInput ? (
                               <div className="bg-card border-border text-card-foreground rounded-[var(--radius-card)] border p-4 shadow-[var(--shadow-soft-drop)]">
                                 <div className="text-foreground mb-2 font-semibold">Describe your video idea</div>
                                 <div className="flex items-end gap-2">
