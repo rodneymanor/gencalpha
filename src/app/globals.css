@@ -39,6 +39,16 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
+  /* Soft UI Border Variants */
+  --color-border-subtle: var(--border-subtle);
+  --color-border-hover: var(--border-hover);
+  --color-border-focus: var(--border-focus);
+
+  /* Soft UI Background Layers */
+  --color-background-elevated: var(--background-elevated);
+  --color-background-overlay: var(--background-overlay);
+  --color-background-hover: var(--background-hover);
+
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
   --font-serif: var(--font-serif);
@@ -47,7 +57,9 @@
   --radius-md: var(--radius-button);
   --radius-lg: var(--radius-card);
   --radius-xl: calc(var(--radius-card) + 4px);
+  --radius-subtle: var(--radius-subtle);
 
+  /* Enhanced Shadow System */
   --shadow-xs: rgba(0, 0, 0, 0.02) 0px 1px 2px 0px;
   --shadow-sm: rgba(0, 0, 0, 0.04) 0px 2px 8px 0px, rgba(0, 0, 0, 0.03) 0px 0px 1px 0px;
   --shadow-md: rgba(0, 0, 0, 0.06) 0px 4px 16px 0px, rgba(0, 0, 0, 0.04) 0px 0px 2px 0px;
@@ -55,6 +67,12 @@
   --shadow-lg: var(--shadow-md);
   --shadow-xl: var(--shadow-md);
   --shadow-2xl: var(--shadow-md);
+  
+  /* Soft UI Shadow Additions */
+  --shadow-hover: var(--shadow-hover);
+  --shadow-active: var(--shadow-active);
+  --shadow-inset-subtle: var(--shadow-inset-subtle);
+  --shadow-glow: var(--shadow-glow);
 }
 
 /* Clarity Design System - Light Theme */
@@ -81,6 +99,16 @@
   --border: rgba(0,0,0,0.06);
   --input: rgba(0,0,0,0.06);
   --ring: #1d293f;
+
+  /* Enhanced Border System */
+  --border-subtle: rgba(0,0,0,0.04);
+  --border-hover: rgba(0,0,0,0.12);
+  --border-focus: rgba(29, 41, 63, 0.3);
+
+  /* Soft UI Background Layers */
+  --background-elevated: rgba(255, 255, 255, 0.5);
+  --background-overlay: rgba(248, 248, 247, 0.8);
+  --background-hover: rgba(0, 0, 0, 0.02);
 
   /* Chart Colors */
   --chart-1: #1d293f;
@@ -109,10 +137,21 @@
   --radius-card: 12px;
   --radius-input: 22px;
   --radius-pill: 9999px;
+  --radius-subtle: 6px;
 
-  /* Shadows */
+  /* Enhanced Shadow System */
   --shadow-soft-drop: rgba(0, 0, 0, 0.04) 0px 2px 8px 0px, rgba(0, 0, 0, 0.03) 0px 0px 1px 0px;
   --shadow-input: rgba(0, 0, 0, 0.015) 0px 4px 12px 0px;
+  --shadow-hover: rgba(0, 0, 0, 0.06) 0px 4px 12px 0px, rgba(0, 0, 0, 0.04) 0px 0px 2px 0px;
+  --shadow-active: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px;
+  --shadow-inset-subtle: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-glow: 0 0 0 3px rgba(29, 41, 63, 0.1);
+
+  /* Animation Timing */
+  --transition-fast: 150ms ease;
+  --transition-base: 200ms ease;
+  --transition-slow: 300ms ease;
+  --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 
   /* Legacy support */
   --radius: 12px;
@@ -145,6 +184,16 @@
   --input: rgba(255,255,255,0.1);
   --ring: #1d293f;
 
+  /* Enhanced Border System - Dark */
+  --border-subtle: rgba(255,255,255,0.06);
+  --border-hover: rgba(255,255,255,0.15);
+  --border-focus: rgba(29, 41, 63, 0.4);
+
+  /* Soft UI Background Layers - Dark */
+  --background-elevated: rgba(38, 38, 37, 0.5);
+  --background-overlay: rgba(26, 26, 25, 0.8);
+  --background-hover: rgba(255, 255, 255, 0.02);
+
   /* Chart Colors */
   --chart-1: #1d293f;
   --chart-2: #858481;
@@ -172,10 +221,21 @@
   --radius-card: 12px;
   --radius-input: 22px;
   --radius-pill: 9999px;
+  --radius-subtle: 6px;
 
-  /* Shadows */
-  --shadow-soft-drop: rgba(0, 0, 0, 0.04) 0px 2px 8px 0px, rgba(0, 0, 0, 0.03) 0px 0px 1px 0px;
-  --shadow-input: rgba(0, 0, 0, 0.015) 0px 4px 12px 0px;
+  /* Enhanced Shadow System - Dark */
+  --shadow-soft-drop: rgba(0, 0, 0, 0.2) 0px 2px 8px 0px, rgba(0, 0, 0, 0.15) 0px 0px 1px 0px;
+  --shadow-input: rgba(0, 0, 0, 0.1) 0px 4px 12px 0px;
+  --shadow-hover: rgba(0, 0, 0, 0.3) 0px 4px 12px 0px, rgba(0, 0, 0, 0.2) 0px 0px 2px 0px;
+  --shadow-active: rgba(0, 0, 0, 0.1) 0px 1px 3px 0px;
+  --shadow-inset-subtle: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-glow: 0 0 0 3px rgba(29, 41, 63, 0.2);
+
+  /* Animation Timing */
+  --transition-fast: 150ms ease;
+  --transition-base: 200ms ease;
+  --transition-slow: 300ms ease;
+  --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 
   /* Legacy support */
   --radius: 12px;
@@ -197,6 +257,37 @@
   :where(input, textarea, select, button):focus-visible {
     outline: none !important;
     box-shadow: none !important;
+  }
+
+  /* Soft UI Interactive States */
+  .interactive {
+    transition: all var(--transition-fast);
+  }
+  
+  .interactive:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-hover);
+  }
+  
+  .interactive:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-active);
+  }
+  
+  /* Subtle focus state that aligns with your no-outline approach */
+  .soft-focus:focus-visible {
+    box-shadow: var(--shadow-glow) !important;
+  }
+  
+  /* Card hover effect */
+  .card-interactive {
+    transition: all var(--transition-base);
+  }
+  
+  .card-interactive:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-soft-drop);
+    background: var(--background-hover);
   }
 }
 
