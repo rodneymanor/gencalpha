@@ -154,6 +154,7 @@ export function VideoActionsDialog({
       }
       const emulationData = await postJson<{
         script: { hook: string; bridge: string; goldenNugget: string; wta: string };
+        analysis: string;
       }>("/api/style/emulate", {
         transcript: t.transcript,
         sourceUrl: url,
@@ -162,10 +163,33 @@ export function VideoActionsDialog({
       });
       await delay(ACK_BEFORE_SLIDE_MS);
       if (emulationData.script.hook) {
-        const markdown = `# Generated Script\n\n## Hook\n${emulationData.script.hook}\n\n## Bridge\n${emulationData.script.bridge}\n\n## Golden Nugget\n${emulationData.script.goldenNugget}\n\n## Call to Action\n${emulationData.script.wta}`;
+        const markdown = `# Generated Script
+
+## Hook
+${emulationData.script.hook}
+
+## Bridge
+${emulationData.script.bridge}
+
+## Golden Nugget
+${emulationData.script.goldenNugget}
+
+## Call to Action
+${emulationData.script.wta}
+
+---
+
+<details>
+<summary><strong>📊 Style Analysis</strong> (click to expand)</summary>
+
+${emulationData.analysis}
+
+</details>
+
+> **💡 Future Use:** This style analysis can be saved as a tone of voice template for consistent content creation.`;
         sendToSlideout(markdown);
         await delay(SLIDE_DURATION_MS);
-        onResult({ type: "emulation", data: { success: true } });
+        onResult({ type: "emulation", data: { success: true, analysis: emulationData.analysis } });
       } else {
         throw new Error("No valid script data received from API");
       }
