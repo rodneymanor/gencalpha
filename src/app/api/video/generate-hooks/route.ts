@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { authenticateApiKey } from "@/lib/api-key-auth";
+import { getAdminDb, isAdminInitialized } from "@/lib/firebase-admin";
 import { GeminiService } from "@/lib/services/gemini-service";
 
 interface GenerateHooksRequest {
@@ -17,6 +19,11 @@ interface GeneratedHook {
 
 export async function POST(request: NextRequest) {
   try {
+    const authResult = await authenticateApiKey(request);
+    if (authResult instanceof NextResponse) {
+      return authResult;
+    }
+
     const { transcript }: GenerateHooksRequest = await request.json();
 
     if (!transcript || transcript.trim().length === 0) {
@@ -72,8 +79,7 @@ Return only valid JSON.`;
 
     const gemini = GeminiService.getInstance?.() ?? new GeminiService();
     const ai = await gemini.generateContent<{ hooks: GeneratedHook[]; topHook: { text: string; rating: number } }>({
-      prompt: instruction,
-      systemPrompt,
+      prompt: `${systemPrompt}\n\n${instruction}`,
       model: "gemini-1.5-flash",
       temperature: 0.7,
       maxTokens: 800,
@@ -86,7 +92,7 @@ Return only valid JSON.`;
       return NextResponse.json({ success: false, error: ai.error ?? "Hook generation failed" }, { status: 500 });
     }
 
-    const content = ai.content as any;
+    const content: any = ai.content;
     const hooks: GeneratedHook[] = Array.isArray(content?.hooks) ? content.hooks : [];
     const topHook = content?.topHook ?? null;
 
@@ -101,6 +107,22 @@ Return only valid JSON.`;
       focus: h.focus ?? "surprise",
       rationale: String(h.rationale ?? "").trim(),
     }));
+
+    // persist hooks insight (best-effort)
+    try {
+      if (isAdminInitialized) {
+        const adminDb = getAdminDb();
+        await adminDb.collection("hook_generations").add({
+          userId: authResult.user.uid,
+          transcriptHash: (transcript || "").slice(0, 64),
+          hooks: normalizedHooks,
+          topHook,
+          createdAt: new Date().toISOString(),
+        });
+      }
+    } catch (persistErr) {
+      console.warn("⚠️ [HOOKS] Failed to store hook generation:", persistErr);
+    }
 
     return NextResponse.json({ success: true, hooks: normalizedHooks, topHook });
   } catch (error) {

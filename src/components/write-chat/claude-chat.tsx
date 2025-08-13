@@ -65,6 +65,7 @@ export function ClaudeChat({
   // Processing UI managed via messages; keep variable for future state hooks if needed
   const [, setIsProcessing] = useState<string | null>(null);
   const [selectedPersona, setSelectedPersona] = useState<PersonaType | null>(initialPersona ?? null);
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const [ideas, setIdeas] = useState<Note[]>([]);
   const [ideasOpen, setIdeasOpen] = useState(false);
   const [isIdeaMode, setIsIdeaMode] = useState(false);
@@ -308,6 +309,32 @@ export function ClaudeChat({
     setInputValue("");
     setIsHeroState(false);
     onSend?.(trimmed, selectedPersona ?? "MiniBuddy");
+    // Persist user message
+    (async () => {
+      try {
+        const headers = await buildAuthHeaders();
+        if (!conversationId) {
+          const res = await fetch("/api/chat/conversations", {
+            method: "POST",
+            headers,
+            body: JSON.stringify({ persona: selectedPersona ?? "MiniBuddy", initialPrompt: initialPrompt ?? null }),
+          });
+          if (res.ok) {
+            const json = (await res.json()) as { success: boolean; conversationId?: string };
+            if (json.success && json.conversationId) setConversationId(json.conversationId);
+          }
+        }
+        const convId = conversationId ?? crypto.randomUUID();
+        if (!conversationId) setConversationId(convId);
+        await fetch(`/api/chat/conversations/${convId}/messages`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ role: "user", content: trimmed }),
+        });
+      } catch (e) {
+        console.warn("⚠️ [ClaudeChat] Failed to persist user message:", e);
+      }
+    })();
 
     // Helper: route structured content to slideout BlockNote editor
     const sendToSlideout = (markdown: string) => {
@@ -450,6 +477,21 @@ export function ClaudeChat({
         ];
         return next;
       });
+      // Persist assistant message (best-effort)
+      (async () => {
+        try {
+          const headers = await buildAuthHeaders();
+          const convId = conversationId ?? crypto.randomUUID();
+          if (!conversationId) setConversationId(convId);
+          await fetch(`/api/chat/conversations/${convId}/messages`, {
+            method: "POST",
+            headers,
+            body: JSON.stringify({ role: "assistant", content: assistantText }),
+          });
+        } catch (e) {
+          console.warn("⚠️ [ClaudeChat] Failed to persist assistant message:", e);
+        }
+      })();
     } catch (err: unknown) {
       // Stage timing on error as well
       await delay(ACK_BEFORE_SLIDE_MS);

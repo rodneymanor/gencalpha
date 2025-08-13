@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 
+import { authenticateApiKey } from "@/lib/api-key-auth";
+import { getAdminDb, isAdminInitialized } from "@/lib/firebase-admin";
+
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 interface ScriptComponents {
@@ -15,6 +18,9 @@ export async function POST(request: NextRequest) {
   console.log("📝 [SCRIPT_ANALYSIS] Starting script component analysis...");
 
   try {
+    const authResult = await authenticateApiKey(request);
+    if (authResult instanceof NextResponse) return authResult;
+
     const { transcript } = await request.json();
 
     if (!transcript) {
@@ -31,6 +37,21 @@ export async function POST(request: NextRequest) {
     }
 
     console.log("✅ [SCRIPT_ANALYSIS] Script analysis completed successfully");
+
+    // Persist components (best-effort)
+    try {
+      if (isAdminInitialized) {
+        const adminDb = getAdminDb();
+        await adminDb.collection("script_component_analyses").add({
+          userId: authResult.user.uid,
+          components,
+          transcriptPreview: String(transcript).slice(0, 280),
+          createdAt: new Date().toISOString(),
+        });
+      }
+    } catch (persistErr) {
+      console.warn("⚠️ [SCRIPT_ANALYSIS] Failed to persist components:", persistErr);
+    }
 
     return NextResponse.json({
       success: true,
@@ -142,27 +163,28 @@ Respond with ONLY a valid JSON object in this exact format (no additional text):
       }
     } catch (error) {
       console.error(`❌ [SCRIPT_ANALYSIS] AI analysis error (attempt ${attempt}/${maxRetries}):`, error);
-      
+
       // Check if it's a service overload error
-      const isOverloadError = error instanceof Error && 
-        (error.message.includes('overloaded') || 
-         error.message.includes('503') || 
-         error.message.includes('Service Unavailable'));
-      
+      const isOverloadError =
+        error instanceof Error &&
+        (error.message.includes("overloaded") ||
+          error.message.includes("503") ||
+          error.message.includes("Service Unavailable"));
+
       if (isOverloadError && attempt < maxRetries) {
         const delay = baseDelay * Math.pow(2, attempt - 1); // Exponential backoff
         console.log(`⏳ [SCRIPT_ANALYSIS] Model overloaded, retrying in ${delay}ms...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
         continue;
       }
-      
+
       if (attempt === maxRetries) {
         console.error("❌ [SCRIPT_ANALYSIS] All retry attempts failed");
         return null;
       }
     }
   }
-  
+
   // If we get here, all attempts failed
   console.error("❌ [SCRIPT_ANALYSIS] All retry attempts exhausted");
   return null;

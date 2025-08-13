@@ -4,13 +4,14 @@ import { detectPlatform } from "@/core/video/platform-detector";
 import { VideoTranscriber } from "@/core/video/transcriber";
 import { authenticateApiKey } from "@/lib/api-key-auth";
 import { ApifyClient, APIFY_ACTORS } from "@/lib/apify";
+import { getAdminDb, isAdminInitialized } from "@/lib/firebase-admin";
 
 export async function POST(request: NextRequest) {
   try {
     // Authenticate user (keeping existing auth)
-    const user = await authenticateApiKey(request);
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const authResult = await authenticateApiKey(request);
+    if (authResult instanceof NextResponse) {
+      return authResult;
     }
 
     const contentType = request.headers.get("content-type");
@@ -56,6 +57,23 @@ async function handleCdnTranscription(request: NextRequest) {
 
       if (!isFallbackTranscript) {
         console.log("✅ [TRANSCRIBE] CDN transcription completed successfully");
+        // Best-effort save transcript
+        try {
+          if (isAdminInitialized) {
+            const adminDb = getAdminDb();
+            await adminDb.collection("transcripts").add({
+              userId: authResult.user.uid,
+              sourceUrl: videoUrl,
+              platform: detectedPlatform,
+              transcript: result.transcript,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            });
+          }
+        } catch (persistErr) {
+          console.warn("⚠️ [TRANSCRIBE] Failed to persist transcript:", persistErr);
+        }
+
         return NextResponse.json({
           success: true,
           transcript: result.transcript,
@@ -81,6 +99,23 @@ async function handleCdnTranscription(request: NextRequest) {
 
       if (fallbackResult) {
         console.log("✅ [TRANSCRIBE] TikTok scraper fallback successful");
+        // Best-effort save transcript
+        try {
+          if (isAdminInitialized) {
+            const adminDb = getAdminDb();
+            await adminDb.collection("transcripts").add({
+              userId: authResult.user.uid,
+              sourceUrl: videoUrl,
+              platform: "tiktok",
+              transcript: fallbackResult.transcript,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            });
+          }
+        } catch (persistErr) {
+          console.warn("⚠️ [TRANSCRIBE] Failed to persist transcript (fallback):", persistErr);
+        }
+
         return NextResponse.json({
           success: true,
           transcript: fallbackResult.transcript,

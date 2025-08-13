@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { authenticateApiKey } from "@/lib/api-key-auth";
+import { getAdminDb, isAdminInitialized } from "@/lib/firebase-admin";
 import { parseStructuredResponse, createScriptElements } from "@/lib/json-extractor";
 import { ensurePromptLibraryInitialized } from "@/lib/prompts";
 import { executePrompt } from "@/lib/prompts/prompt-manager";
@@ -22,6 +24,11 @@ type GenerateResponseBody = {
 
 export async function POST(request: NextRequest): Promise<NextResponse<GenerateResponseBody>> {
   try {
+    const authResult = await authenticateApiKey(request);
+    if (authResult instanceof NextResponse) {
+      return authResult as NextResponse<GenerateResponseBody>;
+    }
+
     const body = (await request.json()) as GenerateRequestBody;
     const idea = (body?.idea ?? "").trim();
     const length = body?.length ?? "60";
@@ -71,6 +78,38 @@ export async function POST(request: NextRequest): Promise<NextResponse<GenerateR
         },
         { status: 502 },
       );
+    }
+
+    // Persist generated script elements (best-effort)
+    try {
+      if (isAdminInitialized) {
+        const adminDb = getAdminDb();
+        const now = new Date().toISOString();
+        await adminDb.collection("scripts").add({
+          userId: authResult.user.uid,
+          title: idea.slice(0, 100) || "Untitled Script",
+          content: `${script.hook}\n\n${script.bridge}\n\n${script.goldenNugget}\n\n${script.wta}`,
+          authors: authResult.user.email || "Unknown",
+          status: "draft",
+          performance: { views: 0, engagement: 0 },
+          category: "generated",
+          createdAt: now,
+          updatedAt: now,
+          viewedAt: now,
+          duration: "",
+          tags: [],
+          fileType: "Script",
+          summary: idea,
+          approach: "speed-write",
+          wordCount: (script.hook + " " + script.bridge + " " + script.goldenNugget + " " + script.wta).split(/\s+/)
+            .length,
+          characterCount: (script.hook + script.bridge + script.goldenNugget + script.wta).length,
+          elements: script,
+          source: "scripting",
+        });
+      }
+    } catch (persistErr) {
+      console.warn("⚠️ [/api/script/generate] Failed to persist generated script:", persistErr);
     }
 
     return NextResponse.json({
