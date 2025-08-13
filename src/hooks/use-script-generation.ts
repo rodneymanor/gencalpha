@@ -2,6 +2,8 @@
 
 import { useCallback, useMemo, useState } from "react";
 
+import { buildAuthHeaders } from "@/lib/http/auth-headers";
+
 type GeneratedScript = {
   hook: string;
   bridge: string;
@@ -23,9 +25,10 @@ export function useScriptGeneration() {
     setIsLoading(true);
     setError(null);
     try {
+      const headers = await buildAuthHeaders();
       const res = await fetch("/api/script/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ idea, length }),
       });
       const data: GenerateScriptResponse = await res.json();

@@ -314,7 +314,8 @@ export function ClaudeChat({
     (async () => {
       try {
         const headers = await buildAuthHeaders();
-        if (!conversationId) {
+        let convId: string | null = conversationId;
+        if (!convId) {
           const res = await fetch("/api/chat/conversations", {
             method: "POST",
             headers,
@@ -322,11 +323,16 @@ export function ClaudeChat({
           });
           if (res.ok) {
             const json = (await res.json()) as { success: boolean; conversationId?: string };
-            if (json.success && json.conversationId) setConversationId(json.conversationId);
+            if (json.success && json.conversationId) {
+              convId = json.conversationId;
+              setConversationId(json.conversationId);
+            }
           }
         }
-        const convId = conversationId ?? crypto.randomUUID();
-        if (!conversationId) setConversationId(convId);
+        if (!convId) {
+          console.warn("⚠️ [ClaudeChat] No conversation id available; skipping message persistence");
+          return;
+        }
         await fetch(`/api/chat/conversations/${convId}/messages`, {
           method: "POST",
           headers,
@@ -468,8 +474,11 @@ export function ClaudeChat({
       (async () => {
         try {
           const headers = await buildAuthHeaders();
-          const convId = conversationId ?? crypto.randomUUID();
-          if (!conversationId) setConversationId(convId);
+          const convId = conversationId;
+          if (!convId) {
+            console.warn("⚠️ [ClaudeChat] No conversation id available; skipping assistant message persistence");
+            return;
+          }
           await fetch(`/api/chat/conversations/${convId}/messages`, {
             method: "POST",
             headers,
