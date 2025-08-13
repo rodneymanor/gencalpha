@@ -1,4 +1,3 @@
-import { ClarityLoader } from "@/components/ui/loading";
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -8,6 +7,7 @@ import { Plus, Search, Import, Mic, MicOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { ClarityLoader } from "@/components/ui/loading";
 import { auth } from "@/lib/firebase";
 import { clientNotesService } from "@/lib/services/client-notes-service";
 
@@ -91,10 +91,12 @@ export default function IdeaInboxPage() {
     }
   }, [ideas, searchQuery]);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
   const generateExcerpt = (content: string): string => {
     return content.replace(/\n/g, " ").substring(0, 150).trim() + (content.length > 150 ? "..." : "");
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
   const getWordCount = (content: string): number => {
     return content.trim() ? content.trim().split(/\s+/).length : 0;
   };

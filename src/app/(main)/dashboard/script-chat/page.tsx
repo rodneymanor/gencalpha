@@ -1,13 +1,18 @@
-import { ClarityLoader } from "@/components/ui/loading";
-"use client"
+/* eslint-disable max-lines */
+/* eslint-disable complexity */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+
 import { MessageCircle, Sparkles, Clock, Target, Zap, Send } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { ClarityLoader } from "@/components/ui/loading";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
 interface ScriboHook {
@@ -67,15 +72,16 @@ export default function ScriptChatPage() {
     const welcomeMessage: Message = {
       id: crypto.randomUUID(),
       role: "assistant",
-      content: "Hi! I'm Scribo, your script writing assistant. I'll help you create high-converting short video scripts using the proven SCRIBO formula.\n\nTo get started, just tell me your video topic or idea, and I'll generate 20 powerful hooks for you to choose from!",
-      type: "text"
+      content:
+        "Hi! I'm Scribo, your script writing assistant. I'll help you create high-converting short video scripts using the proven SCRIBO formula.\n\nTo get started, just tell me your video topic or idea, and I'll generate 20 powerful hooks for you to choose from!",
+      type: "text",
     };
     setMessages([welcomeMessage]);
   }, []);
 
   const addMessage = (message: Omit<Message, "id">) => {
     const newMessage: Message = { ...message, id: crypto.randomUUID() };
-    setMessages(prev => [...prev, newMessage]);
+    setMessages((prev) => [...prev, newMessage]);
     return newMessage;
   };
 
@@ -89,27 +95,27 @@ export default function ScriptChatPage() {
       });
 
       const data = await response.json();
-      
+
       if (data.success && data.hooks) {
         setCurrentTopic(topic);
         addMessage({
           role: "assistant",
           content: `Great! Here are 20 hooks for "${topic}". Click on the number of the hook you want to use:`,
           type: "hooks",
-          data: data.hooks
+          data: data.hooks,
         });
       } else {
         addMessage({
           role: "assistant",
           content: "Sorry, I couldn't generate hooks. Please try again with a different topic.",
-          type: "text"
+          type: "text",
         });
       }
     } catch {
       addMessage({
         role: "assistant",
         content: "Failed to generate hooks. Please try again.",
-        type: "text"
+        type: "text",
       });
     } finally {
       setIsLoading(false);
@@ -121,24 +127,24 @@ export default function ScriptChatPage() {
     addMessage({
       role: "user",
       content: `Selected Hook #${hook.id}: "${hook.text}"`,
-      type: "text"
+      type: "text",
     });
-    
+
     addMessage({
       role: "assistant",
       content: "Perfect choice! Now select your desired script length:",
-      type: "lengths"
+      type: "lengths",
     });
   };
 
   const handleLengthSelection = async (length: ScriptLength) => {
     if (!selectedHook || !currentTopic) return;
-    
+
     setSelectedLength(length);
     addMessage({
       role: "user",
-      content: `Selected Length: ${SCRIPT_LENGTHS.find(l => l.value === length)?.label}`,
-      type: "text"
+      content: `Selected Length: ${SCRIPT_LENGTHS.find((l) => l.value === length)?.label}`,
+      type: "text",
     });
 
     setIsLoading(true);
@@ -150,41 +156,41 @@ export default function ScriptChatPage() {
           topic: currentTopic,
           selectedHook: selectedHook.text,
           length,
-          ctaOptimization
+          ctaOptimization,
         }),
       });
 
       const data = await response.json();
-      
+
       if (data.success && data.script) {
         setCurrentScript(data.script);
         addMessage({
           role: "assistant",
           content: `Here's your ${length} script (${data.wordCount} words):`,
           type: "script",
-          data: { script: data.script, wordCount: data.wordCount }
+          data: { script: data.script, wordCount: data.wordCount },
         });
-        
+
         // Show CTA optimization options
         setTimeout(() => {
           addMessage({
             role: "assistant",
             content: "Would you like to optimize the call-to-action for a different engagement type?",
-            type: "cta-options"
+            type: "cta-options",
           });
         }, 500);
       } else {
         addMessage({
           role: "assistant",
           content: "Sorry, I couldn't generate the script. Please try again.",
-          type: "text"
+          type: "text",
         });
       }
     } catch {
       addMessage({
         role: "assistant",
         content: "Failed to generate script. Please try again.",
-        type: "text"
+        type: "text",
       });
     } finally {
       setIsLoading(false);
@@ -193,7 +199,7 @@ export default function ScriptChatPage() {
 
   const handleCtaOptimization = async (newOptimization: CtaOptimization) => {
     if (!currentScript || !currentTopic) return;
-    
+
     setIsLoading(true);
     try {
       const response = await fetch("/api/scribo/optimize-cta", {
@@ -202,35 +208,35 @@ export default function ScriptChatPage() {
         body: JSON.stringify({
           script: currentScript,
           newOptimization,
-          topic: currentTopic
+          topic: currentTopic,
         }),
       });
 
       const data = await response.json();
-      
+
       if (data.success && data.optimizedWta) {
         const updatedScript = { ...currentScript, wta: data.optimizedWta };
         setCurrentScript(updatedScript);
         setCtaOptimization(newOptimization);
-        
+
         addMessage({
           role: "assistant",
           content: `Updated script with ${newOptimization} optimization:`,
           type: "script",
-          data: { script: updatedScript, wordCount: 0 }
+          data: { script: updatedScript, wordCount: 0 },
         });
       } else {
         addMessage({
           role: "assistant",
           content: "Sorry, I couldn't optimize the CTA. Please try again.",
-          type: "text"
+          type: "text",
         });
       }
     } catch {
       addMessage({
         role: "assistant",
         content: "Failed to optimize CTA. Please try again.",
-        type: "text"
+        type: "text",
       });
     } finally {
       setIsLoading(false);
@@ -239,13 +245,13 @@ export default function ScriptChatPage() {
 
   const handleSubmit = () => {
     if (!input.trim() || isLoading) return;
-    
+
     addMessage({
       role: "user",
       content: input,
-      type: "text"
+      type: "text",
     });
-    
+
     generateHooks(input.trim());
     setInput("");
   };
@@ -258,37 +264,32 @@ export default function ScriptChatPage() {
   };
 
   return (
-    <div className="flex h-screen bg-background">
-      <div className="flex-1 flex flex-col">
+    <div className="bg-background flex h-screen">
+      <div className="flex flex-1 flex-col">
         <div className="border-b p-4">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-primary" />
+            <Sparkles className="text-primary h-5 w-5" />
             <h1 className="text-xl font-semibold">Scribo Script Assistant</h1>
           </div>
         </div>
-        
+
         <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-          <div className="space-y-4 max-w-4xl mx-auto">
+          <div className="mx-auto max-w-4xl space-y-4">
             {messages.length === 0 ? (
               <div className="text-center">
                 <p className="text-muted-foreground">Start by entering your video topic below</p>
               </div>
             ) : (
               messages.map((message) => (
-                <div key={message.id} className={cn(
-                  "flex",
-                  message.role === "user" ? "justify-end" : "justify-start"
-                )}>
-                  <div className={cn(
-                    "max-w-3xl p-4 rounded-lg",
-                    message.role === "user"
-                      ? "bg-primary text-primary-foreground ml-12"
-                      : "bg-muted mr-12"
-                  )}>
-                    {message.type === "text" && (
-                      <p className="whitespace-pre-wrap">{message.content}</p>
+                <div key={message.id} className={cn("flex", message.role === "user" ? "justify-end" : "justify-start")}>
+                  <div
+                    className={cn(
+                      "max-w-3xl rounded-lg p-4",
+                      message.role === "user" ? "bg-primary text-primary-foreground ml-12" : "bg-muted mr-12",
                     )}
-                    
+                  >
+                    {message.type === "text" && <p className="whitespace-pre-wrap">{message.content}</p>}
+
                     {message.type === "hooks" && (
                       <div>
                         <p className="mb-4">{message.content}</p>
@@ -299,19 +300,19 @@ export default function ScriptChatPage() {
                               variant="outline"
                               size="sm"
                               onClick={() => handleHookSelection(hook)}
-                              className="justify-start text-left h-auto p-3"
+                              className="h-auto justify-start p-3 text-left"
                               disabled={isLoading}
                             >
                               <div>
-                                <div className="font-medium text-xs text-primary mb-1">#{hook.id}</div>
-                                <div className="text-xs line-clamp-3">{hook.text}</div>
+                                <div className="text-primary mb-1 text-xs font-medium">#{hook.id}</div>
+                                <div className="line-clamp-3 text-xs">{hook.text}</div>
                               </div>
                             </Button>
                           ))}
                         </div>
                       </div>
                     )}
-                    
+
                     {message.type === "lengths" && (
                       <div>
                         <p className="mb-4">{message.content}</p>
@@ -321,55 +322,57 @@ export default function ScriptChatPage() {
                               key={length.value}
                               variant="outline"
                               onClick={() => handleLengthSelection(length.value)}
-                              className="flex flex-col h-auto p-3"
+                              className="flex h-auto flex-col p-3"
                               disabled={isLoading}
                             >
-                              <Clock className="w-4 h-4 mb-1" />
+                              <Clock className="mb-1 h-4 w-4" />
                               <div className="text-sm font-medium">{length.label}</div>
-                              <div className="text-xs text-muted-foreground">{length.words}</div>
+                              <div className="text-muted-foreground text-xs">{length.words}</div>
                             </Button>
                           ))}
                         </div>
                       </div>
                     )}
-                    
+
                     {message.type === "script" && (
                       <div>
                         <p className="mb-4">{message.content}</p>
                         <Card>
-                          <CardContent className="p-4 space-y-4">
+                          <CardContent className="space-y-4 p-4">
                             <div>
                               <Badge variant="secondary" className="mb-2">
-                                <Target className="w-3 h-3 mr-1" />
+                                <Target className="mr-1 h-3 w-3" />
                                 Hook
                               </Badge>
                               <p className="text-sm">{message.data.script.hook}</p>
                             </div>
                             <div>
                               <Badge variant="secondary" className="mb-2">
-                                <MessageCircle className="w-3 h-3 mr-1" />
+                                <MessageCircle className="mr-1 h-3 w-3" />
                                 Bridge
                               </Badge>
                               <p className="text-sm">{message.data.script.bridge}</p>
                             </div>
                             <div>
                               <Badge variant="secondary" className="mb-2">
-                                <Sparkles className="w-3 h-3 mr-1" />
+                                <Sparkles className="mr-1 h-3 w-3" />
                                 Golden Nugget
                               </Badge>
                               <p className="text-sm">{message.data.script.goldenNugget}</p>
                               {message.data.script.microHooks && message.data.script.microHooks.length > 0 && (
-                                <div className="mt-2 pl-4 border-l-2 border-muted">
-                                  <p className="text-xs text-muted-foreground mb-1">Micro Hooks:</p>
+                                <div className="border-muted mt-2 border-l-2 pl-4">
+                                  <p className="text-muted-foreground mb-1 text-xs">Micro Hooks:</p>
                                   {message.data.script.microHooks.map((microHook: string, hookIndex: number) => (
-                                    <p key={`micro-hook-${hookIndex}`} className="text-xs mb-1">• {microHook}</p>
+                                    <p key={`micro-hook-${hookIndex}`} className="mb-1 text-xs">
+                                      • {microHook}
+                                    </p>
                                   ))}
                                 </div>
                               )}
                             </div>
                             <div>
                               <Badge variant="secondary" className="mb-2">
-                                <Zap className="w-3 h-3 mr-1" />
+                                <Zap className="mr-1 h-3 w-3" />
                                 Call to Action
                               </Badge>
                               <p className="text-sm">{message.data.script.wta}</p>
@@ -378,7 +381,7 @@ export default function ScriptChatPage() {
                         </Card>
                       </div>
                     )}
-                    
+
                     {message.type === "cta-options" && (
                       <div>
                         <p className="mb-4">{message.content}</p>
@@ -416,9 +419,9 @@ export default function ScriptChatPage() {
             )}
           </div>
         </ScrollArea>
-        
+
         <div className="border-t p-4">
-          <div className="flex gap-2 max-w-4xl mx-auto">
+          <div className="mx-auto flex max-w-4xl gap-2">
             <Input
               placeholder="Enter your video topic or idea..."
               value={input}
@@ -426,15 +429,8 @@ export default function ScriptChatPage() {
               onKeyPress={handleKeyPress}
               disabled={isLoading}
             />
-            <Button
-              onClick={handleSubmit}
-              disabled={isLoading || !input.trim()}
-            >
-              {isLoading ? (
-                <ClarityLoader size="inline" />
-              ) : (
-                <Send className="w-4 h-4" />
-              )}
+            <Button onClick={handleSubmit} disabled={isLoading || !input.trim()}>
+              {isLoading ? <ClarityLoader size="inline" /> : <Send className="h-4 w-4" />}
             </Button>
           </div>
         </div>
