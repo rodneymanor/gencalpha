@@ -163,13 +163,13 @@ export default function IdeasGhostwriterPage() {
           <TabsList className="border-border h-auto w-full justify-start rounded-none border-b bg-transparent p-0">
             <TabsTrigger
               value="trending"
-              className="data-[state=active]:border-primary rounded-none border-b-2 border-transparent px-4 pb-3 data-[state=active]:border-b-2 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+              className="data-[state=active]:border-primary rounded-none bg-transparent px-4 pb-3 data-[state=active]:border-b-2 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
             >
               Trending Templates
             </TabsTrigger>
             <TabsTrigger
               value="saved"
-              className="data-[state=active]:border-primary flex items-center gap-2 rounded-none border-b-2 border-transparent px-4 pb-3 data-[state=active]:border-b-2 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+              className="data-[state=active]:border-primary flex items-center gap-2 rounded-none bg-transparent px-4 pb-3 data-[state=active]:border-b-2 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
             >
               <Bookmark className="h-4 w-4" />
               Saved Ideas
