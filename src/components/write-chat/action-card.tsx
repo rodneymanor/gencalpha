@@ -13,7 +13,7 @@ type Props = {
 export function ActionCard({ icon, title, desc, onClick, active }: Props) {
   return (
     <button
-      className="bg-card text-card-foreground hover:bg-accent/70 border-border rounded-[var(--radius-card)] border p-4 text-left shadow-[var(--shadow-soft-drop)] transition-transform duration-150 hover:scale-[1.01]"
+      className="bg-card text-card-foreground border-border hover:border-ring disabled:hover:border-border cursor-pointer rounded-[var(--radius-card)] border p-6 text-left transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
       onClick={onClick}
       disabled={active}
     >
