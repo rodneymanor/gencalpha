@@ -28,6 +28,12 @@
       "prettier --write"
     ]
   },
+  "eslintConfig": {
+    "extends": ["next/core-web-vitals"],
+    "ignorePatterns": [
+      "chrome-extension/**"
+    ]
+  },
   "dependencies": {
     "@blocknote/core": "^0.33.0",
     "@blocknote/mantine": "^0.33.0",
