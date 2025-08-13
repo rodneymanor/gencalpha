@@ -85,74 +85,77 @@ export function MinimalSlideoutEditor({
     return content;
   }, []);
 
-  const markdownToBlocks = React.useCallback((markdown: string): AnyPartialBlock[] => {
-    const lines = markdown.replace(/\r\n?/g, "\n").split("\n");
-    const blocks: AnyPartialBlock[] = [];
-    const newId = () => `bn-${Math.random().toString(36).slice(2)}`;
+  const markdownToBlocks = React.useCallback(
+    (markdown: string): AnyPartialBlock[] => {
+      const lines = markdown.replace(/\r\n?/g, "\n").split("\n");
+      const blocks: AnyPartialBlock[] = [];
+      const newId = () => `bn-${Math.random().toString(36).slice(2)}`;
 
-    for (const raw of lines) {
-      const line = raw.trimEnd();
-      if (!line.trim()) {
-        // Add an empty paragraph to create visual spacing between sections
+      for (const raw of lines) {
+        const line = raw.trimEnd();
+        if (!line.trim()) {
+          // Add an empty paragraph to create visual spacing between sections
+          blocks.push({ id: newId(), type: "paragraph", props: {}, content: [], children: [] } as AnyPartialBlock);
+          continue;
+        }
+        const headingMatch = /^(#{1,6})\s+(.*)$/.exec(line);
+        if (headingMatch) {
+          const level = Math.min(3, headingMatch[1].length);
+          const text = headingMatch[2];
+          // Check if this is a script component heading
+          const isScriptComponent = /^(Hook|Bridge|Golden Nugget|Call to Action|Generated Script)$/i.test(text);
+          blocks.push({
+            id: newId(),
+            type: "heading",
+            props: {
+              level,
+              ...(isScriptComponent && { className: "script-component", "data-script-component": "true" }),
+            },
+            content: parseInlineMarkdown(text),
+            children: [],
+          } as AnyPartialBlock);
+          continue;
+        }
+        const bulletMatch = /^[-*]\s+(.*)$/.exec(line);
+        if (bulletMatch) {
+          const text = `• ${bulletMatch[1]}`;
+          blocks.push({
+            id: newId(),
+            type: "paragraph",
+            props: {},
+            content: parseInlineMarkdown(text),
+            children: [],
+          } as AnyPartialBlock);
+          continue;
+        }
+        const orderedMatch = /^\d+\.\s+(.*)$/.exec(line);
+        if (orderedMatch) {
+          const text = orderedMatch[0];
+          blocks.push({
+            id: newId(),
+            type: "paragraph",
+            props: {},
+            content: parseInlineMarkdown(text),
+            children: [],
+          } as AnyPartialBlock);
+          continue;
+        }
+        blocks.push({
+          id: newId(),
+          type: "paragraph",
+          props: {},
+          content: parseInlineMarkdown(line),
+          children: [],
+        } as AnyPartialBlock);
+      }
+      // Ensure at least one paragraph exists
+      if (blocks.length === 0) {
         blocks.push({ id: newId(), type: "paragraph", props: {}, content: [], children: [] } as AnyPartialBlock);
-        continue;
       }
-      const headingMatch = /^(#{1,6})\s+(.*)$/.exec(line);
-      if (headingMatch) {
-        const level = Math.min(3, headingMatch[1].length);
-        const text = headingMatch[2];
-        // Check if this is a script component heading
-        const isScriptComponent = /^(Hook|Bridge|Golden Nugget|Call to Action|Generated Script)$/i.test(text);
-        blocks.push({
-          id: newId(),
-          type: "heading",
-          props: {
-            level,
-            ...(isScriptComponent && { className: "script-component", "data-script-component": "true" }),
-          },
-          content: parseInlineMarkdown(text),
-          children: [],
-        } as AnyPartialBlock);
-        continue;
-      }
-      const bulletMatch = /^[-*]\s+(.*)$/.exec(line);
-      if (bulletMatch) {
-        const text = `• ${bulletMatch[1]}`;
-        blocks.push({
-          id: newId(),
-          type: "paragraph",
-          props: {},
-          content: parseInlineMarkdown(text),
-          children: [],
-        } as AnyPartialBlock);
-        continue;
-      }
-      const orderedMatch = /^\d+\.\s+(.*)$/.exec(line);
-      if (orderedMatch) {
-        const text = orderedMatch[0];
-        blocks.push({
-          id: newId(),
-          type: "paragraph",
-          props: {},
-          content: parseInlineMarkdown(text),
-          children: [],
-        } as AnyPartialBlock);
-        continue;
-      }
-      blocks.push({
-        id: newId(),
-        type: "paragraph",
-        props: {},
-        content: parseInlineMarkdown(line),
-        children: [],
-      } as AnyPartialBlock);
-    }
-    // Ensure at least one paragraph exists
-    if (blocks.length === 0) {
-      blocks.push({ id: newId(), type: "paragraph", props: {}, content: [], children: [] } as AnyPartialBlock);
-    }
-    return blocks;
-  }, [parseInlineMarkdown]);
+      return blocks;
+    },
+    [parseInlineMarkdown],
+  );
 
   // (Re)mounts a new BlockNote instance with provided content and wires change propagation.
   const mountEditor = React.useCallback(
@@ -303,6 +306,7 @@ export function MinimalSlideoutEditor({
       <div
         ref={editorHostRef}
         className="text-foreground min-h-[60vh] font-sans text-sm leading-relaxed outline-none"
+        data-slideout-editor-root
       />
     </div>
   );

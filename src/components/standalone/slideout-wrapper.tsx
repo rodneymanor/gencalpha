@@ -91,11 +91,12 @@ export function SlideoutWrapper({ children, slideout: _slideout, className, cont
     const onScroll = () => setMenuState(null);
     document.addEventListener("mousedown", onDocClick);
     document.addEventListener("keydown", onKey);
-    slideoutScrollRef.current?.addEventListener("scroll", onScroll, { passive: true });
+    const currentRef = slideoutScrollRef.current;
+    currentRef?.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       document.removeEventListener("mousedown", onDocClick);
       document.removeEventListener("keydown", onKey);
-      slideoutScrollRef.current?.removeEventListener("scroll", onScroll as EventListener);
+      currentRef?.removeEventListener("scroll", onScroll as EventListener);
     };
   }, [menuState?.isVisible]);
 
@@ -130,6 +131,17 @@ export function SlideoutWrapper({ children, slideout: _slideout, className, cont
                     variant="ghost"
                     size="sm"
                     className="h-8 gap-1.5 rounded-none border-0 px-3 has-[>svg]:px-2.5"
+                    onClick={() => {
+                      try {
+                        const root = document.querySelector("[data-slideout-editor-root]");
+                        if (!root) return;
+                        const text = root.textContent ?? "";
+                        if (!text.trim()) return;
+                        void navigator.clipboard.writeText(text);
+                      } catch {
+                        /* no-op */
+                      }
+                    }}
                   >
                     <Copy className="h-4 w-4" />
                     <span>Copy</span>
