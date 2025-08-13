@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { detectPlatform } from "@/core/video/platform-detector";
 import { VideoTranscriber } from "@/core/video/transcriber";
 import { authenticateApiKey } from "@/lib/api-key-auth";
+import { ApifyClient, APIFY_ACTORS } from "@/lib/apify";
 
 export async function POST(request: NextRequest) {
   try {
@@ -40,24 +41,99 @@ async function handleCdnTranscription(request: NextRequest) {
 
   console.log("🌐 [TRANSCRIBE] Transcribing CDN-hosted video:", videoUrl);
 
-  const detectedPlatform = platform || detectPlatform(videoUrl).platform;
-  const result = await VideoTranscriber.transcribeFromUrl(videoUrl, detectedPlatform);
+  const detectedPlatform = platform ?? detectPlatform(videoUrl).platform;
 
-  if (!result) {
-    return NextResponse.json({ error: "Failed to transcribe video from URL" }, { status: 500 });
+  try {
+    // Try primary transcription method first
+    const result = await VideoTranscriber.transcribeFromUrl(videoUrl, detectedPlatform);
+
+    if (result && result.transcript) {
+      // Check if this is a fallback transcript (indicating the primary method failed)
+      const isFallbackTranscript =
+        result.transcript.includes("temporarily unavailable") ||
+        result.transcript.includes("transcription pending") ||
+        result.transcriptionMetadata?.method === "fallback";
+
+      if (!isFallbackTranscript) {
+        console.log("✅ [TRANSCRIBE] CDN transcription completed successfully");
+        return NextResponse.json({
+          success: true,
+          transcript: result.transcript,
+          platform: result.platform,
+          components: result.components,
+          contentMetadata: result.contentMetadata,
+          visualContext: result.visualContext,
+          transcriptionMetadata: result.transcriptionMetadata,
+        });
+      } else {
+        console.log("⚠️ [TRANSCRIBE] Primary method returned fallback transcript, trying TikTok scraper");
+      }
+    }
+  } catch (error) {
+    console.log("⚠️ [TRANSCRIBE] Primary method failed, trying TikTok scraper fallback:", error);
   }
 
-  console.log("✅ [TRANSCRIBE] CDN transcription completed successfully");
+  // Fallback: Try TikTok scraper if platform is TikTok and primary method failed
+  if (detectedPlatform === "tiktok") {
+    try {
+      console.log("🎯 [TRANSCRIBE] Attempting TikTok scraper fallback");
+      const fallbackResult = await tryTikTokScraperFallback(videoUrl);
 
-  return NextResponse.json({
-    success: true,
-    transcript: result.transcript,
-    platform: result.platform,
-    components: result.components,
-    contentMetadata: result.contentMetadata,
-    visualContext: result.visualContext,
-    transcriptionMetadata: result.transcriptionMetadata,
-  });
+      if (fallbackResult) {
+        console.log("✅ [TRANSCRIBE] TikTok scraper fallback successful");
+        return NextResponse.json({
+          success: true,
+          transcript: fallbackResult.transcript,
+          platform: "tiktok",
+          transcriptionMetadata: {
+            method: "tiktok-scraper-fallback",
+            processedAt: new Date().toISOString(),
+            fallbackUsed: true,
+            ...fallbackResult.metadata,
+          },
+        });
+      }
+    } catch (fallbackError) {
+      console.error("❌ [TRANSCRIBE] TikTok scraper fallback also failed:", fallbackError);
+    }
+  }
+
+  return NextResponse.json({ error: "Failed to transcribe video from URL" }, { status: 500 });
+}
+
+async function tryTikTokScraperFallback(videoUrl: string) {
+  const client = new ApifyClient();
+
+  const apifyInput = {
+    postURLs: [videoUrl],
+    resultsPerPage: 1,
+    shouldDownloadVideos: false, // We only need transcript
+    shouldDownloadAvatars: false,
+    shouldDownloadCovers: false,
+  };
+
+  const results = await client.runActor(APIFY_ACTORS.TIKTOK_SCRAPER, apifyInput, true);
+
+  if (!Array.isArray(results) || results.length === 0) {
+    throw new Error("No data returned from TikTok scraper");
+  }
+
+  const videoData = results[0];
+  const transcript = videoData.text;
+
+  if (!transcript || typeof transcript !== "string" || transcript.trim().length === 0) {
+    throw new Error("No transcript found in TikTok scraper response");
+  }
+
+  return {
+    transcript: transcript.trim(),
+    metadata: {
+      duration: videoData.videoMeta?.duration,
+      author: videoData.authorMeta?.nickName,
+      videoId: videoData.id,
+      createTime: videoData.createTimeISO,
+    },
+  };
 }
 
 async function handleFileTranscription(request: NextRequest) {
