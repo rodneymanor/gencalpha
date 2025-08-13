@@ -52,10 +52,15 @@ export function MinimalSlideoutEditor({
       if (headingMatch) {
         const level = Math.min(3, headingMatch[1].length);
         const text = headingMatch[2];
+        // Check if this is a script component heading
+        const isScriptComponent = /^(Hook|Bridge|Golden Nugget|Call to Action|Generated Script)$/i.test(text);
         blocks.push({
           id: newId(),
           type: "heading",
-          props: { level },
+          props: {
+            level,
+            ...(isScriptComponent && { className: "script-component", "data-script-component": "true" }),
+          },
           content: [{ type: "text", text, styles: {} }],
           children: [],
         } as AnyPartialBlock);
@@ -114,9 +119,66 @@ export function MinimalSlideoutEditor({
         schema: schemaRef.current,
         initialContent: contentAsBlocks,
         _tiptapOptions: {
+          // Make editor read-only to prevent accidental edits and position errors
+          editable: false,
           editorProps: {
+            // Fully suppress internal click handlers to avoid position resolution
             handleTripleClick: () => true,
-            handleDOMEvents: { tripleclick: () => true },
+            handleDoubleClick: () => true,
+            handleClick: (_view, _pos, event) => {
+              // Intercept all clicks so ProseMirror doesn't process them
+              try {
+                event.preventDefault();
+                // If this is a script component, emit a global event for external handlers
+                const target = event.target as Element;
+                const scriptEl = target.closest("[data-script-component]");
+                if (scriptEl) {
+                  const text = scriptEl.textContent ?? "";
+                  window.dispatchEvent(
+                    new CustomEvent("write:script-component-click", {
+                      detail: { element: scriptEl, text },
+                    }),
+                  );
+                }
+              } catch {
+                /* no-op */
+              }
+              return true;
+            },
+            handleDOMEvents: {
+              // Suppress events that can trigger ProseMirror position resolution
+              tripleclick: (_view, event) => {
+                event.preventDefault();
+                return true;
+              },
+              dblclick: (_view, event) => {
+                event.preventDefault();
+                return true;
+              },
+              mousedown: (_view, event) => {
+                // Always suppress; we will emit our own event for script components elsewhere
+                try {
+                  event.preventDefault();
+                  const target = event.target as Element;
+                  const scriptEl = target.closest("[data-script-component]");
+                  if (scriptEl) {
+                    // Stop propagation so ProseMirror never sees it
+                    event.stopPropagation();
+                  }
+                } catch {
+                  /* no-op */
+                }
+                return true;
+              },
+              touchstart: (_view, event) => {
+                event.preventDefault();
+                return true;
+              },
+              pointerdown: (_view, event) => {
+                event.preventDefault();
+                return true;
+              },
+            },
           },
         },
       });
