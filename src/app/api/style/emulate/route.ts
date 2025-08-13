@@ -21,12 +21,12 @@ async function callAnalyzeService(headers: HeadersInit, body: Omit<EmulateBody, 
   return res.json() as Promise<{ success: boolean; analysis: string }>;
 }
 
-async function callScriptGenerator(headers: HeadersInit, prompt: string) {
+async function callScriptGenerator(headers: HeadersInit, emulatePrompt: string) {
   const base = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000";
-  const res = await fetch(`${base}/api/script/generate`, {
+  const res = await fetch(`${base}/api/script/generate-from-prompt`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...headers },
-    body: JSON.stringify({ prompt }),
+    body: JSON.stringify({ prompt: emulatePrompt, preferJson: true }),
   });
   if (!res.ok) throw new Error(`Script generation failed: ${res.status}`);
   return res.json() as Promise<{ success: boolean; script?: any; error?: string }>;

@@ -115,10 +115,10 @@ ${analysis.analysis}
 
 Deliver a script with Hook, Bridge, Golden Nugget, and Call to Action sections.`;
 
-    const scriptRes = await fetch(`${base}/api/script/generate`, {
+    const scriptRes = await fetch(`${base}/api/script/generate-from-prompt`, {
       method: "POST",
       headers,
-      body: JSON.stringify({ prompt: emulatePrompt }),
+      body: JSON.stringify({ prompt: emulatePrompt, preferJson: true }),
     });
     if (!scriptRes.ok) {
       return NextResponse.json(
