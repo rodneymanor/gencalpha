@@ -160,9 +160,17 @@ export default function IdeasGhostwriterPage() {
 
         {/* Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-          <TabsList className="w-fit">
-            <TabsTrigger value="trending">Trending Templates</TabsTrigger>
-            <TabsTrigger value="saved" className="flex items-center gap-2">
+          <TabsList className="border-border h-auto w-full justify-start rounded-none border-b bg-transparent p-0">
+            <TabsTrigger
+              value="trending"
+              className="data-[state=active]:border-primary rounded-none border-b-2 border-transparent px-4 pb-3 data-[state=active]:border-b-2 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+            >
+              Trending Templates
+            </TabsTrigger>
+            <TabsTrigger
+              value="saved"
+              className="data-[state=active]:border-primary flex items-center gap-2 rounded-none border-b-2 border-transparent px-4 pb-3 data-[state=active]:border-b-2 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+            >
               <Bookmark className="h-4 w-4" />
               Saved Ideas
             </TabsTrigger>
