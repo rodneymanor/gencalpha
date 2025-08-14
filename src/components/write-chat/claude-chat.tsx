@@ -691,7 +691,7 @@ export function ClaudeChat({
                 setIsSlideoutOpen(true);
               }
             }}
-            className="text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring mr-4 rounded-[var(--radius-button)] bg-transparent p-2 transition-transform duration-200 focus-visible:ring-2 active:scale-[0.98]"
+            className="text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring mr-4 rounded-[var(--radius-button)] bg-transparent p-2 transition-all duration-300 ease-linear focus-visible:ring-2 active:scale-[0.98]"
             style={{ right: 0, position: "fixed" }}
           >
             {isSlideoutOpen ? <ArrowRight className="h-4 w-4" /> : <ArrowLeft className="h-4 w-4" />}
@@ -711,8 +711,10 @@ export function ClaudeChat({
                 setIsSlideoutOpen(true);
               }
             }}
-            className="text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring rounded-[var(--radius-button)] bg-transparent p-2 transition-transform duration-200 focus-visible:ring-2 active:scale-[0.98]"
-            style={isSlideoutOpen ? { left: "calc(50% - 20px)", position: "fixed" } : { right: 16, position: "fixed" }}
+            className="text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring rounded-[var(--radius-button)] bg-transparent p-2 transition-all duration-300 ease-linear focus-visible:ring-2 active:scale-[0.98]"
+            style={
+              isSlideoutOpen ? { right: "calc(50vw - 20px)", position: "fixed" } : { right: 16, position: "fixed" }
+            }
           >
             {isSlideoutOpen ? <ArrowRight className="h-4 w-4" /> : <ArrowLeft className="h-4 w-4" />}
           </button>
