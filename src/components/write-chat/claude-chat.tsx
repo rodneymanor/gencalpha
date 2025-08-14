@@ -677,7 +677,7 @@ export function ClaudeChat({
             </div>
 
             <div className="w-full max-w-2xl">
-              <Card className="shadow-sm transition-shadow duration-200 hover:shadow-md">
+              <Card className="rounded-[var(--radius-input)] shadow-sm transition-shadow duration-200 hover:shadow-md">
                 <div className="flex flex-col gap-3 p-4">
                   <div className={`relative ${isIdeaMode ? "rounded-[var(--radius-input)]" : ""}`}>
                     <textarea
@@ -699,7 +699,7 @@ export function ClaudeChat({
                   </div>
                   {selectedPersona && (
                     <div className="flex items-center gap-2 text-xs">
-                      <div className="bg-secondary/10 text-secondary flex h-6 w-6 items-center justify-center rounded-[var(--radius-button)]">
+                      <div className="bg-secondary/10 text-secondary flex h-6 w-6 items-center justify-center rounded-[var(--radius-input)]">
                         {getPersonaByKey(selectedPersona)?.icon}
                       </div>
                       <span className="text-foreground font-medium">{getPersonaByKey(selectedPersona)?.label}</span>
@@ -707,7 +707,7 @@ export function ClaudeChat({
                     </div>
                   )}
                   {linkDetection && linkDetection.type !== "text" && !hasValidVideoUrl && (
-                    <div className="bg-muted/80 border-border/50 text-muted-foreground flex items-center gap-2 rounded-md border p-2 text-sm">
+                    <div className="bg-muted/80 border-border/50 text-muted-foreground flex items-center gap-2 rounded-[var(--radius-input)] border p-2 text-sm">
                       <span className="text-foreground font-medium">
                         {linkDetection.type === "other_url" ? "Link" : linkDetection.type}
                       </span>
@@ -719,12 +719,12 @@ export function ClaudeChat({
                   {isUrlProcessing &&
                     linkDetection &&
                     (linkDetection.type === "instagram" || linkDetection.type === "tiktok") && (
-                      <div className="bg-muted text-muted-foreground animate-in fade-in-0 rounded-[var(--radius-card)] px-3 py-2 text-sm duration-200">
+                      <div className="bg-muted text-muted-foreground animate-in fade-in-0 rounded-[var(--radius-input)] px-3 py-2 text-sm duration-200">
                         🔄 Validating URL...
                       </div>
                     )}
                   {hasValidVideoUrl && !isUrlProcessing && (
-                    <div className="bg-accent text-foreground animate-in fade-in-0 rounded-[var(--radius-card)] px-3 py-2 text-sm duration-200">
+                    <div className="bg-accent text-foreground animate-in fade-in-0 rounded-[var(--radius-input)] px-3 py-2 text-sm duration-200">
                       ✓ Link identified. Press submit to continue
                     </div>
                   )}
@@ -819,16 +819,16 @@ export function ClaudeChat({
             )}
             {isIdeaMode && (
               <div className="mx-auto w-full max-w-2xl">
-                <div className="bg-accent text-foreground mt-2 rounded-[var(--radius-card)] px-3 py-2 text-sm">
+                <div className="bg-accent text-foreground mt-2 rounded-[var(--radius-input)] px-3 py-2 text-sm">
                   Idea mode is active. Your input will be saved to your Idea Inbox.
                 </div>
                 {ideaSaveMessage && <div className="text-muted-foreground mt-1 text-xs">{ideaSaveMessage}</div>}
               </div>
             )}
             {selectedPersona && (
-              <div className="bg-card border-border mx-auto mt-2 w-full max-w-2xl rounded-[var(--radius-card)] border p-4 text-left shadow-[var(--shadow-soft-drop)]">
+              <div className="bg-card border-border mx-auto mt-2 w-full max-w-2xl rounded-[var(--radius-input)] border p-4 text-left shadow-[var(--shadow-soft-drop)]">
                 <div className="flex items-start gap-3">
-                  <div className="bg-secondary/10 text-secondary flex h-10 w-10 items-center justify-center rounded-[var(--radius-button)]">
+                  <div className="bg-secondary/10 text-secondary flex h-10 w-10 items-center justify-center rounded-[var(--radius-input)]">
                     {getPersonaByKey(selectedPersona)?.icon}
                   </div>
                   <div className="flex-1">
@@ -861,7 +861,7 @@ export function ClaudeChat({
                           <div aria-hidden className="h-8 w-8" />
                           {/* User message single pill containing avatar + text */}
                           <div className="col-start-2">
-                            <div className="bg-accent text-foreground inline-flex max-w-[min(85%,_60ch)] items-center gap-2 rounded-[var(--radius-card)] px-4 py-3">
+                            <div className="bg-accent text-foreground inline-flex max-w-[min(85%,_60ch)] items-center gap-2 rounded-[var(--radius-input)] px-4 py-3">
                               <div className="bg-secondary text-secondary-foreground flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold">
                                 {(resolvedName?.[0] ?? "U").toUpperCase()}
                               </div>
@@ -912,7 +912,7 @@ export function ClaudeChat({
           {/* Sticky Chat Input */}
           <div className="bg-background/95 border-border absolute right-0 bottom-0 left-0 z-10 border-t px-4 py-4 backdrop-blur-sm">
             <div className="mx-auto w-full max-w-3xl">
-              <Card className="border-border bg-card/95 shadow-[var(--shadow-soft-drop)] backdrop-blur-sm">
+              <Card className="border-border bg-card/95 rounded-[var(--radius-input)] shadow-[var(--shadow-soft-drop)] backdrop-blur-sm">
                 <div className="flex flex-col gap-3 p-4">
                   <div className="flex items-end gap-3">
                     <textarea
