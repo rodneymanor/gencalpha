@@ -6,7 +6,7 @@ import { UserPlus } from "lucide-react";
 
 import CreatorVideosGrid, { type VideoData } from "@/app/(main)/dashboard/daily/_components/creator-videos-grid";
 import { Button } from "@/components/ui/button";
-import { MenuTriggerButton } from "@/components/ui/menu-trigger-button";
+import { PillButton } from "@/components/ui/pill-button";
 import { SearchField } from "@/components/ui/search-field";
 import { FloatingVideoPlayer, useFloatingVideo } from "@/components/video/video-slideout-player";
 import { transformVideoDataToVideo } from "@/lib/video-player-helpers";
@@ -61,14 +61,14 @@ export default function IdeasCreatorsPage() {
             </div>
             {availableCreators.length > 0 && (
               <div className="flex flex-wrap gap-2">
-                <MenuTriggerButton
+                <PillButton
                   label="All Creators"
                   selected={selectedCreator === "all"}
                   onClick={() => setSelectedCreator("all")}
                   className="h-8 px-3 text-sm"
                 />
                 {availableCreators.map((creator) => (
-                  <MenuTriggerButton
+                  <PillButton
                     key={creator.username}
                     label={creator.displayName}
                     selected={selectedCreator === creator.username}

@@ -5,7 +5,7 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MenuTriggerButton } from "@/components/ui/menu-trigger-button";
+import { PillButton } from "@/components/ui/pill-button";
 import type { Collection } from "@/lib/collections";
 
 interface CategorySelectorProps {
@@ -72,7 +72,7 @@ export function CategorySelector({ selectedCategory = "all-videos", onCategoryCh
                 ? `${collection.title} (${collection.videoCount})`
                 : collection.title;
               return (
-                <MenuTriggerButton
+                <PillButton
                   key={collection.id}
                   label={displayTitle}
                   ariaLabel={`Select ${collection.title} collection`}
