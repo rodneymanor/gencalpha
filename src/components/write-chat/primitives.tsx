@@ -35,7 +35,7 @@ export const Button = ({
 
   return (
     <button
-      className={`inline-flex items-center justify-center rounded-[var(--radius-input)] text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 ${variants[variant]} ${sizes[size]} ${className}`}
+      className={`inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 ${variants[variant]} ${sizes[size]} ${className}`}
       disabled={disabled}
       onClick={onClick}
       {...props}
@@ -46,9 +46,7 @@ export const Button = ({
 };
 
 export const Card = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
-  <div
-    className={`rounded-[var(--radius-input)] border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 ${className}`}
-  >
+  <div className={`rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 ${className}`}>
     {children}
   </div>
 );

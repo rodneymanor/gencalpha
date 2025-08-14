@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 //
-import { ArrowUp, SlidersHorizontal, Lightbulb, Pencil, Loader2 } from "lucide-react";
+import { ArrowUp, SlidersHorizontal, Lightbulb, Pencil, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { type PersonaType, PERSONAS } from "@/components/chatbot/persona-selector";
 // header dropdown moved to parent wrapper
@@ -96,6 +96,7 @@ export function ClaudeChat({
   );
   const [awaitingEmulateInput, setAwaitingEmulateInput] = useState(false);
   const [emulateIdea, setEmulateIdea] = useState("");
+  const [isSlideoutOpen, setIsSlideoutOpen] = useState(false);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -126,6 +127,19 @@ export function ClaudeChat({
   useEffect(() => {
     onHeroStateChange?.(isHeroState);
   }, [isHeroState, onHeroStateChange]);
+
+  // Sync local state with global slideout open/close events
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const open = () => setIsSlideoutOpen(true);
+    const close = () => setIsSlideoutOpen(false);
+    window.addEventListener("write:editor-set-content", open as EventListener);
+    window.addEventListener("write:close-slideout", close as EventListener);
+    return () => {
+      window.removeEventListener("write:editor-set-content", open as EventListener);
+      window.removeEventListener("write:close-slideout", close as EventListener);
+    };
+  }, []);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -661,6 +675,49 @@ export function ClaudeChat({
 
   return (
     <div className={`font-sans ${className}`}>
+      {/* Floating Slideout Toggle */}
+      <div className="fixed top-4 z-50">
+        {/* Mobile/Small screens: stick to right edge even when open */}
+        <div className="block lg:hidden">
+          <button
+            aria-label={isSlideoutOpen ? "Close slideout" : "Open slideout"}
+            onClick={() => {
+              if (isSlideoutOpen) {
+                window.dispatchEvent(new Event("write:close-slideout"));
+                setIsSlideoutOpen(false);
+              } else {
+                const ev = new CustomEvent("write:editor-set-content", { detail: { markdown: "" } });
+                window.dispatchEvent(ev);
+                setIsSlideoutOpen(true);
+              }
+            }}
+            className="bg-card text-foreground border-border hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring mr-4 rounded-[var(--radius-button)] border p-2 shadow-[var(--shadow-soft-drop)] transition-transform duration-200 focus-visible:ring-2 active:scale-[0.98]"
+            style={{ right: 0, position: "fixed" }}
+          >
+            {isSlideoutOpen ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </button>
+        </div>
+        {/* Large screens: when open, follow divider at 50% width; otherwise hug right edge */}
+        <div className="hidden lg:block">
+          <button
+            aria-label={isSlideoutOpen ? "Close slideout" : "Open slideout"}
+            onClick={() => {
+              if (isSlideoutOpen) {
+                window.dispatchEvent(new Event("write:close-slideout"));
+                setIsSlideoutOpen(false);
+              } else {
+                const ev = new CustomEvent("write:editor-set-content", { detail: { markdown: "" } });
+                window.dispatchEvent(ev);
+                setIsSlideoutOpen(true);
+              }
+            }}
+            className="bg-card text-foreground border-border hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring rounded-[var(--radius-button)] border p-2 shadow-[var(--shadow-soft-drop)] transition-transform duration-200 focus-visible:ring-2 active:scale-[0.98]"
+            style={isSlideoutOpen ? { left: "calc(50% - 20px)", position: "fixed" } : { right: 16, position: "fixed" }}
+          >
+            {isSlideoutOpen ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </button>
+        </div>
+      </div>
       {/* Header */}
       {/* Header moved to parent page wrapper */}
 

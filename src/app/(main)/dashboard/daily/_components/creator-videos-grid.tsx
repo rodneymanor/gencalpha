@@ -11,7 +11,6 @@ import { Play, UserPlus, Users, Instagram } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SearchField } from "@/components/ui/search-field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/auth-context";
 import { creatorClientService, type CreatorVideo } from "@/lib/creator-client-service";
@@ -46,6 +45,15 @@ interface CreatorVideosGridProps {
   showFollowButton?: boolean;
   searchQuery?: string;
   onSearchQueryChange?: (value: string) => void;
+  selectedCreator?: string;
+  onSelectedCreatorChange?: (value: string) => void;
+  onCreatorsUpdated?: (
+    creators: Array<{
+      username: string;
+      displayName: string;
+      platform: "instagram" | "tiktok";
+    }>,
+  ) => void;
   hideSearch?: boolean;
 }
 
@@ -326,13 +334,16 @@ const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({
   showFollowButton = true,
   searchQuery: controlledSearchQuery,
   onSearchQueryChange,
+  selectedCreator: controlledSelectedCreator,
+  onSelectedCreatorChange,
+  onCreatorsUpdated,
   hideSearch = false,
 }) => {
   const { user } = useAuth();
   const [videos, setVideos] = useState<VideoData[]>(propVideos || []);
   const [filteredVideos, setFilteredVideos] = useState<VideoData[]>(propVideos || []);
   const [internalSearchQuery, setInternalSearchQuery] = useState("");
-  const [selectedCreator, setSelectedCreator] = useState<string>("all");
+  const [internalSelectedCreator, setInternalSelectedCreator] = useState<string>("all");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -377,6 +388,9 @@ const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({
   // Determine search value (controlled vs uncontrolled)
   const searchQuery = controlledSearchQuery ?? internalSearchQuery;
 
+  // Determine selected creator (controlled vs uncontrolled)
+  const selectedCreator = controlledSelectedCreator ?? internalSelectedCreator;
+
   // Filter videos based on search query and selected creator
   useEffect(() => {
     let filtered = videos;
@@ -414,10 +428,22 @@ const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({
       return acc;
     }, new Map());
 
-    return Array.from(creators.values()).sort((a, b) =>
+    const creatorsArray = Array.from(creators.values()).sort((a, b) =>
       a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase()),
     );
-  }, [videos]);
+
+    // Notify parent component about available creators
+    if (onCreatorsUpdated) {
+      onCreatorsUpdated(creatorsArray);
+    }
+
+    return creatorsArray;
+  }, [videos, onCreatorsUpdated]);
+
+  // Update creators when videos change
+  useEffect(() => {
+    getUniqueCreators();
+  }, [getUniqueCreators]);
 
   const getGridCols = () => {
     switch (columns) {
@@ -438,21 +464,6 @@ const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({
     return (
       <div className="space-y-6">
         {showFollowButton && <FollowCreatorSection onCreatorFollowed={handleCreatorFollowed} />}
-      <div className="px-6">
-        <div className="flex gap-3">
-          <div className="relative flex-1">
-            <SearchField value={searchQuery} onChange={() => {}} placeholder="Search creators, videos, or content..." disabled />
-          </div>
-          <Select value={selectedCreator} onValueChange={setSelectedCreator} disabled>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Select Creator" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Creators</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
         <div className="flex items-center justify-center py-12">
           <div className="text-muted-foreground">Loading videos from followed creators...</div>
         </div>
@@ -464,21 +475,6 @@ const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({
     return (
       <div className="space-y-6">
         {showFollowButton && <FollowCreatorSection onCreatorFollowed={handleCreatorFollowed} />}
-      <div className="px-6">
-        <div className="flex gap-3">
-          <div className="relative flex-1">
-            <SearchField value={searchQuery} onChange={() => {}} placeholder="Search creators, videos, or content..." disabled />
-          </div>
-          <Select value={selectedCreator} onValueChange={setSelectedCreator} disabled>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Select Creator" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Creators</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
         <div className="flex items-center justify-center py-12">
           <div className="text-destructive">{error}</div>
         </div>
@@ -490,21 +486,6 @@ const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({
     return (
       <div className="space-y-6">
         {showFollowButton && <FollowCreatorSection onCreatorFollowed={handleCreatorFollowed} />}
-      <div className="px-6">
-        <div className="flex gap-3">
-          <div className="relative flex-1">
-            <SearchField value={searchQuery} onChange={() => {}} placeholder="Search creators, videos, or content..." disabled />
-          </div>
-          <Select value={selectedCreator} onValueChange={setSelectedCreator} disabled>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Select Creator" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Creators</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
         <div className="flex flex-col items-center justify-center space-y-4 py-12">
           <Users className="text-muted-foreground h-12 w-12" />
           <div className="space-y-2 text-center">
@@ -519,38 +500,40 @@ const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({
   return (
     <div className="space-y-6">
       {showFollowButton && <FollowCreatorSection onCreatorFollowed={handleCreatorFollowed} />}
-      <div className="px-6">
-        <div className="flex gap-3">
-          <div className="relative flex-1">
-            <SearchField
-              value={searchQuery}
-              onChange={(v) => (onSearchQueryChange ? onSearchQueryChange(v) : setInternalSearchQuery(v))}
-              placeholder="Search creators, videos, or content..."
-            />
-          </div>
-          <Select value={selectedCreator} onValueChange={setSelectedCreator}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Select Creator" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Creators</SelectItem>
-              {getUniqueCreators().map((creator) => (
-                <SelectItem key={creator.username} value={creator.username}>
-                  <div className="flex items-center gap-2">
-                    {creator.platform === "instagram" && <Instagram className="h-4 w-4" />}
-                    {creator.platform === "tiktok" && (
-                      <div className="bg-foreground text-background flex h-4 w-4 items-center justify-center rounded-[var(--radius-button)] text-xs font-bold">
-                        T
+      {!hideSearch && (
+        <div className="px-6">
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <Select
+                value={selectedCreator}
+                onValueChange={(value) =>
+                  onSelectedCreatorChange ? onSelectedCreatorChange(value) : setInternalSelectedCreator(value)
+                }
+              >
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Select Creator" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Creators</SelectItem>
+                  {getUniqueCreators().map((creator) => (
+                    <SelectItem key={creator.username} value={creator.username}>
+                      <div className="flex items-center gap-2">
+                        {creator.platform === "instagram" && <Instagram className="h-4 w-4" />}
+                        {creator.platform === "tiktok" && (
+                          <div className="bg-foreground text-background flex h-4 w-4 items-center justify-center rounded-[var(--radius-button)] text-xs font-bold">
+                            T
+                          </div>
+                        )}
+                        <span>{creator.displayName}</span>
                       </div>
-                    )}
-                    <span>{creator.displayName}</span>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
       <div className={`grid w-full ${getGridCols()} gap-4 px-6`}>
         {filteredVideos.map((video) => (
           <VideoCard key={video.id} video={video} onVideoClick={onVideoClick} />
