@@ -1,14 +1,15 @@
 "use client";
 
-import { MessageSquare, Lightbulb, Wand2 } from "lucide-react";
+import { MessageSquare, Lightbulb, Wand2, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+import { CreatorFollowingSection } from "./creator-following-section";
 import { GhostWriterSection } from "./ghost-writer-section";
 import { IdeaInboxSection } from "./idea-inbox-section";
 
-type ActiveFeature = "chat" | "ideas" | "ghostwriter" | null;
+type ActiveFeature = "chat" | "ideas" | "ghostwriter" | "creators" | null;
 
 interface WritingWorkspaceSlideoutProps {
   activeFeature: ActiveFeature;
@@ -29,6 +30,12 @@ const FEATURES = [
     label: "Ghost Writer",
     icon: <Wand2 className="h-4 w-4" />,
     description: "AI Templates",
+  },
+  {
+    id: "creators" as const,
+    label: "Creators",
+    icon: <Users className="h-4 w-4" />,
+    description: "Following",
   },
   {
     id: "chat" as const,
@@ -75,6 +82,7 @@ export function WritingWorkspaceSlideout({
       <div className="flex-1 overflow-hidden">
         {activeFeature === "ideas" && <IdeaInboxSection />}
         {activeFeature === "ghostwriter" && <GhostWriterSection />}
+        {activeFeature === "creators" && <CreatorFollowingSection />}
         {!activeFeature && (
           <div className="flex h-full items-center justify-center">
             <div className="text-center">

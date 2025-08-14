@@ -2,19 +2,19 @@
 
 import { useState } from "react";
 
-import { MessageSquare, Lightbulb, Wand2 } from "lucide-react";
+import { Lightbulb, Wand2, Users } from "lucide-react";
 
 import { HeaderTitle } from "@/app/(main)/dashboard/_components/header-title";
 import { SlideoutWrapper } from "@/components/standalone/slideout-wrapper";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 import { ClaudeChat } from "./components/claude-chat-section";
+import { CreatorFollowingSection } from "./components/creator-following-section";
 import { GhostWriterSection } from "./components/ghost-writer-section";
 import { IdeaInboxSection } from "./components/idea-inbox-section";
 import { WritingWorkspaceSlideout } from "./components/writing-workspace-slideout";
 
-type ActiveFeature = "chat" | "ideas" | "ghostwriter" | null;
+type ActiveFeature = "chat" | "ideas" | "ghostwriter" | "creators" | null;
 
 export default function WritingTest2Page() {
   const [activeFeature, setActiveFeature] = useState<ActiveFeature>(null);
@@ -46,25 +46,9 @@ export default function WritingTest2Page() {
         <div className="border-border bg-background/95 flex h-16 items-center justify-between border-b px-6 backdrop-blur-sm">
           <HeaderTitle
             title="Writing Test 2"
-            description="Unified writing workspace with chat, ideas, and ghost writer"
+            description="Unified writing workspace with chat, ideas, ghost writer, and creator following"
           />
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 gap-2"
-              onClick={() =>
-                window.dispatchEvent(
-                  new CustomEvent("write:editor-set-content", {
-                    detail: { content: "# Sample Content\n\nThis is a test of the slideout functionality." },
-                  }),
-                )
-              }
-            >
-              <MessageSquare className="h-4 w-4" />
-              Test Slideout
-            </Button>
-          </div>
+          <div className="flex items-center gap-2">{/* Header actions can be added here if needed */}</div>
         </div>
 
         {/* Main Chat Interface */}
@@ -90,6 +74,12 @@ export default function WritingTest2Page() {
                   description="AI-powered writing assistance and templates"
                   onClick={() => setActiveFeature("ghostwriter")}
                 />
+                <MobileFeatureCard
+                  icon={<Users className="h-5 w-5" />}
+                  title="Creator Following"
+                  description="Follow creators and discover their latest content"
+                  onClick={() => setActiveFeature("creators")}
+                />
               </div>
             </div>
           </div>
@@ -105,6 +95,11 @@ export default function WritingTest2Page() {
           {activeFeature === "ghostwriter" && (
             <div className="border-border bg-card border-t p-6">
               <GhostWriterSection onClose={() => setActiveFeature(null)} />
+            </div>
+          )}
+          {activeFeature === "creators" && (
+            <div className="border-border bg-card border-t p-6">
+              <CreatorFollowingSection onClose={() => setActiveFeature(null)} />
             </div>
           )}
         </div>
