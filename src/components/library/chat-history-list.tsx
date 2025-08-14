@@ -4,11 +4,12 @@ import { useMemo } from "react";
 
 import Link from "next/link";
 
-import { Search, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { SearchField } from "@/components/ui/search-field";
 
 export type ChatHistoryItem = {
   id: string;
@@ -128,28 +129,7 @@ export function ChatHistoryList(props: ChatHistoryListProps) {
 
 function SearchInput({ query, onQueryChange }: { query?: string; onQueryChange?: (v: string) => void }) {
   return (
-    <div
-      className={[
-        "inline-flex h-11 w-full cursor-text items-center gap-2",
-        "bg-card border-border border",
-        "rounded-[var(--radius-button)] px-3",
-        "shadow-[var(--shadow-input)]",
-        "transition-colors",
-      ].join(" ")}
-    >
-      <Search className="text-muted-foreground size-4" aria-hidden="true" />
-      <Input
-        value={query ?? ""}
-        onChange={(e) => onQueryChange?.(e.target.value)}
-        placeholder="Search your chats..."
-        className={[
-          "h-11",
-          "border-0 bg-transparent shadow-none",
-          "placeholder:text-muted-foreground/70",
-          "focus-visible:ring-0 focus-visible:ring-offset-0",
-        ].join(" ")}
-      />
-    </div>
+    <SearchField value={query ?? ""} onChange={(v) => onQueryChange?.(v)} placeholder="Search your chats..." />
   );
 }
 
