@@ -13,7 +13,7 @@ import { CategorySelector } from "./_components/category-selector";
 export default function CollectionsPage() {
   const [showNewVideoForm, setShowNewVideoForm] = useState(false);
   const [selectedVideoId, setSelectedVideoId] = useState<string | undefined>();
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedCategory, setSelectedCategory] = useState("all");
 
   const handleVideoSelect = useCallback((video: VideoType) => {
     setSelectedVideoId(video.id);
@@ -32,9 +32,9 @@ export default function CollectionsPage() {
     console.log("Video delete:", video);
   }, []);
 
-  const handleCategoryChange = useCallback((category: string) => {
-    setSelectedCategory(category);
-    console.log("Category changed:", category);
+  const handleCategoryChange = useCallback((categoryId: string) => {
+    setSelectedCategory(categoryId);
+    console.log("Collection changed:", categoryId);
   }, []);
 
   return (
@@ -57,7 +57,7 @@ export default function CollectionsPage() {
             <CategorySelector selectedCategory={selectedCategory} onCategoryChange={handleCategoryChange} />
             <div className="mt-6">
               <FocusVideoGrid
-                collectionId="all-videos"
+                collectionId={selectedCategory === "all" ? "all-videos" : selectedCategory}
                 selectedVideoId={selectedVideoId}
                 onVideoSelect={handleVideoSelect}
                 onVideoMove={handleVideoMove}
