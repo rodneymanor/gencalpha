@@ -677,7 +677,7 @@ export function ClaudeChat({
             </div>
 
             <div className="w-full max-w-2xl">
-              <Card className="rounded-[var(--radius-input)] shadow-sm transition-shadow duration-200 hover:shadow-md">
+              <Card className="!rounded-[var(--radius-input)] shadow-sm transition-shadow duration-200 hover:shadow-md">
                 <div className="flex flex-col gap-3 p-4">
                   <div className={`relative ${isIdeaMode ? "rounded-[var(--radius-input)]" : ""}`}>
                     <textarea
@@ -912,7 +912,7 @@ export function ClaudeChat({
           {/* Sticky Chat Input */}
           <div className="bg-background/95 border-border absolute right-0 bottom-0 left-0 z-10 border-t px-4 py-4 backdrop-blur-sm">
             <div className="mx-auto w-full max-w-3xl">
-              <Card className="border-border bg-card/95 rounded-[var(--radius-input)] shadow-[var(--shadow-soft-drop)] backdrop-blur-sm">
+              <Card className="border-border bg-card/95 !rounded-[var(--radius-input)] shadow-[var(--shadow-soft-drop)] backdrop-blur-sm">
                 <div className="flex flex-col gap-3 p-4">
                   <div className="flex items-end gap-3">
                     <textarea
