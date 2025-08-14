@@ -8,9 +8,12 @@ import { FocusVideoGrid } from "@/app/(main)/focus-collections/_components/focus
 import { Button } from "@/components/ui/button";
 import type { Video as VideoType } from "@/lib/collections";
 
+import { CategorySelector } from "./_components/category-selector";
+
 export default function CollectionsPage() {
   const [showNewVideoForm, setShowNewVideoForm] = useState(false);
   const [selectedVideoId, setSelectedVideoId] = useState<string | undefined>();
+  const [selectedCategory, setSelectedCategory] = useState("All");
 
   const handleVideoSelect = useCallback((video: VideoType) => {
     setSelectedVideoId(video.id);
@@ -27,6 +30,11 @@ export default function CollectionsPage() {
 
   const handleVideoDelete = useCallback((video: VideoType) => {
     console.log("Video delete:", video);
+  }, []);
+
+  const handleCategoryChange = useCallback((category: string) => {
+    setSelectedCategory(category);
+    console.log("Category changed:", category);
   }, []);
 
   return (
@@ -46,14 +54,17 @@ export default function CollectionsPage() {
             </Button>
           </div>
           <div className="mt-6">
-            <FocusVideoGrid
-              collectionId="all-videos"
-              selectedVideoId={selectedVideoId}
-              onVideoSelect={handleVideoSelect}
-              onVideoMove={handleVideoMove}
-              onVideoCopy={handleVideoCopy}
-              onVideoDelete={handleVideoDelete}
-            />
+            <CategorySelector selectedCategory={selectedCategory} onCategoryChange={handleCategoryChange} />
+            <div className="mt-6">
+              <FocusVideoGrid
+                collectionId="all-videos"
+                selectedVideoId={selectedVideoId}
+                onVideoSelect={handleVideoSelect}
+                onVideoMove={handleVideoMove}
+                onVideoCopy={handleVideoCopy}
+                onVideoDelete={handleVideoDelete}
+              />
+            </div>
           </div>
         </div>
       </div>
