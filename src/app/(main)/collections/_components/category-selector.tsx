@@ -5,6 +5,7 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MenuTriggerButton } from "@/components/ui/menu-trigger-button";
 import type { Collection } from "@/lib/collections";
 
 interface CategorySelectorProps {
@@ -70,22 +71,15 @@ export function CategorySelector({ selectedCategory = "all-videos", onCategoryCh
               const displayTitle = collection.videoCount !== undefined 
                 ? `${collection.title} (${collection.videoCount})`
                 : collection.title;
-              
               return (
-                <button
+                <MenuTriggerButton
                   key={collection.id}
+                  label={displayTitle}
+                  ariaLabel={`Select ${collection.title} collection`}
+                  selected={isSelected}
                   onClick={() => handleCategoryChange(collection.id)}
-                  className={`rounded-pill px-3 py-2 font-sans text-sm font-medium whitespace-nowrap transition-all duration-200 ${
-                    isSelected
-                      ? "bg-card text-foreground shadow-[var(--shadow-soft-drop)]"
-                      : "text-muted-foreground hover:bg-background-hover bg-transparent"
-                  }`}
-                  aria-label={`Select ${collection.title} collection`}
-                  role="tab"
-                  aria-selected={isSelected}
-                >
-                  {displayTitle}
-                </button>
+                  className="h-8 px-3 text-sm"
+                />
               );
             })}
           </div>
