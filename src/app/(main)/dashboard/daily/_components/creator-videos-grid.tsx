@@ -7,10 +7,11 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 
-import { Play, UserPlus, Users, Instagram, Search } from "lucide-react";
+import { Play, UserPlus, Users, Instagram } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { SearchField } from "@/components/ui/search-field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/auth-context";
 import { creatorClientService, type CreatorVideo } from "@/lib/creator-client-service";
@@ -43,6 +44,9 @@ interface CreatorVideosGridProps {
   onVideoClick?: (video: VideoData) => void;
   columns?: number;
   showFollowButton?: boolean;
+  searchQuery?: string;
+  onSearchQueryChange?: (value: string) => void;
+  hideSearch?: boolean;
 }
 
 // --- HELPER FUNCTIONS ---
@@ -320,11 +324,14 @@ const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({
   onVideoClick,
   columns = 5,
   showFollowButton = true,
+  searchQuery: controlledSearchQuery,
+  onSearchQueryChange,
+  hideSearch = false,
 }) => {
   const { user } = useAuth();
   const [videos, setVideos] = useState<VideoData[]>(propVideos || []);
   const [filteredVideos, setFilteredVideos] = useState<VideoData[]>(propVideos || []);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [internalSearchQuery, setInternalSearchQuery] = useState("");
   const [selectedCreator, setSelectedCreator] = useState<string>("all");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -367,6 +374,9 @@ const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({
     });
   }, []);
 
+  // Determine search value (controlled vs uncontrolled)
+  const searchQuery = controlledSearchQuery ?? internalSearchQuery;
+
   // Filter videos based on search query and selected creator
   useEffect(() => {
     let filtered = videos;
@@ -377,12 +387,13 @@ const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({
     }
 
     // Then filter by search query
-    if (searchQuery.trim()) {
+    const activeQuery = searchQuery;
+    if (activeQuery && activeQuery.trim()) {
       filtered = filtered.filter(
         (video) =>
-          video.altText.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          video.author.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (video.author.displayName && video.author.displayName.toLowerCase().includes(searchQuery.toLowerCase())),
+          video.altText.toLowerCase().includes(activeQuery.toLowerCase()) ||
+          video.author.username.toLowerCase().includes(activeQuery.toLowerCase()) ||
+          (video.author.displayName && video.author.displayName.toLowerCase().includes(activeQuery.toLowerCase())),
       );
     }
 
@@ -427,19 +438,12 @@ const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({
     return (
       <div className="space-y-6">
         {showFollowButton && <FollowCreatorSection onCreatorFollowed={handleCreatorFollowed} />}
-        <div className="px-6">
-          <div className="flex gap-3">
-            <div className="relative flex-1">
-              <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-              <Input
-                placeholder="Search creators, videos, or content..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-                disabled
-              />
-            </div>
-            <Select value={selectedCreator} onValueChange={setSelectedCreator} disabled>
+      <div className="px-6">
+        <div className="flex gap-3">
+          <div className="relative flex-1">
+            <SearchField value={searchQuery} onChange={() => {}} placeholder="Search creators, videos, or content..." disabled />
+          </div>
+          <Select value={selectedCreator} onValueChange={setSelectedCreator} disabled>
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="Select Creator" />
               </SelectTrigger>
@@ -460,19 +464,12 @@ const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({
     return (
       <div className="space-y-6">
         {showFollowButton && <FollowCreatorSection onCreatorFollowed={handleCreatorFollowed} />}
-        <div className="px-6">
-          <div className="flex gap-3">
-            <div className="relative flex-1">
-              <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-              <Input
-                placeholder="Search creators, videos, or content..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-                disabled
-              />
-            </div>
-            <Select value={selectedCreator} onValueChange={setSelectedCreator} disabled>
+      <div className="px-6">
+        <div className="flex gap-3">
+          <div className="relative flex-1">
+            <SearchField value={searchQuery} onChange={() => {}} placeholder="Search creators, videos, or content..." disabled />
+          </div>
+          <Select value={selectedCreator} onValueChange={setSelectedCreator} disabled>
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="Select Creator" />
               </SelectTrigger>
@@ -493,19 +490,12 @@ const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({
     return (
       <div className="space-y-6">
         {showFollowButton && <FollowCreatorSection onCreatorFollowed={handleCreatorFollowed} />}
-        <div className="px-6">
-          <div className="flex gap-3">
-            <div className="relative flex-1">
-              <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-              <Input
-                placeholder="Search creators, videos, or content..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-                disabled
-              />
-            </div>
-            <Select value={selectedCreator} onValueChange={setSelectedCreator} disabled>
+      <div className="px-6">
+        <div className="flex gap-3">
+          <div className="relative flex-1">
+            <SearchField value={searchQuery} onChange={() => {}} placeholder="Search creators, videos, or content..." disabled />
+          </div>
+          <Select value={selectedCreator} onValueChange={setSelectedCreator} disabled>
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="Select Creator" />
               </SelectTrigger>
@@ -532,12 +522,10 @@ const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({
       <div className="px-6">
         <div className="flex gap-3">
           <div className="relative flex-1">
-            <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-            <Input
-              placeholder="Search creators, videos, or content..."
+            <SearchField
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              onChange={(v) => (onSearchQueryChange ? onSearchQueryChange(v) : setInternalSearchQuery(v))}
+              placeholder="Search creators, videos, or content..."
             />
           </div>
           <Select value={selectedCreator} onValueChange={setSelectedCreator}>

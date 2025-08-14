@@ -6,12 +6,14 @@ import { UserPlus } from "lucide-react";
 
 import CreatorVideosGrid, { type VideoData } from "@/app/(main)/dashboard/daily/_components/creator-videos-grid";
 import { Button } from "@/components/ui/button";
+import { SearchField } from "@/components/ui/search-field";
 import { FloatingVideoPlayer, useFloatingVideo } from "@/components/video/video-slideout-player";
 import { transformVideoDataToVideo } from "@/lib/video-player-helpers";
 
 export default function IdeasCreatorsPage() {
   const { isOpen, currentVideo, openVideo, closeVideo } = useFloatingVideo();
   const [showNewCreatorForm, setShowNewCreatorForm] = useState(false);
+  const [search, setSearch] = useState("");
 
   const handleVideoClick = useCallback(
     (videoData: VideoData) => {
@@ -36,8 +38,14 @@ export default function IdeasCreatorsPage() {
             New Creator
           </Button>
         </div>
-        <div className="mt-6">
-          <CreatorVideosGrid onVideoClick={handleVideoClick} showFollowButton={showNewCreatorForm} />
+        <div className="mt-6 space-y-4">
+          <SearchField value={search} onChange={setSearch} placeholder="Search creators, videos, or content..." />
+          <CreatorVideosGrid
+            onVideoClick={handleVideoClick}
+            showFollowButton={showNewCreatorForm}
+            searchQuery={search}
+            onSearchQueryChange={setSearch}
+          />
         </div>
       </div>
 
