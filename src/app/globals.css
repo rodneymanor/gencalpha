@@ -109,6 +109,8 @@
   --background-elevated: rgba(255, 255, 255, 0.5);
   --background-overlay: rgba(248, 248, 247, 0.8);
   --background-hover: rgba(0, 0, 0, 0.02);
+  /* Pills */
+  --pill-bg: #EDEDEC;
 
   /* Chart Colors */
   --chart-1: #1d293f;
@@ -193,6 +195,8 @@
   --background-elevated: rgba(38, 38, 37, 0.5);
   --background-overlay: rgba(26, 26, 25, 0.8);
   --background-hover: rgba(255, 255, 255, 0.02);
+  /* Pills */
+  --pill-bg: rgba(255,255,255,0.08);
 
   /* Chart Colors */
   --chart-1: #1d293f;

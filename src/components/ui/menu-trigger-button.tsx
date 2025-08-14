@@ -13,6 +13,7 @@ export type MenuTriggerButtonProps = {
   trailingIcon?: React.ComponentType<{ className?: string }>;
   hideLabelOnMobile?: boolean;
   selected?: boolean;
+  pill?: boolean;
   className?: string;
 } & Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "aria-label">;
 
@@ -25,6 +26,7 @@ export function MenuTriggerButton({
   trailingIcon: TrailingIcon = ChevronDown,
   hideLabelOnMobile = false,
   selected = false,
+  pill = false,
   className,
   ...props
 }: MenuTriggerButtonProps) {
@@ -38,15 +40,19 @@ export function MenuTriggerButton({
       data-state={isOpen ? "open" : "closed"}
       className={cn(
         "inline-flex items-center justify-center shrink-0 select-none",
-        "bg-card text-foreground border border-border",
-        "rounded-[var(--radius-button)] h-9 px-3",
-        "whitespace-nowrap gap-1",
-        "transition duration-200 ease-linear",
-        "hover:bg-[var(--background-hover)] hover:-translate-y-[1px]",
-        "active:scale-[0.98]",
+        pill ? "border-0" : "border border-border",
+        pill ? "rounded-[var(--radius-pill)]" : "rounded-[var(--radius-button)]",
+        "h-9 px-3 whitespace-nowrap gap-1",
+        // Base colors: use background-hover for pill (closest to requested), card for default
+        pill ? "bg-[var(--pill-bg)] text-foreground" : "bg-card text-foreground",
+        // Selected state adds subtle elevation
+        selected ? "shadow-[var(--shadow-soft-drop)]" : "text-muted-foreground",
+        "transition duration-200 ease-linear hover:-translate-y-[1px] active:scale-[0.98]",
+        // Hover colors
+        pill ? "hover:bg-[var(--pill-bg)]" : "hover:bg-[var(--background-hover)]",
+        // Focus/disabled
         "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
         "disabled:pointer-events-none disabled:opacity-50",
-        selected ? "shadow-[var(--shadow-soft-drop)]" : "text-muted-foreground",
         className,
       )}
       {...props}
