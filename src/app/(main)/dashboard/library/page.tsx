@@ -58,8 +58,8 @@ export default function LibraryPage() {
   };
 
   return (
-    <div className="bg-background h-screen overflow-hidden">
-      <div className="container mx-auto flex h-full flex-col overflow-hidden p-8">
+    <div className="bg-background min-h-screen">
+      <div className="container mx-auto flex min-h-screen flex-col overflow-auto p-6 md:p-8">
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-foreground text-3xl font-bold tracking-tight">Library</h1>
