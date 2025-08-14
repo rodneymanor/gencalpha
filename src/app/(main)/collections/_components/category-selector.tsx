@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 import { ChevronDown } from "lucide-react";
 
@@ -9,89 +9,33 @@ import type { Collection } from "@/lib/collections";
 
 interface CategorySelectorProps {
   selectedCategory?: string;
-  onCategoryChange?: (categoryId: string) => void;
+  onCategoryChange?: (category: string) => void;
+  collections?: Collection[];
+  loading?: boolean;
 }
 
-export function CategorySelector({ selectedCategory = "all", onCategoryChange }: CategorySelectorProps) {
+interface CollectionOption {
+  id: string;
+  title: string;
+  videoCount?: number;
+}
+
+export function CategorySelector({ selectedCategory = "all-videos", onCategoryChange, collections = [], loading = false }: CategorySelectorProps) {
   const [selected, setSelected] = useState(selectedCategory);
-  const [collections, setCollections] = useState<(Collection & { id: string })[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchCollections = async () => {
-      try {
-        // For now, we'll use a placeholder userId - this should come from auth context in production
-        const userId = "current-user-id"; // TODO: Get from auth context
+  // Create collection options with "All" as first option
+  const collectionOptions: CollectionOption[] = [
+    { id: "all-videos", title: "All", videoCount: undefined },
+    ...collections.map(collection => ({
+      id: collection.id || "",
+      title: collection.title,
+      videoCount: collection.videoCount
+    }))
+  ];
 
-        const response = await fetch("/api/collections/user", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ userId }),
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          const collectionsWithAll = [
-            {
-              id: "all",
-              title: "All Collections",
-              description: "",
-              userId: "",
-              videoCount: 0,
-              createdAt: "",
-              updatedAt: "",
-              favorite: false,
-            },
-            ...data.collections.map((col: Collection & { id: string }) => ({
-              ...col,
-              id: col.id,
-            })),
-          ];
-          setCollections(collectionsWithAll);
-        } else {
-          console.error("Failed to fetch collections:", response.statusText);
-          // Fallback to default categories
-          setCollections([
-            {
-              id: "all",
-              title: "All Collections",
-              description: "",
-              userId: "",
-              videoCount: 0,
-              createdAt: "",
-              updatedAt: "",
-              favorite: false,
-            },
-          ]);
-        }
-      } catch (error) {
-        console.error("Error fetching collections:", error);
-        // Fallback to default categories
-        setCollections([
-          {
-            id: "all",
-            title: "All Collections",
-            description: "",
-            userId: "",
-            videoCount: 0,
-            createdAt: "",
-            updatedAt: "",
-            favorite: false,
-          },
-        ]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCollections();
-  }, []);
-
-  const handleCategoryChange = (categoryId: string) => {
-    setSelected(categoryId);
-    onCategoryChange?.(categoryId);
+  const handleCategoryChange = (collectionId: string) => {
+    setSelected(collectionId);
+    onCategoryChange?.(collectionId);
   };
 
   if (loading) {
@@ -100,8 +44,14 @@ export function CategorySelector({ selectedCategory = "all", onCategoryChange }:
         <div className="flex items-center gap-4">
           <div className="flex-1 overflow-x-auto">
             <div className="flex min-w-max gap-2">
-              <div className="rounded-pill bg-card/50 text-muted-foreground animate-pulse px-3 py-2 text-sm">
-                Loading collections...
+              <div className="rounded-pill px-3 py-2 bg-card/50 animate-pulse">
+                <div className="h-4 w-12 bg-muted-foreground/20 rounded"></div>
+              </div>
+              <div className="rounded-pill px-3 py-2 bg-card/30 animate-pulse">
+                <div className="h-4 w-20 bg-muted-foreground/20 rounded"></div>
+              </div>
+              <div className="rounded-pill px-3 py-2 bg-card/30 animate-pulse">
+                <div className="h-4 w-16 bg-muted-foreground/20 rounded"></div>
               </div>
             </div>
           </div>
@@ -115,25 +65,29 @@ export function CategorySelector({ selectedCategory = "all", onCategoryChange }:
       <div className="flex items-center gap-4">
         <div className="flex-1 overflow-x-auto">
           <div className="flex min-w-max gap-2">
-            {collections.map((collection) => (
-              <button
-                key={collection.id}
-                onClick={() => handleCategoryChange(collection.id)}
-                className={`rounded-pill px-3 py-2 font-sans text-sm font-medium whitespace-nowrap transition-all duration-200 ${
-                  selected === collection.id
-                    ? "bg-card text-foreground shadow-[var(--shadow-soft-drop)]"
-                    : "text-muted-foreground hover:bg-background-hover bg-transparent"
-                } `}
-                aria-label={`Select ${collection.title} collection`}
-                role="tab"
-                aria-selected={selected === collection.id}
-              >
-                {collection.title}
-                {collection.videoCount > 0 && (
-                  <span className="ml-1 text-xs opacity-70">({collection.videoCount})</span>
-                )}
-              </button>
-            ))}
+            {collectionOptions.map((collection) => {
+              const isSelected = selected === collection.id;
+              const displayTitle = collection.videoCount !== undefined 
+                ? `${collection.title} (${collection.videoCount})`
+                : collection.title;
+              
+              return (
+                <button
+                  key={collection.id}
+                  onClick={() => handleCategoryChange(collection.id)}
+                  className={`rounded-pill px-3 py-2 font-sans text-sm font-medium whitespace-nowrap transition-all duration-200 ${
+                    isSelected
+                      ? "bg-card text-foreground shadow-[var(--shadow-soft-drop)]"
+                      : "text-muted-foreground hover:bg-background-hover bg-transparent"
+                  }`}
+                  aria-label={`Select ${collection.title} collection`}
+                  role="tab"
+                  aria-selected={isSelected}
+                >
+                  {displayTitle}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -144,14 +98,17 @@ export function CategorySelector({ selectedCategory = "all", onCategoryChange }:
               <ChevronDown className="h-4 w-4 opacity-50" />
             </SelectTrigger>
             <SelectContent>
-              {collections.map((collection) => (
-                <SelectItem key={collection.id} value={collection.id}>
-                  {collection.title}
-                  {collection.videoCount > 0 && (
-                    <span className="ml-1 text-xs opacity-70">({collection.videoCount})</span>
-                  )}
-                </SelectItem>
-              ))}
+              {collectionOptions.map((collection) => {
+                const displayTitle = collection.videoCount !== undefined 
+                  ? `${collection.title} (${collection.videoCount})`
+                  : collection.title;
+                  
+                return (
+                  <SelectItem key={collection.id} value={collection.id}>
+                    {displayTitle}
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
         </div>
