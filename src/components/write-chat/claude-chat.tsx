@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 //
-import { ArrowUp, SlidersHorizontal, Lightbulb, Pencil, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowUp, SlidersHorizontal, Lightbulb, Pencil, Loader2, ArrowLeft, ArrowRight } from "lucide-react";
 
 import { type PersonaType, PERSONAS } from "@/components/chatbot/persona-selector";
 // header dropdown moved to parent wrapper
@@ -691,10 +691,10 @@ export function ClaudeChat({
                 setIsSlideoutOpen(true);
               }
             }}
-            className="bg-card text-foreground border-border hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring mr-4 rounded-[var(--radius-button)] border p-2 shadow-[var(--shadow-soft-drop)] transition-transform duration-200 focus-visible:ring-2 active:scale-[0.98]"
+            className="text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring mr-4 rounded-[var(--radius-button)] bg-transparent p-2 transition-transform duration-200 focus-visible:ring-2 active:scale-[0.98]"
             style={{ right: 0, position: "fixed" }}
           >
-            {isSlideoutOpen ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            {isSlideoutOpen ? <ArrowRight className="h-4 w-4" /> : <ArrowLeft className="h-4 w-4" />}
           </button>
         </div>
         {/* Large screens: when open, follow divider at 50% width; otherwise hug right edge */}
@@ -711,10 +711,10 @@ export function ClaudeChat({
                 setIsSlideoutOpen(true);
               }
             }}
-            className="bg-card text-foreground border-border hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring rounded-[var(--radius-button)] border p-2 shadow-[var(--shadow-soft-drop)] transition-transform duration-200 focus-visible:ring-2 active:scale-[0.98]"
+            className="text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring rounded-[var(--radius-button)] bg-transparent p-2 transition-transform duration-200 focus-visible:ring-2 active:scale-[0.98]"
             style={isSlideoutOpen ? { left: "calc(50% - 20px)", position: "fixed" } : { right: 16, position: "fixed" }}
           >
-            {isSlideoutOpen ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            {isSlideoutOpen ? <ArrowRight className="h-4 w-4" /> : <ArrowLeft className="h-4 w-4" />}
           </button>
         </div>
       </div>
