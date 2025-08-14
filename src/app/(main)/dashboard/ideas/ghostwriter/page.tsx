@@ -8,8 +8,8 @@ import { GhostCard } from "@/app/(main)/dashboard/ai-ghostwriter/_components/gho
 import { generateGhostWritingCards } from "@/app/(main)/dashboard/ai-ghostwriter/_components/ghost-card-generator";
 import type { GhostWritingCard } from "@/app/(main)/dashboard/ai-ghostwriter/_components/types";
 import { Button } from "@/components/ui/button";
+import { CustomTabs, CustomTabsContent } from "@/components/ui/custom-tabs";
 import { ClarityLoader } from "@/components/ui/loading";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Simple toast replacement
 const useToast = () => ({
@@ -159,87 +159,85 @@ export default function IdeasGhostwriterPage() {
         <p className="text-muted-foreground mb-6">Generate viral content ideas based on your topics</p>
 
         {/* Navigation Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-          <TabsList className="border-border h-auto w-full justify-start rounded-none border-b bg-transparent p-0">
-            <TabsTrigger
-              value="trending"
-              className="data-[state=active]:border-primary rounded-none bg-transparent px-4 pb-3 data-[state=active]:border-b-2 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
-            >
-              Trending Templates
-            </TabsTrigger>
-            <TabsTrigger
-              value="saved"
-              className="data-[state=active]:border-primary flex items-center gap-2 rounded-none bg-transparent px-4 pb-3 data-[state=active]:border-b-2 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
-            >
-              <Bookmark className="h-4 w-4" />
-              Saved Ideas
-            </TabsTrigger>
-          </TabsList>
+        <CustomTabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          items={[
+            {
+              value: "trending",
+              label: "Trending",
+            },
+            {
+              value: "saved",
+              label: "Saved Ideas",
+              icon: <Bookmark className="h-4 w-4" />,
+            },
+          ]}
+        />
 
-          {/* Trending Templates Content */}
-          <TabsContent value="trending" className="mt-6">
-            {loading ? (
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {Array.from({ length: 6 }, (_, index) => (
-                  <div
-                    key={`skeleton-${index}`}
-                    className="bg-card border-border animate-pulse rounded-[var(--radius-card)] border p-4"
-                  >
-                    <div className="space-y-3">
-                      <div className="bg-muted h-4 w-3/4 rounded"></div>
-                      <div className="bg-muted h-3 w-1/2 rounded"></div>
-                      <div className="space-y-2">
-                        <div className="bg-muted h-3 rounded"></div>
-                        <div className="bg-muted h-3 w-5/6 rounded"></div>
-                        <div className="bg-muted h-3 w-4/6 rounded"></div>
-                      </div>
+        {/* Trending Templates Content */}
+        <CustomTabsContent value="trending" activeValue={activeTab}>
+          {loading ? (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 6 }, (_, index) => (
+                <div
+                  key={`skeleton-${index}`}
+                  className="bg-card border-border animate-pulse rounded-[var(--radius-card)] border p-4"
+                >
+                  <div className="space-y-3">
+                    <div className="bg-muted h-4 w-3/4 rounded"></div>
+                    <div className="bg-muted h-3 w-1/2 rounded"></div>
+                    <div className="space-y-2">
+                      <div className="bg-muted h-3 rounded"></div>
+                      <div className="bg-muted h-3 w-5/6 rounded"></div>
+                      <div className="bg-muted h-3 w-4/6 rounded"></div>
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {trendingCards.map((card) => (
-                  <GhostCard
-                    key={card.id}
-                    card={card}
-                    onGenerateScript={generateScript}
-                    onSave={saveCard}
-                    isSaved={isCardSaved(card.id)}
-                  />
-                ))}
-              </div>
-            )}
-          </TabsContent>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {trendingCards.map((card) => (
+                <GhostCard
+                  key={card.id}
+                  card={card}
+                  onGenerateScript={generateScript}
+                  onSave={saveCard}
+                  isSaved={isCardSaved(card.id)}
+                />
+              ))}
+            </div>
+          )}
+        </CustomTabsContent>
 
-          {/* Saved Ideas Content */}
-          <TabsContent value="saved" className="mt-6">
-            {savedCards.length === 0 ? (
-              <div className="py-12 text-center">
-                <Bookmark className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
-                <h3 className="mb-2 text-lg font-medium">No saved ideas yet</h3>
-                <p className="text-muted-foreground mb-4">
-                  Start saving your favorite content ideas from the Trending Templates tab.
-                </p>
-                <Button onClick={() => setActiveTab("trending")} variant="secondary">
-                  Browse Trending Templates
-                </Button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {savedCards.map((card) => (
-                  <GhostCard
-                    key={card.id}
-                    card={card}
-                    onGenerateScript={generateScript}
-                    onSave={saveCard}
-                    isSaved={true}
-                  />
-                ))}
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
+        {/* Saved Ideas Content */}
+        <CustomTabsContent value="saved" activeValue={activeTab}>
+          {savedCards.length === 0 ? (
+            <div className="py-12 text-center">
+              <Bookmark className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
+              <h3 className="mb-2 text-lg font-medium">No saved ideas yet</h3>
+              <p className="text-muted-foreground mb-4">
+                Start saving your favorite content ideas from the Trending Templates tab.
+              </p>
+              <Button onClick={() => setActiveTab("trending")} variant="secondary">
+                Browse Trending Templates
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {savedCards.map((card) => (
+                <GhostCard
+                  key={card.id}
+                  card={card}
+                  onGenerateScript={generateScript}
+                  onSave={saveCard}
+                  isSaved={true}
+                />
+              ))}
+            </div>
+          )}
+        </CustomTabsContent>
       </div>
     </div>
   );

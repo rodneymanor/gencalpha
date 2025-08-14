@@ -52,7 +52,7 @@ export function NavUser() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-              <div className="bg-muted text-foreground flex size-4 items-center justify-center rounded-[var(--radius-pill)] text-[10px] leading-none font-medium">
+              <div className="text-foreground flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-pill)] bg-gray-200 text-sm leading-none font-medium group-data-[collapsible=icon]:-ml-2">
                 {firstInitial}
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
