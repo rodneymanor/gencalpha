@@ -6,20 +6,24 @@ import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CollectionCombobox } from "@/components/ui/collection-combobox";
 import { VideoInsightsWrapper } from "@/components/video-insights";
 import { useAuth } from "@/contexts/auth-context";
 import { VideoInsightsProvider } from "@/contexts/video-insights-context";
 import { VideoProcessingProvider } from "@/contexts/video-processing-context";
 import { RBACClientService } from "@/core/auth/rbac-client";
+import type { Collection } from "@/lib/collections";
 
 import { AddVideoDialog } from "./_components/add-video-dialog";
 import { CollectionsProvider, useCollections } from "./_components/collections-context";
-import { CollectionsFilterDropdown } from "./_components/collections-filter-dropdown";
 import { CollectionsTabs } from "./_components/collections-tabs";
 import { VideoGrid } from "./_components/video-grid";
 
 // Helper function to load collections
-const useLoadCollections = (user: { uid?: string } | null, dispatch: (action: any) => void) => {
+type LoadCollectionsAction =
+  | { type: "SET_LOADING"; payload: boolean }
+  | { type: "SET_COLLECTIONS"; payload: Collection[] };
+const useLoadCollections = (user: { uid?: string } | null, dispatch: (action: LoadCollectionsAction) => void) => {
   const loadCollections = useCallback(async () => {
     if (!user?.uid) return;
 
@@ -50,15 +54,7 @@ const useLoadCollections = (user: { uid?: string } | null, dispatch: (action: an
 };
 
 // Collections tab content component
-function CollectionsTabContent({
-  selectedCollectionId,
-  setSelectedCollectionId,
-  state,
-}: {
-  selectedCollectionId: string;
-  setSelectedCollectionId: (id: string) => void;
-  state: any;
-}) {
+function CollectionsTabContent({ selectedCollectionId }: { selectedCollectionId: string }) {
   return (
     <>
       {/* Main Content */}
@@ -101,7 +97,7 @@ function CollectionsContent() {
   const [selectedCollectionId, setSelectedCollectionId] = useState<string>("all-videos");
   const [isAddVideoDialogOpen, setIsAddVideoDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("collections");
-  const [filterValue, setFilterValue] = useState<string>("all");
+  // Filter replaced by explicit collection picker
   const { state, dispatch } = useCollections();
   const { user } = useAuth();
 
@@ -140,16 +136,18 @@ function CollectionsContent() {
           className="mb-6"
           defaultTab={activeTab}
           onTabChange={setActiveTab}
-          rightContent={<CollectionsFilterDropdown value={filterValue} onValueChange={setFilterValue} />}
+          rightContent={
+            <CollectionCombobox
+              selectedCollectionId={selectedCollectionId}
+              onChange={setSelectedCollectionId}
+              placeholder="All Videos"
+            />
+          }
         />
 
         {/* Tab Content */}
         {activeTab === "collections" ? (
-          <CollectionsTabContent
-            selectedCollectionId={selectedCollectionId}
-            setSelectedCollectionId={setSelectedCollectionId}
-            state={state}
-          />
+          <CollectionsTabContent selectedCollectionId={selectedCollectionId} />
         ) : (
           <SavedCollectionsTabContent />
         )}
