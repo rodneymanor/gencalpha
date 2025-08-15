@@ -43,7 +43,7 @@ export const sidebarItems: NavGroup[] = [
       },
       {
         title: "Collections",
-        url: "/focus-collections",
+        url: "/dashboard/collections",
         icon: GalleryVerticalEnd,
         isNew: true,
       },
