@@ -16,6 +16,7 @@ import { CategorySelector } from "../../collections/_components/category-selecto
 
 import { AddVideoDialog } from "./_components/add-video-dialog";
 import { CollectionsProvider, useCollections } from "./_components/collections-context";
+import { CollectionsTabs } from "./_components/collections-tabs";
 import { VideoGrid } from "./_components/video-grid";
 
 function CollectionsContent() {
@@ -73,6 +74,9 @@ function CollectionsContent() {
             </Button>
           </div>
         </div>
+
+        {/* Collections Tabs */}
+        <CollectionsTabs className="mb-6" />
 
         {/* Category Selector */}
         <CategorySelector
