@@ -129,6 +129,7 @@ export async function processVideoWorkflow(requestId: string, videoUrl: string) 
       videoData.videoBuffer,
       videoData.platform || "unknown",
       requestId,
+    );
 
     if (!transcriptionResult.success) {
       console.error(

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 import { useSearchParams, useRouter } from "next/navigation";
 
-import { Settings, User, CreditCard, Bell } from "lucide-react";
+import { Settings, User, CreditCard, Bell, Key } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { AccountSettings } from "./_components/account-settings";
 import { BillingSettings } from "./_components/billing-settings";
 import { NotificationsSettings } from "./_components/notifications-settings";
+import { ApiKeysSettings } from "./_components/api-keys-settings";
 
 const settingsTabs = [
   {
@@ -32,6 +33,12 @@ const settingsTabs = [
     label: "Notifications",
     icon: Bell,
     component: NotificationsSettings,
+  },
+  {
+    id: "api-keys",
+    label: "API Keys",
+    icon: Key,
+    component: ApiKeysSettings,
   },
 ] as const;
 
