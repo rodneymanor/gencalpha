@@ -105,7 +105,7 @@ export function PersonaSelector({
           size="sm"
           onClick={() => onPersonaChange(key)}
           className={cn(
-            "gap-1.5 rounded-full bg-transparent px-4 py-1 text-xs font-medium transition-all",
+            "gap-1.5 rounded-full !bg-transparent px-4 py-1 text-xs font-medium transition-all",
             selectedPersona === key
               ? "border-primary text-primary hover:bg-primary/5"
               : "border-border hover:bg-accent hover:text-accent-foreground",
