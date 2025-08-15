@@ -77,16 +77,6 @@ function CollectionsTabContent({
         {/* Video Grid */}
         <div className="col-span-1 lg:col-span-12">
           <Card>
-            <CardHeader>
-              <CardTitle>
-                {selectedCollectionId === "all-videos"
-                  ? "All Videos"
-                  : (selectedCollection?.title ?? "Collection Videos")}
-              </CardTitle>
-              {selectedCollection?.description && (
-                <p className="text-muted-foreground mt-1 text-sm">{selectedCollection.description}</p>
-              )}
-            </CardHeader>
             <CardContent>
               <VideoGrid collectionId={selectedCollectionId} />
             </CardContent>
