@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Plus, Search, Filter, X, Star, Calendar, Tag, Type, Globe } from "lucide-react";
+import { Plus, Search, Filter, X, Star, Calendar, Tag, Type, Globe, Lightbulb } from "lucide-react";
 
 import { IdeaDetailDialog } from "@/app/(main)/dashboard/idea-inbox/_components/idea-detail-dialog";
 import { mapNotesToIdeas } from "@/app/(main)/dashboard/idea-inbox/_components/note-mapper";
@@ -212,30 +212,49 @@ export function IdeasView() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Compact Header */}
-      <div className="p-4 border-b border-border">
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <h3 className="text-foreground text-base font-semibold">Ideas</h3>
-            <p className="text-muted-foreground text-xs">
-              {isLoading ? "Loading..." : `${filteredIdeas.length} note${filteredIdeas.length !== 1 ? "s" : ""}`}
-            </p>
-          </div>
-          <Popover open={showFilters} onOpenChange={setShowFilters}>
-            <PopoverTrigger asChild>
-              <Button 
-                variant="outline" 
-                size="sm"
-                className={`h-8 px-2 relative ${hasActiveFilters() ? 'border-primary' : ''}`}
-              >
-                <Filter className="h-3 w-3" />
-                {hasActiveFilters() && (
-                  <Badge className="absolute -top-1 -right-1 h-4 w-4 rounded-full p-0 flex items-center justify-center text-xs">
-                    {getActiveFilterCount()}
-                  </Badge>
-                )}
-              </Button>
-            </PopoverTrigger>
+      {/* Mobile-first header */}
+      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
+        <div className="px-4 py-4 sm:px-6">
+          <div className="flex flex-col gap-4">
+            {/* Title Section - Always stacked on mobile */}
+            <div className="space-y-1">
+              <h1 className="text-foreground text-lg font-semibold sm:text-xl md:text-2xl">Ideas</h1>
+              <p className="text-muted-foreground text-sm sm:text-base">
+                {isLoading ? "Loading..." : `${filteredIdeas.length} note${filteredIdeas.length !== 1 ? "s" : ""} found`}
+              </p>
+            </div>
+            
+            {/* Controls Section - Stacked vertically on mobile, horizontal on larger screens */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              {/* Search Field - Full width on mobile */}
+              <div className="flex-1">
+                <SearchField
+                  placeholder="Search ideas..."
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                  className="w-full h-10"
+                  inputClassName="h-10 text-sm"
+                />
+              </div>
+              
+              {/* Action Buttons - Stacked on mobile, side-by-side on tablet+ */}
+              <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+                {/* Filter Button */}
+                <Popover open={showFilters} onOpenChange={setShowFilters}>
+                  <PopoverTrigger asChild>
+                    <Button 
+                      variant="outline"
+                      className={`h-10 w-full sm:w-auto flex items-center justify-center gap-2 relative ${hasActiveFilters() ? 'border-primary' : ''}`}
+                    >
+                      <Filter className="h-4 w-4" />
+                      <span>Filter</span>
+                      {hasActiveFilters() && (
+                        <Badge className="absolute -top-1 -right-1 h-4 w-4 rounded-full p-0 flex items-center justify-center text-xs">
+                          {getActiveFilterCount()}
+                        </Badge>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
             <PopoverContent className="w-72 p-0" align="end">
               <div className="p-3 space-y-3">
                 <div className="flex items-center justify-between">
@@ -343,54 +362,56 @@ export function IdeasView() {
                   </div>
                 )}
               </div>
-            </PopoverContent>
-          </Popover>
-        </div>
+                </PopoverContent>
+                </Popover>
+                
+                {/* New Idea Button */}
+                <Button 
+                  className="h-10 w-full sm:w-auto flex items-center justify-center gap-2 transition-all duration-200"
+                >
+                  <Lightbulb className="h-4 w-4" />
+                  <span>New Idea</span>
+                </Button>
+              </div>
+            </div>
 
-        {/* Compact Search */}
-        <SearchField
-          placeholder="Search ideas..."
-          value={searchQuery}
-          onChange={setSearchQuery}
-          className="w-full h-8"
-          inputClassName="h-8 text-sm"
-        />
-
-        {/* Active Filters */}
-        {hasActiveFilters() && (
-          <div className="mt-2 flex flex-wrap gap-1">
-            {filters.source !== "all" && (
-              <Badge variant="secondary" className="text-xs h-5 px-2">
-                {filters.source}
-                <X 
-                  className="h-2 w-2 ml-1 cursor-pointer" 
-                  onClick={() => setFilters(prev => ({...prev, source: "all"}))}
-                />
-              </Badge>
+            {/* Active Filters */}
+            {hasActiveFilters() && (
+              <div className="mt-2 flex flex-wrap gap-1">
+                {filters.source !== "all" && (
+                  <Badge variant="secondary" className="text-xs h-5 px-2">
+                    {filters.source}
+                    <X 
+                      className="h-2 w-2 ml-1 cursor-pointer" 
+                      onClick={() => setFilters(prev => ({...prev, source: "all"}))}
+                    />
+                  </Badge>
+                )}
+                {filters.starred !== "all" && (
+                  <Badge variant="secondary" className="text-xs h-5 px-2">
+                    {filters.starred === "starred" ? "★" : "☆"}
+                    <X 
+                      className="h-2 w-2 ml-1 cursor-pointer" 
+                      onClick={() => setFilters(prev => ({...prev, starred: "all"}))}
+                    />
+                  </Badge>
+                )}
+                {filters.tags.slice(0, 3).map(tag => (
+                  <Badge key={tag} variant="secondary" className="text-xs h-5 px-2">
+                    #{tag}
+                    <X 
+                      className="h-2 w-2 ml-1 cursor-pointer" 
+                      onClick={() => setFilters(prev => ({
+                        ...prev, 
+                        tags: prev.tags.filter(t => t !== tag)
+                      }))}
+                    />
+                  </Badge>
+                ))}
+              </div>
             )}
-            {filters.starred !== "all" && (
-              <Badge variant="secondary" className="text-xs h-5 px-2">
-                {filters.starred === "starred" ? "★" : "☆"}
-                <X 
-                  className="h-2 w-2 ml-1 cursor-pointer" 
-                  onClick={() => setFilters(prev => ({...prev, starred: "all"}))}
-                />
-              </Badge>
-            )}
-            {filters.tags.slice(0, 3).map(tag => (
-              <Badge key={tag} variant="secondary" className="text-xs h-5 px-2">
-                #{tag}
-                <X 
-                  className="h-2 w-2 ml-1 cursor-pointer" 
-                  onClick={() => setFilters(prev => ({
-                    ...prev, 
-                    tags: prev.tags.filter(t => t !== tag)
-                  }))}
-                />
-              </Badge>
-            ))}
           </div>
-        )}
+        </div>
       </div>
 
       {/* Content Area */}

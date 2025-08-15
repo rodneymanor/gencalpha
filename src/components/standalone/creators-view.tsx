@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 
-import { UserPlus, ChevronsUpDown, Check, Lightbulb } from "lucide-react";
+import { UserPlus, ChevronsUpDown, Check } from "lucide-react";
 
 import CreatorVideosGrid, { type VideoData } from "@/app/(main)/dashboard/daily/_components/creator-videos-grid";
 import { Button } from "@/components/ui/button";
@@ -131,27 +131,15 @@ export function CreatorsView() {
                 </PopoverContent>
               </Popover>
 
-              {/* Action Buttons - Stacked on mobile, side-by-side on tablet+ */}
-              <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
-                {/* New Idea Button */}
-                <Button
-                  variant="outline"
-                  className="flex h-10 w-full items-center justify-center gap-2 transition-all duration-200 sm:w-auto"
-                >
-                  <Lightbulb className="h-4 w-4" />
-                  <span>New Idea</span>
-                </Button>
-
-                {/* New Creator Button */}
-                <Button
-                  onClick={() => setShowNewCreatorForm(!showNewCreatorForm)}
-                  className={`flex h-10 w-full items-center justify-center gap-2 transition-all duration-200 sm:w-auto ${showNewCreatorForm ? "bg-accent text-accent-foreground" : ""}`}
-                  variant={showNewCreatorForm ? "secondary" : "default"}
-                >
-                  <UserPlus className="h-4 w-4" />
-                  <span>New Creator</span>
-                </Button>
-              </div>
+              {/* New Creator Button */}
+              <Button
+                onClick={() => setShowNewCreatorForm(!showNewCreatorForm)}
+                className={`flex h-10 w-full items-center justify-center gap-2 transition-all duration-200 sm:w-auto ${showNewCreatorForm ? "bg-accent text-accent-foreground" : ""}`}
+                variant={showNewCreatorForm ? "secondary" : "default"}
+              >
+                <UserPlus className="h-4 w-4" />
+                <span>New Creator</span>
+              </Button>
             </div>
           </div>
         </div>
