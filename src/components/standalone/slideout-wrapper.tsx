@@ -207,7 +207,7 @@ export function SlideoutWrapper({ children, slideout: _slideout, className, cont
                         <span>Copy</span>
                       </Button>
                       <div className="bg-border h-8 w-px" />
-                      <Button variant="ghost" size="icon" className="size-8 rounded-none">
+                      <Button variant="ghost" size="icon" className="rounded-none">
                         <ChevronDown className="h-4 w-4" />
                       </Button>
                     </div>
@@ -219,7 +219,7 @@ export function SlideoutWrapper({ children, slideout: _slideout, className, cont
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="size-8 rounded-[var(--radius-button)]"
+                  className="rounded-[var(--radius-button)]"
                   onClick={() => setIsOpen(false)}
                 >
                   <X className="h-4 w-4" />

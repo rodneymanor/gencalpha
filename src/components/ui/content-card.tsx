@@ -74,7 +74,6 @@ export function ContentCard({
               variant="ghost"
               size="icon"
               onClick={onShare}
-              className="size-8"
             >
               <Share2 className="size-4" />
             </Button>
@@ -82,7 +81,6 @@ export function ContentCard({
               variant="ghost"
               size="icon"
               onClick={onBookmark}
-              className="size-8"
             >
               <Bookmark className="size-4" />
             </Button>
