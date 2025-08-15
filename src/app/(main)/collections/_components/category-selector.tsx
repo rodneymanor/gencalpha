@@ -75,18 +75,25 @@ export function CategorySelector({
           <div className="flex min-w-max gap-2">
             {collectionOptions.map((collection) => {
               const isSelected = selected === collection.id;
-              const displayTitle =
+              const videoCountText =
                 collection.videoCount !== undefined
-                  ? `${collection.title} (${collection.videoCount})`
-                  : collection.title;
+                  ? ` (${collection.videoCount} video${collection.videoCount !== 1 ? "s" : ""})`
+                  : "";
+
               return (
-                <PillButton
-                  key={collection.id}
-                  label={displayTitle}
-                  ariaLabel={`Select ${collection.title} collection`}
-                  selected={isSelected}
-                  onClick={() => handleCategoryChange(collection.id)}
-                />
+                <div key={collection.id} className="group relative">
+                  <PillButton
+                    label={collection.title}
+                    ariaLabel={`Select ${collection.title} collection${videoCountText}`}
+                    selected={isSelected}
+                    onClick={() => handleCategoryChange(collection.id)}
+                  />
+                  {collection.videoCount !== undefined && (
+                    <div className="text-foreground bg-popover border-border pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 -translate-x-1/2 transform rounded-md border px-2 py-1 text-xs whitespace-nowrap opacity-0 shadow-md transition-opacity duration-200 group-hover:opacity-100">
+                      {collection.videoCount} video{collection.videoCount !== 1 ? "s" : ""}
+                    </div>
+                  )}
+                </div>
               );
             })}
           </div>
