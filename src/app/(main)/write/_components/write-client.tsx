@@ -49,7 +49,7 @@ export function WriteClient({
               />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-7 w-7 rounded-[var(--radius-button)]">
+                  <Button variant="ghost" size="icon" className="rounded-[var(--radius-button)]">
                     <ChevronDown className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -70,7 +70,7 @@ export function WriteClient({
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-            <Button variant="outline" size="sm" className="ml-3 h-9 rounded-[var(--radius-button)] pr-3 pl-2">
+            <Button variant="outline" size="sm" className="ml-3 rounded-[var(--radius-button)] pr-3 pl-2">
               <Share2 className="mr-1.5 h-4 w-4" />
               <span className="hidden sm:inline">Share</span>
             </Button>

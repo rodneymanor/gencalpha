@@ -751,7 +751,7 @@ export function ClaudeChat({
                       <Button
                         variant="outline"
                         size="icon"
-                        className={`!h-8 !w-8 ${isIdeaMode ? "bg-accent" : ""}`}
+                        className={`${isIdeaMode ? "bg-accent" : ""}`}
                         onClick={() => {
                           setIsIdeaMode((v) => !v);
                           setTimeout(() => heroInputRef.current?.focus(), 0);
@@ -760,12 +760,12 @@ export function ClaudeChat({
                       >
                         <Pencil className="h-3 w-3" />
                       </Button>
-                      <Button variant="outline" size="icon" className="!h-8 !w-8">
+                      <Button variant="outline" size="icon">
                         <SlidersHorizontal className="h-3 w-3" />
                       </Button>
                       <DropdownMenu open={ideasOpen} onOpenChange={setIdeasOpen}>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="outline" size="sm" className="!h-8 gap-1.5">
+                          <Button variant="outline" size="sm" className="gap-1.5">
                             <Lightbulb className="h-3 w-3" />
                             <span className="hidden sm:inline">Ideas</span>
                           </Button>
@@ -827,7 +827,7 @@ export function ClaudeChat({
                     key={p.key}
                     variant={selectedPersona === p.key ? "default" : "outline"}
                     size="sm"
-                    className="rounded-pill h-8 gap-2 px-4 transition-all"
+                    className="rounded-pill gap-2 px-4 transition-all"
                     onClick={() => setSelectedPersona((prev) => (prev === p.key ? null : p.key))}
                   >
                     {getPersonaByKey(p.key)?.icon}

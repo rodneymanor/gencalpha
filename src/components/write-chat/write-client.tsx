@@ -81,7 +81,7 @@ export function WriteClient({
               style={{ paddingLeft: `${sidebarGapPx + 0}px` }}
             >
               <div className="flex min-w-0 flex-1 items-center gap-2">
-                <SidebarTrigger className="h-8 w-8 md:hidden" />
+                <SidebarTrigger className="md:hidden" />
                 <div className="hover:bg-accent/50 inline-flex items-center rounded-[var(--radius-button)] px-1">
                   <input
                     ref={titleInputRef}
@@ -100,11 +100,7 @@ export function WriteClient({
                   />
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="hover:bg-accent/50 h-7 w-7 rounded-[var(--radius-button)]"
-                      >
+                      <Button variant="ghost" size="icon" className="hover:bg-accent/50 rounded-[var(--radius-button)]">
                         <ChevronDown className="text-muted-foreground h-4 w-4" />
                         <span className="sr-only">Chat options</span>
                       </Button>
@@ -131,7 +127,7 @@ export function WriteClient({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="border-border/50 hover:bg-accent hover:border-border h-9 rounded-md"
+                  className="border-border/50 hover:bg-accent hover:border-border rounded-[var(--radius-button)]"
                 >
                   <Share2 className="h-4 w-4" />
                   <span className="ml-2 hidden sm:inline">Share</span>

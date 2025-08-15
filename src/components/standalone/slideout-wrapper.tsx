@@ -20,9 +20,10 @@ export interface SlideoutWrapperProps {
   contentClassName?: string;
 }
 
+// eslint-disable-next-line complexity
 export function SlideoutWrapper({ children, slideout: _slideout, className, contentClassName }: SlideoutWrapperProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<'ghostwriter' | 'creators' | 'ideas'>('ghostwriter');
+  const [selectedOption, setSelectedOption] = useState<"ghostwriter" | "creators" | "ideas">("ghostwriter");
   const [menuState, setMenuState] = useState<{
     isVisible: boolean;
     top: number;
@@ -36,7 +37,7 @@ export function SlideoutWrapper({ children, slideout: _slideout, className, cont
   void _slideout;
 
   // Check if we're on the write page
-  const isWritePage = pathname === '/write';
+  const isWritePage = pathname === "/write";
 
   // Close slideout on page navigation
   useEffect(() => {
@@ -69,7 +70,7 @@ export function SlideoutWrapper({ children, slideout: _slideout, className, cont
   useEffect(() => {
     if (typeof window === "undefined") return;
     const openWithView = (ev: Event) => {
-      const e = ev as CustomEvent<{ view: 'ideas' | 'ghostwriter' | 'creators' }>;
+      const e = ev as CustomEvent<{ view: "ideas" | "ghostwriter" | "creators" }>;
       const view = e.detail?.view;
       if (view) {
         setSelectedOption(view);
@@ -131,9 +132,9 @@ export function SlideoutWrapper({ children, slideout: _slideout, className, cont
         <div
           className={cn(
             "min-h-0 transition-all duration-300",
-            isWritePage && isOpen 
+            isWritePage && isOpen
               ? "flex w-full" // On write page, keep main content visible when slideout is open
-              : isOpen 
+              : isOpen
                 ? "hidden lg:flex lg:w-1/2" // On other pages, use original behavior
                 : "flex w-full",
             contentClassName,
@@ -150,13 +151,13 @@ export function SlideoutWrapper({ children, slideout: _slideout, className, cont
               ? // Write page: separate overlay slider
                 cn(
                   "fixed inset-y-0 right-0 z-50 w-[400px] max-w-[90vw] border-l",
-                  isOpen ? "translate-x-0" : "translate-x-full"
+                  isOpen ? "translate-x-0" : "translate-x-full",
                 )
-              : // Other pages: original integrated behavior  
+              : // Other pages: original integrated behavior
                 cn(
                   "absolute inset-y-0 right-0 z-40 w-full max-w-full border-l lg:static lg:h-auto lg:w-1/2",
-                  isOpen ? "translate-x-0" : "translate-x-full lg:hidden lg:translate-x-0"
-                )
+                  isOpen ? "translate-x-0" : "translate-x-full lg:hidden lg:translate-x-0",
+                ),
           )}
         >
           <div className="flex h-full flex-col">
@@ -165,32 +166,32 @@ export function SlideoutWrapper({ children, slideout: _slideout, className, cont
               <div className="flex items-center gap-2">
                 <PillButton
                   label="Ghost Writer"
-                  selected={selectedOption === 'ghostwriter'}
-                  onClick={() => setSelectedOption('ghostwriter')}
+                  selected={selectedOption === "ghostwriter"}
+                  onClick={() => setSelectedOption("ghostwriter")}
                   className="h-8 px-3 text-sm"
                 />
                 <PillButton
                   label="Creators"
-                  selected={selectedOption === 'creators'}
-                  onClick={() => setSelectedOption('creators')}
+                  selected={selectedOption === "creators"}
+                  onClick={() => setSelectedOption("creators")}
                   className="h-8 px-3 text-sm"
                 />
                 <PillButton
                   label="Ideas"
-                  selected={selectedOption === 'ideas'}
-                  onClick={() => setSelectedOption('ideas')}
+                  selected={selectedOption === "ideas"}
+                  onClick={() => setSelectedOption("ideas")}
                   className="h-8 px-3 text-sm"
                 />
               </div>
               <div className="flex items-center gap-2">
                 {/* Hide copy and publish buttons on write page or for creators and ideas views */}
-                {!isWritePage && selectedOption === 'ghostwriter' && (
+                {!isWritePage && selectedOption === "ghostwriter" && (
                   <>
                     <div className="border-border flex items-center overflow-hidden rounded-[var(--radius-card)] border shadow-[var(--shadow-input)]">
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-8 gap-1.5 rounded-none border-0 px-3 has-[>svg]:px-2.5"
+                        className="gap-1.5 rounded-none border-0 px-3 has-[>svg]:px-2.5"
                         onClick={() => {
                           try {
                             const root = document.querySelector("[data-slideout-editor-root]");
@@ -211,7 +212,7 @@ export function SlideoutWrapper({ children, slideout: _slideout, className, cont
                         <ChevronDown className="h-4 w-4" />
                       </Button>
                     </div>
-                    <Button variant="default" size="sm" className="h-8 gap-1.5 rounded-[var(--radius-button)] px-3">
+                    <Button variant="default" size="sm" className="gap-1.5 rounded-[var(--radius-button)] px-3">
                       Publish
                     </Button>
                   </>
@@ -229,9 +230,9 @@ export function SlideoutWrapper({ children, slideout: _slideout, className, cont
 
             {/* Editor area - minimal, no extra borders, specified padding */}
             <div className="flex-1 overflow-y-auto" ref={slideoutScrollRef}>
-              {selectedOption === 'ghostwriter' && <MinimalSlideoutEditor />}
-              {selectedOption === 'creators' && <CreatorsView />}
-              {selectedOption === 'ideas' && <IdeasView />}
+              {selectedOption === "ghostwriter" && <MinimalSlideoutEditor />}
+              {selectedOption === "creators" && <CreatorsView />}
+              {selectedOption === "ideas" && <IdeasView />}
             </div>
             {/* Contextual dropdown for script components (dummy actions) */}
             {menuState?.isVisible ? (
