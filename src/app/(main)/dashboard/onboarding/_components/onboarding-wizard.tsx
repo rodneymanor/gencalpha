@@ -123,7 +123,7 @@ export function OnboardingWizard() {
           <h2 className="text-xl font-semibold text-primary md:text-2xl">Configure your personal AI</h2>
         </div>
 
-        <div className="rounded-lg border bg-card p-8 shadow-sm">
+        <div className="rounded-xl border-[0.5px] border-border bg-card p-6 shadow-sm hover:shadow-lg hover:border-[--border-subtle] transition-all duration-300 ease-out">
           {/* Search & add */}
           <div className="space-y-4">
             <div className="relative">

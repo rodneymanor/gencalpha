@@ -8,7 +8,6 @@ import { Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
 import { SearchField } from "@/components/ui/search-field";
 
 export type ChatHistoryItem = {
@@ -200,13 +199,14 @@ function ItemRow({
             onClick={selectable ? (e) => (e.preventDefault(), onToggleItem?.(item.id)) : undefined}
             className={[
               "flex flex-col",
-              "bg-card",
-              "border-border border",
-              "rounded-[var(--radius-card)]",
+              "bg-transparent",
+              "border-[0.5px] border-[var(--border-visible)]", // High visibility border
+              "rounded-xl",
               "no-underline",
               "px-4 py-4",
-              "hover:bg-accent",
-              "transition-colors",
+              "hover:bg-card hover:border-[var(--border-hover)] hover:shadow-sm", // Use border-hover for better contrast
+              "transition-all duration-300 ease-out",
+              "active:scale-[0.98]",
               selectable ? "pl-12" : "",
             ].join(" ")}
           >

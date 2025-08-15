@@ -13,12 +13,12 @@ type Props = {
 export function ActionCard({ icon, title, desc, onClick, active }: Props) {
   return (
     <button
-      className="bg-card text-card-foreground border-border hover:border-ring disabled:hover:border-border cursor-pointer rounded-[var(--radius-card)] border p-6 text-left transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+      className="bg-card text-card-foreground border-[0.5px] border-border hover:border-ring disabled:hover:border-border cursor-pointer rounded-xl p-4 text-left transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none active:scale-[0.98]"
       onClick={onClick}
       disabled={active}
     >
       <div className="flex items-center gap-3">
-        <div className="bg-secondary/10 text-secondary flex h-10 w-10 items-center justify-center rounded-[var(--radius-button)]">
+        <div className="bg-secondary/10 text-secondary flex h-10 w-10 items-center justify-center rounded-xl">
           {icon}
         </div>
         <div>

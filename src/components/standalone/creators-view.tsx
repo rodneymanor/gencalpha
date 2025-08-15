@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 
-import { UserPlus, ChevronDown, Check, ChevronsUpDown } from "lucide-react";
+import { UserPlus, ChevronsUpDown, Check } from "lucide-react";
 
 import CreatorVideosGrid, { type VideoData } from "@/app/(main)/dashboard/daily/_components/creator-videos-grid";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { FloatingVideoPlayer, useFloatingVideo } from "@/components/video/video-slideout-player";
 import { transformVideoDataToVideo } from "@/lib/video-player-helpers";
 
-export default function IdeasCreatorsPage() {
+export function CreatorsView() {
   const { isOpen, currentVideo, openVideo, closeVideo } = useFloatingVideo();
   const [showNewCreatorForm, setShowNewCreatorForm] = useState(false);
   const [selectedCreator, setSelectedCreator] = useState("all");
@@ -143,7 +143,7 @@ export default function IdeasCreatorsPage() {
             onSelectedCreatorChange={setSelectedCreator}
             onCreatorsUpdated={handleCreatorsUpdated}
             hideSearch={true}
-            columns={3} // Optimized for mobile: 1 col mobile, 2 col tablet, 3 col desktop
+            columns={3}
           />
         </div>
       </div>

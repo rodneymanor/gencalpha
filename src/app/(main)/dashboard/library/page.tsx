@@ -6,7 +6,7 @@ import { Plus } from "lucide-react";
 
 import { ChatHistoryList, ChatHistoryItem } from "@/components/library/chat-history-list";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+// Card components removed - using plain divs for transparent container
 import { useScriptsApi } from "@/hooks/use-scripts-api";
 
 export default function LibraryPage() {
@@ -73,8 +73,8 @@ export default function LibraryPage() {
           </div>
         </div>
 
-        <Card className="order-0 border-0 bg-transparent shadow-none">
-          <CardContent className="flex min-h-0 flex-1 flex-col gap-4">
+        <div className="order-0">
+          <div className="flex min-h-0 flex-1 flex-col gap-4">
             <ChatHistoryList
               items={items}
               totalCount={scripts.length}
@@ -92,8 +92,8 @@ export default function LibraryPage() {
 
             {loading && <div className="text-muted-foreground text-sm">Loading…</div>}
             {error && <div className="text-destructive text-sm">{error}</div>}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

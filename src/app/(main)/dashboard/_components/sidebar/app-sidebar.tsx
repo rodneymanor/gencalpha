@@ -32,7 +32,7 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
 }
 
 function SidebarLogo({ isPinned, onPinToggle }: { isPinned: boolean; onPinToggle: () => void }) {
-  const { state } = useSidebar();
+  const { state, isMobile } = useSidebar();
   const router = useRouter();
   const isCollapsed = state === "collapsed";
 
@@ -42,8 +42,8 @@ function SidebarLogo({ isPinned, onPinToggle }: { isPinned: boolean; onPinToggle
 
   return (
     <div className="flex h-12 w-full items-center justify-between px-2">
-      {isCollapsed ? (
-        // Show "G" when collapsed
+      {isCollapsed && !isMobile ? (
+        // Show "G" when collapsed on desktop only
         <span
           className="text-foreground hover:text-primary cursor-pointer text-2xl font-bold transition-colors duration-200 ease-linear"
           onClick={handleLogoClick}
@@ -61,13 +61,15 @@ function SidebarLogo({ isPinned, onPinToggle }: { isPinned: boolean; onPinToggle
             <div className="bg-brand h-2 w-2 rounded-[var(--radius-pill)]"></div>
             <span className="text-foreground text-xl font-bold">C</span>
           </div>
-          {/* PanelLeft icon on the right */}
-          <div className="hover:bg-accent hover:text-accent-foreground flex items-center justify-center rounded-[var(--radius-button)] p-1 transition-colors duration-200 ease-linear">
-            <PanelLeft
-              className={`h-4 w-4 cursor-pointer transition-colors duration-200 ease-linear ${isPinned ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
-              onClick={onPinToggle}
-            />
-          </div>
+          {/* PanelLeft icon on the right - hide on mobile */}
+          {!isMobile && (
+            <div className="hover:bg-accent hover:text-accent-foreground flex items-center justify-center rounded-[var(--radius-button)] p-1 transition-colors duration-200 ease-linear">
+              <PanelLeft
+                className={`h-4 w-4 cursor-pointer transition-colors duration-200 ease-linear ${isPinned ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                onClick={onPinToggle}
+              />
+            </div>
+          )}
         </>
       )}
     </div>
@@ -181,10 +183,10 @@ export function AppSidebar({ layoutPreferences, ...props }: AppSidebarProps) {
       </SidebarContent>
       <SidebarFooter>
         <div className="flex flex-col items-center gap-2 px-2 pb-2">
-          <LayoutControls
+          {/* <LayoutControls
             {...(layoutPreferences ?? { variant: "inset", collapsible: "icon", contentLayout: "centered" })}
           />
-          <ThemeSwitcher />
+          <ThemeSwitcher /> */}
         </div>
         <NavUser />
       </SidebarFooter>

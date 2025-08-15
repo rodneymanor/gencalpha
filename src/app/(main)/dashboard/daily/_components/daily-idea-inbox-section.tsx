@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 
-import { Plus, Search, Import, Mic, MicOff } from "lucide-react";
+import { Plus, Search, Import, Mic, MicOff, Filter } from "lucide-react";
 
 import { IdeaDetailDialog } from "@/app/(main)/dashboard/idea-inbox/_components/idea-detail-dialog";
 import { IdeaTable } from "@/app/(main)/dashboard/idea-inbox/_components/idea-table";
@@ -111,6 +111,10 @@ export function DailyIdeaInboxSection() {
               className="pl-9"
             />
           </div>
+
+          <Button variant="outline" size="icon" className="h-9 w-9 shrink-0">
+            <Filter className="h-4 w-4" />
+          </Button>
 
           <Button variant="ghost" className="gap-2" onClick={() => setIsRecording((s) => !s)}>
             {isRecording ? <MicOff className="size-4" /> : <Mic className="size-4" />}

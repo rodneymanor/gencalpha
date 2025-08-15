@@ -157,14 +157,14 @@ const FollowCreatorSection: React.FC<FollowCreatorProps> = ({ onCreatorFollowed 
   };
 
   return (
-    <div className="bg-card border-border space-y-4 rounded-[var(--radius-card)] border p-6">
+    <div className="bg-card border-border space-y-3 sm:space-y-4 rounded-[var(--radius-card)] border p-4 sm:p-6">
       <div className="flex items-center gap-2">
         <UserPlus className="text-primary h-5 w-5" />
         <h3 className="text-foreground text-lg font-semibold">Follow Creator</h3>
       </div>
 
       <div className="space-y-3">
-        <div className="flex gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row">
           <Input
             placeholder="Enter username (e.g., @creator)"
             value={username}
@@ -177,7 +177,7 @@ const FollowCreatorSection: React.FC<FollowCreatorProps> = ({ onCreatorFollowed 
             className="flex-1"
           />
           <Select value={platform} onValueChange={(value: "instagram" | "tiktok" | "auto") => setPlatform(value)}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-full sm:w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -309,8 +309,8 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onVideoClick }) => {
           }
         }}
       >
-        {/* Aspect ratio container using Tailwind aspect ratio */}
-        <div className="aspect-[3/4]">
+        {/* Aspect ratio container - smaller on mobile */}
+        <div className="aspect-[4/3] sm:aspect-[3/4]">
           <div className="absolute inset-0">
             {video.isPinned && <PinnedBadge />}
             <VideoThumbnail
@@ -446,26 +446,27 @@ const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({
   }, [getUniqueCreators]);
 
   const getGridCols = () => {
+    // Always 1 column on mobile, then responsive based on columns prop
     switch (columns) {
       case 3:
-        return "grid-cols-3";
+        return "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3";
       case 4:
-        return "grid-cols-4";
+        return "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4";
       case 5:
-        return "grid-cols-5";
+        return "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5";
       case 6:
-        return "grid-cols-6";
+        return "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6";
       default:
-        return "grid-cols-5";
+        return "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5";
     }
   };
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {showFollowButton && <FollowCreatorSection onCreatorFollowed={handleCreatorFollowed} />}
-        <div className="flex items-center justify-center py-12">
-          <div className="text-muted-foreground">Loading videos from followed creators...</div>
+        <div className="flex items-center justify-center py-8 sm:py-12">
+          <div className="text-muted-foreground text-sm sm:text-base">Loading videos from followed creators...</div>
         </div>
       </div>
     );
@@ -473,10 +474,10 @@ const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({
 
   if (error) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {showFollowButton && <FollowCreatorSection onCreatorFollowed={handleCreatorFollowed} />}
-        <div className="flex items-center justify-center py-12">
-          <div className="text-destructive">{error}</div>
+        <div className="flex items-center justify-center py-8 sm:py-12">
+          <div className="text-destructive text-sm sm:text-base">{error}</div>
         </div>
       </div>
     );
@@ -484,9 +485,9 @@ const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({
 
   if (videos.length === 0) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {showFollowButton && <FollowCreatorSection onCreatorFollowed={handleCreatorFollowed} />}
-        <div className="flex flex-col items-center justify-center space-y-4 py-12">
+        <div className="flex flex-col items-center justify-center space-y-4 py-8 sm:py-12">
           <Users className="text-muted-foreground h-12 w-12" />
           <div className="space-y-2 text-center">
             <div className="text-foreground text-lg font-medium">No creators followed yet</div>
@@ -498,10 +499,10 @@ const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {showFollowButton && <FollowCreatorSection onCreatorFollowed={handleCreatorFollowed} />}
       {!hideSearch && (
-        <div className="px-6">
+        <div className="px-4 sm:px-6">
           <div className="flex gap-3">
             <div className="flex-1">
               <Select
@@ -534,7 +535,7 @@ const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({
           </div>
         </div>
       )}
-      <div className={`grid w-full ${getGridCols()} gap-4 px-6`}>
+      <div className={`grid w-full ${getGridCols()} gap-3 sm:gap-4 px-4 sm:px-6`}>
         {filteredVideos.map((video) => (
           <VideoCard key={video.id} video={video} onVideoClick={onVideoClick} />
         ))}

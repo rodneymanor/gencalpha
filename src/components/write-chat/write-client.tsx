@@ -11,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import ClaudeChat from "@/components/write-chat/claude-chat";
 import { Button } from "@/components/write-chat/primitives";
 
@@ -66,6 +67,12 @@ export function WriteClient({
 
   return (
     <div className="flex min-h-screen flex-col">
+      {/* Mobile header for hero state */}
+      {isHeroState && (
+        <div className="flex md:hidden items-center p-4">
+          <SidebarTrigger className="h-8 w-8" />
+        </div>
+      )}
       <main className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto max-w-3xl px-4 md:px-6">
           {!isHeroState && (
@@ -73,7 +80,8 @@ export function WriteClient({
               className="flex items-center justify-between gap-4 pt-3 pb-3 lg:gap-6"
               style={{ paddingLeft: `${sidebarGapPx + 0}px` }}
             >
-              <div className="flex min-w-0 flex-1 items-center">
+              <div className="flex min-w-0 flex-1 items-center gap-2">
+                <SidebarTrigger className="md:hidden h-8 w-8" />
                 <div className="hover:bg-accent/50 inline-flex items-center rounded-[var(--radius-button)] px-1">
                   <input
                     ref={titleInputRef}

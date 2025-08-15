@@ -86,8 +86,8 @@
   --popover-foreground: #34322D;
   --primary: #1A1A19;
   --primary-foreground: #FFFFFF;
-  --secondary: #1d293f;
-  --secondary-foreground: #FFFFFF;
+  --secondary: transparent;
+  --secondary-foreground: #34322D;
   --brand: #FACC15;
   --brand-foreground: #1A1A19;
   --muted: #F8F8F7;
@@ -101,8 +101,10 @@
   --ring: #1d293f;
 
   /* Enhanced Border System */
+  --border-transparent: transparent;
   --border-subtle: rgba(0,0,0,0.04);
   --border-hover: rgba(0,0,0,0.12);
+  --border-visible: rgba(0,0,0,0.18); /* Darker border for better visibility */
   --border-focus: rgba(29, 41, 63, 0.3);
 
   /* Soft UI Background Layers */
@@ -146,6 +148,7 @@
   --shadow-input: rgba(0, 0, 0, 0.015) 0px 4px 12px 0px;
   --shadow-hover: rgba(0, 0, 0, 0.06) 0px 4px 12px 0px, rgba(0, 0, 0, 0.04) 0px 0px 2px 0px;
   --shadow-active: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px;
+  --shadow-lg: rgba(0, 0, 0, 0.08) 0px 10px 40px 0px;
   --shadow-inset-subtle: inset 0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow-glow: 0 0 0 3px rgba(29, 41, 63, 0.1);
 
@@ -172,8 +175,8 @@
   --popover-foreground: #EAEAE9;
   --primary: #FFFFFF;
   --primary-foreground: #1A1A19;
-  --secondary: #1d293f;
-  --secondary-foreground: #FFFFFF;
+  --secondary: transparent;
+  --secondary-foreground: #EAEAE9;
   --brand: #FACC15;
   --brand-foreground: #1A1A19;
   --muted: #1A1A19;
@@ -187,8 +190,10 @@
   --ring: #1d293f;
 
   /* Enhanced Border System - Dark */
+  --border-transparent: transparent;
   --border-subtle: rgba(255,255,255,0.06);
   --border-hover: rgba(255,255,255,0.15);
+  --border-visible: rgba(255,255,255,0.22); /* Darker border for better visibility in dark mode */
   --border-focus: rgba(29, 41, 63, 0.4);
 
   /* Soft UI Background Layers - Dark */
@@ -232,6 +237,7 @@
   --shadow-input: rgba(0, 0, 0, 0.1) 0px 4px 12px 0px;
   --shadow-hover: rgba(0, 0, 0, 0.3) 0px 4px 12px 0px, rgba(0, 0, 0, 0.2) 0px 0px 2px 0px;
   --shadow-active: rgba(0, 0, 0, 0.1) 0px 1px 3px 0px;
+  --shadow-lg: rgba(0, 0, 0, 0.3) 0px 10px 40px 0px;
   --shadow-inset-subtle: inset 0 1px 2px rgba(0, 0, 0, 0.2);
   --shadow-glow: 0 0 0 3px rgba(29, 41, 63, 0.2);
 
@@ -290,7 +296,7 @@
   
   .card-interactive:hover {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-soft-drop);
+    box-shadow: var(--shadow-sm);
     background: var(--background-hover);
   }
 }

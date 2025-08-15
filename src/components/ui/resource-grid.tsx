@@ -77,7 +77,7 @@ export function ResourceCard({
       onClick={onClick}
       className={cn(
         "bg-card text-card-foreground border shadow-[var(--shadow-soft-drop)]",
-        "rounded-[var(--radius-card)]",
+        "rounded-xl",
         "flex h-36 select-none transition-colors",
         "hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         "px-6 py-6"

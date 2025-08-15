@@ -28,6 +28,7 @@ import {
 import { AckLoader } from "@/components/write-chat/messages/ack-loader";
 import { EmulateInputPanel } from "@/components/write-chat/messages/emulate-input-panel";
 import { VideoActionsPanel } from "@/components/write-chat/messages/video-actions-panel";
+import { PlaybookCards } from "@/components/write-chat/playbook-cards";
 import { Button, Card, ScrollArea } from "@/components/write-chat/primitives";
 import { type ChatMessage } from "@/components/write-chat/types";
 import { sendToSlideout, delay } from "@/components/write-chat/utils";
@@ -676,57 +677,13 @@ export function ClaudeChat({
   return (
     <div className={`font-sans ${className}`}>
       {/* Floating Slideout Toggle */}
-      <div className="fixed top-4 z-50">
-        {/* Mobile/Small screens: stick to right edge even when open */}
-        <div className="block lg:hidden">
-          <button
-            aria-label={isSlideoutOpen ? "Close slideout" : "Open slideout"}
-            onClick={() => {
-              if (isSlideoutOpen) {
-                window.dispatchEvent(new Event("write:close-slideout"));
-                setIsSlideoutOpen(false);
-              } else {
-                const ev = new CustomEvent("write:editor-set-content", { detail: { markdown: "" } });
-                window.dispatchEvent(ev);
-                setIsSlideoutOpen(true);
-              }
-            }}
-            className="text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring mr-4 rounded-[var(--radius-button)] bg-transparent p-2 transition-all duration-300 ease-linear focus-visible:ring-2 active:scale-[0.98]"
-            style={{ right: 0, position: "fixed" }}
-          >
-            {isSlideoutOpen ? <ArrowRight className="h-4 w-4" /> : <ArrowLeft className="h-4 w-4" />}
-          </button>
-        </div>
-        {/* Large screens: when open, follow divider at 50% width; otherwise hug right edge */}
-        <div className="hidden lg:block">
-          <button
-            aria-label={isSlideoutOpen ? "Close slideout" : "Open slideout"}
-            onClick={() => {
-              if (isSlideoutOpen) {
-                window.dispatchEvent(new Event("write:close-slideout"));
-                setIsSlideoutOpen(false);
-              } else {
-                const ev = new CustomEvent("write:editor-set-content", { detail: { markdown: "" } });
-                window.dispatchEvent(ev);
-                setIsSlideoutOpen(true);
-              }
-            }}
-            className="text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring rounded-[var(--radius-button)] bg-transparent p-2 transition-all duration-300 ease-linear focus-visible:ring-2 active:scale-[0.98]"
-            style={
-              isSlideoutOpen ? { right: "calc(50vw - 20px)", position: "fixed" } : { right: 16, position: "fixed" }
-            }
-          >
-            {isSlideoutOpen ? <ArrowRight className="h-4 w-4" /> : <ArrowLeft className="h-4 w-4" />}
-          </button>
-        </div>
-      </div>
       {/* Header */}
       {/* Header moved to parent page wrapper */}
 
       {/* Hero State */}
       {isHeroState && (
         <div className="mt-18 flex min-h-[calc(100vh-4rem)] flex-col items-center px-4 pt-24 md:pt-52">
-          <div className="mx-auto flex w-full max-w-2xl flex-col items-start gap-6 pb-8">
+          <div className="mx-auto flex w-full max-w-2xl flex-col items-start gap-3 pb-8">
             <div>
               <h1 className="text-foreground text-4xl leading-10 font-bold tracking-tight">
                 {`Hello${resolvedName ? ", " + resolvedName : ""}`}
@@ -899,6 +856,11 @@ export function ClaudeChat({
                 </div>
               </div>
             )}
+            
+            {/* Playbook Cards Section */}
+            <div className="w-full mt-8">
+              <PlaybookCards />
+            </div>
           </div>
         </div>
       )}
