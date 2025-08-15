@@ -5,7 +5,7 @@ export default defineConfig({
   manifest: {
     name: 'GenC Extension',
     description: 'Quick actions for Gen C API',
-    permissions: ['storage', 'contextMenus'],
+    permissions: ['storage', 'contextMenus', 'activeTab', 'scripting'],
     host_permissions: ['http://localhost:3000/*', 'https://gencpro.app/*'],
     options_ui: {
       page: 'options.html',

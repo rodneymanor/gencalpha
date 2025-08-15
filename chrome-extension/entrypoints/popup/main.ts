@@ -213,6 +213,9 @@ loadCollections();
 
 // Check current tab and show appropriate sections
 browser.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {
+  console.log("Tab info:", tab);
+  console.log("Tab URL:", tab?.url);
+  
   const videoSection = document.getElementById("video-section")!;
   const creatorSection = document.getElementById("creator-section")!;
   const videoSectionTitle = videoSection.querySelector("h2")!;
@@ -226,16 +229,24 @@ browser.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {
   creatorSection.style.display = "none";
   
   if (tab?.url) {
+    console.log("Processing URL:", tab.url);
+    
     // Check for video first
     const { isVideo, platform: videoPlatform } = isVideoUrl(tab.url);
+    console.log("Video check result:", { isVideo, platform: videoPlatform });
+    
     if (isVideo) {
+      console.log("Showing video section for", videoPlatform);
       videoSection.style.display = "block";
       videoSectionTitle.textContent = `Add ${videoPlatform} Video to Collection`;
       addVideoButton.textContent = `Add ${videoPlatform} Video`;
     } else {
       // Check for creator profile if not a video
       const { isCreator, platform: creatorPlatform, username } = isCreatorProfile(tab.url);
+      console.log("Creator check result:", { isCreator, platform: creatorPlatform, username });
+      
       if (isCreator) {
+        console.log("Showing creator section for", creatorPlatform, username);
         creatorSection.style.display = "block";
         creatorSectionTitle.textContent = `Add ${creatorPlatform.charAt(0).toUpperCase() + creatorPlatform.slice(1)} Creator`;
         creatorUsername.textContent = `@${username}`;
@@ -245,7 +256,11 @@ browser.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {
         (window as any).currentCreator = { username, platform: creatorPlatform };
       }
     }
+  } else {
+    console.log("No tab URL found");
   }
+}).catch(error => {
+  console.error("Error querying tab:", error);
 });
 
 // Add video to collection
