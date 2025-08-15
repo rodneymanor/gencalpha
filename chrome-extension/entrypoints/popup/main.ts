@@ -133,18 +133,37 @@ const addVideoToCollection = async (videoUrl: string, collectionTitle: string, v
   }
 };
 
-const isYouTubeUrl = (url: string): boolean => {
-  return url.includes("youtube.com") || url.includes("youtu.be");
+const isVideoUrl = (url: string): { isVideo: boolean; platform: string } => {
+  if (url.includes("youtube.com") || url.includes("youtu.be")) {
+    return { isVideo: true, platform: "YouTube" };
+  }
+  if (url.includes("tiktok.com")) {
+    return { isVideo: true, platform: "TikTok" };
+  }
+  if (url.includes("instagram.com") && (url.includes("/p/") || url.includes("/reel/"))) {
+    return { isVideo: true, platform: "Instagram" };
+  }
+  return { isVideo: false, platform: "" };
 };
 
 // Load collections when popup opens
 loadCollections();
 
-// Check if current tab is a YouTube video and show/hide video section
+// Check if current tab is a supported video platform and show/hide video section
 browser.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {
   const videoSection = document.getElementById("video-section")!;
-  if (tab?.url && isYouTubeUrl(tab.url)) {
-    videoSection.style.display = "block";
+  const videoSectionTitle = videoSection.querySelector("h2")!;
+  const addVideoButton = document.getElementById("btn-add-video")!;
+  
+  if (tab?.url) {
+    const { isVideo, platform } = isVideoUrl(tab.url);
+    if (isVideo) {
+      videoSection.style.display = "block";
+      videoSectionTitle.textContent = `Add ${platform} Video to Collection`;
+      addVideoButton.textContent = `Add ${platform} Video`;
+    } else {
+      videoSection.style.display = "none";
+    }
   } else {
     videoSection.style.display = "none";
   }
@@ -156,8 +175,14 @@ document.getElementById("btn-add-video")!.addEventListener("click", async () => 
   const videoUrl = tab?.url ?? "";
   const videoTitle = tab?.title ?? "";
   
-  if (!videoUrl || !isYouTubeUrl(videoUrl)) {
-    show("This is not a YouTube video", true);
+  if (!videoUrl) {
+    show("No video URL found", true);
+    return;
+  }
+  
+  const { isVideo, platform } = isVideoUrl(videoUrl);
+  if (!isVideo) {
+    show("This is not a supported video platform", true);
     return;
   }
   
@@ -176,7 +201,7 @@ document.getElementById("btn-add-video")!.addEventListener("click", async () => 
     return;
   }
   
-  show("Adding video...");
+  show(`Adding ${platform} video...`);
   addVideoToCollection(videoUrl, collectionTitle, videoTitle);
 });
 
