@@ -54,21 +54,49 @@ export async function POST(request: NextRequest) {
       collectionId = docRef.id;
     }
 
-    // Forward to core add-video workflow
+    // Use the queue-based workflow (same as UI) instead of the old direct add-video-to-collection
     const headers: HeadersInit = { "content-type": "application/json" };
     const apiKey = request.headers.get("x-api-key");
     const authHeader = request.headers.get("authorization");
     if (apiKey) headers["x-api-key"] = apiKey;
     if (authHeader) headers["authorization"] = authHeader;
 
-    const res = await fetch(buildInternalUrl("/api/add-video-to-collection"), {
+    console.log(`🎬 [Chrome Add Video] Using queue workflow for: ${videoUrl}`);
+    console.log(`📁 [Chrome Add Video] Target collection: ${collectionTitle} (${collectionId})`);
+
+    // Step 1: Add video to processing queue
+    const queueRes = await fetch(buildInternalUrl("/api/video/add-to-queue"), {
       method: "POST",
       headers,
-      body: JSON.stringify({ videoUrl, collectionId, title }),
+      body: JSON.stringify({ 
+        videoUrl, 
+        userId,
+        collectionId,
+        title: title || "Video from Chrome Extension"
+      }),
     });
 
-    const data = await res.json();
-    return NextResponse.json(data, { status: res.status });
+    if (!queueRes.ok) {
+      const queueError = await queueRes.json();
+      console.error("❌ [Chrome Add Video] Queue failed:", queueError);
+      return NextResponse.json({ 
+        success: false, 
+        error: `Failed to queue video: ${queueError.error || 'Unknown error'}` 
+      }, { status: queueRes.status });
+    }
+
+    const queueData = await queueRes.json();
+    console.log(`✅ [Chrome Add Video] Video queued successfully:`, queueData);
+
+    // Return success response similar to the UI workflow
+    return NextResponse.json({
+      success: true,
+      message: "Video added to processing queue",
+      jobId: queueData.jobId,
+      collectionTitle,
+      collectionId,
+      videoUrl
+    });
   } catch (error) {
     console.error("❌ [Chrome Add Video to Collection] Error:", error);
     return NextResponse.json({ success: false, error: "Failed to add video to collection" }, { status: 500 });
