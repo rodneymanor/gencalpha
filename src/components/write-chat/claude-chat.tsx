@@ -9,6 +9,8 @@ import { ArrowUp, SlidersHorizontal, Lightbulb, Pencil, Loader2 } from "lucide-r
 
 import { type PersonaType, PERSONAS } from "@/components/chatbot/persona-selector";
 // header dropdown moved to parent wrapper
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +19,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { startAckWithLoader, finishAndRemoveLoader } from "@/components/write-chat/ack-helpers";
 import {
   ACK_BEFORE_SLIDE_MS,
@@ -29,7 +32,6 @@ import { AckLoader } from "@/components/write-chat/messages/ack-loader";
 import { EmulateInputPanel } from "@/components/write-chat/messages/emulate-input-panel";
 import { VideoActionsPanel } from "@/components/write-chat/messages/video-actions-panel";
 import { PlaybookCards } from "@/components/write-chat/playbook-cards";
-import { Button, Card, ScrollArea } from "@/components/write-chat/primitives";
 import { type ChatMessage } from "@/components/write-chat/types";
 import { sendToSlideout, delay } from "@/components/write-chat/utils";
 import { useAuth } from "@/contexts/auth-context";

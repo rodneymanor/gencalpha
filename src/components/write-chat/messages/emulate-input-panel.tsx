@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/write-chat/primitives";
+import { Button } from "@/components/ui/button";
 
 type EmulateInputPanelProps = {
   value: string;

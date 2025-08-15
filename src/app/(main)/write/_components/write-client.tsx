@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import { ChevronDown, Share2 } from "lucide-react";
 
 import { type PersonaType } from "@/components/chatbot/persona-selector";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,7 +13,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import ClaudeChat from "@/components/write-chat/claude-chat";
-import { Button } from "@/components/write-chat/primitives";
 
 export function WriteClient({
   initialPrompt,

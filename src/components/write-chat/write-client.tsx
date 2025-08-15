@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Share2 } from "lucide-react";
 
 import { type PersonaType } from "@/components/chatbot/persona-selector";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,7 +14,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import ClaudeChat from "@/components/write-chat/claude-chat";
-import { Button } from "@/components/write-chat/primitives";
 
 export function WriteClient({
   initialPrompt,
@@ -69,7 +69,7 @@ export function WriteClient({
     <div className="flex min-h-screen flex-col">
       {/* Mobile header for hero state */}
       {isHeroState && (
-        <div className="flex md:hidden items-center p-4">
+        <div className="flex items-center p-4 md:hidden">
           <SidebarTrigger className="h-8 w-8" />
         </div>
       )}
@@ -81,7 +81,7 @@ export function WriteClient({
               style={{ paddingLeft: `${sidebarGapPx + 0}px` }}
             >
               <div className="flex min-w-0 flex-1 items-center gap-2">
-                <SidebarTrigger className="md:hidden h-8 w-8" />
+                <SidebarTrigger className="h-8 w-8 md:hidden" />
                 <div className="hover:bg-accent/50 inline-flex items-center rounded-[var(--radius-button)] px-1">
                   <input
                     ref={titleInputRef}
