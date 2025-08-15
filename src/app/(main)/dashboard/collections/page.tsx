@@ -12,8 +12,6 @@ import { VideoInsightsProvider } from "@/contexts/video-insights-context";
 import { VideoProcessingProvider } from "@/contexts/video-processing-context";
 import { RBACClientService } from "@/core/auth/rbac-client";
 
-import { CategorySelector } from "../../collections/_components/category-selector";
-
 import { AddVideoDialog } from "./_components/add-video-dialog";
 import { CollectionsProvider, useCollections } from "./_components/collections-context";
 import { CollectionsFilterDropdown } from "./_components/collections-filter-dropdown";
@@ -63,14 +61,6 @@ function CollectionsTabContent({
 }) {
   return (
     <>
-      {/* Category Selector */}
-      <CategorySelector
-        selectedCategory={selectedCollectionId}
-        onCategoryChange={setSelectedCollectionId}
-        collections={state.collections}
-        loading={state.loading}
-      />
-
       {/* Main Content */}
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-12">
         {/* Video Grid */}
