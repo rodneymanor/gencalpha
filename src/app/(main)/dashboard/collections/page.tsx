@@ -11,8 +11,6 @@ import { VideoInsightsWrapper } from "@/components/video-insights";
 import { VideoInsightsProvider } from "@/contexts/video-insights-context";
 import { useVideoProcessing, VideoProcessingProvider } from "@/contexts/video-processing-context";
 
-import { CategorySelector } from "../../collections/_components/category-selector";
-
 import { AddVideoDialog } from "./_components/add-video-dialog";
 import { CollectionsProvider, useCollections } from "./_components/collections-context";
 import { CreateCollectionDialog } from "./_components/create-collection-dialog";
@@ -56,14 +54,6 @@ function CollectionsContent() {
             </Button>
           </div>
         </div>
-
-        {/* Category Selector */}
-        <CategorySelector
-          selectedCategory={selectedCollectionId}
-          onCategoryChange={setSelectedCollectionId}
-          collections={state.collections}
-          loading={state.loading}
-        />
 
         {/* Main Content */}
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
