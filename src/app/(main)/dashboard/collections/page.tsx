@@ -31,7 +31,7 @@ function CollectionsContent() {
 
   return (
     <div className="bg-background min-h-screen">
-      <div className="container mx-auto p-8">
+      <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div className="flex items-center gap-4">
