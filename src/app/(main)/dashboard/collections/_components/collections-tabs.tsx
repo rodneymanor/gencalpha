@@ -2,12 +2,15 @@
 
 import { useState } from "react";
 
+import { GalleryVertical, Bookmark } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 
 interface Tab {
   id: string;
   label: string;
   href?: string;
+  icon?: React.ComponentType<{ className?: string }>;
 }
 
 interface CollectionsTabsProps {
@@ -18,8 +21,8 @@ interface CollectionsTabsProps {
 }
 
 const tabs: Tab[] = [
-  { id: "collections", label: "Collections" },
-  { id: "saved-collections", label: "Saved collections" },
+  { id: "collections", label: "Collections", icon: GalleryVertical },
+  { id: "saved-collections", label: "Saved collections", icon: Bookmark },
 ];
 
 export function CollectionsTabs({
@@ -49,6 +52,7 @@ export function CollectionsTabs({
                   "px-6 py-3 text-sm font-medium transition-all duration-150",
                   "-mb-px border-b-2 border-transparent",
                   "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
+                  "flex items-center gap-2",
                   isActive
                     ? "text-foreground border-b-primary"
                     : "text-muted-foreground hover:text-foreground hover:border-border",
@@ -58,6 +62,7 @@ export function CollectionsTabs({
                 aria-selected={isActive}
                 aria-controls={`panel-${tab.id}`}
               >
+                {tab.icon && <tab.icon className="h-4 w-4" />}
                 {tab.label}
               </button>
             );
