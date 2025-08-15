@@ -31,6 +31,15 @@ button[id="btn-add-video"]:active {
   transform: scale(0.98);
 }
 
+/* Creator button (Add Creator) hover state */
+button[id="btn-add-creator"]:hover {
+  background: #218838 !important;
+}
+
+button[id="btn-add-creator"]:active {
+  transform: scale(0.98);
+}
+
 /* Secondary buttons hover state */
 button[id="btn-save-tab"]:hover,
 button[id="btn-save-selection"]:hover {
