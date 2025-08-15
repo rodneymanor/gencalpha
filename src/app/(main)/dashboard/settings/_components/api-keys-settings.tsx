@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth-context";
+import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -32,7 +33,7 @@ interface ApiKeyResponse {
 }
 
 export function ApiKeysSettings() {
-  const { user, token } = useAuth();
+  const { user } = useAuth();
   const [keyStatus, setKeyStatus] = useState<ApiKeyResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -41,33 +42,50 @@ export function ApiKeysSettings() {
   const [showKey, setShowKey] = useState(false);
 
   const fetchKeyStatus = async () => {
-    if (!token) return;
+    console.log("fetchKeyStatus called, user:", !!user);
+    
+    if (!user || !auth.currentUser) {
+      console.log("No user available, stopping load");
+      setLoading(false);
+      return;
+    }
 
     try {
+      console.log("Getting Firebase ID token...");
+      const token = await auth.currentUser.getIdToken();
+      console.log("Got token, making API call to /api/keys");
+      
       const response = await fetch("/api/keys", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
+      console.log("API response status:", response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log("API key status data:", data);
         setKeyStatus(data);
       } else {
-        console.error("Failed to fetch API key status");
+        const errorData = await response.text();
+        console.error("Failed to fetch API key status:", response.status, errorData);
+        toast.error("Failed to load API key status");
       }
     } catch (error) {
       console.error("Error fetching API key status:", error);
+      toast.error("Error loading API key status");
     } finally {
       setLoading(false);
     }
   };
 
   const generateApiKey = async () => {
-    if (!token) return;
+    if (!user || !auth.currentUser) return;
 
     setGenerating(true);
     try {
+      const token = await auth.currentUser.getIdToken();
       const response = await fetch("/api/keys", {
         method: "POST",
         headers: {
@@ -94,10 +112,11 @@ export function ApiKeysSettings() {
   };
 
   const revokeApiKey = async () => {
-    if (!token) return;
+    if (!user || !auth.currentUser) return;
 
     setRevoking(true);
     try {
+      const token = await auth.currentUser.getIdToken();
       const response = await fetch("/api/keys", {
         method: "DELETE",
         headers: {
@@ -129,10 +148,17 @@ export function ApiKeysSettings() {
   };
 
   useEffect(() => {
-    if (user && token) {
+    console.log("useEffect triggered, user:", !!user);
+    if (user && auth.currentUser) {
       fetchKeyStatus();
+    } else if (user && !auth.currentUser) {
+      console.log("User exists but currentUser not ready, waiting...");
+      // Don't set loading false yet, wait for currentUser
+    } else {
+      console.log("No user, stopping loading");
+      setLoading(false);
     }
-  }, [user, token]);
+  }, [user]);
 
   if (loading) {
     return <div className="space-y-4 text-center py-8">Loading API key status...</div>;
