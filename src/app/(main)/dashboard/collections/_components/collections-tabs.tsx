@@ -17,11 +17,11 @@ interface CollectionsTabsProps {
 }
 
 const tabs: Tab[] = [
-  { id: "inspiration", label: "Inspiration", href: "/artifacts" },
-  { id: "your-artifacts", label: "Your artifacts", href: "/artifacts/my" },
+  { id: "collections", label: "Collections" },
+  { id: "saved-collections", label: "Saved collections" },
 ];
 
-export function CollectionsTabs({ defaultTab = "inspiration", onTabChange, className }: CollectionsTabsProps) {
+export function CollectionsTabs({ defaultTab = "collections", onTabChange, className }: CollectionsTabsProps) {
   const [activeTab, setActiveTab] = useState(defaultTab);
 
   const handleTabChange = (tabId: string) => {
@@ -55,22 +55,6 @@ export function CollectionsTabs({ defaultTab = "inspiration", onTabChange, class
             </button>
           );
         })}
-      </div>
-
-      {/* Tab content area */}
-      <div className="mt-6 p-4">
-        {activeTab === "inspiration" && (
-          <div id="panel-inspiration" role="tabpanel" aria-labelledby="tab-inspiration">
-            <h2 className="mb-2 text-xl font-semibold">Inspiration Content</h2>
-            <p className="text-muted-foreground">This is where your inspiration content would go.</p>
-          </div>
-        )}
-        {activeTab === "your-artifacts" && (
-          <div id="panel-your-artifacts" role="tabpanel" aria-labelledby="tab-your-artifacts">
-            <h2 className="mb-2 text-xl font-semibold">Your Artifacts</h2>
-            <p className="text-muted-foreground">This is where your artifacts would be displayed.</p>
-          </div>
-        )}
       </div>
     </div>
   );

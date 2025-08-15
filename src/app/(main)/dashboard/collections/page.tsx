@@ -19,13 +19,8 @@ import { CollectionsProvider, useCollections } from "./_components/collections-c
 import { CollectionsTabs } from "./_components/collections-tabs";
 import { VideoGrid } from "./_components/video-grid";
 
-function CollectionsContent() {
-  const [selectedCollectionId, setSelectedCollectionId] = useState<string>("all-videos");
-  const [isAddVideoDialogOpen, setIsAddVideoDialogOpen] = useState(false);
-  const { state, dispatch } = useCollections();
-  const { user } = useAuth();
-
-  // Load collections from database
+// Helper function to load collections
+const useLoadCollections = (user: any, dispatch: any) => {
   const loadCollections = useCallback(async () => {
     if (!user?.uid) return;
 
@@ -53,6 +48,17 @@ function CollectionsContent() {
       loadCollections();
     }
   }, [user?.uid, loadCollections]);
+};
+
+function CollectionsContent() {
+  const [selectedCollectionId, setSelectedCollectionId] = useState<string>("all-videos");
+  const [isAddVideoDialogOpen, setIsAddVideoDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>("collections");
+  const { state, dispatch } = useCollections();
+  const { user } = useAuth();
+
+  // Load collections from database
+  useLoadCollections(user, dispatch);
 
   // Get the selected collection data
   const selectedCollection =
@@ -76,37 +82,60 @@ function CollectionsContent() {
         </div>
 
         {/* Collections Tabs */}
-        <CollectionsTabs className="mb-6" />
+        <CollectionsTabs className="mb-6" defaultTab={activeTab} onTabChange={setActiveTab} />
 
-        {/* Category Selector */}
-        <CategorySelector
-          selectedCategory={selectedCollectionId}
-          onCategoryChange={setSelectedCollectionId}
-          collections={state.collections}
-          loading={state.loading}
-        />
+        {/* Tab Content */}
+        {activeTab === "collections" && (
+          <>
+            {/* Category Selector */}
+            <CategorySelector
+              selectedCategory={selectedCollectionId}
+              onCategoryChange={setSelectedCollectionId}
+              collections={state.collections}
+              loading={state.loading}
+            />
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-          {/* Video Grid */}
-          <div className="col-span-1 lg:col-span-12">
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  {selectedCollectionId === "all-videos"
-                    ? "All Videos"
-                    : (selectedCollection?.title ?? "Collection Videos")}
-                </CardTitle>
-                {selectedCollection?.description && (
-                  <p className="text-muted-foreground mt-1 text-sm">{selectedCollection.description}</p>
-                )}
-              </CardHeader>
-              <CardContent>
-                <VideoGrid collectionId={selectedCollectionId} />
-              </CardContent>
-            </Card>
+            {/* Main Content */}
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+              {/* Video Grid */}
+              <div className="col-span-1 lg:col-span-12">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>
+                      {selectedCollectionId === "all-videos"
+                        ? "All Videos"
+                        : (selectedCollection?.title ?? "Collection Videos")}
+                    </CardTitle>
+                    {selectedCollection?.description && (
+                      <p className="text-muted-foreground mt-1 text-sm">{selectedCollection.description}</p>
+                    )}
+                  </CardHeader>
+                  <CardContent>
+                    <VideoGrid collectionId={selectedCollectionId} />
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </>
+        )}
+
+        {activeTab === "saved-collections" && (
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+            <div className="col-span-1 lg:col-span-12">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Saved Collections</CardTitle>
+                  <p className="text-muted-foreground mt-1 text-sm">Collections you&apos;ve saved for later</p>
+                </CardHeader>
+                <CardContent>
+                  <div className="py-12 text-center">
+                    <p className="text-muted-foreground">Saved collections functionality coming soon...</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Dialogs */}
