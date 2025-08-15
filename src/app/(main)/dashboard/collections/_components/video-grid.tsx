@@ -140,8 +140,6 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
             {formatNumber(video.metrics.views)}
           </span>
         )}
-        {video.metrics.likes > 0 && <span>❤️ {formatNumber(video.metrics.likes)}</span>}
-        {video.metrics.comments > 0 && <span>💬 {formatNumber(video.metrics.comments)}</span>}
       </div>
     );
 

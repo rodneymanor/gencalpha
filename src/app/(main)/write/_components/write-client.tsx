@@ -6,6 +6,7 @@ import { ChevronDown, Share2 } from "lucide-react";
 
 import { type PersonaType } from "@/components/chatbot/persona-selector";
 import { Button } from "@/components/ui/button";
+import { CollectionCombobox } from "@/components/ui/collection-combobox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,6 +25,7 @@ export function WriteClient({
   const [isHeroState, setIsHeroState] = useState(true);
   const [chatTitle, setChatTitle] = useState<string>("Untitled Chat");
   const titleInputRef = useRef<HTMLInputElement | null>(null);
+  const [selectedCollectionId, setSelectedCollectionId] = useState<string>("all-videos");
 
   return (
     <>
@@ -70,10 +72,18 @@ export function WriteClient({
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-            <Button variant="outline" size="sm" className="ml-3 rounded-[var(--radius-button)] pr-3 pl-2">
-              <Share2 className="mr-1.5 h-4 w-4" />
-              <span className="hidden sm:inline">Share</span>
-            </Button>
+            <div className="flex items-center gap-2">
+              <CollectionCombobox
+                selectedCollectionId={selectedCollectionId}
+                onChange={setSelectedCollectionId}
+                placeholder="Select collection"
+                className="hidden sm:flex"
+              />
+              <Button variant="outline" size="sm" className="ml-1 rounded-[var(--radius-button)] pr-3 pl-2">
+                <Share2 className="mr-1.5 h-4 w-4" />
+                <span className="hidden sm:inline">Share</span>
+              </Button>
+            </div>
           </div>
         </div>
       )}
