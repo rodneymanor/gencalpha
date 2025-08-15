@@ -133,7 +133,7 @@ export function SlideoutWrapper({ children, slideout: _slideout, className, cont
           className={cn(
             "min-h-0 transition-all duration-300",
             isWritePage && isOpen
-              ? "flex w-full" // On write page, keep main content visible when slideout is open
+              ? "flex w-full pr-[400px]" // On write page, add right padding for slideout width
               : isOpen
                 ? "hidden lg:flex lg:w-1/2" // On other pages, use original behavior
                 : "flex w-full",

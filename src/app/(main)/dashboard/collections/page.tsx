@@ -13,7 +13,6 @@ import { useVideoProcessing, VideoProcessingProvider } from "@/contexts/video-pr
 
 import { AddVideoDialog } from "./_components/add-video-dialog";
 import { CollectionsProvider, useCollections } from "./_components/collections-context";
-import { CollectionsSidebar } from "./_components/collections-sidebar";
 import { CreateCollectionDialog } from "./_components/create-collection-dialog";
 import { VideoGrid } from "./_components/video-grid";
 
@@ -58,20 +57,8 @@ function CollectionsContent() {
 
         {/* Main Content */}
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-          {/* Sidebar */}
-          <div className="hidden lg:col-span-3 lg:block">
-            <Card>
-              <CardContent className="p-0">
-                <CollectionsSidebar
-                  selectedCollectionId={selectedCollectionId}
-                  onSelectCollection={setSelectedCollectionId}
-                />
-              </CardContent>
-            </Card>
-          </div>
-
           {/* Video Grid */}
-          <div className="col-span-1 lg:col-span-9">
+          <div className="col-span-1 lg:col-span-12">
             <Card>
               <CardHeader>
                 <CardTitle>
