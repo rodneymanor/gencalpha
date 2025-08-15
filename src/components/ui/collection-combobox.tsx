@@ -60,8 +60,17 @@ export function CollectionCombobox({
   }, [user?.uid]);
 
   const options = useMemo(() => {
+    const totalCount = collections.reduce((sum, c) => sum + (typeof c.videoCount === "number" ? c.videoCount : 0), 0);
     const base = includeAllVideosOption
-      ? [{ id: "all-videos", title: "All Videos", description: "All content", userId: user?.uid ?? "", videoCount: 0, createdAt: "", updatedAt: "" } as Collection]
+      ? [{
+          id: "all-videos",
+          title: "All Videos",
+          description: "All content",
+          userId: user?.uid ?? "",
+          videoCount: totalCount,
+          createdAt: "",
+          updatedAt: "",
+        } as Collection]
       : [];
     return [...base, ...collections];
   }, [collections, includeAllVideosOption, user?.uid]);
