@@ -20,7 +20,7 @@ import { CollectionsTabs } from "./_components/collections-tabs";
 import { VideoGrid } from "./_components/video-grid";
 
 // Helper function to load collections
-const useLoadCollections = (user: any, dispatch: any) => {
+const useLoadCollections = (user: { uid?: string } | null, dispatch: (action: any) => void) => {
   const loadCollections = useCallback(async () => {
     if (!user?.uid) return;
 
@@ -50,6 +50,74 @@ const useLoadCollections = (user: any, dispatch: any) => {
   }, [user?.uid, loadCollections]);
 };
 
+// Collections tab content component
+function CollectionsTabContent({
+  selectedCollectionId,
+  setSelectedCollectionId,
+  state,
+  selectedCollection,
+}: {
+  selectedCollectionId: string;
+  setSelectedCollectionId: (id: string) => void;
+  state: any;
+  selectedCollection: any;
+}) {
+  return (
+    <>
+      {/* Category Selector */}
+      <CategorySelector
+        selectedCategory={selectedCollectionId}
+        onCategoryChange={setSelectedCollectionId}
+        collections={state.collections}
+        loading={state.loading}
+      />
+
+      {/* Main Content */}
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+        {/* Video Grid */}
+        <div className="col-span-1 lg:col-span-12">
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                {selectedCollectionId === "all-videos"
+                  ? "All Videos"
+                  : (selectedCollection?.title ?? "Collection Videos")}
+              </CardTitle>
+              {selectedCollection?.description && (
+                <p className="text-muted-foreground mt-1 text-sm">{selectedCollection.description}</p>
+              )}
+            </CardHeader>
+            <CardContent>
+              <VideoGrid collectionId={selectedCollectionId} />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// Saved collections tab content component
+function SavedCollectionsTabContent() {
+  return (
+    <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+      <div className="col-span-1 lg:col-span-12">
+        <Card>
+          <CardHeader>
+            <CardTitle>Saved Collections</CardTitle>
+            <p className="text-muted-foreground mt-1 text-sm">Collections you&apos;ve saved for later</p>
+          </CardHeader>
+          <CardContent>
+            <div className="py-12 text-center">
+              <p className="text-muted-foreground">Saved collections functionality coming soon...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
 function CollectionsContent() {
   const [selectedCollectionId, setSelectedCollectionId] = useState<string>("all-videos");
   const [isAddVideoDialogOpen, setIsAddVideoDialogOpen] = useState(false);
@@ -70,8 +138,14 @@ function CollectionsContent() {
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Video Collections</h1>
-            <p className="text-muted-foreground">Organize and manage your video content</p>
+            <h1 className="text-3xl font-bold tracking-tight">
+              {selectedCollectionId === "all-videos" ? "All Videos" : (selectedCollection?.title ?? "Collection")}
+            </h1>
+            <p className="text-muted-foreground">
+              {selectedCollectionId === "all-videos"
+                ? "All your video content in one place"
+                : (selectedCollection?.description ?? "Organize and manage your video content")}
+            </p>
           </div>
           <div className="flex gap-3">
             <Button onClick={() => setIsAddVideoDialogOpen(true)} className="gap-2">
@@ -85,56 +159,15 @@ function CollectionsContent() {
         <CollectionsTabs className="mb-6" defaultTab={activeTab} onTabChange={setActiveTab} />
 
         {/* Tab Content */}
-        {activeTab === "collections" && (
-          <>
-            {/* Category Selector */}
-            <CategorySelector
-              selectedCategory={selectedCollectionId}
-              onCategoryChange={setSelectedCollectionId}
-              collections={state.collections}
-              loading={state.loading}
-            />
-
-            {/* Main Content */}
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-              {/* Video Grid */}
-              <div className="col-span-1 lg:col-span-12">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>
-                      {selectedCollectionId === "all-videos"
-                        ? "All Videos"
-                        : (selectedCollection?.title ?? "Collection Videos")}
-                    </CardTitle>
-                    {selectedCollection?.description && (
-                      <p className="text-muted-foreground mt-1 text-sm">{selectedCollection.description}</p>
-                    )}
-                  </CardHeader>
-                  <CardContent>
-                    <VideoGrid collectionId={selectedCollectionId} />
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </>
-        )}
-
-        {activeTab === "saved-collections" && (
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-            <div className="col-span-1 lg:col-span-12">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Saved Collections</CardTitle>
-                  <p className="text-muted-foreground mt-1 text-sm">Collections you&apos;ve saved for later</p>
-                </CardHeader>
-                <CardContent>
-                  <div className="py-12 text-center">
-                    <p className="text-muted-foreground">Saved collections functionality coming soon...</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+        {activeTab === "collections" ? (
+          <CollectionsTabContent
+            selectedCollectionId={selectedCollectionId}
+            setSelectedCollectionId={setSelectedCollectionId}
+            state={state}
+            selectedCollection={selectedCollection}
+          />
+        ) : (
+          <SavedCollectionsTabContent />
         )}
       </div>
 
