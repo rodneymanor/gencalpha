@@ -16,6 +16,7 @@ import { CategorySelector } from "../../collections/_components/category-selecto
 
 import { AddVideoDialog } from "./_components/add-video-dialog";
 import { CollectionsProvider, useCollections } from "./_components/collections-context";
+import { CollectionsFilterDropdown } from "./_components/collections-filter-dropdown";
 import { CollectionsTabs } from "./_components/collections-tabs";
 import { VideoGrid } from "./_components/video-grid";
 
@@ -55,12 +56,10 @@ function CollectionsTabContent({
   selectedCollectionId,
   setSelectedCollectionId,
   state,
-  selectedCollection,
 }: {
   selectedCollectionId: string;
   setSelectedCollectionId: (id: string) => void;
   state: any;
-  selectedCollection: any;
 }) {
   return (
     <>
@@ -112,6 +111,7 @@ function CollectionsContent() {
   const [selectedCollectionId, setSelectedCollectionId] = useState<string>("all-videos");
   const [isAddVideoDialogOpen, setIsAddVideoDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("collections");
+  const [filterValue, setFilterValue] = useState<string>("all");
   const { state, dispatch } = useCollections();
   const { user } = useAuth();
 
@@ -146,7 +146,12 @@ function CollectionsContent() {
         </div>
 
         {/* Collections Tabs */}
-        <CollectionsTabs className="mb-6" defaultTab={activeTab} onTabChange={setActiveTab} />
+        <CollectionsTabs
+          className="mb-6"
+          defaultTab={activeTab}
+          onTabChange={setActiveTab}
+          rightContent={<CollectionsFilterDropdown value={filterValue} onValueChange={setFilterValue} />}
+        />
 
         {/* Tab Content */}
         {activeTab === "collections" ? (
@@ -154,7 +159,6 @@ function CollectionsContent() {
             selectedCollectionId={selectedCollectionId}
             setSelectedCollectionId={setSelectedCollectionId}
             state={state}
-            selectedCollection={selectedCollection}
           />
         ) : (
           <SavedCollectionsTabContent />
