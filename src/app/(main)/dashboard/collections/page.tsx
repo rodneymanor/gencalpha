@@ -11,6 +11,8 @@ import { VideoInsightsWrapper } from "@/components/video-insights";
 import { VideoInsightsProvider } from "@/contexts/video-insights-context";
 import { useVideoProcessing, VideoProcessingProvider } from "@/contexts/video-processing-context";
 
+import { CollectionsDropdown } from "../../collections/_components/collections-dropdown";
+
 import { AddVideoDialog } from "./_components/add-video-dialog";
 import { CollectionsProvider, useCollections } from "./_components/collections-context";
 import { CreateCollectionDialog } from "./_components/create-collection-dialog";
@@ -32,9 +34,17 @@ function CollectionsContent() {
       <div className="container mx-auto p-8">
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Video Collections</h1>
-            <p className="text-muted-foreground">Organize and manage your video content</p>
+          <div className="flex items-center gap-4">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Video Collections</h1>
+              <p className="text-muted-foreground">Organize and manage your video content</p>
+            </div>
+            <CollectionsDropdown
+              selectedCollection={selectedCollectionId}
+              onCollectionChange={setSelectedCollectionId}
+              collections={state.collections}
+              loading={state.loading}
+            />
           </div>
           <div className="flex gap-3">
             <ProcessingTooltip jobs={jobs}>
