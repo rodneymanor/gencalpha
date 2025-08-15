@@ -10,8 +10,6 @@ import { VideoInsightsWrapper } from "@/components/video-insights";
 import { VideoInsightsProvider } from "@/contexts/video-insights-context";
 import { VideoProcessingProvider } from "@/contexts/video-processing-context";
 
-import { CollectionsDropdown } from "../../collections/_components/collections-dropdown";
-
 import { AddVideoDialog } from "./_components/add-video-dialog";
 import { CollectionsProvider, useCollections } from "./_components/collections-context";
 import { VideoGrid } from "./_components/video-grid";
@@ -30,17 +28,9 @@ function CollectionsContent() {
       <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Video Collections</h1>
-              <p className="text-muted-foreground">Organize and manage your video content</p>
-            </div>
-            <CollectionsDropdown
-              selectedCollection={selectedCollectionId}
-              onCollectionChange={setSelectedCollectionId}
-              collections={state.collections}
-              loading={state.loading}
-            />
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Video Collections</h1>
+            <p className="text-muted-foreground">Organize and manage your video content</p>
           </div>
           <div className="flex gap-3">
             <Button onClick={() => setIsAddVideoDialogOpen(true)} className="gap-2">
