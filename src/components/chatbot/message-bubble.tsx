@@ -1,6 +1,7 @@
 "use client";
 
 import { User, Bot } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 
 interface MessageBubbleProps {
@@ -11,13 +12,7 @@ interface MessageBubbleProps {
   className?: string;
 }
 
-export function MessageBubble({
-  message,
-  isUser,
-  timestamp,
-  persona,
-  className
-}: MessageBubbleProps) {
+export function MessageBubble({ message, isUser, timestamp, persona, className }: MessageBubbleProps) {
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
@@ -33,7 +28,7 @@ export function MessageBubble({
       <div className={cn("flex max-w-[80%] flex-col gap-1", isUser ? "items-end" : "items-start")}>
         {!isUser && persona && <div className="text-muted-foreground text-xs font-medium">{persona}</div>}
 
-
+        <div
           className={cn(
             "rounded-2xl px-4 py-2 text-sm",
             isUser ? "bg-primary text-primary-foreground" : "bg-muted text-foreground",
