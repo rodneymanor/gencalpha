@@ -37,7 +37,7 @@ export function CollectionsTabs({
 
   return (
     <div className={cn("w-full", className)}>
-      <div className="border-border flex items-center justify-between border-b">
+      <div className="border-border flex items-end justify-between border-b">
         <div className="flex">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
@@ -47,7 +47,7 @@ export function CollectionsTabs({
                 onClick={() => handleTabChange(tab.id)}
                 className={cn(
                   "px-6 py-3 text-sm font-medium transition-all duration-150",
-                  "border-b-2 border-transparent",
+                  "-mb-px border-b-2 border-transparent",
                   "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
                   isActive
                     ? "text-foreground border-b-primary"
