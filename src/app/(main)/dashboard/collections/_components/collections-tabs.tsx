@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { GalleryVertical, Bookmark } from "lucide-react";
+import { GalleryVerticalEnd, Bookmark } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -21,7 +21,7 @@ interface CollectionsTabsProps {
 }
 
 const tabs: Tab[] = [
-  { id: "collections", label: "Collections", icon: GalleryVertical },
+  { id: "collections", label: "Collections", icon: GalleryVerticalEnd },
   { id: "saved-collections", label: "Saved collections", icon: Bookmark },
 ];
 
