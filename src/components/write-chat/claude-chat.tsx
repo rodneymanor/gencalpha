@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 //
-import { ArrowUp, SlidersHorizontal, Lightbulb, Pencil, Loader2, ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowUp, SlidersHorizontal, Lightbulb, Pencil, Loader2 } from "lucide-react";
 
 import { type PersonaType, PERSONAS } from "@/components/chatbot/persona-selector";
 // header dropdown moved to parent wrapper
@@ -798,11 +798,12 @@ export function ClaudeChat({
                     </div>
                     <Button
                       size="icon"
-                      className={`size-8 transition-shadow ${
+                      variant={!isUrlProcessing && (hasValidVideoUrl || inputValue.trim()) ? "default" : "secondary"}
+                      className={`transition-shadow ${
                         !isUrlProcessing && (hasValidVideoUrl || inputValue.trim())
-                          ? `bg-primary text-primary-foreground hover:opacity-90 ${hasValidVideoUrl ? "animate-clarity-pulse shadow-[var(--shadow-soft-drop)]" : ""}`
-                          : "bg-muted text-muted-foreground"
-                      } focus-visible:ring-ring focus-visible:ring-2`}
+                          ? `hover:opacity-90 ${hasValidVideoUrl ? "animate-clarity-pulse shadow-[var(--shadow-soft-drop)]" : ""}`
+                          : ""
+                      }`}
                       disabled={isUrlProcessing || !(hasValidVideoUrl || inputValue.trim())}
                       onClick={() => {
                         if (!isUrlProcessing) {
@@ -856,9 +857,9 @@ export function ClaudeChat({
                 </div>
               </div>
             )}
-            
+
             {/* Playbook Cards Section */}
-            <div className="w-full mt-8">
+            <div className="mt-8 w-full">
               <PlaybookCards />
             </div>
           </div>
@@ -954,11 +955,10 @@ export function ClaudeChat({
                     />
                     <Button
                       size="icon"
-                      className={`size-8 transition-shadow ${
-                        !isUrlProcessing && (hasValidVideoUrl || inputValue.trim())
-                          ? "bg-primary text-primary-foreground hover:opacity-90"
-                          : "bg-muted text-muted-foreground"
-                      } focus-visible:ring-ring focus-visible:ring-2`}
+                      variant={!isUrlProcessing && (hasValidVideoUrl || inputValue.trim()) ? "default" : "secondary"}
+                      className={`transition-shadow ${
+                        !isUrlProcessing && (hasValidVideoUrl || inputValue.trim()) ? "hover:opacity-90" : ""
+                      }`}
                       disabled={isUrlProcessing || !(hasValidVideoUrl || inputValue.trim())}
                       onClick={() => {
                         if (!isUrlProcessing) {
