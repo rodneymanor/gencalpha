@@ -3,10 +3,10 @@
 import { useState } from "react";
 
 import { CheckCircle, XCircle, Clock, X } from "lucide-react";
-import { ClarityLoader } from "@/components/ui/loading";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ClarityLoader } from "@/components/ui/loading";
 import {
   Popover,
   PopoverContent,

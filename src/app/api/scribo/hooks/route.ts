@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { generateContent } from "@/lib/services/gemini-service";
 
 export interface ScriboHook {
@@ -25,10 +26,13 @@ export async function POST(request: NextRequest) {
     const { topic } = await request.json();
 
     if (!topic || typeof topic !== "string") {
-      return NextResponse.json({ 
-        success: false, 
-        error: "Topic is required" 
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Topic is required",
+        },
+        { status: 400 },
+      );
     }
 
     console.log("🎯 Generating Scribo hooks for topic:", topic);
@@ -80,10 +84,13 @@ Return a JSON array with exactly 20 hooks:
 
     if (!aiResponse.success || !aiResponse.content) {
       console.error("❌ AI response failed:", aiResponse.error);
-      return NextResponse.json({ 
-        success: false, 
-        error: aiResponse.error ?? "Failed to generate hooks" 
-      }, { status: 500 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: aiResponse.error ?? "Failed to generate hooks",
+        },
+        { status: 500 },
+      );
     }
 
     let hooks: ScriboHook[];
@@ -108,18 +115,20 @@ Return a JSON array with exactly 20 hooks:
 
     console.log("✅ Generated", hooks.length, "Scribo hooks successfully");
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       hooks,
-      tokensUsed: aiResponse.tokensUsed 
+      tokensUsed: aiResponse.tokensUsed,
     });
-
   } catch (error) {
     console.error("❌ Scribo hooks API error:", error);
-    return NextResponse.json({ 
-      success: false, 
-      error: "Internal server error" 
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Internal server error",
+      },
+      { status: 500 },
+    );
   }
 }
 
@@ -128,48 +137,49 @@ Return a JSON array with exactly 20 hooks:
  */
 function extractHooksFromText(content: string): ScriboHook[] {
   const hooks: ScriboHook[] = [];
-  const lines = content.split('\n');
-  
+  const lines = content.split("\n");
+
   let currentId = 1;
-  
+
   for (const line of lines) {
     const trimmed = line.trim();
-    
+
     // Look for numbered hooks (1., 2., etc.)
     const numberMatch = trimmed.match(/^(\d+)\.?\s*(.+)/);
     if (numberMatch && currentId <= 20) {
-      const hookText = numberMatch[2].replace(/["""]/g, '').trim();
-      
-      if (hookText.length > 10) { // Ensure it's substantial
+      const hookText = numberMatch[2].replace(/["""]/g, "").trim();
+
+      if (hookText.length > 10) {
+        // Ensure it's substantial
         hooks.push({
           id: currentId,
           text: hookText,
           template: inferTemplate(hookText),
-          strength: inferStrength(hookText)
+          strength: inferStrength(hookText),
         });
         currentId++;
       }
     }
   }
-  
+
   // If we didn't get enough hooks, try to extract any quoted text
   if (hooks.length < 10) {
     const quotedMatches = content.match(/"([^"]{10,})"/g);
     if (quotedMatches) {
       quotedMatches.forEach((match, _index) => {
         if (hooks.length < 20) {
-          const hookText = match.replace(/["""]/g, '').trim();
+          const hookText = match.replace(/["""]/g, "").trim();
           hooks.push({
             id: hooks.length + 1,
             text: hookText,
             template: inferTemplate(hookText),
-            strength: inferStrength(hookText)
+            strength: inferStrength(hookText),
           });
         }
       });
     }
   }
-  
+
   return hooks.slice(0, 20); // Ensure max 20 hooks
 }
 
@@ -178,19 +188,19 @@ function extractHooksFromText(content: string): ScriboHook[] {
  */
 function inferTemplate(hookText: string): string {
   const text = hookText.toLowerCase();
-  
-  if (text.startsWith('if ')) return 'IF-THEN';
-  if (text.startsWith('before ')) return 'BEFORE';
-  if (text.startsWith('when ') || text.startsWith('whenever ')) return 'WHEN';
-  if (text.includes('secret')) return 'SECRET REVEAL';
-  if (text.includes('stop ')) return 'STOP';
-  if (text.includes('mistake')) return 'MISTAKE REVEAL';
-  if (text.includes('truth')) return 'TRUTH REVEAL';
-  if (text.includes('why ')) return 'WHY';
-  if (text.includes('?')) return 'QUESTION';
-  if (text.startsWith('here') || text.startsWith('this ')) return 'DIRECT';
-  
-  return 'GENERAL';
+
+  if (text.startsWith("if ")) return "IF-THEN";
+  if (text.startsWith("before ")) return "BEFORE";
+  if (text.startsWith("when ") || text.startsWith("whenever ")) return "WHEN";
+  if (text.includes("secret")) return "SECRET REVEAL";
+  if (text.includes("stop ")) return "STOP";
+  if (text.includes("mistake")) return "MISTAKE REVEAL";
+  if (text.includes("truth")) return "TRUTH REVEAL";
+  if (text.includes("why ")) return "WHY";
+  if (text.includes("?")) return "QUESTION";
+  if (text.startsWith("here") || text.startsWith("this ")) return "DIRECT";
+
+  return "GENERAL";
 }
 
 /**
@@ -198,12 +208,12 @@ function inferTemplate(hookText: string): string {
  */
 function inferStrength(hookText: string): string {
   const text = hookText.toLowerCase();
-  
-  if (text.includes('secret') || text.includes('hidden')) return 'curiosity';
-  if (text.includes('mistake') || text.includes('wrong') || text.includes('fail')) return 'fear';
-  if (text.includes('best') || text.includes('amazing') || text.includes('incredible')) return 'desire';
-  if (text.includes('stop') || text.includes('never') || text.includes('avoid')) return 'urgency';
-  if (text.includes('truth') || text.includes('reality')) return 'revelation';
-  
-  return 'interest';
+
+  if (text.includes("secret") || text.includes("hidden")) return "curiosity";
+  if (text.includes("mistake") || text.includes("wrong") || text.includes("fail")) return "fear";
+  if (text.includes("best") || text.includes("amazing") || text.includes("incredible")) return "desire";
+  if (text.includes("stop") || text.includes("never") || text.includes("avoid")) return "urgency";
+  if (text.includes("truth") || text.includes("reality")) return "revelation";
+
+  return "interest";
 }

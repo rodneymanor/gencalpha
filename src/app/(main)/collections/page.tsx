@@ -4,7 +4,6 @@ import { useCallback, useState, useEffect } from "react";
 
 import { Video } from "lucide-react";
 
-import CollectionsVideoGrid, { type VideoData } from "./_components/collections-video-grid";
 import { Button } from "@/components/ui/button";
 import { FloatingVideoPlayer, useFloatingVideo } from "@/components/video/video-slideout-player";
 import { useAuth } from "@/contexts/auth-context";
@@ -13,6 +12,7 @@ import type { Video as VideoType, Collection } from "@/lib/collections";
 import { transformVideoDataToVideo } from "@/lib/video-player-helpers";
 
 import { CategorySelector } from "./_components/category-selector";
+import CollectionsVideoGrid, { type VideoData } from "./_components/collections-video-grid";
 
 export default function CollectionsPage() {
   const { user } = useAuth();
@@ -72,7 +72,7 @@ export default function CollectionsPage() {
 
   const loadCollections = useCallback(async () => {
     if (!user?.uid) return;
-    
+
     setCollectionsLoading(true);
     try {
       const result = await RBACClientService.getUserCollections(user.uid);
@@ -134,8 +134,8 @@ export default function CollectionsPage() {
             </Button>
           </div>
           <div className="mt-6">
-            <CategorySelector 
-              selectedCategory={selectedCategory} 
+            <CategorySelector
+              selectedCategory={selectedCategory}
               onCategoryChange={handleCategoryChange}
               collections={collections}
               loading={collectionsLoading}

@@ -199,7 +199,8 @@ export async function POST(request: NextRequest) {
       thumbnailUrl:
         (streamResult.thumbnailUrl ?? (streamResult.guid ? generateBunnyThumbnailUrl(streamResult.guid) : null)) ||
         downloadResult.data.thumbnailUrl,
-      previewUrl: streamResult.previewUrl ?? (streamResult.guid ? generateBunnyPreviewUrl(streamResult.guid) : undefined),
+      previewUrl:
+        streamResult.previewUrl ?? (streamResult.guid ? generateBunnyPreviewUrl(streamResult.guid) : undefined),
       metrics: downloadResult.data.metrics || {},
       metadata: {
         ...(downloadResult.data.metadata || {}),
@@ -314,17 +315,17 @@ async function streamToBunny(downloadData: any) {
 
     console.log("✅ [VIDEO_PROCESS] Bunny stream successful:", result.cdnUrl);
 
-  // Generate Bunny CDN thumbnail & preview URLs using the video ID
-  const thumbnailUrl = generateBunnyThumbnailUrl(result.filename);
-  const previewUrl = generateBunnyPreviewUrl(result.filename);
+    // Generate Bunny CDN thumbnail & preview URLs using the video ID
+    const thumbnailUrl = generateBunnyThumbnailUrl(result.filename);
+    const previewUrl = generateBunnyPreviewUrl(result.filename);
 
-  const returnValue = {
+    const returnValue = {
       success: true,
       iframeUrl: result.cdnUrl,
       directUrl: result.cdnUrl,
       guid: result.filename, // This is actually the GUID
-    thumbnailUrl,
-    previewUrl,
+      thumbnailUrl,
+      previewUrl,
     };
 
     console.log("🔍 [VIDEO_PROCESS] Returning:", returnValue);

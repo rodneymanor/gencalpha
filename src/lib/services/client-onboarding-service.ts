@@ -1,6 +1,7 @@
-import { auth, db } from "@/lib/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
+
 import type { OnboardingSelections } from "@/components/ui/onboarding-wizard-modal";
+import { auth, db } from "@/lib/firebase";
 
 /**
  * Client-side helper for persisting and retrieving a user's onboarding selections
@@ -20,28 +21,26 @@ export class ClientOnboardingService {
     console.log("🔧 [ClientOnboardingService] Auth object:", !!auth);
     console.log("🔧 [ClientOnboardingService] DB object:", !!db);
     console.log("🔧 [ClientOnboardingService] Current user:", !!auth?.currentUser);
-    
+
     if (!auth?.currentUser) {
       console.error("❌ [ClientOnboardingService] User not authenticated");
       throw new Error("User not authenticated");
     }
-    
+
     if (!db) {
       console.error("❌ [ClientOnboardingService] Firestore not initialised");
-      console.error("❌ [ClientOnboardingService] This likely means Firebase environment variables are not set correctly");
+      console.error(
+        "❌ [ClientOnboardingService] This likely means Firebase environment variables are not set correctly",
+      );
       throw new Error("Firestore not initialised");
     }
 
     const { uid } = auth.currentUser;
     console.log("🔧 [ClientOnboardingService] User UID:", uid);
     console.log("🔧 [ClientOnboardingService] Saving selections:", selections);
-    
+
     try {
-      await setDoc(
-        this.userDoc(uid),
-        { onboardingSelections: selections },
-        { merge: true }
-      );
+      await setDoc(this.userDoc(uid), { onboardingSelections: selections }, { merge: true });
       console.log("✅ [ClientOnboardingService] Successfully saved to Firestore");
     } catch (firestoreError) {
       console.error("❌ [ClientOnboardingService] Firestore error:", firestoreError);

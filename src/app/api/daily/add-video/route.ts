@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { getAdminDb, isAdminInitialized } from "@/lib/firebase-admin";
+
 import { processVideoWorkflow } from "../../process-video/route";
 
 interface AddDailyVideoBody {
@@ -21,25 +22,16 @@ export async function POST(request: NextRequest) {
     const { videoUrl, interest, title }: AddDailyVideoBody = await request.json();
 
     if (!videoUrl) {
-      return NextResponse.json(
-        { success: false, error: "videoUrl is required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ success: false, error: "videoUrl is required" }, { status: 400 });
     }
 
     if (!isAdminInitialized) {
-      return NextResponse.json(
-        { success: false, error: "Firebase not initialised" },
-        { status: 500 },
-      );
+      return NextResponse.json({ success: false, error: "Firebase not initialised" }, { status: 500 });
     }
 
     const adminDb = getAdminDb();
     if (!adminDb) {
-      return NextResponse.json(
-        { success: false, error: "Admin DB unavailable" },
-        { status: 500 },
-      );
+      return NextResponse.json({ success: false, error: "Admin DB unavailable" }, { status: 500 });
     }
 
     // Run consolidated processing workflow (download, CDN upload, transcription, etc.)

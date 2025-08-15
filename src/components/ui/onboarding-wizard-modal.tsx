@@ -1,22 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { VisuallyHidden } from "@/components/ui/visually-hidden";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { ClientOnboardingService } from "@/lib/services/client-onboarding-service";
-import { Card } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
-import { 
-  Sparkles, 
-  TrendingUp, 
-  Hash, 
-  CheckCircle2, 
-  Plus, 
+
+import {
+  TrendingUp,
+  Hash,
+  CheckCircle2,
+  Plus,
   X,
   ChevronRight,
   ChevronLeft,
@@ -24,11 +14,21 @@ import {
   Rocket,
   Target,
   Lightbulb,
-  Video,
   Users,
   Zap
 } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { ClarityLoader } from "@/components/ui/loading";
+import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { VisuallyHidden } from "@/components/ui/visually-hidden";
+import { ClientOnboardingService } from "@/lib/services/client-onboarding-service";
+import { cn } from "@/lib/utils";
 
 // Content data structures
 const CONTENT_TOPICS = {
@@ -258,7 +258,7 @@ const StepWelcome = ({ next }: StepProps) => (
       <div className="absolute inset-0 animate-pulse bg-primary/20 rounded-full blur-3xl" />
       <Rocket className="relative size-24 text-primary" />
     </div>
-    
+
     <div className="text-center space-y-4 max-w-lg">
       <h1 className="text-4xl font-bold text-foreground">
         Welcome to Gen&nbsp;C Alpha
@@ -320,8 +320,8 @@ const StepContentType = ({ next, selections, updateSelections }: StepProps) => {
             className={cn(
               "p-6 cursor-pointer transition-all hover:shadow-md",
               "border-2",
-              isSelected(type.id) 
-                ? "border-primary bg-primary/5" 
+              isSelected(type.id)
+                ? "border-primary bg-primary/5"
                 : "border-border hover:border-primary/50"
             )}
             onClick={() => toggleContentType(type.id)}
@@ -434,7 +434,7 @@ const StepSubtopics = ({ next, back, selections, updateSelections }: StepProps) 
     const updated = current.includes(subtopic)
       ? current.filter(s => s !== subtopic)
       : [...current, subtopic];
-    
+
     // Auto-assign specific interest based on subtopic selection
     let specificInterest = selections.specificInterest;
     if (subtopic === "AI & Future Tech") {
@@ -448,7 +448,7 @@ const StepSubtopics = ({ next, back, selections, updateSelections }: StepProps) 
         }
       }
     }
-    
+
     updateSelections({
       subtopics: updated,
       specificInterest: specificInterest
@@ -660,17 +660,17 @@ const StepPlatforms = ({ next, back, selections, updateSelections }: StepProps) 
 
 const StepSummary = ({ back, selections }: StepProps) => {
   const [isCompleting, setIsCompleting] = useState(false);
-  
+
   const completeOnboarding = async () => {
     setIsCompleting(true);
     try {
       console.log("🔄 Starting onboarding save process...");
       console.log("📝 Selections to save:", selections);
-      
+
       await ClientOnboardingService.saveSelections(selections);
-      
+
       console.log("✅ Onboarding selections saved successfully!");
-      
+
       // Close the modal after saving
       setTimeout(() => {
         window.location.reload();
@@ -696,7 +696,7 @@ const StepSummary = ({ back, selections }: StepProps) => {
         allHashtags.push(...topic.trending_hashtags);
       }
     });
-    
+
     const uniqueHashtags = [...new Set(allHashtags)];
     return {
       primary: uniqueHashtags.slice(0, 5),
@@ -730,7 +730,7 @@ const StepSummary = ({ back, selections }: StepProps) => {
               <Users className="size-5 text-primary" />
               Your Content Profile
             </h3>
-            
+
             <div className="space-y-3">
               <div>
                 <p className="text-sm text-muted-foreground mb-2">Content Types:</p>
@@ -794,7 +794,7 @@ const StepSummary = ({ back, selections }: StepProps) => {
                 <Hash className="size-5 text-primary" />
                 Recommended Hashtags
               </h3>
-              
+
               <div className="space-y-4">
                 {hashtags.primary.length > 0 && (
                   <div>
@@ -835,7 +835,7 @@ const StepSummary = ({ back, selections }: StepProps) => {
               <Zap className="size-5 text-primary" />
               Your Personalized Dashboard
             </h3>
-            
+
             <div className="grid gap-3">
               <div className="flex items-start gap-3">
                 <div className="p-2 bg-primary/10 rounded-lg">
@@ -848,7 +848,7 @@ const StepSummary = ({ back, selections }: StepProps) => {
                   </p>
                 </div>
               </div>
-              
+
               <div className="flex items-start gap-3">
                 <div className="p-2 bg-primary/10 rounded-lg">
                   <Hash className="size-5 text-primary" />
@@ -860,7 +860,7 @@ const StepSummary = ({ back, selections }: StepProps) => {
                   </p>
                 </div>
               </div>
-              
+
               <div className="flex items-start gap-3">
                 <div className="p-2 bg-primary/10 rounded-lg">
                   <Lightbulb className="size-5 text-primary" />
@@ -882,8 +882,8 @@ const StepSummary = ({ back, selections }: StepProps) => {
           <ChevronLeft className="mr-2 size-4" />
           Back
         </Button>
-        <Button 
-          onClick={completeOnboarding} 
+        <Button
+          onClick={completeOnboarding}
           disabled={isCompleting}
           className="group"
         >
@@ -999,7 +999,7 @@ export function OnboardingWizardModal({
             <DialogTitle>Onboarding Wizard - Step {stepIndex + 1} of {steps.length}</DialogTitle>
           </VisuallyHidden>
         </DialogHeader>
-        
+
         {/* Progress bar */}
         <div className="px-6 pt-6">
           <Progress value={progress} className="h-2" />

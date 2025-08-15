@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { ChevronDown, Share2 } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 
 import { type PersonaType } from "@/components/chatbot/persona-selector";
 import { Button } from "@/components/ui/button";
@@ -73,8 +73,8 @@ export function WriteClient({
           <SidebarTrigger className="h-8 w-8" />
         </div>
       )}
-      <main className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-3xl px-4 md:px-6">
+      <main className="bg-background min-h-0 flex-1 overflow-y-auto">
+        <div className="mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-8">
           {!isHeroState && (
             <div
               className="flex items-center justify-between gap-4 pt-3 pb-3 lg:gap-6"
@@ -122,16 +122,6 @@ export function WriteClient({
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
-              </div>
-              <div className="flex items-center gap-2 pl-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-border/50 hover:bg-accent hover:border-border rounded-[var(--radius-button)]"
-                >
-                  <Share2 className="h-4 w-4" />
-                  <span className="ml-2 hidden sm:inline">Share</span>
-                </Button>
               </div>
             </div>
           )}

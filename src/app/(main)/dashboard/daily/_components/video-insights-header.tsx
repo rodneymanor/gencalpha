@@ -1,10 +1,10 @@
 "use client";
 
 import { User } from "lucide-react";
-import { ClarityLoader } from "@/components/ui/loading";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { ClarityLoader } from "@/components/ui/loading";
 import { Video } from "@/lib/collections";
 import { cn } from "@/lib/utils";
 

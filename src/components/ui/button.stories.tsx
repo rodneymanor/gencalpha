@@ -1,18 +1,19 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { fn } from "@storybook/test";
-import { Button } from "./button";
-import { 
-  UserPlus, 
-  Save, 
-  Download, 
-  Settings, 
-  Trash2, 
+import {
+  UserPlus,
+  Save,
+  Download,
+  Settings,
+  Trash2,
   Edit3,
   ChevronRight,
   PlayCircle,
   Heart,
   Share2
 } from "lucide-react";
+
+import { Button } from "./button";
 
 const meta: Meta<typeof Button> = {
   title: "UI/Button",
@@ -146,7 +147,7 @@ export const AllVariants: Story = {
           <Button variant="link" className="w-full">Link</Button>
         </div>
       </div>
-      
+
       <div className="space-y-2">
         <h3 className="font-medium text-sm text-muted-foreground">With Icons</h3>
         <div className="space-y-2">
@@ -172,7 +173,7 @@ export const AllVariants: Story = {
           </Button>
         </div>
       </div>
-      
+
       <div className="space-y-2">
         <h3 className="font-medium text-sm text-muted-foreground">Disabled States</h3>
         <div className="space-y-2">
@@ -197,7 +198,7 @@ export const ColorMigrationTest: Story = {
           Testing that existing buttons still work with transparent secondary colors
         </p>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4">
           <h4 className="font-medium text-sm">Before Migration (Reference)</h4>
@@ -210,7 +211,7 @@ export const ColorMigrationTest: Story = {
             </div>
           </div>
         </div>
-        
+
         <div className="space-y-4">
           <h4 className="font-medium text-sm">After Migration (Current)</h4>
           <div className="p-4 bg-muted rounded-lg space-y-2">
@@ -224,7 +225,7 @@ export const ColorMigrationTest: Story = {
           </div>
         </div>
       </div>
-      
+
       <div className="space-y-4">
         <h4 className="font-medium text-sm">✅ Migration Success Indicators</h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -252,7 +253,7 @@ export const RealWorldExamples: Story = {
     <div className="space-y-8 p-6">
       <div className="space-y-4">
         <h3 className="font-medium text-lg">🎯 Real-world Button Usage</h3>
-        
+
         {/* Header Actions */}
         <div className="space-y-2">
           <h4 className="font-medium text-sm">Header Actions</h4>
@@ -270,7 +271,7 @@ export const RealWorldExamples: Story = {
             </div>
           </div>
         </div>
-        
+
         {/* Form Actions */}
         <div className="space-y-2">
           <h4 className="font-medium text-sm">Form Actions</h4>
@@ -289,7 +290,7 @@ export const RealWorldExamples: Story = {
             </div>
           </div>
         </div>
-        
+
         {/* Card Actions */}
         <div className="space-y-2">
           <h4 className="font-medium text-sm">Card Actions</h4>
@@ -328,28 +329,28 @@ export const InteractiveStates: Story = {
           Hover and focus states for all button variants
         </p>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {["default", "secondary", "outline", "ghost", "destructive"].map((variant) => (
           <div key={variant} className="space-y-2">
             <h4 className="font-medium text-sm capitalize">{variant}</h4>
             <div className="space-y-2">
-              <Button 
-                variant={variant as any} 
+              <Button
+                variant={variant as any}
                 className="w-full"
               >
                 Normal
               </Button>
-              <Button 
-                variant={variant as any} 
+              <Button
+                variant={variant as any}
                 className="w-full hover:scale-105"
                 onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
                 onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
               >
                 Hover Effect
               </Button>
-              <Button 
-                variant={variant as any} 
+              <Button
+                variant={variant as any}
                 className="w-full"
                 disabled
               >

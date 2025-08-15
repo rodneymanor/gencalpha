@@ -41,7 +41,7 @@ const CustomDailyButton = ({ url }: { url: string }) => {
     if (typeof window !== "undefined") {
       window.dispatchEvent(new CustomEvent("write:close-slideout"));
     }
-    
+
     // Force a page reload to ensure fresh state
     window.location.href = `${url}?new=${Date.now()}`;
   };

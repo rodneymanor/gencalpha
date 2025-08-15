@@ -1,7 +1,9 @@
 "use client";
 
 import * as React from "react";
+
 import { ChevronDown } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 
 export type MenuTriggerButtonProps = {
@@ -65,5 +67,4 @@ export function MenuTriggerButton({
 }
 
 export default MenuTriggerButton;
-
 

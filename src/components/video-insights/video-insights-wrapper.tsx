@@ -1,6 +1,7 @@
 "use client";
 
 import { useVideoInsights } from "@/contexts/video-insights-context";
+
 import { VideoInsightsPanel } from "./video-insights-panel";
 
 interface VideoInsightsWrapperProps {

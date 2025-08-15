@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 
-import { ChevronDown, Share2 } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 
 import { type PersonaType } from "@/components/chatbot/persona-selector";
 import { Button } from "@/components/ui/button";
@@ -79,10 +79,6 @@ export function WriteClient({
                 placeholder="Select collection"
                 className="hidden sm:flex"
               />
-              <Button variant="outline" size="sm" className="ml-1 rounded-[var(--radius-button)] pr-3 pl-2">
-                <Share2 className="mr-1.5 h-4 w-4" />
-                <span className="hidden sm:inline">Share</span>
-              </Button>
             </div>
           </div>
         </div>

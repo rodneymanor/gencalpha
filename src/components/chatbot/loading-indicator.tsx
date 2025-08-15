@@ -1,7 +1,7 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { ClarityLoader } from "@/components/ui/loading";
+import { cn } from "@/lib/utils";
 
 interface LoadingIndicatorProps {
   className?: string;

@@ -4,12 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 
 import { ChevronsUpDown, FolderOpen } from "lucide-react";
 
-import { useAuth } from "@/contexts/auth-context";
-import type { Collection } from "@/lib/collections";
-import { RBACClientService } from "@/core/auth/rbac-client";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useAuth } from "@/contexts/auth-context";
+import { RBACClientService } from "@/core/auth/rbac-client";
+import type { Collection } from "@/lib/collections";
 import { cn } from "@/lib/utils";
 
 interface CollectionComboboxProps {
@@ -123,5 +123,4 @@ export function CollectionCombobox({
 }
 
 export default CollectionCombobox;
-
 

@@ -1,10 +1,10 @@
+import fs from "fs";
 import { NextRequest, NextResponse } from "next/server";
 
 import { uploadToBunnyStream, generateBunnyThumbnailUrl, uploadBunnyThumbnailWithRetry } from "@/lib/bunny-stream";
 import { scrapeVideoUrl, UnifiedVideoScraper } from "@/lib/unified-video-scraper";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { GoogleAIFileManager } from "@google/generative-ai/server";
-import fs from "fs";
 import path from "path";
 
 // Environment variables validation
@@ -17,17 +17,17 @@ interface RequiredEnvVars {
 
 function validateEnvironmentVariables(): { valid: boolean; missing: string[] } {
   const requiredVars: Array<keyof RequiredEnvVars> = [
-    'RAPIDAPI_KEY',
-    'BUNNY_STREAM_API_KEY',
-    'BUNNY_STREAM_LIBRARY_ID',
-    'GEMINI_API_KEY'
+    "RAPIDAPI_KEY",
+    "BUNNY_STREAM_API_KEY",
+    "BUNNY_STREAM_LIBRARY_ID",
+    "GEMINI_API_KEY",
   ];
 
-  const missing = requiredVars.filter(varName => !process.env[varName]);
-  
+  const missing = requiredVars.filter((varName) => !process.env[varName]);
+
   return {
     valid: missing.length === 0,
-    missing
+    missing,
   };
 }
 
@@ -44,30 +44,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: "Server configuration incomplete",
-          details: `Missing required environment variables: ${envValidation.missing.join(', ')}`,
+          details: `Missing required environment variables: ${envValidation.missing.join(", ")}`,
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
     // Step 2: Request validation
     const { videoUrl } = await request.json();
-    
+
     if (!videoUrl) {
-      return NextResponse.json(
-        { error: "Video URL is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Video URL is required" }, { status: 400 });
     }
 
     // Step 3: URL validation
     const urlValidation = UnifiedVideoScraper.validateUrlWithMessage(videoUrl);
     if (!urlValidation.valid) {
       console.error(`❌ [${requestId}] Invalid URL:`, urlValidation.message);
-      return NextResponse.json(
-        { error: urlValidation.message },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: urlValidation.message }, { status: 400 });
     }
 
     console.log(`✅ [${requestId}] URL validated - Platform: ${urlValidation.platform}`);
@@ -81,17 +75,16 @@ export async function POST(request: NextRequest) {
       success: true,
       message: "Video processing workflow started successfully",
       requestId,
-      status: "processing"
+      status: "processing",
     });
-
   } catch (error) {
     console.error(`❌ [${requestId}] Request processing failed:`, error);
     return NextResponse.json(
-      { 
+      {
         error: "Failed to start video processing",
-        details: error instanceof Error ? error.message : "Unknown error"
+        details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -99,10 +92,10 @@ export async function POST(request: NextRequest) {
 // Main processing workflow (runs in background)
 export async function processVideoWorkflow(requestId: string, videoUrl: string) {
   const startTime = Date.now();
-  
+
   try {
     console.log(`🔄 [${requestId}] Step 1: Downloading and scraping video...`);
-    
+
     // Step 1: Download and scrape video
     const videoData = await downloadAndScrapeVideo(videoUrl, requestId);
     if (!videoData.success || !videoData.videoBuffer) {
@@ -110,7 +103,9 @@ export async function processVideoWorkflow(requestId: string, videoUrl: string) 
       return;
     }
 
-    console.log(`✅ [${requestId}] Video downloaded - Platform: ${videoData.platform}, Size: ${videoData.videoBuffer.byteLength} bytes`);
+    console.log(
+      `✅ [${requestId}] Video downloaded - Platform: ${videoData.platform}, Size: ${videoData.videoBuffer.byteLength} bytes`,
+    );
 
     // Step 2: Upload to Bunny CDN
     console.log(`🐰 [${requestId}] Step 2: Uploading to Bunny CDN...`);
@@ -130,10 +125,16 @@ export async function processVideoWorkflow(requestId: string, videoUrl: string) 
 
     // Step 4: AI Transcription and Analysis
     console.log(`🎙️ [${requestId}] Step 4: Starting AI transcription...`);
-    const transcriptionResult = await transcribeAndAnalyze(videoData.videoBuffer, videoData.platform || 'unknown', requestId);
-    
+    const transcriptionResult = await transcribeAndAnalyze(
+      videoData.videoBuffer,
+      videoData.platform || "unknown",
+      requestId,
+
     if (!transcriptionResult.success) {
-      console.error(`❌ [${requestId}] Transcription failed:`, 'error' in transcriptionResult ? transcriptionResult.error : 'Unknown error');
+      console.error(
+        `❌ [${requestId}] Transcription failed:`,
+        "error" in transcriptionResult ? transcriptionResult.error : "Unknown error",
+      );
       // Continue with fallback data
     }
 
@@ -144,13 +145,15 @@ export async function processVideoWorkflow(requestId: string, videoUrl: string) 
     if (transcriptionResult.success) {
       console.log(`📝 [${requestId}] TRANSCRIPTION RESULTS:`);
       console.log(`📝 [${requestId}] Transcript: "${transcriptionResult.transcript}"`);
-      console.log(`📝 [${requestId}] Hook: "${transcriptionResult.components?.hook || 'N/A'}"`);
-      console.log(`📝 [${requestId}] Bridge: "${transcriptionResult.components?.bridge || 'N/A'}"`);
-      console.log(`📝 [${requestId}] Nugget: "${transcriptionResult.components?.nugget || 'N/A'}"`);
-      console.log(`📝 [${requestId}] WTA: "${transcriptionResult.components?.wta || 'N/A'}"`);
-      console.log(`📝 [${requestId}] Visual Context: "${transcriptionResult.visualContext || 'N/A'}"`);
+      console.log(`📝 [${requestId}] Hook: "${transcriptionResult.components?.hook || "N/A"}"`);
+      console.log(`📝 [${requestId}] Bridge: "${transcriptionResult.components?.bridge || "N/A"}"`);
+      console.log(`📝 [${requestId}] Nugget: "${transcriptionResult.components?.nugget || "N/A"}"`);
+      console.log(`📝 [${requestId}] WTA: "${transcriptionResult.components?.wta || "N/A"}"`);
+      console.log(`📝 [${requestId}] Visual Context: "${transcriptionResult.visualContext || "N/A"}"`);
     } else {
-      console.log(`❌ [${requestId}] TRANSCRIPTION FAILED: ${'error' in transcriptionResult ? transcriptionResult.error : 'Unknown error'}`);
+      console.log(
+        `❌ [${requestId}] TRANSCRIPTION FAILED: ${"error" in transcriptionResult ? transcriptionResult.error : "Unknown error"}`,
+      );
     }
 
     // Return consolidated response
@@ -164,41 +167,45 @@ export async function processVideoWorkflow(requestId: string, videoUrl: string) 
         title: videoData.title,
         description: videoData.description,
         hashtags: videoData.hashtags,
-        metrics: videoData.metrics
+        metrics: videoData.metrics,
       },
       cdnUrls: {
         iframe: cdnResult.cdnUrl,
         direct: cdnResult.cdnUrl,
-        thumbnail: cdnResult.thumbnailUrl
+        thumbnail: cdnResult.thumbnailUrl,
       },
-      transcription: transcriptionResult.success ? {
-        transcript: transcriptionResult.transcript,
-        components: transcriptionResult.components,
-        contentMetadata: transcriptionResult.contentMetadata,
-        visualContext: transcriptionResult.visualContext
-      } : {
-        transcript: "Transcription failed",
-        components: { hook: "", bridge: "", nugget: "", wta: "" },
-        contentMetadata: { platform: videoData.platform, author: videoData.author, description: "" },
-        visualContext: ""
-      }
+      transcription: transcriptionResult.success
+        ? {
+            transcript: transcriptionResult.transcript,
+            components: transcriptionResult.components,
+            contentMetadata: transcriptionResult.contentMetadata,
+            visualContext: transcriptionResult.visualContext,
+          }
+        : {
+            transcript: "Transcription failed",
+            components: { hook: "", bridge: "", nugget: "", wta: "" },
+            contentMetadata: { platform: videoData.platform, author: videoData.author, description: "" },
+            visualContext: "",
+          },
     };
 
     console.log(`📄 [${requestId}] Final result prepared:`, {
       platform: finalResult.videoData.platform,
       cdnUrl: finalResult.cdnUrls.iframe,
-      transcriptionSuccess: transcriptionResult.success
+      transcriptionSuccess: transcriptionResult.success,
     });
 
     return finalResult;
-
   } catch (error) {
     console.error(`❌ [${requestId}] Workflow failed:`, error);
   }
 }
 
 // Video download and scraping
-async function downloadAndScrapeVideo(videoUrl: string, requestId: string): Promise<{
+async function downloadAndScrapeVideo(
+  videoUrl: string,
+  requestId: string,
+): Promise<{
   success: boolean;
   error?: string;
   platform?: string;
@@ -213,7 +220,7 @@ async function downloadAndScrapeVideo(videoUrl: string, requestId: string): Prom
   try {
     // Scrape video metadata and get download URL
     const videoData = await scrapeVideoUrl(videoUrl);
-    
+
     if (!videoData.videoUrl) {
       return { success: false, error: "No video download URL found" };
     }
@@ -222,8 +229,9 @@ async function downloadAndScrapeVideo(videoUrl: string, requestId: string): Prom
     console.log(`⬇️ [${requestId}] Downloading video from:`, videoData.videoUrl);
     const response = await fetch(videoData.videoUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-      }
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      },
     });
 
     if (!response.ok) {
@@ -231,7 +239,7 @@ async function downloadAndScrapeVideo(videoUrl: string, requestId: string): Prom
     }
 
     const videoBuffer = await response.arrayBuffer();
-    
+
     return {
       success: true,
       platform: videoData.platform,
@@ -241,14 +249,13 @@ async function downloadAndScrapeVideo(videoUrl: string, requestId: string): Prom
       description: videoData.description,
       hashtags: videoData.hashtags,
       metrics: videoData.metrics,
-      thumbnailUrl: videoData.thumbnailUrl
+      thumbnailUrl: videoData.thumbnailUrl,
     };
-
   } catch (error) {
     console.error(`❌ [${requestId}] Download/scrape error:`, error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Download failed"
+      error: error instanceof Error ? error.message : "Download failed",
     };
   }
 }
@@ -279,14 +286,13 @@ async function uploadToCDN(videoData: any, requestId: string) {
       success: true,
       cdnUrl: result.cdnUrl,
       guid: result.filename,
-      thumbnailUrl
+      thumbnailUrl,
     };
-
   } catch (error) {
     console.error(`❌ [${requestId}] CDN upload error:`, error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : "CDN upload failed" 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "CDN upload failed",
     };
   }
 }
@@ -295,9 +301,9 @@ async function uploadToCDN(videoData: any, requestId: string) {
 async function uploadCustomThumbnail(guid: string, thumbnailUrl: string, requestId: string) {
   try {
     console.log(`🖼️ [${requestId}] Uploading thumbnail:`, thumbnailUrl);
-    
+
     const success = await uploadBunnyThumbnailWithRetry(guid, thumbnailUrl, 2);
-    
+
     if (success) {
       console.log(`✅ [${requestId}] Custom thumbnail uploaded successfully`);
     } else {
@@ -337,8 +343,8 @@ async function transcribeAndAnalyze(videoBuffer: ArrayBuffer, platform: string, 
     const fileManager = new GoogleAIFileManager(process.env.GEMINI_API_KEY);
 
     const uploadResult = await fileManager.uploadFile(tempFilePath, {
-      mimeType: 'video/mp4',
-      displayName: `process-video-${Date.now()}`
+      mimeType: "video/mp4",
+      displayName: `process-video-${Date.now()}`,
     });
 
     uploadedFile = uploadResult.file;
@@ -408,7 +414,7 @@ Return the response in this exact JSON format:
       parsedResponse = JSON.parse(jsonText);
     } catch (parseError) {
       console.error(`❌ [${requestId}] Failed to parse JSON response:`, parseError);
-      
+
       // Fallback response
       return {
         success: true,
@@ -419,7 +425,7 @@ Return the response in this exact JSON format:
           author: "Unknown",
           description: "Video transcribed successfully",
         },
-        visualContext: ""
+        visualContext: "",
       };
     }
 
@@ -433,20 +439,21 @@ Return the response in this exact JSON format:
         description: parsedResponse.contentMetadata?.description ?? "",
         hashtags: parsedResponse.contentMetadata?.hashtags ?? [],
       },
-      visualContext: parsedResponse.visualContext ?? ""
+      visualContext: parsedResponse.visualContext ?? "",
     };
 
     console.log(`✅ [${requestId}] Transcription completed successfully`);
     console.log(`📋 [${requestId}] Transcript Length: ${transcriptionData.transcript.length} characters`);
-    console.log(`📋 [${requestId}] Components Found: Hook=${!!transcriptionData.components.hook}, Bridge=${!!transcriptionData.components.bridge}, Nugget=${!!transcriptionData.components.nugget}, WTA=${!!transcriptionData.components.wta}`);
+    console.log(
+      `📋 [${requestId}] Components Found: Hook=${!!transcriptionData.components.hook}, Bridge=${!!transcriptionData.components.bridge}, Nugget=${!!transcriptionData.components.nugget}, WTA=${!!transcriptionData.components.wta}`,
+    );
 
     return transcriptionData;
-
   } catch (error) {
     console.error(`❌ [${requestId}] Transcription failed:`, error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Transcription failed' 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Transcription failed",
     };
   } finally {
     // Cleanup: Delete temporary file

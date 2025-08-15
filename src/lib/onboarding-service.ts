@@ -1,5 +1,6 @@
-import { db } from "@/lib/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
+
+import { db } from "@/lib/firebase";
 
 export interface OnboardingSelections {
   contentTypes: string[];

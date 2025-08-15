@@ -1,21 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
+import { CheckCircle2, PencilLine, Save, X } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { VisuallyHidden } from "@/components/ui/visually-hidden";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Card } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
-import { CheckCircle2, PencilLine, Save, X } from "lucide-react";
-import { ClientOnboardingService } from "@/lib/services/client-onboarding-service";
 import type { OnboardingSelections } from "@/components/ui/onboarding-wizard-modal";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { VisuallyHidden } from "@/components/ui/visually-hidden";
+import { ClientOnboardingService } from "@/lib/services/client-onboarding-service";
+import { cn } from "@/lib/utils";
 
 interface BrandSettingsModalProps {
   open: boolean;

@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+
 import Image from "next/image";
+
 import { Calendar, Heart, MessageCircle, Bookmark, ChevronDown, ChevronUp } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -24,13 +26,13 @@ const formatNumber = (num?: number) => {
 
 const formatDate = (dateString: string) => {
   try {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
   } catch {
-    return 'Unknown date';
+    return "Unknown date";
   }
 };
 
@@ -38,30 +40,28 @@ export function VideoContent({ video, onRemixScript }: VideoContentProps) {
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   const getDescription = () => {
-    const description = video.caption ?? video.metadata?.description ?? '';
+    const description = video.caption ?? video.metadata?.description ?? "";
     if (!description) return null;
-    
+
     if (description.length <= 120) {
       return description;
     }
-    
-    return isDescriptionExpanded 
-      ? description 
-      : `${description.substring(0, 120)}...`;
+
+    return isDescriptionExpanded ? description : `${description.substring(0, 120)}...`;
   };
 
   const shouldShowReadMore = () => {
-    const description = video.caption ?? video.metadata?.description ?? '';
+    const description = video.caption ?? video.metadata?.description ?? "";
     return description.length > 120;
   };
 
   return (
-    <div className="flex flex-col flex-1">
+    <div className="flex flex-1 flex-col">
       {/* Header Section */}
       <div className="flex-shrink-0 space-y-4 px-6">
         <div className="flex items-start gap-4">
           {/* Profile Picture */}
-          <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-full bg-muted">
+          <div className="bg-muted h-12 w-12 flex-shrink-0 overflow-hidden rounded-full">
             {video.thumbnailUrl ? (
               <Image
                 src={video.thumbnailUrl}
@@ -71,29 +71,21 @@ export function VideoContent({ video, onRemixScript }: VideoContentProps) {
                 className="h-full w-full object-cover"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-                👤
-              </div>
+              <div className="text-muted-foreground flex h-full w-full items-center justify-center">👤</div>
             )}
           </div>
 
           {/* User Info */}
           <div className="min-w-0 flex-1">
-            <div className="font-semibold text-sm">
-              @{video.metadata?.author ?? 'unknown'}
-            </div>
-            <div className="text-muted-foreground text-xs">
-              {video.metadata?.author ?? 'Unknown User'}
-            </div>
+            <div className="text-sm font-semibold">@{video.metadata?.author ?? "unknown"}</div>
+            <div className="text-muted-foreground text-xs">{video.metadata?.author ?? "Unknown User"}</div>
             {video.hashtags && video.hashtags.length > 0 && (
-              <div className="mt-1 text-xs text-primary">
-                #{video.hashtags[0]}
-              </div>
+              <div className="text-primary mt-1 text-xs">#{video.hashtags[0]}</div>
             )}
           </div>
 
           {/* Date */}
-          <div className="flex flex-shrink-0 items-center gap-1 text-muted-foreground text-xs">
+          <div className="text-muted-foreground flex flex-shrink-0 items-center gap-1 text-xs">
             <Calendar className="h-3 w-3" />
             {formatDate(video.addedAt)}
           </div>
@@ -101,15 +93,13 @@ export function VideoContent({ video, onRemixScript }: VideoContentProps) {
 
         {/* Video Description */}
         <div className="space-y-2">
-          <div className="text-sm leading-relaxed">
-            {getDescription()}
-          </div>
+          <div className="text-sm leading-relaxed">{getDescription()}</div>
           {shouldShowReadMore() && (
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-              className="h-auto p-0 text-primary text-xs hover:bg-transparent"
+              className="text-primary h-auto p-0 text-xs hover:bg-transparent"
             >
               {isDescriptionExpanded ? (
                 <>
@@ -162,13 +152,13 @@ export function VideoContent({ video, onRemixScript }: VideoContentProps) {
                   <ScrollArea className="h-full p-4">
                     <div className="space-y-3 text-sm leading-relaxed">
                       {video.transcript ? (
-                        video.transcript.split('\n').map((line: string, lineIndex: number) => (
+                        video.transcript.split("\n").map((line: string, lineIndex: number) => (
                           <p key={`tab-transcript-${line.slice(0, 15)}-${lineIndex}`} className="text-sm">
                             {line.trim()}
                           </p>
                         ))
                       ) : (
-                        <div className="flex h-32 items-center justify-center text-muted-foreground">
+                        <div className="text-muted-foreground flex h-32 items-center justify-center">
                           <div className="text-center">
                             <p>No transcript available</p>
                             <p className="text-xs">Transcript will appear here once processed</p>
@@ -190,42 +180,34 @@ export function VideoContent({ video, onRemixScript }: VideoContentProps) {
                         <>
                           {video.components.hook && (
                             <div className="space-y-2">
-                              <h4 className="font-semibold text-sm text-primary">Hook</h4>
-                              <p className="text-sm leading-relaxed">
-                                {video.components.hook}
-                              </p>
+                              <h4 className="text-primary text-sm font-semibold">Hook</h4>
+                              <p className="text-sm leading-relaxed">{video.components.hook}</p>
                             </div>
                           )}
-                          
+
                           {video.components.bridge && (
                             <div className="space-y-2">
-                              <h4 className="font-semibold text-sm text-primary">Bridge</h4>
-                              <p className="text-sm leading-relaxed">
-                                {video.components.bridge}
-                              </p>
+                              <h4 className="text-primary text-sm font-semibold">Bridge</h4>
+                              <p className="text-sm leading-relaxed">{video.components.bridge}</p>
                             </div>
                           )}
-                          
+
                           {video.components.nugget && (
                             <div className="space-y-2">
-                              <h4 className="font-semibold text-sm text-primary">Golden Nugget</h4>
-                              <p className="text-sm leading-relaxed">
-                                {video.components.nugget}
-                              </p>
+                              <h4 className="text-primary text-sm font-semibold">Golden Nugget</h4>
+                              <p className="text-sm leading-relaxed">{video.components.nugget}</p>
                             </div>
                           )}
-                          
+
                           {video.components.wta && (
                             <div className="space-y-2">
-                              <h4 className="font-semibold text-sm text-primary">WTA (What&apos;s The Ask)</h4>
-                              <p className="text-sm leading-relaxed">
-                                {video.components.wta}
-                              </p>
+                              <h4 className="text-primary text-sm font-semibold">WTA (What&apos;s The Ask)</h4>
+                              <p className="text-sm leading-relaxed">{video.components.wta}</p>
                             </div>
                           )}
                         </>
                       ) : (
-                        <div className="flex h-32 items-center justify-center text-muted-foreground">
+                        <div className="text-muted-foreground flex h-32 items-center justify-center">
                           <div className="text-center">
                             <p>No components available</p>
                             <p className="text-xs">Script components will appear here once analyzed</p>
@@ -242,12 +224,8 @@ export function VideoContent({ video, onRemixScript }: VideoContentProps) {
       </div>
 
       {/* Sticky Footer */}
-      <div className="flex-shrink-0 border-t bg-background p-6">
-        <Button
-          onClick={() => onRemixScript?.(video)}
-          className="w-full"
-          size="lg"
-        >
+      <div className="bg-background flex-shrink-0 border-t p-6">
+        <Button onClick={() => onRemixScript?.(video)} className="w-full" size="lg">
           Remix Script
         </Button>
       </div>

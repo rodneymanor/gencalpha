@@ -168,25 +168,25 @@ export function TweetStyleComposer({ className }: TweetStyleComposerProps) {
         <TabsList className="bg-muted/30 grid h-auto w-full grid-cols-4">
           <TabsTrigger
             value="compose"
-            className="px-1 py-2 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-1 py-2 text-xs font-medium"
           >
             Compose
           </TabsTrigger>
           <TabsTrigger
             value="drafts"
-            className="px-1 py-2 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-1 py-2 text-xs font-medium"
           >
             Drafts
           </TabsTrigger>
           <TabsTrigger
             value="scheduled"
-            className="px-1 py-2 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-1 py-2 text-xs font-medium"
           >
             Queue
           </TabsTrigger>
           <TabsTrigger
             value="sent"
-            className="px-1 py-2 text-xs font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-1 py-2 text-xs font-medium"
           >
             Sent
           </TabsTrigger>

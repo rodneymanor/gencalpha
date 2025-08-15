@@ -27,8 +27,9 @@ async function transcribeVideoFromUrl(url: string, platform: "tiktok" | "instagr
     console.log("⬇️ [GEMINI] Downloading video from CDN...");
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-      }
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+      },
     });
 
     if (!response.ok) {
@@ -57,13 +58,15 @@ async function transcribeVideoFromUrl(url: string, platform: "tiktok" | "instagr
     const fileManager = new GoogleAIFileManager(process.env.GEMINI_API_KEY);
 
     const uploadResult = await fileManager.uploadFile(tempFilePath, {
-      mimeType: 'video/mp4',
-      displayName: `test-video-${Date.now()}`
+      mimeType: "video/mp4",
+      displayName: `test-video-${Date.now()}`,
     });
 
     uploadedFile = uploadResult.file;
     console.log(`✅ [GEMINI] Video uploaded successfully: ${uploadedFile.uri}`);
-    console.log(`🔍 [GEMINI] File state: ${uploadedFile.state}, MIME: ${uploadedFile.mimeType}, Size: ${uploadedFile.sizeBytes} bytes`);
+    console.log(
+      `🔍 [GEMINI] File state: ${uploadedFile.state}, MIME: ${uploadedFile.mimeType}, Size: ${uploadedFile.sizeBytes} bytes`,
+    );
 
     // Step 4: Wait for processing if needed
     let file = uploadedFile;
@@ -178,7 +181,7 @@ Return the response in this exact JSON format:
     };
   } catch (error) {
     console.error("❌ [GEMINI] Video transcription failed:", error);
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
   } finally {
     // Cleanup: Delete temporary file
     if (tempFilePath && fs.existsSync(tempFilePath)) {
@@ -204,7 +207,10 @@ Return the response in this exact JSON format:
   }
 }
 // Buffer transcription function that reuses the existing upload logic
-async function transcribeVideoFromBuffer(videoBuffer: ArrayBuffer, platform: "tiktok" | "instagram" | "youtube" | "unknown") {
+async function transcribeVideoFromBuffer(
+  videoBuffer: ArrayBuffer,
+  platform: "tiktok" | "instagram" | "youtube" | "unknown",
+) {
   let tempFilePath: string | null = null;
   let uploadedFile: any = null;
 
@@ -235,8 +241,8 @@ async function transcribeVideoFromBuffer(videoBuffer: ArrayBuffer, platform: "ti
     const fileManager = new GoogleAIFileManager(process.env.GEMINI_API_KEY);
 
     const uploadResult = await fileManager.uploadFile(tempFilePath, {
-      mimeType: 'video/mp4',
-      displayName: `buffer-video-${Date.now()}`
+      mimeType: "video/mp4",
+      displayName: `buffer-video-${Date.now()}`,
     });
 
     uploadedFile = uploadResult.file;
@@ -355,7 +361,7 @@ Return the response in this exact JSON format:
     };
   } catch (error) {
     console.error("❌ [GEMINI] Video transcription failed:", error);
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
   } finally {
     // Cleanup: Delete temporary file
     if (tempFilePath && fs.existsSync(tempFilePath)) {
@@ -379,7 +385,6 @@ Return the response in this exact JSON format:
     }
   }
 }
-
 
 // Create fallback transcription when processing fails
 function createFallbackTranscription(platform: "tiktok" | "instagram" | "youtube" | "unknown") {
@@ -449,27 +454,27 @@ async function handleCdnTranscription(request: NextRequest) {
   // Prefer using video buffer data (no re-download needed!)
   if (useBuffer && videoBuffer) {
     console.log("🚀 [INTERNAL_TRANSCRIBE] Using provided video buffer (no re-download needed)");
-    
+
     const detectedPlatform = platform ?? "unknown";
-    
+
     // Convert the buffer data back to ArrayBuffer and use buffer transcription
     const buffer = new Uint8Array(videoBuffer).buffer;
-    
+
     const result = await transcribeVideoFromBuffer(buffer, detectedPlatform);
-    
+
     if (result) {
       console.log("✅ [INTERNAL_TRANSCRIBE] Buffer-based transcription completed successfully");
       return NextResponse.json(result);
     }
   }
-  
+
   // Fallback to URL-based transcription (less reliable due to Bunny.net URLs)
   if (videoUrl) {
     console.log("🌐 [INTERNAL_TRANSCRIBE] No buffer provided, falling back to URL download:", videoUrl);
-    
+
     const detectedPlatform = platform ?? detectPlatform(videoUrl).platform;
     const result = await transcribeVideoFromUrl(videoUrl, detectedPlatform);
-    
+
     if (result) {
       console.log("✅ [INTERNAL_TRANSCRIBE] URL-based transcription completed successfully");
       return NextResponse.json(result);

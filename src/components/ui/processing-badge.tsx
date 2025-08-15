@@ -3,9 +3,9 @@
 import { useMemo } from "react";
 
 import { Clock, CheckCircle, AlertCircle } from "lucide-react";
-import { ClarityLoader } from "@/components/ui/loading";
 
 import { Badge } from "@/components/ui/badge";
+import { ClarityLoader } from "@/components/ui/loading";
 import type { VideoProcessingJob } from "@/lib/simple-video-queue";
 import { cn } from "@/lib/utils";
 

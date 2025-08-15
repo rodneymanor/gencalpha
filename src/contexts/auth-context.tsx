@@ -377,7 +377,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="text-center">
-          <div className="mx-auto"><span className="inline-flex"><div className="clarity-loader clarity-size-md" aria-hidden="true"><div className="clarity-ring"></div><div className="clarity-ring clarity-ring-2"></div><div className="clarity-orb-core"></div><div className="clarity-dot dot-1"></div><div className="clarity-dot dot-2"></div><div className="clarity-dot dot-3"></div></div></span></div>
+          <div className="mx-auto">
+            <span className="inline-flex">
+              <div className="clarity-loader clarity-size-md" aria-hidden="true">
+                <div className="clarity-ring"></div>
+                <div className="clarity-ring clarity-ring-2"></div>
+                <div className="clarity-orb-core"></div>
+                <div className="clarity-dot dot-1"></div>
+                <div className="clarity-dot dot-2"></div>
+                <div className="clarity-dot dot-3"></div>
+              </div>
+            </span>
+          </div>
           <p className="mt-4 text-lg">Loading...</p>
         </div>
       </div>

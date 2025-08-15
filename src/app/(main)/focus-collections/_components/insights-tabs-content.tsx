@@ -56,8 +56,8 @@ export function InsightsTabsContent({
   getConfidenceColor,
   getCategoryIcon,
 }: InsightsTabsContentProps) {
-  const realHooks = Array.isArray(video?.insights?.hooks) ? video.insights!.hooks! : [];
-  const realIdeas = Array.isArray(video?.insights?.contentIdeas) ? video.insights!.contentIdeas! : [];
+  const realHooks = Array.isArray(video?.insights?.hooks) ? video.insights.hooks : [];
+  const realIdeas = Array.isArray(video?.insights?.contentIdeas) ? video.insights.contentIdeas : [];
 
   return (
     <>
@@ -72,7 +72,12 @@ export function InsightsTabsContent({
                         generated
                       </Badge>
                       {typeof h.rating === "number" && (
-                        <span className={cn("text-xs font-medium", getConfidenceColor(Math.min(0.99, Math.max(0, h.rating / 100))))}>
+                        <span
+                          className={cn(
+                            "text-xs font-medium",
+                            getConfidenceColor(Math.min(0.99, Math.max(0, h.rating / 100))),
+                          )}
+                        >
                           {Math.round(h.rating)}%
                         </span>
                       )}

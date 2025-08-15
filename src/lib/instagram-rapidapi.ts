@@ -71,4 +71,3 @@ function extractHashtagsFromText(text: string): string[] {
   const matches = text?.match?.(hashtagRegex);
   return matches ? matches.map((tag: string) => tag.substring(1)) : [];
 }
-

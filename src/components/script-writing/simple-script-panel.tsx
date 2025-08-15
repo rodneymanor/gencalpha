@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 
-import { PanelRightClose, Zap, Sparkles, RefreshCw, FileText, Plus } from "lucide-react";
-import { ClarityLoader } from "@/components/ui/loading";
+import { PanelRightClose, Zap, Sparkles, FileText, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { ClarityLoader } from "@/components/ui/loading";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";

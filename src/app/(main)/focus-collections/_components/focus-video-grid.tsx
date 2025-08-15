@@ -1,8 +1,7 @@
 "use client";
-import { ClarityLoader } from "@/components/ui/loading";
-
 import { useState, useEffect, useCallback } from "react";
 
+import { ClarityLoader } from "@/components/ui/loading";
 import { useAuth } from "@/contexts/auth-context";
 import { RBACClientService } from "@/core/auth/rbac-client";
 import { useRBAC } from "@/hooks/use-rbac";

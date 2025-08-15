@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { GeminiService } from "@/lib/gemini";
 
 export async function POST(request: NextRequest) {
@@ -210,18 +211,16 @@ Platform: ${platform}`;
     // Generate comprehensive stylometric analysis
     const response = await geminiService.generateContent({
       prompt: stylometricPrompt,
-      systemPrompt: "You are an expert linguistic forensics AI specializing in deep stylometric analysis and voice replication. Provide comprehensive, actionable analysis that enables authentic voice replication.",
+      systemPrompt:
+        "You are an expert linguistic forensics AI specializing in deep stylometric analysis and voice replication. Provide comprehensive, actionable analysis that enables authentic voice replication.",
       maxTokens: 2000,
       temperature: 0.3, // Lower temperature for more analytical consistency
-      model: "gemini-1.5-flash"
+      model: "gemini-1.5-flash",
     });
 
     if (!response.success || !response.content) {
       console.error("❌ [STYLOMETRIC_ANALYSIS] Gemini analysis failed:", response.error);
-      return NextResponse.json(
-        { error: response.error || "Stylometric analysis failed" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: response.error || "Stylometric analysis failed" }, { status: 500 });
     }
 
     console.log("✅ [STYLOMETRIC_ANALYSIS] Analysis completed successfully");
@@ -235,18 +234,14 @@ Platform: ${platform}`;
         sourceUrl,
         platform,
         transcriptLength: transcript.length,
-        analysisTimestamp: new Date().toISOString()
-      }
+        analysisTimestamp: new Date().toISOString(),
+      },
     });
-
   } catch (error) {
     console.error("❌ [STYLOMETRIC_ANALYSIS] Unexpected error:", error);
 
     const errorMessage = error instanceof Error ? error.message : "Stylometric analysis service failed";
 
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

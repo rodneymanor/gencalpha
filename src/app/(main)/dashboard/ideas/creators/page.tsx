@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 
-import { UserPlus, ChevronDown, Check, ChevronsUpDown } from "lucide-react";
+import { UserPlus, Check, ChevronsUpDown } from "lucide-react";
 
 import CreatorVideosGrid, { type VideoData } from "@/app/(main)/dashboard/daily/_components/creator-videos-grid";
 import { Button } from "@/components/ui/button";
@@ -15,11 +15,13 @@ export default function IdeasCreatorsPage() {
   const { isOpen, currentVideo, openVideo, closeVideo } = useFloatingVideo();
   const [showNewCreatorForm, setShowNewCreatorForm] = useState(false);
   const [selectedCreator, setSelectedCreator] = useState("all");
-  const [availableCreators, setAvailableCreators] = useState<Array<{
-    username: string;
-    displayName: string;
-    platform: "instagram" | "tiktok";
-  }>>([]);
+  const [availableCreators, setAvailableCreators] = useState<
+    Array<{
+      username: string;
+      displayName: string;
+      platform: "instagram" | "tiktok";
+    }>
+  >([]);
   const [comboboxOpen, setComboboxOpen] = useState(false);
 
   const handleVideoClick = useCallback(
@@ -30,18 +32,23 @@ export default function IdeasCreatorsPage() {
     [openVideo],
   );
 
-  const handleCreatorsUpdated = useCallback((creators: Array<{
-    username: string;
-    displayName: string;
-    platform: "instagram" | "tiktok";
-  }>) => {
-    setAvailableCreators(creators);
-  }, []);
+  const handleCreatorsUpdated = useCallback(
+    (
+      creators: Array<{
+        username: string;
+        displayName: string;
+        platform: "instagram" | "tiktok";
+      }>,
+    ) => {
+      setAvailableCreators(creators);
+    },
+    [],
+  );
 
   return (
-    <div className="font-sans min-h-screen bg-background">
+    <div className="bg-background min-h-screen font-sans">
       {/* Mobile-first header */}
-      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
+      <div className="bg-background/95 border-border sticky top-0 z-40 border-b backdrop-blur-sm">
         <div className="px-4 py-4 sm:px-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-1">
@@ -50,7 +57,7 @@ export default function IdeasCreatorsPage() {
                 Discover creators and track their latest content.
               </p>
             </div>
-            
+
             {/* Mobile-optimized action buttons */}
             <div className="flex gap-2 sm:gap-3">
               <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
@@ -59,15 +66,18 @@ export default function IdeasCreatorsPage() {
                     variant="outline"
                     role="combobox"
                     aria-expanded={comboboxOpen}
-                    className="flex-1 sm:flex-initial flex items-center justify-between gap-2 min-w-0"
+                    className="flex min-w-0 flex-1 items-center justify-between gap-2 sm:flex-initial"
                   >
                     <span className="truncate">
-                      {selectedCreator === "all" ? "All Creators" : availableCreators.find((creator) => creator.username === selectedCreator)?.displayName ?? "Select creator"}
+                      {selectedCreator === "all"
+                        ? "All Creators"
+                        : (availableCreators.find((creator) => creator.username === selectedCreator)?.displayName ??
+                          "Select creator")}
                     </span>
                     <ChevronsUpDown className="h-4 w-4 shrink-0" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[calc(100vw-2rem)] sm:w-[300px] p-0">
+                <PopoverContent className="w-[calc(100vw-2rem)] p-0 sm:w-[300px]">
                   <Command>
                     <CommandInput placeholder="Search creators..." />
                     <CommandList>
@@ -100,7 +110,7 @@ export default function IdeasCreatorsPage() {
                             />
                             <div className="flex items-center gap-2">
                               {creator.platform === "instagram" && (
-                                <div className="bg-gradient-to-br from-purple-500 to-pink-500 flex h-4 w-4 items-center justify-center rounded-[var(--radius-button)] text-white text-xs font-bold">
+                                <div className="flex h-4 w-4 items-center justify-center rounded-[var(--radius-button)] bg-gradient-to-br from-purple-500 to-pink-500 text-xs font-bold text-white">
                                   IG
                                 </div>
                               )}
@@ -118,10 +128,10 @@ export default function IdeasCreatorsPage() {
                   </Command>
                 </PopoverContent>
               </Popover>
-              
-              <Button 
-                onClick={() => setShowNewCreatorForm(!showNewCreatorForm)} 
-                className={`flex items-center gap-2 transition-all duration-200 ${showNewCreatorForm ? 'bg-accent text-accent-foreground' : ''}`}
+
+              <Button
+                onClick={() => setShowNewCreatorForm(!showNewCreatorForm)}
+                className={`flex items-center gap-2 transition-all duration-200 ${showNewCreatorForm ? "bg-accent text-accent-foreground" : ""}`}
                 variant={showNewCreatorForm ? "secondary" : "default"}
               >
                 <UserPlus className="h-4 w-4" />

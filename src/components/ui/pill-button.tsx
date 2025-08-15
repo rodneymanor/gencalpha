@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+
 import { cn } from "@/lib/utils";
 
 export type PillButtonProps = {
@@ -40,5 +41,4 @@ export function PillButton({ label, selected = false, ariaLabel, className, ...p
 }
 
 export default PillButton;
-
 

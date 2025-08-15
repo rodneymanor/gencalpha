@@ -13,17 +13,50 @@ import { Button } from "@/components/ui/button";
 import { PillButton } from "@/components/ui/pill-button";
 import { cn } from "@/lib/utils";
 
+export interface SlideoutOption {
+  key: string;
+  label: string;
+  component: ReactNode;
+}
+
 export interface SlideoutWrapperProps {
   children: ReactNode;
   slideout: ReactNode;
   className?: string;
   contentClassName?: string;
+  // Custom slideout configuration
+  customOptions?: SlideoutOption[];
+  customHeaderActions?: ReactNode;
+  defaultSelectedOption?: string;
+  openEvents?: string[];
+  closeEvents?: string[];
 }
 
 // eslint-disable-next-line complexity
-export function SlideoutWrapper({ children, slideout: _slideout, className, contentClassName }: SlideoutWrapperProps) {
+export function SlideoutWrapper({
+  children,
+  slideout: _slideout,
+  className,
+  contentClassName,
+  customOptions,
+  customHeaderActions,
+  defaultSelectedOption,
+  openEvents = ["write:editor-set-content"],
+  closeEvents = ["write:close-slideout"],
+}: SlideoutWrapperProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<"ghostwriter" | "creators" | "ideas">("ghostwriter");
+  // Determine available options (custom or default)
+  const isCustomMode = customOptions && customOptions.length > 0;
+  const defaultOptions: SlideoutOption[] = [
+    { key: "ghostwriter", label: "Ghost Writer", component: <MinimalSlideoutEditor /> },
+    { key: "creators", label: "Creators", component: <CreatorsView /> },
+    { key: "ideas", label: "Ideas", component: <IdeasView /> },
+  ];
+
+  const availableOptions = isCustomMode ? customOptions : defaultOptions;
+  const initialSelectedOption = defaultSelectedOption || availableOptions[0]?.key || "ghostwriter";
+
+  const [selectedOption, setSelectedOption] = useState<string>(initialSelectedOption);
   const [menuState, setMenuState] = useState<{
     isVisible: boolean;
     top: number;
@@ -45,26 +78,37 @@ export function SlideoutWrapper({ children, slideout: _slideout, className, cont
     setMenuState(null);
   }, [pathname]);
 
-  // Open slideout when structured content is sent to the editor. The editor itself
-  // is updated by the event payload; this effect only toggles visibility.
+  // Open slideout when configured events are triggered
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const openOnStructuredAnswer = () => setIsOpen(true);
-    window.addEventListener("write:editor-set-content", openOnStructuredAnswer as EventListener);
-    return () => {
-      window.removeEventListener("write:editor-set-content", openOnStructuredAnswer as EventListener);
-    };
-  }, []);
+    if (typeof window === "undefined" || !openEvents.length) return;
+    const openHandler = () => setIsOpen(true);
 
-  // Close slideout when requested via global event (e.g., from new script button)
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const closeOnRequest = () => setIsOpen(false);
-    window.addEventListener("write:close-slideout", closeOnRequest as EventListener);
+    openEvents.forEach((eventName) => {
+      window.addEventListener(eventName, openHandler as EventListener);
+    });
+
     return () => {
-      window.removeEventListener("write:close-slideout", closeOnRequest as EventListener);
+      openEvents.forEach((eventName) => {
+        window.removeEventListener(eventName, openHandler as EventListener);
+      });
     };
-  }, []);
+  }, [openEvents]);
+
+  // Close slideout when configured events are triggered
+  useEffect(() => {
+    if (typeof window === "undefined" || !closeEvents.length) return;
+    const closeHandler = () => setIsOpen(false);
+
+    closeEvents.forEach((eventName) => {
+      window.addEventListener(eventName, closeHandler as EventListener);
+    });
+
+    return () => {
+      closeEvents.forEach((eventName) => {
+        window.removeEventListener(eventName, closeHandler as EventListener);
+      });
+    };
+  }, [closeEvents]);
 
   // Open slideout with specific view when triggered from PlaybookCards
   useEffect(() => {
@@ -164,57 +208,56 @@ export function SlideoutWrapper({ children, slideout: _slideout, className, cont
             {/* Toolbar/Header with option selection */}
             <div className="bg-card border-border flex items-center justify-between border-b px-3 py-2">
               <div className="flex items-center gap-2">
-                <PillButton
-                  label="Ghost Writer"
-                  selected={selectedOption === "ghostwriter"}
-                  onClick={() => setSelectedOption("ghostwriter")}
-                  className="h-8 px-3 text-sm"
-                />
-                <PillButton
-                  label="Creators"
-                  selected={selectedOption === "creators"}
-                  onClick={() => setSelectedOption("creators")}
-                  className="h-8 px-3 text-sm"
-                />
-                <PillButton
-                  label="Ideas"
-                  selected={selectedOption === "ideas"}
-                  onClick={() => setSelectedOption("ideas")}
-                  className="h-8 px-3 text-sm"
-                />
+                {availableOptions.map((option) => (
+                  <PillButton
+                    key={option.key}
+                    label={option.label}
+                    selected={selectedOption === option.key}
+                    onClick={() => setSelectedOption(option.key)}
+                    className="h-8 px-3 text-sm"
+                  />
+                ))}
               </div>
               <div className="flex items-center gap-2">
-                {/* Hide copy and publish buttons on write page or for creators and ideas views */}
-                {!isWritePage && selectedOption === "ghostwriter" && (
+                {/* Custom header actions or default actions */}
+                {isCustomMode ? (
+                  customHeaderActions
+                ) : (
+                  /* Default actions for original slideout */
                   <>
-                    <div className="border-border flex items-center overflow-hidden rounded-[var(--radius-card)] border shadow-[var(--shadow-input)]">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="gap-1.5 rounded-none border-0 px-3 has-[>svg]:px-2.5"
-                        onClick={() => {
-                          try {
-                            const root = document.querySelector("[data-slideout-editor-root]");
-                            if (!root) return;
-                            const text = root.textContent ?? "";
-                            if (!text.trim()) return;
-                            void navigator.clipboard.writeText(text);
-                          } catch {
-                            /* no-op */
-                          }
-                        }}
-                      >
-                        <Copy className="h-4 w-4" />
-                        <span>Copy</span>
-                      </Button>
-                      <div className="bg-border h-8 w-px" />
-                      <Button variant="ghost" size="icon" className="rounded-none">
-                        <ChevronDown className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <Button variant="default" size="sm" className="gap-1.5 rounded-[var(--radius-button)] px-3">
-                      Publish
-                    </Button>
+                    {/* Hide copy and publish buttons on write page or for creators and ideas views */}
+                    {!isWritePage && selectedOption === "ghostwriter" && (
+                      <>
+                        <div className="border-border flex items-center overflow-hidden rounded-[var(--radius-card)] border shadow-[var(--shadow-input)]">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="gap-1.5 rounded-none border-0 px-3 has-[>svg]:px-2.5"
+                            onClick={() => {
+                              try {
+                                const root = document.querySelector("[data-slideout-editor-root]");
+                                if (!root) return;
+                                const text = root.textContent ?? "";
+                                if (!text.trim()) return;
+                                void navigator.clipboard.writeText(text);
+                              } catch {
+                                /* no-op */
+                              }
+                            }}
+                          >
+                            <Copy className="h-4 w-4" />
+                            <span>Copy</span>
+                          </Button>
+                          <div className="bg-border h-8 w-px" />
+                          <Button variant="ghost" size="icon" className="rounded-none">
+                            <ChevronDown className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <Button variant="default" size="sm" className="gap-1.5 rounded-[var(--radius-button)] px-3">
+                          Publish
+                        </Button>
+                      </>
+                    )}
                   </>
                 )}
                 <Button
@@ -230,9 +273,7 @@ export function SlideoutWrapper({ children, slideout: _slideout, className, cont
 
             {/* Editor area - minimal, no extra borders, specified padding */}
             <div className="flex-1 overflow-y-auto" ref={slideoutScrollRef}>
-              {selectedOption === "ghostwriter" && <MinimalSlideoutEditor />}
-              {selectedOption === "creators" && <CreatorsView />}
-              {selectedOption === "ideas" && <IdeasView />}
+              {availableOptions.find((option) => option.key === selectedOption)?.component}
             </div>
             {/* Contextual dropdown for script components (dummy actions) */}
             {menuState?.isVisible ? (

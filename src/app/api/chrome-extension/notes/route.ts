@@ -31,7 +31,9 @@ async function trackVoiceNoteTokenUsage(userId: string, usage: VoiceNoteTokenUsa
     const userStatsRef = adminDb.collection("user_voice_stats").doc(`${userId}_${currentMonth}`);
 
     await adminDb.runTransaction(async (transaction: FirebaseFirestore.Transaction) => {
-      const doc = (await transaction.get(userStatsRef)) as unknown as FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData>;
+      const doc = (await transaction.get(
+        userStatsRef,
+      )) as unknown as FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData>;
 
       if (doc.exists) {
         const data = doc.data();
@@ -200,10 +202,12 @@ export async function GET(request: NextRequest): Promise<NextResponse<NotesRespo
     }
 
     const snapshot = await query.get();
-    let notes: ChromeNote[] = snapshot.docs.map((doc: FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>) => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as ChromeNote[];
+    let notes: ChromeNote[] = snapshot.docs.map(
+      (doc: FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>) => ({
+        id: doc.id,
+        ...doc.data(),
+      }),
+    ) as ChromeNote[];
 
     // Apply client-side filters (since Firestore has limited querying)
     if (search) {

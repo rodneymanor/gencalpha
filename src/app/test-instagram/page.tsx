@@ -7,9 +7,9 @@ import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ClarityLoader } from "@/components/ui/loading";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { ClarityLoader } from "@/components/ui/loading";
 import { Separator } from "@/components/ui/separator";
 
 interface InstagramResponse {

@@ -99,7 +99,6 @@ export function ClaudeChat({
   );
   const [awaitingEmulateInput, setAwaitingEmulateInput] = useState(false);
   const [emulateIdea, setEmulateIdea] = useState("");
-  const [isSlideoutOpen, setIsSlideoutOpen] = useState(false);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -130,19 +129,6 @@ export function ClaudeChat({
   useEffect(() => {
     onHeroStateChange?.(isHeroState);
   }, [isHeroState, onHeroStateChange]);
-
-  // Sync local state with global slideout open/close events
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const open = () => setIsSlideoutOpen(true);
-    const close = () => setIsSlideoutOpen(false);
-    window.addEventListener("write:editor-set-content", open as EventListener);
-    window.addEventListener("write:close-slideout", close as EventListener);
-    return () => {
-      window.removeEventListener("write:editor-set-content", open as EventListener);
-      window.removeEventListener("write:close-slideout", close as EventListener);
-    };
-  }, []);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -684,9 +670,7 @@ export function ClaudeChat({
 
       {/* Hero State */}
       {isHeroState && (
-        <div
-          className={`mt-18 flex min-h-[calc(100vh-4rem)] flex-col items-center px-4 pt-24 md:pt-52 ${isSlideoutOpen ? "lg:pr-[400px]" : ""} transition-all duration-300`}
-        >
+        <div className="mt-18 flex min-h-[calc(100vh-4rem)] flex-col items-center px-4 pt-24 transition-all duration-300 md:pt-52">
           <div className="mx-auto flex w-full max-w-2xl flex-col items-start gap-3 pb-8">
             <div>
               <h1 className="text-foreground text-4xl leading-10 font-bold tracking-tight">
@@ -697,7 +681,7 @@ export function ClaudeChat({
             </div>
 
             <div className="w-full max-w-2xl">
-              <Card className="!rounded-[var(--radius-input)] shadow-sm transition-shadow duration-200 hover:shadow-md">
+              <Card className="rounded-xl shadow-sm transition-shadow duration-200 hover:shadow-md">
                 <div className="flex flex-col gap-3 px-4">
                   <div className={`relative ${isIdeaMode ? "rounded-[var(--radius-input)]" : ""}`}>
                     <textarea
@@ -872,9 +856,7 @@ export function ClaudeChat({
 
       {/* Chat State */}
       {!isHeroState && (
-        <div
-          className={`relative flex h-[calc(100vh-4rem)] flex-col ${isSlideoutOpen ? "lg:pr-[400px]" : ""} transition-all duration-300`}
-        >
+        <div className="relative flex h-[calc(100vh-4rem)] flex-col transition-all duration-300">
           {/* Messages Area with bottom padding for sticky input */}
           <ScrollArea className="flex-1 px-4 pb-32">
             <div className="mx-auto max-w-3xl py-6">
@@ -938,11 +920,9 @@ export function ClaudeChat({
           </ScrollArea>
 
           {/* Sticky Chat Input */}
-          <div
-            className={`bg-background/95 border-border absolute right-0 bottom-0 left-0 z-10 border-t px-4 py-4 backdrop-blur-sm ${isSlideoutOpen ? "lg:right-[400px]" : ""} transition-all duration-300`}
-          >
+          <div className="bg-background/95 border-border absolute right-0 bottom-0 left-0 z-10 border-t py-4 backdrop-blur-sm transition-all duration-300">
             <div className="mx-auto w-full max-w-3xl">
-              <Card className="border-border bg-card/95 !rounded-[var(--radius-input)] shadow-[var(--shadow-soft-drop)] backdrop-blur-sm">
+              <Card className="border-border bg-card/95 rounded-xl shadow-[var(--shadow-soft-drop)] backdrop-blur-sm">
                 <div className="flex flex-col gap-3 px-4 pt-4 pb-3">
                   <div className="flex items-end gap-3">
                     <textarea

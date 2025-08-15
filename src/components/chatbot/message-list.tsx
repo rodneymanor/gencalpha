@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageBubble } from "./message-bubble";
-import { LoadingIndicator } from "./loading-indicator";
-import { PersonaType } from "./persona-selector";
 import { cn } from "@/lib/utils";
+
+import { LoadingIndicator } from "./loading-indicator";
+import { MessageBubble } from "./message-bubble";
+import { PersonaType } from "./persona-selector";
 
 export interface Message {
   id: string;
@@ -36,13 +38,11 @@ export function MessageList({ messages, isLoading = false, className }: MessageL
         {messages.length === 0 && !isLoading && (
           <div className="flex h-full items-center justify-center p-8">
             <div className="text-center">
-              <div className="text-muted-foreground text-sm">
-                No messages yet. Start a conversation!
-              </div>
+              <div className="text-muted-foreground text-sm">No messages yet. Start a conversation!</div>
             </div>
           </div>
         )}
-        
+
         {messages.map((message) => (
           <MessageBubble
             key={message.id}
@@ -52,23 +52,21 @@ export function MessageList({ messages, isLoading = false, className }: MessageL
             persona={message.persona}
           />
         ))}
-        
+
         {isLoading && (
           <div className="flex gap-3 p-4">
-            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+            <div className="bg-primary text-primary-foreground flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full">
               <LoadingIndicator size="sm" />
             </div>
             <div className="flex max-w-[80%] flex-col gap-1">
-              <div className="text-xs font-medium text-muted-foreground">
-                Thinking...
-              </div>
-              <div className="rounded-2xl bg-muted px-4 py-2">
+              <div className="text-muted-foreground text-xs font-medium">Thinking...</div>
+              <div className="bg-muted rounded-2xl px-4 py-2">
                 <LoadingIndicator />
               </div>
             </div>
           </div>
         )}
-        
+
         <div ref={messagesEndRef} />
       </div>
     </ScrollArea>

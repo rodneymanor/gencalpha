@@ -51,7 +51,7 @@ export function PersonalizedVideoFeed({ trigger }: PersonalizedVideoFeedProps) {
       try {
         const res = await fetch("/api/daily/list-videos");
         const data = await res.json();
-        // eslint-disable-next-line no-console
+
         console.log("[PersonalizedVideoFeed] /api/daily/list-videos", { status: res.status, ok: res.ok, data });
         if (!cancelled && res.ok && data.success) {
           const mapped = (data.videos ?? []).map((v: any) => ({
@@ -68,7 +68,6 @@ export function PersonalizedVideoFeed({ trigger }: PersonalizedVideoFeedProps) {
           }
         }
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.error("[PersonalizedVideoFeed] initial load failed", err);
       } finally {
         if (!cancelled) setLoading(false);

@@ -29,4 +29,3 @@ export interface ScraperOptions {
   retryCount?: number;
   includeMetrics?: boolean;
 }
-

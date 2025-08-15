@@ -60,12 +60,7 @@ export function DataTablePagination<TData>({ table }: DataTablePaginationProps<T
             <span className="sr-only">Go to previous page</span>
             <ChevronLeft />
           </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
+          <Button variant="outline" size="icon" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
             <span className="sr-only">Go to next page</span>
             <ChevronRight />
           </Button>

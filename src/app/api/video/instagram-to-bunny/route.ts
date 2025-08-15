@@ -86,8 +86,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const videoData = 'videoData' in rapidApiData ? rapidApiData.videoData : null;
-    const metadata = 'metadata' in rapidApiData ? rapidApiData.metadata : null;
+    const videoData = "videoData" in rapidApiData ? rapidApiData.videoData : null;
+    const metadata = "metadata" in rapidApiData ? rapidApiData.metadata : null;
 
     if (!videoData?.lowQualityUrl) {
       console.error("❌ [INSTAGRAM_TO_BUNNY] No video URL found in response");
@@ -155,7 +155,7 @@ async function fetchInstagramData(shortcode: string) {
       () => makeRapidApiRequest(shortcode),
       3,
       1000,
-      `instagram-fetch-data-${shortcode}`
+      `instagram-fetch-data-${shortcode}`,
     );
 
     if (!response.ok) {
@@ -174,28 +174,25 @@ async function fetchInstagramData(shortcode: string) {
 }
 
 async function makeRapidApiRequest(shortcode: string) {
-  return withGlobalInstagramRateLimit(
-    async () => {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
+  return withGlobalInstagramRateLimit(async () => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-      const response = await fetch(
-        `https://instagram-api-fast-reliable-data-scraper.p.rapidapi.com/reel_by_shortcode?shortcode=${shortcode}`,
-        {
-          method: "GET",
-          headers: {
-            "x-rapidapi-key": process.env.RAPIDAPI_KEY!,
-            "x-rapidapi-host": "instagram-api-fast-reliable-data-scraper.p.rapidapi.com",
-          },
-          signal: controller.signal,
+    const response = await fetch(
+      `https://instagram-api-fast-reliable-data-scraper.p.rapidapi.com/reel_by_shortcode?shortcode=${shortcode}`,
+      {
+        method: "GET",
+        headers: {
+          "x-rapidapi-key": process.env.RAPIDAPI_KEY!,
+          "x-rapidapi-host": "instagram-api-fast-reliable-data-scraper.p.rapidapi.com",
         },
-      );
+        signal: controller.signal,
+      },
+    );
 
-      clearTimeout(timeoutId);
-      return response;
-    },
-    `instagram-reel-shortcode-${shortcode}`
-  );
+    clearTimeout(timeoutId);
+    return response;
+  }, `instagram-reel-shortcode-${shortcode}`);
 }
 
 function processInstagramResponse(data: any) {

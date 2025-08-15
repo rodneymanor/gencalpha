@@ -5,7 +5,7 @@
  */
 
 export interface URLDetectionResult {
-  platform: 'tiktok' | 'instagram' | 'youtube' | 'web' | 'unknown';
+  platform: "tiktok" | "instagram" | "youtube" | "web" | "unknown";
   type: string;
   endpoint: string | null;
   url: string;
@@ -74,12 +74,12 @@ export class SocialMediaURLDetector {
 
     // Endpoints for different platforms
     this.endpoints = {
-      tiktok: '/api/video/transcribe',
-      instagram: '/api/video/transcribe',
-      instagram_reel: '/api/video/transcribe',
-      youtube: '/api/transcribe/youtube', // TODO: Implement YouTube scraping
-      youtube_shorts: '/api/transcribe/youtube-shorts', // TODO: Implement YouTube shorts scraping
-      web: '/api/scrape/web-post', // TODO: Implement web scraping
+      tiktok: "/api/video/transcribe",
+      instagram: "/api/video/transcribe",
+      instagram_reel: "/api/video/transcribe",
+      youtube: "/api/transcribe/youtube", // TODO: Implement YouTube scraping
+      youtube_shorts: "/api/transcribe/youtube-shorts", // TODO: Implement YouTube shorts scraping
+      web: "/api/scrape/web-post", // TODO: Implement web scraping
     };
   }
 
@@ -90,27 +90,27 @@ export class SocialMediaURLDetector {
    */
   detectPlatform(url: string): URLDetectionResult {
     // Input validation
-    if (!url || typeof url !== 'string') {
+    if (!url || typeof url !== "string") {
       return {
-        platform: 'unknown',
-        type: 'unknown',
+        platform: "unknown",
+        type: "unknown",
         endpoint: null,
-        url: '',
-        error: 'Invalid URL provided - must be a non-empty string',
+        url: "",
+        error: "Invalid URL provided - must be a non-empty string",
         isSupported: false,
       };
     }
 
     // Clean and normalize URL
     const cleanUrl = url.trim();
-    
+
     if (!cleanUrl) {
       return {
-        platform: 'unknown',
-        type: 'unknown',
+        platform: "unknown",
+        type: "unknown",
         endpoint: null,
         url: cleanUrl,
-        error: 'Empty URL provided',
+        error: "Empty URL provided",
         isSupported: false,
       };
     }
@@ -120,11 +120,11 @@ export class SocialMediaURLDetector {
       new URL(cleanUrl);
     } catch {
       return {
-        platform: 'unknown',
-        type: 'unknown',
+        platform: "unknown",
+        type: "unknown",
         endpoint: null,
         url: cleanUrl,
-        error: 'Invalid URL format - please provide a valid HTTP/HTTPS URL',
+        error: "Invalid URL format - please provide a valid HTTP/HTTPS URL",
         isSupported: false,
       };
     }
@@ -135,8 +135,8 @@ export class SocialMediaURLDetector {
         if (pattern.test(cleanUrl)) {
           const id = this.extractTikTokId(cleanUrl);
           return {
-            platform: 'tiktok',
-            type: 'video',
+            platform: "tiktok",
+            type: "video",
             endpoint: this.endpoints.tiktok,
             url: cleanUrl,
             id,
@@ -150,18 +150,20 @@ export class SocialMediaURLDetector {
         if (pattern.test(cleanUrl)) {
           const instagramType = this.getInstagramType(cleanUrl);
           const id = this.extractInstagramId(cleanUrl);
-          
+
           // Check if it's a supported Instagram type
-          const isSupported = instagramType === 'reel' || instagramType === 'post';
-          
+          const isSupported = instagramType === "reel" || instagramType === "post";
+
           return {
-            platform: 'instagram',
+            platform: "instagram",
             type: instagramType,
-            endpoint: instagramType === 'reel' ? this.endpoints.instagram_reel : this.endpoints.instagram,
+            endpoint: instagramType === "reel" ? this.endpoints.instagram_reel : this.endpoints.instagram,
             url: cleanUrl,
             id,
             isSupported,
-            error: !isSupported ? `Instagram ${instagramType}s are not currently supported. Please use Instagram reels or posts.` : undefined,
+            error: !isSupported
+              ? `Instagram ${instagramType}s are not currently supported. Please use Instagram reels or posts.`
+              : undefined,
           };
         }
       }
@@ -171,15 +173,15 @@ export class SocialMediaURLDetector {
         if (pattern.test(cleanUrl)) {
           const youtubeType = this.getYouTubeType(cleanUrl);
           const id = this.extractYouTubeId(cleanUrl);
-          
+
           return {
-            platform: 'youtube',
+            platform: "youtube",
             type: youtubeType,
-            endpoint: youtubeType === 'shorts' ? this.endpoints.youtube_shorts : this.endpoints.youtube,
+            endpoint: youtubeType === "shorts" ? this.endpoints.youtube_shorts : this.endpoints.youtube,
             url: cleanUrl,
             id,
             isSupported: false, // TODO: YouTube support not implemented yet
-            error: 'YouTube video processing is coming soon. Currently only TikTok and Instagram are supported.',
+            error: "YouTube video processing is coming soon. Currently only TikTok and Instagram are supported.",
           };
         }
       }
@@ -189,33 +191,33 @@ export class SocialMediaURLDetector {
         if (pattern.test(cleanUrl)) {
           const domain = this.extractDomain(cleanUrl);
           return {
-            platform: 'web',
-            type: 'post',
+            platform: "web",
+            type: "post",
             endpoint: this.endpoints.web,
             url: cleanUrl,
             domain,
             isSupported: false, // TODO: Web scraping not implemented yet
-            error: 'Web page processing is coming soon. Currently only TikTok and Instagram are supported.',
+            error: "Web page processing is coming soon. Currently only TikTok and Instagram are supported.",
           };
         }
       }
 
       // No patterns matched
       return {
-        platform: 'unknown',
-        type: 'unknown',
+        platform: "unknown",
+        type: "unknown",
         endpoint: null,
         url: cleanUrl,
-        error: 'URL format not recognized. Currently supported: TikTok and Instagram videos.',
+        error: "URL format not recognized. Currently supported: TikTok and Instagram videos.",
         isSupported: false,
       };
     } catch (error) {
       return {
-        platform: 'unknown',
-        type: 'unknown',
+        platform: "unknown",
+        type: "unknown",
         endpoint: null,
         url: cleanUrl,
-        error: `Error analyzing URL: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error: `Error analyzing URL: ${error instanceof Error ? error.message : "Unknown error"}`,
         isSupported: false,
       };
     }
@@ -226,18 +228,18 @@ export class SocialMediaURLDetector {
    */
   private getInstagramType(url: string): string {
     if (/\/reel\//i.test(url) || /\/reels\//i.test(url)) {
-      return 'reel';
+      return "reel";
     }
     if (/\/p\//i.test(url)) {
-      return 'post';
+      return "post";
     }
     if (/\/stories\//i.test(url)) {
-      return 'story';
+      return "story";
     }
     if (/\/tv\//i.test(url)) {
-      return 'tv';
+      return "tv";
     }
-    return 'profile';
+    return "profile";
   }
 
   /**
@@ -245,18 +247,18 @@ export class SocialMediaURLDetector {
    */
   private getYouTubeType(url: string): string {
     if (/\/shorts\//i.test(url)) {
-      return 'shorts';
+      return "shorts";
     }
     if (/\/live\//i.test(url)) {
-      return 'live';
+      return "live";
     }
     if (/\/playlist\?/i.test(url)) {
-      return 'playlist';
+      return "playlist";
     }
     if (/\/(c\/|channel\/|user\/|@)/i.test(url)) {
-      return 'channel';
+      return "channel";
     }
-    return 'video';
+    return "video";
   }
 
   /**
@@ -271,7 +273,7 @@ export class SocialMediaURLDetector {
       /user\/(\d+)/,
       /v\/(\d+)/,
       /usr\/(\d+)/,
-      /vm\.tiktok\.com\/([\w\d]+)/
+      /vm\.tiktok\.com\/([\w\d]+)/,
     ];
 
     for (const pattern of patterns) {
@@ -298,7 +300,7 @@ export class SocialMediaURLDetector {
     const patterns = [
       /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/).*[?&]v=|youtu\.be\/)([^"&?/\s]{11})/,
       /youtube\.com\/shorts\/([^"&?/\s]{11})/,
-      /youtube\.com\/live\/([^"&?/\s]{11})/
+      /youtube\.com\/live\/([^"&?/\s]{11})/,
     ];
 
     for (const pattern of patterns) {

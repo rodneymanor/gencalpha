@@ -1,24 +1,26 @@
 "use client"
 
 import React, { useEffect, useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { VisuallyHidden } from '@/components/ui/visually-hidden'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { ClientOnboardingService } from '@/lib/services/client-onboarding-service'
-import { OnboardingSelections } from '@/components/ui/onboarding-wizard-modal'
-import { 
-  User, 
-  Target, 
-  Video, 
-  Hash, 
-  Lightbulb, 
+
+import {
+  User,
+  Target,
+  Video,
+  Hash,
+  Lightbulb,
   Edit3,
   Globe
 } from 'lucide-react'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { ClarityLoader } from "@/components/ui/loading"
+import { OnboardingSelections } from '@/components/ui/onboarding-wizard-modal'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { VisuallyHidden } from '@/components/ui/visually-hidden'
+import { ClientOnboardingService } from '@/lib/services/client-onboarding-service'
 
 interface BrandSettingsSummaryModalProps {
   isOpen: boolean
@@ -56,10 +58,10 @@ const PLATFORMS = [
   { id: "all", name: "All Platforms", icon: "🌐" }
 ];
 
-export function BrandSettingsSummaryModal({ 
-  isOpen, 
-  onClose, 
-  onEdit 
+export function BrandSettingsSummaryModal({
+  isOpen,
+  onClose,
+  onEdit
 }: BrandSettingsSummaryModalProps) {
   const [onboardingData, setOnboardingData] = useState<OnboardingSelections | null>(null)
   const [isLoading, setIsLoading] = useState(true)

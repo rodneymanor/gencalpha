@@ -141,7 +141,7 @@ const LoadingGrid: React.FC<{ columns: number }> = ({ columns }) => {
   return (
     <div className={`grid w-full ${getGridCols()} gap-4 px-6`}>
       {Array.from({ length: columns * 2 }).map((_, index) => (
-        <div key={index} className="aspect-[3/4] animate-pulse rounded-[var(--radius-card)] bg-muted" />
+        <div key={index} className="bg-muted aspect-[3/4] animate-pulse rounded-[var(--radius-card)]" />
       ))}
     </div>
   );

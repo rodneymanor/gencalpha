@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, ReactNode } from "react";
+
 import { Video } from "@/lib/collections";
 
 interface VideoInsightsContextType {

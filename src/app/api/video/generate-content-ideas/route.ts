@@ -18,7 +18,10 @@ export async function POST(request: NextRequest) {
     const { transcript }: GenerateIdeasRequest = await request.json();
 
     if (!transcript || transcript.trim().length === 0) {
-      return NextResponse.json({ success: false, error: "Transcript is required to generate content ideas" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: "Transcript is required to generate content ideas" },
+        { status: 400 },
+      );
     }
 
     const systemPrompt = "You are an AI content strategist that produces fresh content ideas from transcripts.";
@@ -59,7 +62,10 @@ CONSTRAINTS:
     });
 
     if (!ai.success || !ai.content) {
-      return NextResponse.json({ success: false, error: ai.error ?? "Content ideas generation failed" }, { status: 500 });
+      return NextResponse.json(
+        { success: false, error: ai.error ?? "Content ideas generation failed" },
+        { status: 500 },
+      );
     }
 
     const content = ai.content as any;
@@ -73,7 +79,10 @@ CONSTRAINTS:
       format: String(i?.format ?? "Video").trim(),
       hook: String(i?.hook ?? "").trim(),
       keyPoints: Array.isArray(i?.keyPoints)
-        ? i.keyPoints.filter((kp: unknown) => typeof kp === "string" && kp.trim() !== "").map((kp: string) => kp.trim()).slice(0, 3)
+        ? i.keyPoints
+            .filter((kp: unknown) => typeof kp === "string" && kp.trim() !== "")
+            .map((kp: string) => kp.trim())
+            .slice(0, 3)
         : [],
     }));
 
@@ -86,4 +95,3 @@ CONSTRAINTS:
     );
   }
 }
-

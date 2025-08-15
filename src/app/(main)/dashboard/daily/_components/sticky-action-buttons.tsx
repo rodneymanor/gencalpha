@@ -1,11 +1,11 @@
 "use client";
 
+import { ExternalLink, FileText, User } from "lucide-react";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
 import { Video } from "@/lib/collections";
-import { ExternalLink, FileText, User } from "lucide-react";
 
 interface StickyActionButtonsProps {
   video: Video;
@@ -33,12 +33,10 @@ export function StickyActionButtons({ video, onRewriteScript }: StickyActionButt
     }
   };
 
-  const profileImageSrc = video.metadata?.author
-    ? `https://unavatar.io/instagram/${video.metadata.author}`
-    : undefined;
+  const profileImageSrc = video.metadata?.author ? `https://unavatar.io/instagram/${video.metadata.author}` : undefined;
 
   return (
-    <div className="bg-background sticky bottom-0 border-t p-6 space-y-0">
+    <div className="bg-background sticky bottom-0 space-y-0 border-t p-6">
       <div className="flex items-start justify-between">
         {/* Post header */}
         <div className="flex gap-3">
@@ -48,29 +46,17 @@ export function StickyActionButtons({ video, onRewriteScript }: StickyActionButt
               <User className="h-4 w-4" />
             </AvatarFallback>
           </Avatar>
-          <div className="flex flex-col max-w-xs">
-            <span className="font-semibold text-sm">{video.metadata?.author ?? "Unknown Creator"}</span>
+          <div className="flex max-w-xs flex-col">
+            <span className="text-sm font-semibold">{video.metadata?.author ?? "Unknown Creator"}</span>
             {fullText && (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <p
-                    onClick={handleCopyFullText}
-                    className="text-sm line-clamp-2 cursor-pointer hover:underline"
-                  >
+                  <p onClick={handleCopyFullText} className="line-clamp-2 cursor-pointer text-sm hover:underline">
                     {caption ?? ""}
-                    {hashtags && hashtags.length > 0 && (
-                      <>
-                        {" "}
-                        {hashtags.map((tag) => `#${tag} `)}
-                      </>
-                    )}
+                    {hashtags && hashtags.length > 0 && <> {hashtags.map((tag) => `#${tag} `)}</>}
                   </p>
                 </TooltipTrigger>
-                <TooltipContent
-                  side="top"
-                  sideOffset={4}
-                  className="max-w-sm whitespace-pre-wrap text-sm"
-                >
+                <TooltipContent side="top" sideOffset={4} className="max-w-sm text-sm whitespace-pre-wrap">
                   {fullText}
                 </TooltipContent>
               </Tooltip>
@@ -79,12 +65,7 @@ export function StickyActionButtons({ video, onRewriteScript }: StickyActionButt
         </div>
         {/* Action buttons */}
         <div className="flex gap-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-2"
-            onClick={() => window.open(video.originalUrl, "_blank")}
-          >
+          <Button variant="ghost" size="sm" className="gap-2" onClick={() => window.open(video.originalUrl, "_blank")}>
             <ExternalLink className="h-4 w-4" />
             View Original
           </Button>
@@ -95,9 +76,7 @@ export function StickyActionButtons({ video, onRewriteScript }: StickyActionButt
         </div>
       </div>
       {!video.transcript && (
-        <p className="text-muted-foreground mt-2 text-right text-xs">
-          Transcript required for AI actions.
-        </p>
+        <p className="text-muted-foreground mt-2 text-right text-xs">Transcript required for AI actions.</p>
       )}
     </div>
   );

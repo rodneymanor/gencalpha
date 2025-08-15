@@ -86,21 +86,20 @@ export function ResizableLayoutProvider({ children }: { children: ReactNode }) {
 
   const resetLayout = () => setState(DEFAULT_STATE);
 
-  const contextValue = useMemo(() => ({
-    state,
-    setState,
-    toggleWritingPanel,
-    toggleNotesPanel,
-    toggleChatbotPanel,
-    updatePanelSizes,
-    resetLayout
-  }), [state]);
-
-  return (
-    <ResizableLayoutContext.Provider value={contextValue}>
-      {children}
-    </ResizableLayoutContext.Provider>
+  const contextValue = useMemo(
+    () => ({
+      state,
+      setState,
+      toggleWritingPanel,
+      toggleNotesPanel,
+      toggleChatbotPanel,
+      updatePanelSizes,
+      resetLayout,
+    }),
+    [state],
   );
+
+  return <ResizableLayoutContext.Provider value={contextValue}>{children}</ResizableLayoutContext.Provider>;
 }
 
 export function useResizableLayout() {

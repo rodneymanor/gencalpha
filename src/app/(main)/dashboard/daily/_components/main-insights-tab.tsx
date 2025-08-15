@@ -1,10 +1,10 @@
 "use client";
 
 import { Zap, FileText, Copy, CheckCircle } from "lucide-react";
-import { Video } from "@/lib/collections";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Video } from "@/lib/collections";
 
 interface MainInsightsTabProps {
   video: Video;
@@ -33,12 +33,7 @@ export function MainInsightsTab({
             <span className="flex items-center gap-2">
               <Zap className="h-5 w-5" /> Hook
             </span>
-            <Button
-              onClick={handleGenerateHooks}
-              size="sm"
-              className="gap-2"
-              disabled={!video.transcript}
-            >
+            <Button onClick={handleGenerateHooks} size="sm" className="gap-2" disabled={!video.transcript}>
               <Zap className="h-4 w-4" /> Generate Hook
             </Button>
           </CardTitle>

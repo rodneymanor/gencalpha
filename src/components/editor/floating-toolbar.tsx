@@ -4,7 +4,6 @@ import * as React from "react";
 import { memo, useMemo } from "react";
 
 import { Mic, Maximize2, ChevronDown, MicOff, Save, Download, Undo, Redo, Sparkles, Type, Volume2 } from "lucide-react";
-import { ClarityLoader } from "@/components/ui/loading";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
+import { ClarityLoader } from "@/components/ui/loading";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
@@ -407,11 +407,7 @@ const FloatingToolbar: React.FC<FloatingToolbarProps> = memo(
                     disabled={disabled || isSaving}
                     aria-label="Save script"
                   >
-                    {isSaving ? (
-                      <ClarityLoader size="inline" />
-                    ) : (
-                      <Save className="h-4 w-4 shrink-0" />
-                    )}
+                    {isSaving ? <ClarityLoader size="inline" /> : <Save className="h-4 w-4 shrink-0" />}
                   </button>
                 </TooltipTrigger>
                 <TooltipContent side="top">Save script</TooltipContent>

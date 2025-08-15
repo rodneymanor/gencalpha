@@ -64,7 +64,7 @@ export function selectLowestBitratePlayUrl(awemeDetail: any): string | "" {
     // fallback to play_addr or download_addr
     const playList: string[] = awemeDetail?.video?.play_addr?.url_list ?? [];
     const dlList: string[] = awemeDetail?.video?.download_addr?.url_list ?? [];
-    return (playList[0] ?? dlList[0] ?? "");
+    return playList[0] ?? dlList[0] ?? "";
   }
   const sorted = [...bitRates].sort((a, b) => (a.bit_rate ?? 0) - (b.bit_rate ?? 0));
   const lowest = sorted[0];
@@ -79,9 +79,7 @@ export function mapTikTokToUnified(awemeDetail: any): UnifiedVideoResult {
   const author = awemeDetail?.author ?? {};
 
   const thumbnailUrl =
-    awemeDetail?.video?.cover?.url_list?.[0] ??
-    awemeDetail?.video?.origin_cover?.url_list?.[0] ??
-    "";
+    awemeDetail?.video?.cover?.url_list?.[0] ?? awemeDetail?.video?.origin_cover?.url_list?.[0] ?? "";
 
   const hashtags: string[] = Array.isArray(awemeDetail?.text_extra)
     ? awemeDetail.text_extra.filter((t: any) => t?.hashtag_name).map((t: any) => t.hashtag_name)
@@ -117,4 +115,3 @@ export function mapTikTokToUnified(awemeDetail: any): UnifiedVideoResult {
     rawData: awemeDetail,
   };
 }
-

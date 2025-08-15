@@ -1,10 +1,11 @@
 "use client";
 
-import { X } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-
 import { ReactNode } from "react";
+
+import { X } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface PanelHeaderProps {
   title: ReactNode;
@@ -27,7 +28,7 @@ export function PanelHeader({ title, onClose, className, children }: PanelHeader
           >
             <X className="h-4 w-4" />
           </Button>
-        
+
       )}
     </div>
   );

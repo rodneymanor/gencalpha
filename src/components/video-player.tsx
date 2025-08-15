@@ -3,8 +3,8 @@
 import { useState } from "react";
 
 import { Play } from "lucide-react";
-import { ClarityLoader } from "@/components/ui/loading";
 
+import { ClarityLoader } from "@/components/ui/loading";
 import { Video } from "@/lib/collections";
 import { cn } from "@/lib/utils";
 

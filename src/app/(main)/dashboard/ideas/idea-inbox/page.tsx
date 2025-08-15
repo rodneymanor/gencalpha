@@ -7,12 +7,12 @@ import { Plus, Filter, X, Star, Calendar, Tag, Type, Globe } from "lucide-react"
 import { IdeaDetailDialog } from "@/app/(main)/dashboard/idea-inbox/_components/idea-detail-dialog";
 import { mapNotesToIdeas } from "@/app/(main)/dashboard/idea-inbox/_components/note-mapper";
 import type { Idea, DatabaseNote } from "@/app/(main)/dashboard/idea-inbox/_components/types";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CardTransparent } from "@/components/ui/card";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { SearchField } from "@/components/ui/search-field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Badge } from "@/components/ui/badge";
 import { auth } from "@/lib/firebase";
 import { clientNotesService } from "@/lib/services/client-notes-service";
 
@@ -35,10 +35,10 @@ export default function IdeasIdeaInboxPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
     source: "all",
-    type: "all", 
+    type: "all",
     starred: "all",
     dateRange: "all",
-    tags: []
+    tags: [],
   });
 
   useEffect(() => {
@@ -80,10 +80,10 @@ export default function IdeasIdeaInboxPage() {
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
-        (idea) => 
-          idea.title.toLowerCase().includes(query) || 
+        (idea) =>
+          idea.title.toLowerCase().includes(query) ||
           (idea.content || "").toLowerCase().includes(query) ||
-          (idea.tags || []).some(tag => tag.toLowerCase().includes(query))
+          (idea.tags || []).some((tag) => tag.toLowerCase().includes(query)),
       );
     }
 
@@ -107,7 +107,7 @@ export default function IdeasIdeaInboxPage() {
     if (filters.dateRange !== "all") {
       const now = new Date();
       const filterDate = new Date();
-      
+
       switch (filters.dateRange) {
         case "today":
           filterDate.setHours(0, 0, 0, 0);
@@ -122,7 +122,7 @@ export default function IdeasIdeaInboxPage() {
           filterDate.setFullYear(now.getFullYear() - 1);
           break;
       }
-      
+
       if (filters.dateRange !== "all") {
         filtered = filtered.filter((idea) => {
           const ideaDate = new Date(idea.updatedAt || idea.createdAt);
@@ -133,9 +133,7 @@ export default function IdeasIdeaInboxPage() {
 
     // Apply tags filter
     if (filters.tags.length > 0) {
-      filtered = filtered.filter((idea) =>
-        filters.tags.every(tag => idea.tags.includes(tag))
-      );
+      filtered = filtered.filter((idea) => filters.tags.every((tag) => idea.tags.includes(tag)));
     }
 
     setFilteredIdeas(filtered);
@@ -153,17 +151,17 @@ export default function IdeasIdeaInboxPage() {
 
   // Get unique values for filter options
   const getUniqueSourcesFromIdeas = useCallback(() => {
-    const sources = new Set(ideas.map(idea => idea.source).filter(Boolean));
+    const sources = new Set(ideas.map((idea) => idea.source).filter(Boolean));
     return Array.from(sources);
   }, [ideas]);
 
   const getUniqueTypesFromIdeas = useCallback(() => {
-    const types = new Set(ideas.map(idea => idea.type).filter(Boolean));
+    const types = new Set(ideas.map((idea) => idea.type).filter(Boolean));
     return Array.from(types);
   }, [ideas]);
 
   const getUniqueTagsFromIdeas = useCallback(() => {
-    const allTags = ideas.flatMap(idea => idea.tags || []);
+    const allTags = ideas.flatMap((idea) => idea.tags || []);
     const uniqueTags = new Set(allTags.filter(Boolean));
     return Array.from(uniqueTags).sort();
   }, [ideas]);
@@ -173,18 +171,20 @@ export default function IdeasIdeaInboxPage() {
     setFilters({
       source: "all",
       type: "all",
-      starred: "all", 
+      starred: "all",
       dateRange: "all",
-      tags: []
+      tags: [],
     });
   };
 
   const hasActiveFilters = () => {
-    return filters.source !== "all" || 
-           filters.type !== "all" || 
-           filters.starred !== "all" || 
-           filters.dateRange !== "all" || 
-           filters.tags.length > 0;
+    return (
+      filters.source !== "all" ||
+      filters.type !== "all" ||
+      filters.starred !== "all" ||
+      filters.dateRange !== "all" ||
+      filters.tags.length > 0
+    );
   };
 
   const getActiveFilterCount = () => {
@@ -221,7 +221,7 @@ export default function IdeasIdeaInboxPage() {
   return (
     <div className="bg-background min-h-screen font-sans">
       {/* Mobile-optimized sticky header */}
-      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
+      <div className="bg-background/95 border-border sticky top-0 z-40 border-b backdrop-blur-sm">
         <div className="px-4 py-4 sm:px-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-1">
@@ -230,47 +230,50 @@ export default function IdeasIdeaInboxPage() {
                 {isLoading ? "Loading..." : `${filteredIdeas.length} note${filteredIdeas.length !== 1 ? "s" : ""}`}
               </p>
             </div>
-            <div className="flex gap-2 w-full sm:w-auto">
+            <div className="flex w-full gap-2 sm:w-auto">
               <Popover open={showFilters} onOpenChange={setShowFilters}>
                 <PopoverTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    className={`flex items-center justify-center gap-2 min-h-[44px] relative ${hasActiveFilters() ? 'border-primary' : ''}`}
+                  <Button
+                    variant="outline"
+                    className={`relative flex min-h-[44px] items-center justify-center gap-2 ${hasActiveFilters() ? "border-primary" : ""}`}
                   >
                     <Filter className="h-4 w-4" />
                     <span className="hidden sm:inline">Filter</span>
                     {hasActiveFilters() && (
-                      <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
+                      <Badge className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full p-0 text-xs">
                         {getActiveFilterCount()}
                       </Badge>
                     )}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-80 p-0" align="end">
-                  <div className="p-4 space-y-4">
+                  <div className="space-y-4 p-4">
                     <div className="flex items-center justify-between">
-                      <h4 className="font-semibold text-sm">Filters</h4>
+                      <h4 className="text-sm font-semibold">Filters</h4>
                       {hasActiveFilters() && (
                         <Button variant="ghost" size="sm" onClick={clearAllFilters} className="h-8 px-2">
-                          <X className="h-3 w-3 mr-1" />
+                          <X className="mr-1 h-3 w-3" />
                           Clear
                         </Button>
                       )}
                     </div>
-                    
+
                     {/* Source Filter */}
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
-                        <Globe className="h-3 w-3 text-muted-foreground" />
+                        <Globe className="text-muted-foreground h-3 w-3" />
                         <label className="text-xs font-medium">Source</label>
                       </div>
-                      <Select value={filters.source} onValueChange={(value) => setFilters(prev => ({...prev, source: value}))}>
+                      <Select
+                        value={filters.source}
+                        onValueChange={(value) => setFilters((prev) => ({ ...prev, source: value }))}
+                      >
                         <SelectTrigger className="h-8">
                           <SelectValue placeholder="All sources" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All sources</SelectItem>
-                          {getUniqueSourcesFromIdeas().map(source => (
+                          {getUniqueSourcesFromIdeas().map((source) => (
                             <SelectItem key={source} value={source}>
                               {source.charAt(0).toUpperCase() + source.slice(1)}
                             </SelectItem>
@@ -282,16 +285,19 @@ export default function IdeasIdeaInboxPage() {
                     {/* Type Filter */}
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
-                        <Type className="h-3 w-3 text-muted-foreground" />
+                        <Type className="text-muted-foreground h-3 w-3" />
                         <label className="text-xs font-medium">Type</label>
                       </div>
-                      <Select value={filters.type} onValueChange={(value) => setFilters(prev => ({...prev, type: value}))}>
+                      <Select
+                        value={filters.type}
+                        onValueChange={(value) => setFilters((prev) => ({ ...prev, type: value }))}
+                      >
                         <SelectTrigger className="h-8">
                           <SelectValue placeholder="All types" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All types</SelectItem>
-                          {getUniqueTypesFromIdeas().map(type => (
+                          {getUniqueTypesFromIdeas().map((type) => (
                             <SelectItem key={type} value={type}>
                               {type.charAt(0).toUpperCase() + type.slice(1)}
                             </SelectItem>
@@ -303,10 +309,13 @@ export default function IdeasIdeaInboxPage() {
                     {/* Starred Filter */}
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
-                        <Star className="h-3 w-3 text-muted-foreground" />
+                        <Star className="text-muted-foreground h-3 w-3" />
                         <label className="text-xs font-medium">Starred</label>
                       </div>
-                      <Select value={filters.starred} onValueChange={(value) => setFilters(prev => ({...prev, starred: value}))}>
+                      <Select
+                        value={filters.starred}
+                        onValueChange={(value) => setFilters((prev) => ({ ...prev, starred: value }))}
+                      >
                         <SelectTrigger className="h-8">
                           <SelectValue placeholder="All notes" />
                         </SelectTrigger>
@@ -321,10 +330,13 @@ export default function IdeasIdeaInboxPage() {
                     {/* Date Range Filter */}
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
-                        <Calendar className="h-3 w-3 text-muted-foreground" />
+                        <Calendar className="text-muted-foreground h-3 w-3" />
                         <label className="text-xs font-medium">Date Range</label>
                       </div>
-                      <Select value={filters.dateRange} onValueChange={(value) => setFilters(prev => ({...prev, dateRange: value}))}>
+                      <Select
+                        value={filters.dateRange}
+                        onValueChange={(value) => setFilters((prev) => ({ ...prev, dateRange: value }))}
+                      >
                         <SelectTrigger className="h-8">
                           <SelectValue placeholder="All time" />
                         </SelectTrigger>
@@ -342,21 +354,21 @@ export default function IdeasIdeaInboxPage() {
                     {getUniqueTagsFromIdeas().length > 0 && (
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
-                          <Tag className="h-3 w-3 text-muted-foreground" />
+                          <Tag className="text-muted-foreground h-3 w-3" />
                           <label className="text-xs font-medium">Tags</label>
                         </div>
-                        <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto">
-                          {getUniqueTagsFromIdeas().map(tag => (
+                        <div className="flex max-h-20 flex-wrap gap-1 overflow-y-auto">
+                          {getUniqueTagsFromIdeas().map((tag) => (
                             <Badge
                               key={tag}
                               variant={filters.tags.includes(tag) ? "default" : "outline"}
-                              className="cursor-pointer text-xs h-6"
+                              className="h-6 cursor-pointer text-xs"
                               onClick={() => {
-                                setFilters(prev => ({
+                                setFilters((prev) => ({
                                   ...prev,
-                                  tags: prev.tags.includes(tag) 
-                                    ? prev.tags.filter(t => t !== tag)
-                                    : [...prev.tags, tag]
+                                  tags: prev.tags.includes(tag)
+                                    ? prev.tags.filter((t) => t !== tag)
+                                    : [...prev.tags, tag],
                                 }));
                               }}
                             >
@@ -369,10 +381,10 @@ export default function IdeasIdeaInboxPage() {
                   </div>
                 </PopoverContent>
               </Popover>
-              
-              <Button 
-                onClick={handleNewNote} 
-                className="flex items-center justify-center gap-2 flex-1 sm:flex-initial min-h-[44px]"
+
+              <Button
+                onClick={handleNewNote}
+                className="flex min-h-[44px] flex-1 items-center justify-center gap-2 sm:flex-initial"
               >
                 <Plus className="h-4 w-4" />
                 <span className="sm:inline">New note</span>
@@ -390,60 +402,66 @@ export default function IdeasIdeaInboxPage() {
             placeholder="Search your notes..."
             value={searchQuery}
             onChange={setSearchQuery}
-            className="w-full h-12 sm:h-11"
+            className="h-12 w-full sm:h-11"
             inputClassName="h-12 text-base sm:h-11 sm:text-sm"
           />
-          
+
           {/* Active Filters Display */}
           {hasActiveFilters() && (
             <div className="mt-3 flex flex-wrap gap-2">
               {filters.source !== "all" && (
                 <Badge variant="secondary" className="text-xs">
                   Source: {filters.source}
-                  <X 
-                    className="h-3 w-3 ml-1 cursor-pointer" 
-                    onClick={() => setFilters(prev => ({...prev, source: "all"}))}
+                  <X
+                    className="ml-1 h-3 w-3 cursor-pointer"
+                    onClick={() => setFilters((prev) => ({ ...prev, source: "all" }))}
                   />
                 </Badge>
               )}
               {filters.type !== "all" && (
                 <Badge variant="secondary" className="text-xs">
                   Type: {filters.type}
-                  <X 
-                    className="h-3 w-3 ml-1 cursor-pointer" 
-                    onClick={() => setFilters(prev => ({...prev, type: "all"}))}
+                  <X
+                    className="ml-1 h-3 w-3 cursor-pointer"
+                    onClick={() => setFilters((prev) => ({ ...prev, type: "all" }))}
                   />
                 </Badge>
               )}
               {filters.starred !== "all" && (
                 <Badge variant="secondary" className="text-xs">
                   {filters.starred === "starred" ? "Starred" : "Unstarred"}
-                  <X 
-                    className="h-3 w-3 ml-1 cursor-pointer" 
-                    onClick={() => setFilters(prev => ({...prev, starred: "all"}))}
+                  <X
+                    className="ml-1 h-3 w-3 cursor-pointer"
+                    onClick={() => setFilters((prev) => ({ ...prev, starred: "all" }))}
                   />
                 </Badge>
               )}
               {filters.dateRange !== "all" && (
                 <Badge variant="secondary" className="text-xs">
-                  {filters.dateRange === "today" ? "Today" : 
-                   filters.dateRange === "week" ? "Past week" :
-                   filters.dateRange === "month" ? "Past month" : "Past year"}
-                  <X 
-                    className="h-3 w-3 ml-1 cursor-pointer" 
-                    onClick={() => setFilters(prev => ({...prev, dateRange: "all"}))}
+                  {filters.dateRange === "today"
+                    ? "Today"
+                    : filters.dateRange === "week"
+                      ? "Past week"
+                      : filters.dateRange === "month"
+                        ? "Past month"
+                        : "Past year"}
+                  <X
+                    className="ml-1 h-3 w-3 cursor-pointer"
+                    onClick={() => setFilters((prev) => ({ ...prev, dateRange: "all" }))}
                   />
                 </Badge>
               )}
-              {filters.tags.map(tag => (
+              {filters.tags.map((tag) => (
                 <Badge key={tag} variant="secondary" className="text-xs">
                   #{tag}
-                  <X 
-                    className="h-3 w-3 ml-1 cursor-pointer" 
-                    onClick={() => setFilters(prev => ({
-                      ...prev, 
-                      tags: prev.tags.filter(t => t !== tag)
-                    }))}
+                  <X
+                    className="ml-1 h-3 w-3 cursor-pointer"
+                    onClick={() =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        tags: prev.tags.filter((t) => t !== tag),
+                      }))
+                    }
                   />
                 </Badge>
               ))}
@@ -455,29 +473,23 @@ export default function IdeasIdeaInboxPage() {
         <div className="space-y-3 sm:space-y-4">
           {isLoading ? (
             <div className="flex items-center justify-center py-16">
-              <div className="text-center space-y-2">
+              <div className="space-y-2 text-center">
                 <div className="text-muted-foreground text-base">Loading your notes...</div>
-                <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+                <div className="border-primary mx-auto h-6 w-6 animate-spin rounded-full border-2 border-t-transparent"></div>
               </div>
             </div>
           ) : filteredIdeas.length === 0 ? (
-            <div className="py-16 text-center space-y-4">
+            <div className="space-y-4 py-16 text-center">
               <div className="space-y-2">
                 <div className="text-muted-foreground text-base">
                   {searchQuery ? "No notes found matching your search." : "No notes yet."}
                 </div>
                 {!searchQuery && (
-                  <div className="text-muted-foreground text-sm">
-                    Create your first note to get started!
-                  </div>
+                  <div className="text-muted-foreground text-sm">Create your first note to get started!</div>
                 )}
               </div>
               {!searchQuery && (
-                <Button 
-                  onClick={handleNewNote} 
-                  variant="secondary" 
-                  className="gap-2 min-h-[44px] px-6"
-                >
+                <Button onClick={handleNewNote} variant="secondary" className="min-h-[44px] gap-2 px-6">
                   <Plus className="h-4 w-4" />
                   Create your first note
                 </Button>
@@ -492,15 +504,15 @@ export default function IdeasIdeaInboxPage() {
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
+                  if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
                     handleNoteClick(idea);
                   }
                 }}
               >
-                <div className="flex flex-col space-y-3 w-full">
+                <div className="flex w-full flex-col space-y-3">
                   <div className="space-y-2">
-                    <h3 className="text-foreground text-base font-semibold leading-tight sm:text-lg line-clamp-2">
+                    <h3 className="text-foreground line-clamp-2 text-base leading-tight font-semibold sm:text-lg">
                       {idea.title || "Untitled"}
                     </h3>
                     {idea.content && (
@@ -510,7 +522,7 @@ export default function IdeasIdeaInboxPage() {
                     )}
                   </div>
                   <div className="flex items-center justify-between">
-                    <p className="text-muted-foreground text-xs flex-1">
+                    <p className="text-muted-foreground flex-1 text-xs">
                       Last edited {formatTimeAgo(idea.updatedAt || idea.createdAt)}
                     </p>
                     <div className="text-muted-foreground">
@@ -530,17 +542,17 @@ export default function IdeasIdeaInboxPage() {
       </div>
 
       {/* Dialog */}
-      <IdeaDetailDialog 
-        isOpen={isDetailOpen} 
-        onOpenChange={setIsDetailOpen} 
+      <IdeaDetailDialog
+        isOpen={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
         idea={selectedIdea}
         onGenerateHooks={() => {
           // TODO: Implement hooks generation
-          console.log('Generate hooks for:', selectedIdea?.title);
+          console.log("Generate hooks for:", selectedIdea?.title);
         }}
         onConvertToScript={() => {
           // TODO: Implement script conversion
-          console.log('Convert to script:', selectedIdea?.title);
+          console.log("Convert to script:", selectedIdea?.title);
         }}
       />
     </div>

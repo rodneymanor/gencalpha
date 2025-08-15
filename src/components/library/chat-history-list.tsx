@@ -127,9 +127,7 @@ export function ChatHistoryList(props: ChatHistoryListProps) {
 }
 
 function SearchInput({ query, onQueryChange }: { query?: string; onQueryChange?: (v: string) => void }) {
-  return (
-    <SearchField value={query ?? ""} onChange={(v) => onQueryChange?.(v)} placeholder="Search your chats..." />
-  );
+  return <SearchField value={query ?? ""} onChange={(v) => onQueryChange?.(v)} placeholder="Search your chats..." />;
 }
 
 function HeaderLine({

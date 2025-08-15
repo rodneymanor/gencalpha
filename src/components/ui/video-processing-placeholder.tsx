@@ -3,11 +3,11 @@
 import { useState, useEffect } from "react";
 
 import { Clock, CheckCircle, XCircle, RefreshCw, ExternalLink } from "lucide-react";
-import { ClarityLoader } from "@/components/ui/loading";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { ClarityLoader } from "@/components/ui/loading";
 import { Progress } from "@/components/ui/progress";
 import { useVideoProcessing } from "@/contexts/video-processing-context";
 import type { VideoProcessingJob } from "@/lib/simple-video-queue";

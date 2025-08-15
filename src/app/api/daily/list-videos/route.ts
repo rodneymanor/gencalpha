@@ -18,11 +18,7 @@ export async function GET(request: NextRequest) {
     const limit = limitParam ? Number(limitParam) : 30;
 
     // Fetch latest videos ordered by createdAt descending
-    const snapshot = await adminDb
-      .collection("dailyVideos")
-      .orderBy("createdAt", "desc")
-      .limit(limit)
-      .get();
+    const snapshot = await adminDb.collection("dailyVideos").orderBy("createdAt", "desc").limit(limit).get();
 
     const videos = snapshot.docs.map((doc) => ({
       id: doc.id,
@@ -31,7 +27,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ success: true, videos });
   } catch (err) {
-    // eslint-disable-next-line no-console
     console.error("[daily-list-videos]", err);
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
   }

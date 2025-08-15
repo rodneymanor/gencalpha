@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { generateContent } from "@/lib/services/gemini-service";
 
 export interface CtaOptimizationRequest {
@@ -30,24 +31,33 @@ export async function POST(request: NextRequest) {
 
     // Validation
     if (!script || !script.wta) {
-      return NextResponse.json({ 
-        success: false, 
-        error: "Script with WTA section is required" 
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Script with WTA section is required",
+        },
+        { status: 400 },
+      );
     }
 
     if (!["comments", "follow", "none"].includes(newOptimization)) {
-      return NextResponse.json({ 
-        success: false, 
-        error: "Invalid optimization type. Must be comments, follow, or none" 
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid optimization type. Must be comments, follow, or none",
+        },
+        { status: 400 },
+      );
     }
 
     if (!topic || typeof topic !== "string") {
-      return NextResponse.json({ 
-        success: false, 
-        error: "Topic is required" 
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Topic is required",
+        },
+        { status: 400 },
+      );
     }
 
     console.log("🎯 Optimizing CTA for:", newOptimization);
@@ -89,28 +99,33 @@ Return ONLY the new WTA text. No JSON, no labels, just the optimized call-to-act
 
     if (!aiResponse.success || !aiResponse.content) {
       console.error("❌ AI response failed:", aiResponse.error);
-      return NextResponse.json({ 
-        success: false, 
-        error: aiResponse.error ?? "Failed to optimize CTA" 
-      }, { status: 500 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: aiResponse.error ?? "Failed to optimize CTA",
+        },
+        { status: 500 },
+      );
     }
 
     const optimizedWta = aiResponse.content.trim();
 
     console.log(`✅ Optimized CTA for ${newOptimization}: "${optimizedWta}"`);
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       optimizedWta,
-      tokensUsed: aiResponse.tokensUsed 
+      tokensUsed: aiResponse.tokensUsed,
     });
-
   } catch (error) {
     console.error("❌ Scribo CTA optimization API error:", error);
-    return NextResponse.json({ 
-      success: false, 
-      error: "Internal server error" 
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Internal server error",
+      },
+      { status: 500 },
+    );
   }
 }
 
@@ -125,21 +140,21 @@ function getCtaOptimizationRules(optimization: string): string {
 - MUST end with "below" or "comments"
 - Make it personal and relatable
 - Examples: "What's your experience with this? Share below!", "Which tip surprised you most? Let me know in the comments!", "Have you tried this before? Tell me about it in the comments!"`;
-    
+
     case "follow":
       return `FOLLOW OPTIMIZATION:
 - End with a natural follow request that provides clear value
 - Explain WHY they should follow (what they'll get)
 - Make it feel like an invitation, not a demand
 - Examples: "Follow for more quick tips like this!", "Follow if this helped you!", "Follow for daily productivity hacks!", "Follow me for more content creation secrets!"`;
-    
+
     case "none":
       return `NO CALL TO ACTION:
 - End with a value-focused statement that doesn't ask for specific action
 - Leave them with inspiration or motivation
 - Close the loop on the topic naturally
 - Examples: "This changed everything for me.", "Now you have the tools to succeed.", "The choice is yours.", "You've got this!"`;
-    
+
     default:
       return `COMMENTS OPTIMIZATION:
 - End with a single, friendly question that naturally encourages comments

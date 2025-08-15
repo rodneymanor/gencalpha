@@ -1,6 +1,7 @@
 "use client";
 
 import { VideoInsightsDialog } from "../../daily/_components/daily-video-insights-dialog";
+
 import { useCollections } from "./collections-context";
 
 export function CollectionsVideoInsightsDialog() {

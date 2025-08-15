@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+
 import { useRouter } from "next/navigation";
 
 import { Check, Search, X } from "lucide-react";
@@ -9,12 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/auth-context";
+import { OnboardingSelections, getOnboardingSelections, saveOnboardingSelections } from "@/lib/onboarding-service";
 import { cn } from "@/lib/utils";
-import {
-  OnboardingSelections,
-  getOnboardingSelections,
-  saveOnboardingSelections,
-} from "@/lib/onboarding-service";
 
 interface Topic {
   id: string;
@@ -26,8 +23,7 @@ const availableTopics: Topic[] = [
   {
     id: "beauty",
     name: "Beauty & Cosmetics",
-    description:
-      "Natural beauty, skincare routines, makeup tutorials, and product reviews.",
+    description: "Natural beauty, skincare routines, makeup tutorials, and product reviews.",
   },
   {
     id: "fashion",
@@ -119,15 +115,15 @@ export function OnboardingWizard() {
     <TooltipProvider delayDuration={0}>
       <div className="space-y-8">
         <div className="space-y-4 text-center">
-          <h1 className="text-4xl font-bold text-foreground md:text-5xl">Welcome to Gen C</h1>
-          <h2 className="text-xl font-semibold text-primary md:text-2xl">Configure your personal AI</h2>
+          <h1 className="text-foreground text-4xl font-bold md:text-5xl">Welcome to Gen C</h1>
+          <h2 className="text-primary text-xl font-semibold md:text-2xl">Configure your personal AI</h2>
         </div>
 
-        <div className="rounded-xl border-[0.5px] border-border bg-card p-6 shadow-sm hover:shadow-lg hover:border-[--border-subtle] transition-all duration-300 ease-out">
+        <div className="border-border bg-card rounded-xl border-[0.5px] p-6 shadow-sm transition-all duration-300 ease-out hover:border-[--border-subtle] hover:shadow-lg">
           {/* Search & add */}
           <div className="space-y-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
               <Input
                 placeholder="Search topics..."
                 value={searchQuery}
@@ -151,7 +147,7 @@ export function OnboardingWizard() {
 
           {/* Suggestions */}
           <div className="mt-6 space-y-4">
-            <h3 className="text-lg font-medium text-foreground">Suggestions</h3>
+            <h3 className="text-foreground text-lg font-medium">Suggestions</h3>
             <div className="flex flex-wrap gap-3">
               {filteredTopics.map((topic) => (
                 <Tooltip key={topic.id}>
@@ -180,20 +176,15 @@ export function OnboardingWizard() {
           {/* Selected */}
           {selectedTopics.size > 0 && (
             <div className="mt-6 space-y-3">
-              <h3 className="text-lg font-medium text-foreground">
-                Selected Topics ({selectedTopics.size})
-              </h3>
+              <h3 className="text-foreground text-lg font-medium">Selected Topics ({selectedTopics.size})</h3>
               <div className="flex flex-wrap gap-2">
                 {Array.from(selectedTopics).map((id) => (
                   <div
                     key={id}
-                    className="inline-flex items-center gap-1 rounded-lg border border-primary/20 bg-primary/10 px-3 py-1 text-sm text-primary"
+                    className="border-primary/20 bg-primary/10 text-primary inline-flex items-center gap-1 rounded-lg border px-3 py-1 text-sm"
                   >
                     {id}
-                    <button
-                      onClick={() => toggleTopic(id)}
-                      className="rounded-full p-0.5 hover:bg-primary/20"
-                    >
+                    <button onClick={() => toggleTopic(id)} className="hover:bg-primary/20 rounded-full p-0.5">
                       <X className="h-3 w-3" />
                     </button>
                   </div>

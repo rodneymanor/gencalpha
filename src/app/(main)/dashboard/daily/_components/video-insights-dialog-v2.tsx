@@ -3,9 +3,8 @@
 
 import { useState, useEffect } from "react";
 
-import { ClarityLoader } from "@/components/ui/loading";
-
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ClarityLoader } from "@/components/ui/loading";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VisuallyHidden } from "@/components/ui/visually-hidden";
 import { useAuth } from "@/contexts/auth-context";

@@ -157,7 +157,7 @@ const FollowCreatorSection: React.FC<FollowCreatorProps> = ({ onCreatorFollowed 
   };
 
   return (
-    <div className="bg-card border-border space-y-3 sm:space-y-4 rounded-[var(--radius-card)] border p-4 sm:p-6">
+    <div className="bg-card border-border space-y-3 rounded-[var(--radius-card)] border p-4 sm:space-y-4 sm:p-6">
       <div className="flex items-center gap-2">
         <UserPlus className="text-primary h-5 w-5" />
         <h3 className="text-foreground text-lg font-semibold">Follow Creator</h3>
@@ -535,7 +535,7 @@ const CreatorVideosGrid: React.FC<CreatorVideosGridProps> = ({
           </div>
         </div>
       )}
-      <div className={`grid w-full ${getGridCols()} gap-3 sm:gap-4 px-4 sm:px-6`}>
+      <div className={`grid w-full ${getGridCols()} gap-3 px-4 sm:gap-4 sm:px-6`}>
         {filteredVideos.map((video) => (
           <VideoCard key={video.id} video={video} onVideoClick={onVideoClick} />
         ))}

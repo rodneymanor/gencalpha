@@ -1,18 +1,18 @@
 "use client";
 
 import { useState } from "react";
+
 import Image from "next/image";
+
 import { Calendar, Heart, MessageCircle, Bookmark, ChevronDown, ChevronUp, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { VisuallyHidden } from "@/components/ui/visually-hidden";
 import { VideoPlayer } from "@/components/video-player";
 import { Video } from "@/lib/collections";
-import { cn } from "@/lib/utils";
 
 interface VideoInsightsPanelProps {
   video: Video | null;
@@ -21,12 +21,7 @@ interface VideoInsightsPanelProps {
   onRemixScript?: (video: Video) => void;
 }
 
-export function VideoInsightsPanel({
-  video,
-  open,
-  onOpenChange,
-  onRemixScript,
-}: VideoInsightsPanelProps) {
+export function VideoInsightsPanel({ video, open, onOpenChange, onRemixScript }: VideoInsightsPanelProps) {
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   if (!video) return null;
@@ -40,64 +35,48 @@ export function VideoInsightsPanel({
 
   const formatDate = (dateString: string) => {
     try {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
+      return new Date(dateString).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
       });
     } catch {
-      return 'Unknown date';
+      return "Unknown date";
     }
   };
 
   const getDescription = () => {
-    const description = video.caption || video.metadata?.description || '';
+    const description = video.caption || video.metadata?.description || "";
     if (!description) return null;
-    
+
     if (description.length <= 120) {
       return description;
     }
-    
-    return isDescriptionExpanded 
-      ? description 
-      : `${description.substring(0, 120)}...`;
+
+    return isDescriptionExpanded ? description : `${description.substring(0, 120)}...`;
   };
 
   const shouldShowReadMore = () => {
-    const description = video.caption || video.metadata?.description || '';
+    const description = video.caption || video.metadata?.description || "";
     return description.length > 120;
   };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side="right"
-        className="w-full max-w-none p-0 sm:max-w-none lg:max-w-[50vw]"
-      >
-    
+      <SheetContent side="right" className="w-full max-w-none p-0 sm:max-w-none lg:max-w-[50vw]">
         <div className="flex h-full">
           {/* Left Side - Video Player */}
           <div className="flex w-1/2 items-center justify-center bg-black">
             <div className="aspect-[9/16] h-full max-h-[600px] w-full max-w-[337px]">
-              <VideoPlayer
-                video={video}
-                className="h-full w-full"
-                autoPlay={false}
-                showControls={true}
-              />
+              <VideoPlayer video={video} className="h-full w-full" autoPlay={false} showControls={true} />
             </div>
           </div>
 
           {/* Right Side - Insights Panel */}
-          <div className="flex w-1/2 flex-col bg-background">
+          <div className="bg-background flex w-1/2 flex-col">
             {/* Close Button */}
             <div className="flex justify-end p-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => onOpenChange(false)}
-                className="h-8 w-8"
-              >
+              <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)} className="h-8 w-8">
                 <X className="h-4 w-4" />
                 <span className="sr-only">Close</span>
               </Button>
@@ -107,7 +86,7 @@ export function VideoInsightsPanel({
             <div className="flex-shrink-0 space-y-4 px-6">
               <div className="flex items-start gap-4">
                 {/* Profile Picture */}
-                <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-full bg-muted">
+                <div className="bg-muted h-12 w-12 flex-shrink-0 overflow-hidden rounded-full">
                   {video.thumbnailUrl ? (
                     <Image
                       src={video.thumbnailUrl}
@@ -117,29 +96,21 @@ export function VideoInsightsPanel({
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-                      👤
-                    </div>
+                    <div className="text-muted-foreground flex h-full w-full items-center justify-center">👤</div>
                   )}
                 </div>
 
                 {/* User Info */}
                 <div className="min-w-0 flex-1">
-                  <div className="font-semibold text-sm">
-                    @{video.metadata?.author || 'unknown'}
-                  </div>
-                  <div className="text-muted-foreground text-xs">
-                    {video.metadata?.author || 'Unknown User'}
-                  </div>
+                  <div className="text-sm font-semibold">@{video.metadata?.author || "unknown"}</div>
+                  <div className="text-muted-foreground text-xs">{video.metadata?.author || "Unknown User"}</div>
                   {video.hashtags && video.hashtags.length > 0 && (
-                    <div className="mt-1 text-xs text-primary">
-                      #{video.hashtags[0]}
-                    </div>
+                    <div className="text-primary mt-1 text-xs">#{video.hashtags[0]}</div>
                   )}
                 </div>
 
                 {/* Date */}
-                <div className="flex flex-shrink-0 items-center gap-1 text-muted-foreground text-xs">
+                <div className="text-muted-foreground flex flex-shrink-0 items-center gap-1 text-xs">
                   <Calendar className="h-3 w-3" />
                   {formatDate(video.addedAt)}
                 </div>
@@ -147,15 +118,13 @@ export function VideoInsightsPanel({
 
               {/* Video Description */}
               <div className="space-y-2">
-                <div className="text-sm leading-relaxed">
-                  {getDescription()}
-                </div>
+                <div className="text-sm leading-relaxed">{getDescription()}</div>
                 {shouldShowReadMore() && (
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-                    className="h-auto p-0 text-primary text-xs hover:bg-transparent"
+                    className="text-primary h-auto p-0 text-xs hover:bg-transparent"
                   >
                     {isDescriptionExpanded ? (
                       <>
@@ -208,13 +177,13 @@ export function VideoInsightsPanel({
                         <ScrollArea className="h-full p-4">
                           <div className="space-y-3 text-sm leading-relaxed">
                             {video.transcript ? (
-                              video.transcript.split('\n').map((line, index) => (
+                              video.transcript.split("\n").map((line, index) => (
                                 <p key={index} className="text-sm">
                                   {line.trim()}
                                 </p>
                               ))
                             ) : (
-                              <div className="flex h-32 items-center justify-center text-muted-foreground">
+                              <div className="text-muted-foreground flex h-32 items-center justify-center">
                                 <div className="text-center">
                                   <p>No transcript available</p>
                                   <p className="text-xs">Transcript will appear here once processed</p>
@@ -236,42 +205,34 @@ export function VideoInsightsPanel({
                               <>
                                 {video.components.hook && (
                                   <div className="space-y-2">
-                                    <h4 className="font-semibold text-sm text-primary">Hook</h4>
-                                    <p className="text-sm leading-relaxed">
-                                      {video.components.hook}
-                                    </p>
+                                    <h4 className="text-primary text-sm font-semibold">Hook</h4>
+                                    <p className="text-sm leading-relaxed">{video.components.hook}</p>
                                   </div>
                                 )}
-                                
+
                                 {video.components.bridge && (
                                   <div className="space-y-2">
-                                    <h4 className="font-semibold text-sm text-primary">Bridge</h4>
-                                    <p className="text-sm leading-relaxed">
-                                      {video.components.bridge}
-                                    </p>
+                                    <h4 className="text-primary text-sm font-semibold">Bridge</h4>
+                                    <p className="text-sm leading-relaxed">{video.components.bridge}</p>
                                   </div>
                                 )}
-                                
+
                                 {video.components.nugget && (
                                   <div className="space-y-2">
-                                    <h4 className="font-semibold text-sm text-primary">Golden Nugget</h4>
-                                    <p className="text-sm leading-relaxed">
-                                      {video.components.nugget}
-                                    </p>
+                                    <h4 className="text-primary text-sm font-semibold">Golden Nugget</h4>
+                                    <p className="text-sm leading-relaxed">{video.components.nugget}</p>
                                   </div>
                                 )}
-                                
+
                                 {video.components.wta && (
                                   <div className="space-y-2">
-                                    <h4 className="font-semibold text-sm text-primary">WTA (What's The Ask)</h4>
-                                    <p className="text-sm leading-relaxed">
-                                      {video.components.wta}
-                                    </p>
+                                    <h4 className="text-primary text-sm font-semibold">WTA (What's The Ask)</h4>
+                                    <p className="text-sm leading-relaxed">{video.components.wta}</p>
                                   </div>
                                 )}
                               </>
                             ) : (
-                              <div className="flex h-32 items-center justify-center text-muted-foreground">
+                              <div className="text-muted-foreground flex h-32 items-center justify-center">
                                 <div className="text-center">
                                   <p>No components available</p>
                                   <p className="text-xs">Script components will appear here once analyzed</p>
@@ -288,12 +249,8 @@ export function VideoInsightsPanel({
             </div>
 
             {/* Sticky Footer */}
-            <div className="flex-shrink-0 border-t bg-background p-6">
-              <Button
-                onClick={() => onRemixScript?.(video)}
-                className="w-full"
-                size="lg"
-              >
+            <div className="bg-background flex-shrink-0 border-t p-6">
+              <Button onClick={() => onRemixScript?.(video)} className="w-full" size="lg">
                 Remix Script
               </Button>
             </div>

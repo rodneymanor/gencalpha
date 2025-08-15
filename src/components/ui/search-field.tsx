@@ -1,10 +1,11 @@
 "use client"
 
 import * as React from "react"
+
 import { Search } from "lucide-react"
 
-import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
+import { cn } from "@/lib/utils"
 
 export type SearchFieldProps = {
   value?: string
@@ -49,5 +50,4 @@ export function SearchField(props: SearchFieldProps) {
 }
 
 export default SearchField
-
 
