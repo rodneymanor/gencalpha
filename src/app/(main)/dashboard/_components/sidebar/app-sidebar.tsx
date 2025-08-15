@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 import { PanelLeft } from "lucide-react";
 
+import { ThemeSwitcher as ColorThemeSwitcher } from "@/components/theme/theme-switcher";
 import {
   Sidebar,
   SidebarContent,
@@ -18,10 +19,8 @@ import {
 import { sidebarItems } from "@/navigation/sidebar/sidebar-items";
 import { type SidebarVariant, type SidebarCollapsible, type ContentLayout } from "@/types/preferences/layout";
 
-import { LayoutControls } from "./layout-controls";
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
-import { ThemeSwitcher } from "./theme-switcher";
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   layoutPreferences?: {
@@ -76,7 +75,7 @@ function SidebarLogo({ isPinned, onPinToggle }: { isPinned: boolean; onPinToggle
   );
 }
 
-export function AppSidebar({ layoutPreferences, ...props }: AppSidebarProps) {
+export function AppSidebar({ layoutPreferences: _layoutPreferences, ...props }: AppSidebarProps) {
   const { setOpen, isMobile } = useSidebar();
   const sidebarRef = useRef<HTMLDivElement>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout>();
@@ -183,6 +182,7 @@ export function AppSidebar({ layoutPreferences, ...props }: AppSidebarProps) {
       </SidebarContent>
       <SidebarFooter>
         <div className="flex flex-col items-center gap-2 px-2 pb-2">
+          <ColorThemeSwitcher />
           {/* <LayoutControls
             {...(layoutPreferences ?? { variant: "inset", collapsible: "icon", contentLayout: "centered" })}
           />
