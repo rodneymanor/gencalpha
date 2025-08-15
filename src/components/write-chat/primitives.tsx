@@ -22,7 +22,7 @@ export const Button = ({
 }: ButtonProps) => {
   const variants: Record<ButtonVariant, string> = {
     default: "bg-accent text-accent-foreground hover:bg-accent border border-input",
-    outline: "border border-input bg-card hover:bg-accent hover:text-accent-foreground",
+    outline: "border border-input bg-transparent hover:bg-accent hover:text-accent-foreground",
     ghost: "hover:bg-accent",
     secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/90",
   };
@@ -35,7 +35,7 @@ export const Button = ({
 
   return (
     <button
-      className={`inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 ${variants[variant]} ${sizes[size]} ${className}`}
+      className={`focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:ring-[3px] disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 ${variants[variant]} ${sizes[size]} ${className}`}
       disabled={disabled}
       onClick={onClick}
       {...props}
