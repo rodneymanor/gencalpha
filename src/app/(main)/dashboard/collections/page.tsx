@@ -73,7 +73,7 @@ function CollectionsTabContent({
       />
 
       {/* Main Content */}
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-12">
         {/* Video Grid */}
         <div className="col-span-1 lg:col-span-12">
           <Card>
@@ -90,7 +90,7 @@ function CollectionsTabContent({
 // Saved collections tab content component
 function SavedCollectionsTabContent() {
   return (
-    <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
       <div className="col-span-1 lg:col-span-12">
         <Card>
           <CardHeader>
@@ -126,12 +126,12 @@ function CollectionsContent() {
     <div className="bg-background min-h-screen">
       <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
               {selectedCollectionId === "all-videos" ? "All Videos" : (selectedCollection?.title ?? "Collection")}
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground mt-1">
               {selectedCollectionId === "all-videos"
                 ? "All your video content in one place"
                 : (selectedCollection?.description ?? "Organize and manage your video content")}
