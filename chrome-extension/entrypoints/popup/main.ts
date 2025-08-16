@@ -152,7 +152,7 @@ const isVideoUrl = (url: string): { isVideo: boolean; platform: string } => {
   if (url.includes("tiktok.com")) {
     return { isVideo: true, platform: "TikTok" };
   }
-  if (url.includes("instagram.com") && (url.includes("/p/") || url.includes("/reel/"))) {
+  if (url.includes("instagram.com") && (url.includes("/p/") || url.includes("/reel/") || url.includes("/reels/"))) {
     return { isVideo: true, platform: "Instagram" };
   }
   return { isVideo: false, platform: "" };
@@ -167,7 +167,7 @@ const isCreatorProfile = (url: string): { isCreator: boolean; platform: string; 
   
   // Instagram profile: instagram.com/username (but not posts/reels)
   const instagramMatch = url.match(/instagram\.com\/([^\/\?]+)\/?$/);
-  if (instagramMatch && !url.includes("/p/") && !url.includes("/reel/")) {
+  if (instagramMatch && !url.includes("/p/") && !url.includes("/reel/") && !url.includes("/reels/")) {
     // Exclude common non-profile paths
     const username = instagramMatch[1];
     if (!["explore", "accounts", "stories", "direct", "tv"].includes(username)) {
