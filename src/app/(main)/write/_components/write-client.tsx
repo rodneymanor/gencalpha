@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 
 import { type PersonaType } from "@/components/chatbot/persona-selector";
+import { TestNotificationButton } from "@/components/demo/test-notification-button";
 import { Button } from "@/components/ui/button";
 import { CollectionCombobox } from "@/components/ui/collection-combobox";
 import {
@@ -79,6 +80,7 @@ export function WriteClient({
                 placeholder="Select collection"
                 className="hidden sm:flex"
               />
+              <TestNotificationButton />
             </div>
           </div>
         </div>
