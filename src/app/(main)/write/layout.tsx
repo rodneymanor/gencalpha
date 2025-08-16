@@ -6,7 +6,7 @@ import { ResizableDashboardWrapper } from "@/components/dashboard/resizable-dash
 import ContentViewer from "@/components/standalone/content-viewer";
 import SlideoutWrapper from "@/components/standalone/slideout-wrapper";
 import { FloatingActionButton } from "@/components/ui/floating-action-button";
-import { ProcessingNotificationBadge } from "@/components/ui/processing-notification-badge";
+import { NotificationHeader } from "@/components/ui/notification-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { ResizableLayoutProvider } from "@/contexts/resizable-layout-context";
 import { ScriptPanelProvider } from "@/contexts/script-panel-context";
@@ -56,7 +56,7 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
                 <ResizableDashboardWrapper className="h-full">
                   <div className="relative h-full w-full">
                     <div className="absolute top-6 right-6 z-10">
-                      <ProcessingNotificationBadge />
+                      <NotificationHeader />
                     </div>
                     <SlideoutWrapper slideout={<ContentViewer className="h-full" />}>{children}</SlideoutWrapper>
                   </div>

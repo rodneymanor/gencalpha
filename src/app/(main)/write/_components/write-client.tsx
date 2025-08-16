@@ -13,7 +13,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { NotificationHeader } from "@/components/ui/notification-header";
 import ClaudeChat from "@/components/write-chat/claude-chat";
 
 export function WriteClient({
@@ -30,13 +29,6 @@ export function WriteClient({
 
   return (
     <>
-      {/* Always visible notification header */}
-      <div className="bg-background border-border sticky top-0 z-20 border-b">
-        <div className="flex h-12 w-full items-center justify-end pr-3">
-          <NotificationHeader />
-        </div>
-      </div>
-
       {!isHeroState && (
         <div className="bg-background border-border sticky top-0 z-10 -mb-6 border-b">
           <div
