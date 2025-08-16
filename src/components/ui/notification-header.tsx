@@ -2,33 +2,27 @@
 
 import React from 'react';
 
-import { Bell, Hexagon, Zap } from 'lucide-react';
+import { Hexagon, Zap } from 'lucide-react';
+
+import { NotificationDropdown } from '@/components/ui/notification-dropdown';
 
 interface NotificationHeaderProps {
-  notificationCount?: number;
+  creditsCount?: number;
   showUpgrade?: boolean;
-  onNotificationClick?: () => void;
   onBrandClick?: () => void;
   onUpgradeClick?: () => void;
 }
 
 export const NotificationHeader: React.FC<NotificationHeaderProps> = ({
-  notificationCount = 396,
+  creditsCount = 396,
   showUpgrade = true,
-  onNotificationClick,
   onBrandClick,
   onUpgradeClick
 }) => {
   return (
     <div className="flex items-center gap-2">
-      {/* Notification Button */}
-      <button
-        onClick={onNotificationClick}
-        className="relative flex w-8 h-8 cursor-pointer items-center justify-center rounded-[var(--radius-button)] border border-border bg-background hover:bg-muted transition-colors duration-200"
-        aria-label="Notifications"
-      >
-        <Bell className="w-4 h-4 text-foreground" />
-      </button>
+      {/* Notification Dropdown */}
+      <NotificationDropdown />
 
       {/* Brand Button */}
       <button
@@ -51,7 +45,7 @@ export const NotificationHeader: React.FC<NotificationHeaderProps> = ({
         >
           <Zap className="w-4 h-4" />
           <span className="text-sm text-foreground">
-            {notificationCount}
+            {creditsCount}
           </span>
           {showUpgrade && (
             <div className="flex items-center">
