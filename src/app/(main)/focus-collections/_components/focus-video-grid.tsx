@@ -2,7 +2,9 @@
 import { useState, useEffect, useCallback } from "react";
 
 import { ClarityLoader } from "@/components/ui/loading";
+import { VideoGridProcessingPlaceholder } from "@/components/ui/video-grid-processing-placeholder";
 import { useAuth } from "@/contexts/auth-context";
+import { useVideoProcessing } from "@/contexts/video-processing-context";
 import { RBACClientService } from "@/core/auth/rbac-client";
 import { useRBAC } from "@/hooks/use-rbac";
 import { Video, CollectionsService } from "@/lib/collections";
@@ -22,6 +24,7 @@ interface FocusVideoGridProps {
   className?: string;
 }
 
+// eslint-disable-next-line complexity
 export function FocusVideoGrid({
   collectionId,
   selectedVideoId,
@@ -33,6 +36,7 @@ export function FocusVideoGrid({
 }: FocusVideoGridProps) {
   const { user } = useAuth();
   const { canWrite, canDelete } = useRBAC();
+  const { jobs } = useVideoProcessing();
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -90,28 +94,46 @@ export function FocusVideoGrid({
     }
   };
 
+  // Filter jobs for current collection and get active ones
+  const activeJobs = jobs.filter((job) => {
+    const isRelevant = collectionId === "all-videos" || job.collectionId === collectionId;
+    const isActive = job.status === "pending" || job.status === "processing";
+    return isRelevant && isActive;
+  });
+
   // Keyboard navigation
   useVideoGridKeyboard({ selectedVideoId, videos, onVideoSelect });
 
-  // Loading state
-  if (loading && videos.length === 0) {
-    return <VideoGridLoadingState className={className} />;
-  }
+  // Render state helpers
+  const hasContent = videos.length > 0 || activeJobs.length > 0;
+  const isEmptyLoading = loading && !hasContent;
+  const isEmpty = !hasContent && !loading;
 
-  // Error state
-  if (error) {
-    return <VideoGridErrorState error={error} onRetry={loadVideos} />;
-  }
-
-  // Empty state
-  if (videos.length === 0 && !loading) {
-    return <VideoGridEmptyState collectionId={collectionId} className={className} />;
-  }
+  if (isEmptyLoading) return <VideoGridLoadingState className={className} />;
+  if (error) return <VideoGridErrorState error={error} onRetry={loadVideos} />;
+  if (isEmpty) return <VideoGridEmptyState collectionId={collectionId} className={className} />;
 
   return (
     <div className={cn("space-y-6 p-6", className)}>
       {/* Video Grid */}
       <div className="grid grid-cols-1 gap-[2px] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {/* Processing placeholders first */}
+        {activeJobs.map((job) => (
+          <VideoGridProcessingPlaceholder
+            key={job.id}
+            job={job}
+            onRetry={() => {
+              // TODO: Implement retry logic
+              console.log("Retry job:", job.id);
+            }}
+            onRemove={() => {
+              // TODO: Implement remove logic
+              console.log("Remove job:", job.id);
+            }}
+          />
+        ))}
+
+        {/* Existing videos */}
         {videos.map((video) => (
           <FocusVideoCard
             key={video.id}
