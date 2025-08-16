@@ -30,6 +30,13 @@ export function WriteClient({
 
   return (
     <>
+      {/* Always visible notification header */}
+      <div className="bg-background border-border sticky top-0 z-20 border-b">
+        <div className="flex h-12 w-full items-center justify-end pr-3">
+          <NotificationHeader />
+        </div>
+      </div>
+
       {!isHeroState && (
         <div className="bg-background border-border sticky top-0 z-10 -mb-6 border-b">
           <div
@@ -80,7 +87,6 @@ export function WriteClient({
                 placeholder="Select collection"
                 className="hidden sm:flex"
               />
-              <NotificationHeader />
             </div>
           </div>
         </div>
