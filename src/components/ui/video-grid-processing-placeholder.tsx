@@ -244,7 +244,7 @@ export function VideoGridProcessingPlaceholder({
             </TooltipTrigger>
             <TooltipContent>
               <div className="text-xs">
-                <p className="font-medium">{getStatusText()}</p>
+                <p className="font-medium">{currentStatusConfig.text}</p>
                 <p className="text-muted-foreground">{currentJob.message}</p>
                 {currentJob.result?.title && (
                   <p className="font-medium mt-1">{currentJob.result.title}</p>
