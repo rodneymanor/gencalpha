@@ -13,6 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { NotificationHeader } from "@/components/ui/notification-header";
 import ClaudeChat from "@/components/write-chat/claude-chat";
 
 export function WriteClient({
@@ -79,6 +80,7 @@ export function WriteClient({
                 placeholder="Select collection"
                 className="hidden sm:flex"
               />
+              <NotificationHeader />
             </div>
           </div>
         </div>
