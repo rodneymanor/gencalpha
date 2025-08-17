@@ -1,4 +1,4 @@
-import { TrendingUp, Zap, Bookmark } from "lucide-react";
+import { TrendingUp, Zap, Bookmark, ArrowUpRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -50,17 +50,32 @@ export function GhostCard({ card, onGenerateScript, onSave, isSaved = false }: G
         {/* Hook Preview */}
         <p className="text-muted-foreground mb-3 line-clamp-2 text-xs">{card.hook}</p>
 
-        {/* Metadata */}
-        <div className="text-muted-foreground mb-3 flex items-center justify-between text-xs">
+        {/* Metadata - disappears on hover */}
+        <div className="text-muted-foreground mb-3 flex items-center justify-between text-xs transition-all duration-300 group-hover:invisible group-hover:opacity-0">
           <span>{card.category}</span>
           <span>2h ago</span>
         </div>
 
-        {/* Action Button */}
-        <Button size="sm" className="w-full gap-1 text-xs" onClick={() => onGenerateScript(card)}>
+        {/* Original Action Button - disappears on hover */}
+        <Button
+          size="sm"
+          className="w-full gap-1 text-xs transition-all duration-300 group-hover:invisible group-hover:opacity-0"
+          onClick={() => onGenerateScript(card)}
+        >
           <Zap className="h-3 w-3" />
           Generate
         </Button>
+
+        {/* Hover Action Button - appears on hover */}
+        <div className="invisible absolute right-4 bottom-4 left-4 opacity-0 transition-all duration-300 group-hover:visible group-hover:opacity-100">
+          <button
+            onClick={() => onGenerateScript(card)}
+            className="border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground flex w-full items-center justify-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-all duration-200"
+          >
+            <ArrowUpRight className="h-4 w-4" />
+            <span>Generate Script</span>
+          </button>
+        </div>
       </div>
     </Card>
   );
