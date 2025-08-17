@@ -272,3 +272,131 @@ Missing responsive spacing considerations
 Hardcoded spacing in CSS instead of design tokens
 
 Focus on maintainability and design system consistency.
+
+---
+
+**TAB COMPONENT SELECTION RULES - SOFT UI TABS DESIGN LANGUAGE:**
+
+When implementing tab navigation, follow this strict hierarchy for consistent tab usage throughout the application:
+
+**1. PILL TABS (`tab-group-pill`)** - Use when:
+- Primary navigation between 2-4 main views
+- Top-level sections that change the entire page content  
+- Mobile interfaces requiring clear touch targets
+- View mode switches (Grid/List, Light/Dark)
+- Examples: Model selection, main app sections, primary filters
+- Visual: Floating pills with shadow on muted background
+- Code: `inline-flex p-1 bg-muted/50 rounded-pill`
+- Active state: `bg-background shadow-[var(--shadow-soft-drop)]`
+
+**2. LINE TABS (`tab-group-line`)** - Use when:
+- Secondary navigation within a page
+- 5+ options that would crowd pill layout
+- Content-heavy interfaces where tabs shouldn't dominate
+- Nested navigation (tabs within a tabbed section)
+- Examples: Profile sections, documentation chapters, settings categories
+- Visual: Underline indicator with no background
+- Code: `border-b border-border` with `border-b-2 border-primary` for active
+- Active state: `border-b-2 border-primary text-primary`
+
+**3. SEGMENT TABS (`tab-group-segment`)** - Use when:
+- Inside cards, modals, or contained spaces
+- Space is constrained but need clear selection
+- Filter or sort controls in data tables
+- Compact option selection (time ranges, size options)
+- Examples: Date range selectors, table view options, modal steps
+- Visual: Rounded rectangles in sunken container
+- Code: `flex p-0.5 bg-muted rounded-[var(--radius-button)]`
+- Active state: `bg-background shadow-[var(--shadow-soft-drop)]`
+
+**TAB SELECTION DECISION MATRIX:**
+
+| Context | Tab Style | Visual Weight | Example Use Case |
+|---------|-----------|---------------|------------------|
+| **Primary View Switching** | Pill | High | Model selector (GPT-3.5/4), View modes (Grid/List) |
+| **Content Navigation** | Line | Low | Profile sections, Settings categories |
+| **Filter/Sort Controls** | Segment | Medium | Table filters, Date ranges |
+| **Modal/Dialog Navigation** | Line or Segment | Low | Multi-step forms, Settings panels |
+| **Dashboard Switching** | Pill | High | Analytics/Reports/Insights |
+| **Nested Navigation** | Line | Minimal | Sub-categories within main sections |
+
+**IMPLEMENTATION REQUIREMENTS:**
+
+**Never Use:**
+- Switch/toggle components for navigation (only for binary on/off states)
+- Pills for more than 5 options (use lines instead)
+- Lines on mobile (poor touch targets)
+- Multiple tab styles in the same visual hierarchy level
+
+**Responsive Rules:**
+- Mobile (<640px): Convert line tabs to pills or segment tabs for better touch targets
+- Tablet (640-1024px): Use as designed
+- Desktop (>1024px): Can use all three patterns as appropriate
+
+**Animation Requirements:**
+- All tabs must have `transition-all duration-200`
+- Active state changes should animate background and color
+- Include hover states with subtle background changes using `hover:bg-accent`
+- Focus states should use ring utilities: `focus-visible:ring-2 focus-visible:ring-ring`
+
+**Common Implementation Mistakes to Avoid:**
+1. Don't mix tab styles at the same hierarchy level
+2. Don't use pills for long labels (use line tabs for verbose options)
+3. Don't stack multiple tab rows (use pills for primary, lines for secondary)
+4. Don't use tabs for single selections that trigger actions (tabs switch content in place)
+
+**Standard Code Patterns:**
+
+```tsx
+// PILL TABS - Primary Navigation
+<div className="inline-flex p-1 bg-muted/50 rounded-pill">
+  {tabs.map((tab) => (
+    <button
+      key={tab.id}
+      className={`px-4 py-2 rounded-pill text-sm font-medium transition-all duration-200 ${
+        activeTab === tab.id
+          ? 'bg-background text-foreground shadow-[var(--shadow-soft-drop)]'
+          : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+      }`}
+    >
+      {tab.label}
+    </button>
+  ))}
+</div>
+
+// LINE TABS - Content Sections
+<div className="border-b border-border">
+  <nav className="flex space-x-8">
+    {tabs.map((tab) => (
+      <button
+        key={tab.id}
+        className={`pb-3 text-sm font-medium transition-colors duration-200 border-b-2 ${
+          activeTab === tab.id
+            ? 'border-primary text-primary'
+            : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+        }`}
+      >
+        {tab.label}
+      </button>
+    ))}
+  </nav>
+</div>
+
+// SEGMENT TABS - Compact Controls
+<div className="flex p-0.5 bg-muted rounded-[var(--radius-button)]">
+  {tabs.map((tab) => (
+    <button
+      key={tab.id}
+      className={`px-3 py-1.5 text-sm font-medium rounded-[var(--radius-button)] transition-all duration-200 ${
+        activeTab === tab.id
+          ? 'bg-background text-foreground shadow-[var(--shadow-soft-drop)]'
+          : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+      }`}
+    >
+      {tab.label}
+    </button>
+  ))}
+</div>
+```
+
+When generating tab components, explicitly state which pattern you're using and why based on these rules.
