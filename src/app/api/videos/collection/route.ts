@@ -5,7 +5,9 @@ import { isAdminInitialized } from "@/lib/firebase-admin";
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId, collectionId, videoLimit, lastDocId } = await request.json();
+    // Safely parse body to avoid 'Unexpected end of JSON input' on aborted requests
+    const raw = await request.text();
+    const { userId, collectionId, videoLimit, lastDocId } = raw ? JSON.parse(raw) : {};
 
     if (!userId) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });

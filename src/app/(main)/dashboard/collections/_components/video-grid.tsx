@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 import { Play } from "lucide-react";
 
@@ -32,25 +32,28 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
   const [deletingVideo, setDeletingVideo] = useState<Video | null>(null);
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
 
-  const { execute: loadVideos } = useAsyncOperation(
-    "collections-videos",
-    async () => {
-      if (!user?.uid) return { videos: [] as Video[] };
-      const result = await RBACClientService.getCollectionVideos(
-        user.uid,
-        collectionId === "all-videos" ? undefined : collectionId,
-      );
-      return result;
+  const loadVideosFn = useCallback(async () => {
+    if (!user?.uid) return { videos: [] as Video[] };
+    const result = await RBACClientService.getCollectionVideos(
+      user.uid,
+      collectionId === "all-videos" ? undefined : collectionId,
+    );
+    return result;
+  }, [user?.uid, collectionId]);
+
+  const onSuccessCallback = useCallback(
+    (result: { videos: Video[] }) => {
+      dispatch({ type: "SET_VIDEOS", payload: result.videos });
     },
-    {
-      type: "section",
-      action: "fetch",
-      message: "Loading your video collection...",
-      onSuccess: (result: { videos: Video[] }) => {
-        dispatch({ type: "SET_VIDEOS", payload: result.videos });
-      },
-    },
+    [dispatch],
   );
+
+  const { execute: loadVideos } = useAsyncOperation("collections-videos", loadVideosFn, {
+    type: "section",
+    action: "fetch",
+    message: "Loading your video collection...",
+    onSuccess: onSuccessCallback,
+  });
 
   useEffect(() => {
     if (user?.uid) {

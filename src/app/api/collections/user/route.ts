@@ -5,7 +5,9 @@ import { isAdminInitialized } from "@/lib/firebase-admin";
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await request.json();
+    // Safely parse body to avoid 'Unexpected end of JSON input' on aborted requests
+    const raw = await request.text();
+    const { userId } = raw ? JSON.parse(raw) : {};
     console.log("🔍 [Collections API] Request for user:", userId);
 
     if (!userId) {

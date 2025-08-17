@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 export type LoadingType = "page" | "section" | "inline" | "skeleton" | "overlay" | "stream" | "toast";
 export type LoadingAction =
@@ -63,6 +63,10 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
         // ignore handler failures
       }
     });
+  }, []);
+
+  // Expose loading states in development without changing function identities
+  useEffect(() => {
     if (process.env.NODE_ENV === "development") {
       // @ts-expect-error - debug exposure for development only
       (window as unknown as Record<string, unknown>).LOADING_STATES = states;
