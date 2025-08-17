@@ -1,6 +1,5 @@
-import { TrendingUp, Zap, Bookmark, ArrowUpRight } from "lucide-react";
+import { TrendingUp, Bookmark, ArrowUpRight } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -55,16 +54,6 @@ export function GhostCard({ card, onGenerateScript, onSave, isSaved = false }: G
           <span>{card.category}</span>
           <span>2h ago</span>
         </div>
-
-        {/* Original Action Button - disappears on hover */}
-        <Button
-          size="sm"
-          className="w-full gap-1 text-xs transition-all duration-300 group-hover:invisible group-hover:opacity-0"
-          onClick={() => onGenerateScript(card)}
-        >
-          <Zap className="h-3 w-3" />
-          Generate
-        </Button>
 
         {/* Hover Action Button - appears on hover */}
         <div className="invisible absolute right-4 bottom-4 left-4 opacity-0 transition-all duration-300 group-hover:visible group-hover:opacity-100">
