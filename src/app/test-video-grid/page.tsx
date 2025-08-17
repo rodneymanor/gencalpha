@@ -90,9 +90,14 @@ function VideoCard({ video }: { video: VideoData }) {
       <div className="relative aspect-[9/16] overflow-hidden bg-black">
         <img src={video.thumbnail} alt={video.title} className="h-full w-full object-cover" />
       </div>
-      <div className="p-4">
-        <h3 className="text-foreground mb-1 text-sm font-medium">{video.title}</h3>
-        <p className="text-muted-foreground text-xs">@{video.creator}</p>
+      <div className="flex items-center gap-3 p-3">
+        <div className="rounded-pill bg-muted flex h-8 w-8 flex-shrink-0 items-center justify-center">
+          <span className="text-foreground text-xs font-medium">{video.creator.slice(0, 2).toUpperCase()}</span>
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-foreground truncate text-sm font-medium">{video.creator}</p>
+          <p className="text-muted-foreground truncate text-xs">@{video.creator.toLowerCase()}</p>
+        </div>
       </div>
     </div>
   );
