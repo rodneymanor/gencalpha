@@ -7,51 +7,31 @@ import { cn } from "@/lib/utils";
 
 import { AnalyzerHeader } from "./analyzer-header";
 import { InsightsPane } from "./insights-pane";
-import type { AnalysisData, SocialMediaVideoAnalyzerProps, VideoData } from "./types";
-import { analyzeTranscriptBasic, detectPlatform, sampleData } from "./utils";
-import { VideoPane } from "./video-pane";
+import type { AnalysisData, VideoData } from "./types";
+import { analyzeTranscriptBasic } from "./utils";
 
-export { default as ProductionVideoAnalyzer } from "./production";
+export interface ProductionVideoAnalyzerProps {
+  className?: string;
+  videoData: VideoData;
+  onExportProfile?: (analysis: AnalysisData) => void;
+  onUseStyleForRescript?: (analysis: AnalysisData) => void;
+}
 
-export default function SocialMediaVideoAnalyzer({
+export default function ProductionVideoAnalyzer({
   className,
-  initialData,
+  videoData,
   onExportProfile,
   onUseStyleForRescript,
-}: SocialMediaVideoAnalyzerProps) {
-  const [url, setUrl] = React.useState("");
-  const [isInsightsOpen, setInsightsOpen] = React.useState(false);
+}: ProductionVideoAnalyzerProps) {
   const [activeTab, setActiveTab] = React.useState<"metrics" | "content" | "transcript" | "voice">("metrics");
-  const [video, setVideo] = React.useState<VideoData | null>(initialData ?? null);
-  const [videoSrc, setVideoSrc] = React.useState<string | null>(null);
   const [analysis, setAnalysis] = React.useState<AnalysisData | null>(null);
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
 
   const transcriptStats = React.useMemo(() => {
-    if (!video) return null;
-    return analyzeTranscriptBasic(video.content.transcript, video.durationSec);
-  }, [video]);
-
-  function handleLoadVideo(inputUrl?: string) {
-    const u = (inputUrl ?? url).trim();
-    if (!u) return;
-    const platform = detectPlatform(u);
-    if (!platform) {
-      alert("Please enter a valid TikTok, Instagram, or YouTube Shorts URL");
-      return;
-    }
-    setVideo(sampleData);
-    setVideoSrc("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4");
-    setTimeout(() => {
-      if (!isInsightsOpen) setInsightsOpen(true);
-    }, 400);
-  }
+    return analyzeTranscriptBasic(videoData.content.transcript, videoData.durationSec);
+  }, [videoData]);
 
   function handleDeepAnalysis() {
-    if (!video) {
-      alert("Please load a video first");
-      return;
-    }
     setActiveTab("voice");
     setIsAnalyzing(true);
     setTimeout(() => {
@@ -99,16 +79,17 @@ export default function SocialMediaVideoAnalyzer({
       };
       setAnalysis(analysisData);
       setIsAnalyzing(false);
+
+      // Call callbacks if provided
+      if (onExportProfile) onExportProfile(analysisData);
+      if (onUseStyleForRescript) onUseStyleForRescript(analysisData);
     }, 1200);
   }
 
   function handleCopyLink() {
-    const link = video?.videoUrl ?? url;
-    if (!link) return;
-    void navigator.clipboard.writeText(link);
+    if (!videoData.videoUrl) return;
+    void navigator.clipboard.writeText(videoData.videoUrl);
   }
-
-  // Callbacks can be passed from parent when integrating
 
   return (
     <Card
@@ -119,30 +100,25 @@ export default function SocialMediaVideoAnalyzer({
     >
       <CardHeader className="border-border border-b">
         <AnalyzerHeader
-          creatorName={video?.creator.name}
-          creatorHandle={video?.creator.handle}
-          platform={video?.platform}
-          isInsightsOpen={isInsightsOpen}
-          onToggleInsights={() => setInsightsOpen((v) => !v)}
+          creatorName={videoData.creator.name}
+          creatorHandle={videoData.creator.handle}
+          platform={videoData.platform}
+          isInsightsOpen={true}
+          onToggleInsights={() => {}} // No-op since insights are always open
           onDeepAnalysis={handleDeepAnalysis}
           onCopyLink={handleCopyLink}
         />
       </CardHeader>
       <CardContent className="p-0">
-        <div className={cn("grid transition-all", isInsightsOpen ? "lg:grid-cols-2" : "grid-cols-1")}>
-          <VideoPane url={url} setUrl={setUrl} videoSrc={videoSrc} onLoadVideo={handleLoadVideo} />
-          {isInsightsOpen && (
-            <InsightsPane
-              activeTab={activeTab}
-              onChangeTab={(v) => setActiveTab(v)}
-              isAnalyzing={isAnalyzing}
-              analysis={analysis}
-              video={video}
-              transcriptStats={transcriptStats}
-              onRunAnalysis={handleDeepAnalysis}
-            />
-          )}
-        </div>
+        <InsightsPane
+          activeTab={activeTab}
+          onChangeTab={(v) => setActiveTab(v)}
+          isAnalyzing={isAnalyzing}
+          analysis={analysis}
+          video={videoData}
+          transcriptStats={transcriptStats}
+          onRunAnalysis={handleDeepAnalysis}
+        />
       </CardContent>
     </Card>
   );
