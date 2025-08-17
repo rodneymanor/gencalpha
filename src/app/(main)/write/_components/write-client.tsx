@@ -30,6 +30,11 @@ export function WriteClient({
 
   return (
     <>
+      {/* Brand button - always visible */}
+      <div className="fixed top-4 right-4 z-50">
+        <BrandProfileButton />
+      </div>
+      
       {!isHeroState && (
         <div className="bg-background border-border sticky top-0 z-10 -mb-6 border-b">
           <div
@@ -80,7 +85,6 @@ export function WriteClient({
                 placeholder="Select collection"
                 className="hidden sm:flex"
               />
-              <BrandProfileButton />
             </div>
           </div>
         </div>

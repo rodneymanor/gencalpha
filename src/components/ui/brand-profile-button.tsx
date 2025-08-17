@@ -9,22 +9,17 @@ import { Button } from "@/components/ui/button";
 
 export function BrandProfileButton() {
   const [isSlideoutOpen, setIsSlideoutOpen] = useState(false);
-  
-  console.log("BrandProfileButton render - isSlideoutOpen:", isSlideoutOpen);
 
   return (
     <>
       <Button
         variant="outline"
         size="sm"
-        onClick={() => {
-          console.log("Brand button clicked");
-          setIsSlideoutOpen(true);
-        }}
-        className="gap-2 rounded-[var(--radius-button)] border-border"
+        onClick={() => setIsSlideoutOpen(true)}
+        className="gap-2 rounded-[var(--radius-button)] bg-brand text-brand-foreground border-brand hover:bg-brand/90 shadow-[var(--shadow-soft-drop)] font-semibold"
       >
         <User className="h-4 w-4" />
-        Profile
+        Settings
       </Button>
 
       {/* Slideout Overlay */}
