@@ -400,3 +400,131 @@ When implementing tab navigation, follow this strict hierarchy for consistent ta
 ```
 
 When generating tab components, explicitly state which pattern you're using and why based on these rules.
+
+---
+
+**SOFT UI BUTTON HIERARCHY - CRITICAL RULES:**
+
+**Philosophy:** Buttons should guide through subtle elevation, not demand attention through color. The interface should feel calm and confident, not urgent. Use the "Quiet Confidence" approach where the most important action is obvious through context, not aggressive styling.
+
+**BUTTON VARIANTS BY PRIORITY:**
+
+**1. GHOST VARIANT (Default - Use 60% of time)**
+```css
+/* No background, subtle hover */
+className="px-4 py-2 text-foreground/70 hover:text-foreground hover:bg-accent/5 rounded-[var(--radius-button)] transition-colors duration-200"
+```
+Use for: Cancel, Close, Back, most toolbar actions, secondary actions, navigation items
+
+**2. SOFT VARIANT (Primary - Use 30% of time)**
+```css
+/* Subtle background, slightly elevated */
+className="px-4 py-2 bg-accent/10 text-foreground hover:bg-accent/15 rounded-[var(--radius-button)] transition-all duration-200 hover:shadow-[var(--shadow-soft-drop)]"
+```
+Use for: Save, Continue, Submit, Create - the main action in a group, confirmation actions
+
+**3. SOLID VARIANT (Critical - Use <10% of time)**
+```css
+/* Solid background, highest contrast */
+className="px-4 py-2 bg-foreground text-background hover:opacity-90 rounded-[var(--radius-button)] shadow-[var(--shadow-soft-drop)] transition-all duration-200"
+```
+Use for: CTAs on landing pages, upgrade prompts, critical single actions
+**MAXIMUM ONE SOLID BUTTON PER VIEW**
+
+**PLACEMENT HIERARCHY RULES:**
+1. **Right-align primary actions** - Primary action goes rightmost
+2. **Left-align destructive actions** - Delete/Remove on the left, separated
+3. **Ghost for dismissive actions** - Cancel/Close are always ghost variant
+4. **Size indicates importance** - Larger padding for more important actions
+
+**COLOR RESTRAINT RULES:**
+- NEVER use bright colors (bg-blue-500, bg-green-500, bg-red-500)
+- NEVER use more than one solid button per screen
+- AVOID colored buttons except for:
+  - Destructive: `text-destructive hover:bg-destructive/10`
+  - Success states: `bg-accent/10` (temporary, after action)
+- DEFAULT to monochrome (foreground/background variations)
+- USE design system colors exclusively: `bg-background`, `bg-accent`, `text-foreground`, `text-muted-foreground`
+
+**INTERACTION STATES:**
+```css
+/* Hover: Subtle background change */
+hover:bg-accent/10  /* for ghost */
+hover:bg-accent/20  /* for soft */
+hover:opacity-90    /* for solid */
+
+/* Active: Slight depression */
+active:scale-[0.98]
+
+/* Focus: Soft ring using design system */
+focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-opacity-20
+
+/* Disabled: Reduced opacity */
+disabled:opacity-50 disabled:cursor-not-allowed
+```
+
+**STANDARD PATTERNS:**
+
+**Modal Actions:**
+```tsx
+<div className="flex justify-end gap-3">
+  <button className="px-4 py-2 text-muted-foreground hover:text-foreground hover:bg-accent/5 rounded-[var(--radius-button)] transition-colors duration-200">
+    Cancel
+  </button>
+  <button className="px-4 py-2 bg-accent/10 text-foreground hover:bg-accent/15 rounded-[var(--radius-button)] transition-all duration-200 hover:shadow-[var(--shadow-soft-drop)]">
+    Save Changes
+  </button>
+</div>
+```
+
+**Destructive Actions:**
+```tsx
+<div className="flex justify-between">
+  <button className="px-4 py-2 text-destructive hover:bg-destructive/10 rounded-[var(--radius-button)] transition-colors duration-200">
+    Delete
+  </button>
+  <div className="flex gap-3">
+    <button className="px-4 py-2 text-muted-foreground hover:text-foreground hover:bg-accent/5 rounded-[var(--radius-button)] transition-colors duration-200">
+      Cancel
+    </button>
+    <button className="px-4 py-2 bg-accent/10 text-foreground hover:bg-accent/15 rounded-[var(--radius-button)] transition-all duration-200">
+      Save
+    </button>
+  </div>
+</div>
+```
+
+**Single CTA (Rare):**
+```tsx
+<button className="w-full px-4 py-2 bg-foreground text-background hover:opacity-90 rounded-[var(--radius-button)] shadow-[var(--shadow-soft-drop)] transition-all duration-200">
+  Get Started
+</button>
+```
+
+**DECISION FRAMEWORK:**
+When choosing button variant, ask:
+1. Is this the ONLY action? → Consider solid (but usually soft)
+2. Are there 2+ actions? → Primary gets soft, others get ghost
+3. Is it dismissive (Cancel/Close)? → Always ghost
+4. Is it destructive? → Ghost with text-destructive
+5. Is it in a toolbar? → Almost always ghost
+6. Is this a landing page CTA? → Only then consider solid
+
+**CRITICAL CONSTRAINTS:**
+- MAXIMUM ONE solid button per view/modal/page
+- NO bright primary colors (blue-500, green-500, red-500)
+- NO multiple competing action colors
+- ALWAYS use design system variables and classes
+- ALWAYS include proper hover/focus states with 200ms transitions
+- ALWAYS use correct border radius: `rounded-[var(--radius-button)]`
+
+**WHAT NOT TO DO:**
+- Use multiple solid buttons in one view
+- Use bright primary colors for buttons
+- Make buttons compete for attention through color
+- Use color as the only differentiator
+- Add unnecessary icons to make buttons "pop"
+- Use generic Tailwind colors instead of design system tokens
+
+**THE SOFT UI PRINCIPLE:**
+Remember: In soft UI, the most important action should be obvious through **position, context, and subtle elevation**, not aggressive styling. The interface should feel **calm and intelligent**, never urgent or demanding. This creates a premium, trustworthy feeling that reduces decision fatigue.
