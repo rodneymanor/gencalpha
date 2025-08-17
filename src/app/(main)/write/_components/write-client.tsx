@@ -5,7 +5,6 @@ import { useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 
 import { type PersonaType } from "@/components/chatbot/persona-selector";
-import { BrandProfileButton } from "@/components/ui/brand-profile-button";
 import { Button } from "@/components/ui/button";
 import { CollectionCombobox } from "@/components/ui/collection-combobox";
 import {
@@ -30,11 +29,6 @@ export function WriteClient({
 
   return (
     <>
-      {/* Brand button - always visible */}
-      <div className="fixed top-4 right-4 z-50">
-        <BrandProfileButton />
-      </div>
-      
       {!isHeroState && (
         <div className="bg-background border-border sticky top-0 z-10 -mb-6 border-b">
           <div
