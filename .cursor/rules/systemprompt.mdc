@@ -690,3 +690,364 @@ Remember: In soft UI, the most important action should be obvious through **posi
 - Maintain consistent typography hierarchy with main application
 
 This creates the signature soft UI experience where additional context enhances rather than interrupts the user's workflow, maintaining cognitive continuity while providing powerful functionality.
+
+---
+
+**PANEL CONTENT DESIGN RULES - COMPRESSED HIERARCHY:**
+
+**Philosophy:** Content inside sliding panels follows "Compressed Hierarchy" - everything becomes flatter, denser, and more subtle. The panel itself provides elevation, so internal elements don't compete for attention. Focus on efficiency and reduced visual weight.
+
+**Core Principles:**
+1. **Density over spaciousness** - Tighter padding and gaps
+2. **Flatter hierarchy** - Fewer elevation changes, minimal shadows
+3. **Subtler interactions** - No dramatic hovers or transforms
+4. **Smaller typography** - 12-13px instead of 14-15px for body text
+5. **Muted colors** - More use of `bg-muted`, `text-muted-foreground`, `accent/10`
+6. **Icon-first actions** - Save horizontal space with compact buttons
+7. **Progressive disclosure** - Show actions on hover to reduce clutter
+8. **Single-column layout** - Panels are narrow, stack everything vertically
+
+**CARDS INSIDE PANELS:**
+```css
+/* Main UI Card */
+.main-card { padding: 24px; border-radius: 12px; box-shadow: var(--shadow-soft-drop); }
+
+/* Panel Card - Reduced visual weight */
+.panel-card {
+  padding: 16px; /* Reduced from 24px */
+  border-radius: 8px; /* Reduced from 12px */
+  background: var(--muted/50); /* Subtle tint, not elevated white */
+  border: 1px solid var(--border-subtle);
+  /* No shadows - panel provides elevation */
+  margin-bottom: 12px; /* Tighter stacking than main UI */
+}
+
+.panel-card:hover {
+  border-color: var(--border-hover);
+  background: var(--muted/60);
+  /* No elevation change on hover */
+}
+```
+
+**INPUTS AND FORMS IN PANELS:**
+```css
+/* Compressed Input Design */
+.panel-input {
+  height: 32px; /* Reduced from 40px */
+  padding: 6px 12px; /* Reduced from 10px 16px */
+  border-radius: 6px; /* Reduced from 10px */
+  font-size: 13px; /* Reduced from 14px */
+  background: var(--background);
+  border: 1px solid var(--border-subtle);
+}
+
+.panel-input:focus {
+  border-color: var(--ring);
+  /* No shadow/glow - too heavy in confined space */
+}
+
+/* Panel form spacing */
+.panel-form-group {
+  margin-bottom: 12px; /* Tighter than main UI's 16-20px */
+}
+
+.panel-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  margin-bottom: 4px;
+  display: block;
+}
+```
+
+**CODE BLOCKS AND SYNTAX HIGHLIGHTING:**
+```css
+.panel-code-block {
+  background: var(--muted/50);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px; /* Smaller radius */
+  overflow: hidden;
+  font-size: 12px; /* Smaller than main UI */
+  line-height: 1.5;
+}
+
+.panel-code-header {
+  padding: 6px 12px; /* Compact header */
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--background);
+}
+
+.panel-code-language {
+  font-size: 11px;
+  color: var(--muted-foreground);
+  font-weight: 500;
+}
+
+.panel-code-content {
+  padding: 12px;
+  overflow-x: auto;
+}
+
+/* Copy button positioning */
+.panel-code-block .copy-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  opacity: 0;
+  transition: opacity 150ms;
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+}
+
+.panel-code-block:hover .copy-btn {
+  opacity: 1;
+}
+```
+
+**TABS INSIDE PANELS:**
+```css
+/* Segment tabs optimized for panels */
+.panel-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  background: var(--muted/30);
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.panel-tab {
+  padding: 4px 12px; /* Compact padding */
+  font-size: 12px; /* Smaller text */
+  border-radius: 4px;
+  color: var(--muted-foreground);
+  transition: all 150ms;
+}
+
+.panel-tab.active {
+  background: var(--background);
+  color: var(--foreground);
+  box-shadow: var(--shadow-xs);
+}
+
+.panel-tab:hover:not(.active) {
+  color: var(--foreground);
+  background: var(--accent/5);
+}
+```
+
+**ACTION BUTTONS IN PANELS:**
+```css
+/* Icon-first compact actions */
+.panel-action-bar {
+  display: flex;
+  gap: 4px; /* Tight spacing */
+  padding: 8px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.panel-action {
+  width: 32px; /* Square compact buttons */
+  height: 32px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted-foreground);
+  transition: all 150ms;
+  font-size: 12px;
+}
+
+.panel-action:hover {
+  background: var(--accent/10);
+  color: var(--foreground);
+}
+
+/* Text actions when needed */
+.panel-text-action {
+  padding: 4px 8px;
+  font-size: 12px;
+  color: var(--muted-foreground);
+  border-radius: 4px;
+  transition: all 150ms;
+}
+
+.panel-text-action:hover {
+  color: var(--foreground);
+  background: var(--accent/10);
+}
+```
+
+**RESPONSE/MESSAGE BLOCKS:**
+```tsx
+/* Claude-style response in panel */
+.panel-message {
+  margin-bottom: 12px; /* Tighter than main chat */
+  border-radius: 8px;
+  padding: 12px; /* Reduced padding */
+}
+
+.panel-message.user {
+  background: var(--muted/50);
+  margin-left: 32px; /* Smaller offset */
+}
+
+.panel-message.assistant {
+  background: transparent;
+  margin-right: 32px;
+}
+
+.panel-avatar {
+  width: 24px; /* Smaller than main UI */
+  height: 24px;
+  border-radius: 50%;
+  background: var(--accent/10);
+  flex-shrink: 0;
+}
+
+/* Message actions */
+.panel-message-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+  opacity: 0;
+  transition: opacity 150ms;
+}
+
+.panel-message:hover .panel-message-actions {
+  opacity: 1;
+}
+```
+
+**LISTS AND TABLES IN PANELS:**
+```css
+.panel-table {
+  width: 100%;
+  font-size: 12px; /* Smaller text */
+  border-collapse: collapse;
+}
+
+.panel-table th {
+  padding: 6px 8px; /* Compact cell padding */
+  text-align: left;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 11px; /* Even smaller headers */
+}
+
+.panel-table td {
+  padding: 8px;
+  border-bottom: 1px solid var(--border-subtle/50);
+}
+
+.panel-table tr:hover td {
+  background: var(--accent/5); /* Subtle hover */
+}
+
+/* List items */
+.panel-list-item {
+  padding: 8px 12px; /* Compact list items */
+  border-bottom: 1px solid var(--border-subtle/30);
+  font-size: 13px;
+}
+
+.panel-list-item:hover {
+  background: var(--accent/5);
+}
+```
+
+**VIDEO/MEDIA VIEWERS IN PANELS:**
+```css
+.panel-video-container {
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: #000;
+  border-radius: 8px; /* Smaller radius than main UI */
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.panel-video-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px;
+  background: linear-gradient(transparent, rgba(0,0,0,0.7));
+  opacity: 0;
+  transition: opacity 200ms;
+}
+
+.panel-video-container:hover .panel-video-controls {
+  opacity: 1;
+}
+
+/* Minimal control buttons */
+.panel-video-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+```
+
+**STANDARD PANEL LAYOUT PATTERN:**
+```tsx
+<div className="panel-content">
+  {/* Compact header */}
+  <div className="flex items-center justify-between mb-4 pb-3 border-b border-border">
+    <h3 className="text-sm font-medium text-foreground">Panel Title</h3>
+    <div className="flex gap-1">
+      <button className="w-6 h-6 flex items-center justify-center hover:bg-accent/10 rounded">
+        <Icon className="w-3.5 h-3.5" />
+      </button>
+    </div>
+  </div>
+  
+  {/* Content sections with tight spacing */}
+  <div className="space-y-3"> {/* Tighter than main UI's space-y-4 or space-y-6 */}
+    <PanelSection />
+  </div>
+  
+  {/* Action footer if needed */}
+  <div className="flex gap-2 pt-3 mt-4 border-t border-border">
+    <button className="px-3 py-1.5 text-xs bg-accent/10 hover:bg-accent/15 rounded-[var(--radius-button)]">
+      Primary Action
+    </button>
+    <button className="px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground rounded-[var(--radius-button)]">
+      Secondary
+    </button>
+  </div>
+</div>
+```
+
+**SPACING SCALE FOR PANELS:**
+- **Closely related items:** 4px (space-1) - buttons in groups
+- **Form fields:** 8-12px (space-2 to space-3) 
+- **Content sections:** 12px (space-3) - cards, blocks
+- **Major sections:** 16px (space-4) - between different content types
+- **Panel padding:** 16px (p-4) - internal panel padding
+- **Maximum gap:** 20px - never exceed this inside panels
+
+**CRITICAL CONSTRAINTS FOR PANEL CONTENT:**
+- NEVER use shadows inside panels (panel provides elevation)
+- NEVER use large spacing (max 20px gaps)
+- NEVER use full-size typography (max 14px for headings, 13px for body)
+- NEVER use bright colors or high contrast (keep subtle and muted)
+- ALWAYS use compressed padding and margins
+- ALWAYS prefer icons over text labels when space is tight
+- ALWAYS use hover states to reveal secondary actions
+- ALWAYS maintain single-column layout (no side-by-side unless essential)
+
+This compressed hierarchy ensures panel content feels efficient and focused while maintaining excellent usability in the constrained space.
