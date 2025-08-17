@@ -75,7 +75,7 @@ export function PlaybookCards() {
 
             {/* Action Button - appears on hover */}
             <div className="invisible absolute right-4 bottom-4 left-4 opacity-0 transition-all duration-300 group-hover:visible group-hover:opacity-100">
-              <div className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium shadow-sm transition-all duration-200">
+              <div className="border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground flex items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium transition-all duration-200">
                 <ArrowUpRight className="h-4 w-4" />
                 <span>View Now</span>
               </div>
