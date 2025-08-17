@@ -147,8 +147,8 @@ export default function AIGhostwriterPage() {
       {/* Header */}
       <div className="mb-8">
         <div className="mb-4 flex items-center gap-3">
-          <div className="rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 p-3">
-            <Wand2 className="h-6 w-6 text-white" />
+          <div className="bg-brand text-brand-foreground rounded-lg p-3">
+            <Wand2 className="h-6 w-6" />
           </div>
           <div>
             <h1 className="text-3xl font-bold">AI Ghostwriter</h1>

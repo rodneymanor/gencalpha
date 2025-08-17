@@ -35,8 +35,8 @@ const formatViewCount = (views: number) => {
 const getPlatformStyle = (platform: string) => {
   const styles = {
     tiktok: "bg-black text-white",
-    instagram: "bg-gradient-to-r from-purple-500 to-pink-500 text-white",
-    default: "bg-gray-500 text-white",
+    instagram: "bg-[var(--pill-bg)] text-muted-foreground",
+    default: "bg-muted text-muted-foreground",
   };
   return styles[platform.toLowerCase() as keyof typeof styles] || styles.default;
 };

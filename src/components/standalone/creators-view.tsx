@@ -7,6 +7,7 @@ import { UserPlus, ChevronsUpDown, Check } from "lucide-react";
 import CreatorVideosGrid, { type VideoData } from "@/app/(main)/dashboard/daily/_components/creator-videos-grid";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { PlatformBadge } from "@/components/ui/platform-badges";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { FloatingVideoPlayer, useFloatingVideo } from "@/components/video/video-slideout-player";
 import { transformVideoDataToVideo } from "@/lib/video-player-helpers";
@@ -111,16 +112,7 @@ export function CreatorsView() {
                               className={`mr-2 h-4 w-4 ${selectedCreator === creator.username ? "opacity-100" : "opacity-0"}`}
                             />
                             <div className="flex items-center gap-2">
-                              {creator.platform === "instagram" && (
-                                <div className="flex h-4 w-4 items-center justify-center rounded-[var(--radius-button)] bg-gradient-to-br from-purple-500 to-pink-500 text-xs font-bold text-white">
-                                  IG
-                                </div>
-                              )}
-                              {creator.platform === "tiktok" && (
-                                <div className="bg-foreground text-background flex h-4 w-4 items-center justify-center rounded-[var(--radius-button)] text-xs font-bold">
-                                  T
-                                </div>
-                              )}
+                              <PlatformBadge platform={creator.platform} size="sm" />
                               <span>{creator.displayName}</span>
                             </div>
                           </CommandItem>
