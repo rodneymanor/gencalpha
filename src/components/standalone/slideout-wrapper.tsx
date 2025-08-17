@@ -4,11 +4,14 @@ import React, { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { usePathname } from "next/navigation";
 
-import { ChevronDown, Copy, X } from "lucide-react";
+import { X } from "lucide-react";
 
 import { CreatorsView } from "@/components/standalone/creators-view";
 import { IdeasView } from "@/components/standalone/ideas-view";
 import MinimalSlideoutEditor from "@/components/standalone/minimal-slideout-editor";
+import { ContextualMenu } from "@/components/standalone/slideout-contextual-menu";
+import { SlideoutHeaderActions } from "@/components/standalone/slideout-header-actions";
+import { UserProfileView } from "@/components/standalone/user-profile-view";
 import { Button } from "@/components/ui/button";
 import { PillButton } from "@/components/ui/pill-button";
 import { cn } from "@/lib/utils";
@@ -30,6 +33,8 @@ export interface SlideoutWrapperProps {
   defaultSelectedOption?: string;
   openEvents?: string[];
   closeEvents?: string[];
+  // Profile-specific props
+  variant?: "default" | "profile";
 }
 
 // eslint-disable-next-line complexity
@@ -41,20 +46,25 @@ export function SlideoutWrapper({
   customOptions,
   customHeaderActions,
   defaultSelectedOption,
-  openEvents = ["write:editor-set-content"],
-  closeEvents = ["write:close-slideout"],
+  openEvents = variant === "profile" ? ["profile:open"] : ["write:editor-set-content"],
+  closeEvents = variant === "profile" ? ["profile:close"] : ["write:close-slideout"],
+  variant = "default",
 }: SlideoutWrapperProps) {
   const [isOpen, setIsOpen] = useState(false);
   // Determine available options (custom or default)
   const isCustomMode = customOptions && customOptions.length > 0;
-  const defaultOptions: SlideoutOption[] = [
-    { key: "ghostwriter", label: "Ghost Writer", component: <MinimalSlideoutEditor /> },
-    { key: "creators", label: "Creators", component: <CreatorsView /> },
-    { key: "ideas", label: "Ideas", component: <IdeasView /> },
-  ];
+  const defaultOptions: SlideoutOption[] =
+    variant === "profile"
+      ? [{ key: "profile", label: "Profile Settings", component: <UserProfileView /> }]
+      : [
+          { key: "ghostwriter", label: "Ghost Writer", component: <MinimalSlideoutEditor /> },
+          { key: "creators", label: "Creators", component: <CreatorsView /> },
+          { key: "ideas", label: "Ideas", component: <IdeasView /> },
+        ];
 
   const availableOptions = isCustomMode ? customOptions : defaultOptions;
-  const initialSelectedOption = defaultSelectedOption || availableOptions[0]?.key || "ghostwriter";
+  const initialSelectedOption =
+    defaultSelectedOption ?? availableOptions[0]?.key ?? (variant === "profile" ? "profile" : "ghostwriter");
 
   const [selectedOption, setSelectedOption] = useState<string>(initialSelectedOption);
   const [menuState, setMenuState] = useState<{
@@ -208,57 +218,28 @@ export function SlideoutWrapper({
             {/* Toolbar/Header with option selection */}
             <div className="bg-card border-border flex items-center justify-between border-b px-3 py-2">
               <div className="flex items-center gap-2">
-                {availableOptions.map((option) => (
-                  <PillButton
-                    key={option.key}
-                    label={option.label}
-                    selected={selectedOption === option.key}
-                    onClick={() => setSelectedOption(option.key)}
-                    className="h-8 px-3 text-sm"
-                  />
-                ))}
+                {/* Only show tabs if there are multiple options or not profile variant */}
+                {(variant !== "profile" || availableOptions.length > 1) &&
+                  availableOptions.map((option) => (
+                    <PillButton
+                      key={option.key}
+                      label={option.label}
+                      selected={selectedOption === option.key}
+                      onClick={() => setSelectedOption(option.key)}
+                      className="h-8 px-3 text-sm"
+                    />
+                  ))}
+                {/* Profile variant with single option shows title instead */}
+                {variant === "profile" && availableOptions.length === 1 && (
+                  <h2 className="text-foreground text-lg font-semibold">{availableOptions[0].label}</h2>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 {/* Custom header actions or default actions */}
                 {isCustomMode ? (
                   customHeaderActions
                 ) : (
-                  /* Default actions for original slideout */
-                  <>
-                    {/* Hide copy and publish buttons on write page or for creators and ideas views */}
-                    {!isWritePage && selectedOption === "ghostwriter" && (
-                      <>
-                        <div className="border-border flex items-center overflow-hidden rounded-[var(--radius-card)] border shadow-[var(--shadow-input)]">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="gap-1.5 rounded-none border-0 px-3 has-[>svg]:px-2.5"
-                            onClick={() => {
-                              try {
-                                const root = document.querySelector("[data-slideout-editor-root]");
-                                if (!root) return;
-                                const text = root.textContent ?? "";
-                                if (!text.trim()) return;
-                                void navigator.clipboard.writeText(text);
-                              } catch {
-                                /* no-op */
-                              }
-                            }}
-                          >
-                            <Copy className="h-4 w-4" />
-                            <span>Copy</span>
-                          </Button>
-                          <div className="bg-border h-8 w-px" />
-                          <Button variant="ghost" size="icon" className="rounded-none">
-                            <ChevronDown className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <Button variant="default" size="sm" className="gap-1.5 rounded-[var(--radius-button)] px-3">
-                          Publish
-                        </Button>
-                      </>
-                    )}
-                  </>
+                  <SlideoutHeaderActions selectedOption={selectedOption} isWritePage={isWritePage} variant={variant} />
                 )}
                 <Button
                   variant="ghost"
@@ -275,58 +256,14 @@ export function SlideoutWrapper({
             <div className="flex-1 overflow-y-auto" ref={slideoutScrollRef}>
               {availableOptions.find((option) => option.key === selectedOption)?.component}
             </div>
-            {/* Contextual dropdown for script components (dummy actions) */}
-            {menuState?.isVisible ? (
-              <div className="fixed z-50" style={{ top: menuState.top, left: menuState.left }} ref={menuRef}>
-                <div className="bg-card border-border text-foreground min-w-[220px] rounded-[var(--radius-card)] border">
-                  <div className="px-3 py-2 text-xs opacity-80">{menuState.text || "Script component"}</div>
-                  <div className="bg-border h-px w-full" />
-                  <div className="p-1">
-                    {/* TODO: Wire these menu items to real actions (insert/replace/open editors) */}
-                    <button
-                      className="hover:bg-accent hover:text-accent-foreground w-full rounded-[var(--radius-button)] px-3 py-2 text-left text-sm"
-                      onClick={() => {
-                        console.log("Add Hook clicked");
-                        setMenuState(null);
-                      }}
-                    >
-                      Add Hook
-                    </button>
-                    <button
-                      className="hover:bg-accent hover:text-accent-foreground w-full rounded-[var(--radius-button)] px-3 py-2 text-left text-sm"
-                      onClick={() => {
-                        console.log("Add Bridge clicked");
-                        setMenuState(null);
-                      }}
-                    >
-                      Add Bridge
-                    </button>
-                    <button
-                      className="hover:bg-accent hover:text-accent-foreground w-full rounded-[var(--radius-button)] px-3 py-2 text-left text-sm"
-                      onClick={() => {
-                        console.log("Mark as Golden Nugget clicked");
-                        setMenuState(null);
-                      }}
-                    >
-                      Mark as Golden Nugget
-                    </button>
-                    <button
-                      className="hover:bg-accent hover:text-accent-foreground w-full rounded-[var(--radius-button)] px-3 py-2 text-left text-sm"
-                      onClick={() => {
-                        try {
-                          navigator.clipboard.writeText(menuState.text ?? "");
-                        } catch {
-                          /* no-op */
-                        }
-                        setMenuState(null);
-                      }}
-                    >
-                      Copy Text
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ) : null}
+            <ContextualMenu
+              isVisible={menuState?.isVisible ?? false}
+              top={menuState?.top ?? 0}
+              left={menuState?.left ?? 0}
+              text={menuState?.text ?? ""}
+              onClose={() => setMenuState(null)}
+              ref={menuRef}
+            />
           </div>
         </div>
       </div>

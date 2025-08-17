@@ -58,7 +58,16 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
                     <div className="absolute top-6 right-6 z-10">
                       <NotificationHeader />
                     </div>
-                    <SlideoutWrapper slideout={<ContentViewer className="h-full" />}>{children}</SlideoutWrapper>
+                    <SlideoutWrapper slideout={<ContentViewer className="h-full" />}>
+                      <SlideoutWrapper
+                        variant="profile"
+                        slideout={null}
+                        openEvents={["profile:open"]}
+                        closeEvents={["profile:close"]}
+                      >
+                        {children}
+                      </SlideoutWrapper>
+                    </SlideoutWrapper>
                   </div>
                 </ResizableDashboardWrapper>
               </div>
