@@ -3,12 +3,12 @@ import packageJson from "../../package.json";
 const currentYear = new Date().getFullYear();
 
 export const APP_CONFIG = {
-  name: "Studio Admin",
+  name: "Gen.C",
   version: packageJson.version,
   copyright: `© ${currentYear}, Studio Admin.`,
   meta: {
-    title: "Studio Admin - Modern Next.js Dashboard Starter Template",
+    title: "Gen.C - Your AI content co-pilot trained on what actually converts",
     description:
-      "Studio Admin is a modern, open-source dashboard starter template built with Next.js 15, Tailwind CSS v4, and shadcn/ui. Perfect for SaaS apps, admin panels, and internal tools—fully customizable and production-ready.",
+      "Gen.C is your AI co-pilot trained on proven, high-converting content. Just chat about your ideas and watch them transform into hooks, stories, and value bombs that speak directly to your audience.",
   },
 };
