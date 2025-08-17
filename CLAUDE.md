@@ -563,6 +563,199 @@ When choosing button variant, ask:
 **THE SOFT UI PRINCIPLE:**
 Remember: In soft UI, the most important action should be obvious through **position, context, and subtle elevation**, not aggressive styling. The interface should feel **calm and intelligent**, never urgent or demanding. This creates a premium, trustworthy feeling that reduces decision fatigue.
 
+---
+
+**SLIDING PANEL IMPLEMENTATION RULES - CONTEXTUAL LAYERS:**
+
+**Philosophy:** Sliding panels represent "Contextual Layers" that extend the workspace rather than interrupt it. Unlike modals that stop workflow, panels provide parallel context that enhances the main content. Think Claude's artifact panel - content and context coexist.
+
+**When to Use Sliding Panels:**
+
+- Displaying generated content (artifacts, code, previews)
+- Detailed views that complement main content (video analysis, insights)
+- Settings or configuration that need context reference
+- Multi-step forms that reference previous content
+- File browsers, asset pickers, or content selectors
+- Chat interfaces with document/code output
+
+**Panel Positioning Standards:**
+
+- **RIGHT SIDE:** Default for content/artifacts (follows LTR reading pattern)
+- **LEFT SIDE:** Navigation panels, file trees (if not in main sidebar)
+- **BOTTOM:** Terminal output, logs, developer tools, status panels
+
+**Core Implementation Pattern:**
+
+```css
+/* Base panel structure */
+.slide-panel {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 600px; /* Fixed on desktop, 480px for secondary panels */
+  background: var(--background);
+  border-left: 1px solid var(--border-subtle);
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.08); /* Soft depth shadow */
+  transform: translateX(100%);
+  transition: transform 300ms cubic-bezier(0.32, 0.72, 0, 1); /* Custom soft easing */
+  z-index: 50;
+  will-change: transform; /* Performance optimization */
+}
+
+.slide-panel.open {
+  transform: translateX(0);
+}
+
+/* Main content adjustment - critical for desktop */
+.main-content.panel-open {
+  margin-right: 600px;
+  transition: margin 300ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+```
+
+**Animation Physics Rules:**
+
+- **Opening:** 300-400ms with custom easing `cubic-bezier(0.32, 0.72, 0, 1)`
+- **Closing:** 250ms (faster dismissal feels more responsive)
+- **Transform-based:** Use `translateX()`, never `width/left/right` for 60fps performance
+- **Staggered elements:** If animating panel contents, use 50ms delays between elements
+- **Micro-bounce:** Slight overshoot on open using custom bezier curve
+
+**Responsive Behavior Matrix:**
+
+```css
+/* Desktop (>1024px): Side-by-side with content adjustment */
+@media (min-width: 1024px) {
+  .slide-panel {
+    width: 600px;
+  }
+  .main-content.panel-open {
+    margin-right: 600px;
+  }
+  .panel-scrim {
+    display: none;
+  }
+}
+
+/* Tablet (768-1024px): Overlay with subtle scrim */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .slide-panel {
+    width: 70%;
+    max-width: 480px;
+  }
+  .main-content.panel-open {
+    margin-right: 0;
+  }
+  .panel-scrim {
+    display: block;
+    opacity: 0.3;
+    backdrop-filter: blur(2px);
+  }
+}
+
+/* Mobile (<768px): Full screen takeover */
+@media (max-width: 767px) {
+  .slide-panel {
+    width: 100%;
+  }
+  .panel-scrim {
+    display: block;
+    opacity: 0.5;
+  }
+}
+```
+
+**Visual Design Requirements:**
+
+- **Borders:** Subtle `border-border` color, never harsh dividers
+- **Shadows:** Soft drop shadows `shadow-[var(--shadow-soft-drop)]` for depth
+- **Background:** Same as main content `bg-background` for unified space feeling
+- **Close button:** Inside panel (top-right), not floating outside
+- **Header consistency:** Match main app header height and styling
+
+**Content Structure Pattern:**
+
+```tsx
+<div className="slide-panel">
+  {/* Header with close action */}
+  <div className="border-border flex items-center justify-between border-b p-4">
+    <h3 className="text-foreground font-semibold">Panel Title</h3>
+    <button className="hover:bg-accent/10 rounded-[var(--radius-button)] p-2">
+      <X className="h-4 w-4" />
+    </button>
+  </div>
+
+  {/* Scrollable content area */}
+  <div className="flex-1 overflow-y-auto p-4">{children}</div>
+
+  {/* Optional footer actions */}
+  <div className="border-border border-t p-4">
+    <PanelActions />
+  </div>
+</div>
+```
+
+**Interaction Standards:**
+
+- **Escape key:** Always dismisses panel
+- **Click outside:** Dismisses panel (with scrim on tablet/mobile)
+- **Swipe gesture:** Support right-to-left swipe to close on mobile
+- **Focus trap:** Keep keyboard navigation within panel when open
+- **No nested panels:** Never implement panels within panels
+
+**Performance Optimizations:**
+
+- Use `will-change: transform` during interactions
+- Remove `will-change` after animation completes
+- Lazy load panel content until panel opens
+- Use CSS containment: `contain: layout style paint`
+- Debounce resize events during responsive transitions
+
+**Common Implementation Patterns:**
+
+**Claude Artifact Style (Non-modal):**
+
+```tsx
+// Main content adjusts, panel slides alongside
+<div className={cn("transition-all duration-300", isOpen && "mr-[600px]")}>
+  <MainContent />
+</div>
+<SlidePanel isOpen={isOpen} position="right" modal={false}>
+  <ArtifactContent />
+</SlidePanel>
+```
+
+**Figma/Linear Style (Modal overlay):**
+
+```tsx
+// Scrim overlay, panel floats on top
+<PanelScrim isOpen={isOpen} onClose={onClose} />
+<SlidePanel isOpen={isOpen} position="right" modal={true}>
+  <DetailView />
+</SlidePanel>
+```
+
+**Critical Constraints:**
+
+- NEVER use linear easing - feels mechanical and harsh
+- NEVER create panels that push content completely off screen
+- NEVER use panels for critical alerts or confirmations (use modals)
+- NEVER implement without proper keyboard navigation support
+- ALWAYS ensure close button is accessible and properly sized (44px minimum touch target)
+- ALWAYS provide escape key dismissal
+- ALWAYS include proper ARIA labels and roles for accessibility
+
+**Design System Integration:**
+
+- Use design system colors: `bg-background`, `border-border`, `text-foreground`
+- Apply design system shadows: `shadow-[var(--shadow-soft-drop)]`
+- Use design system radius: `rounded-[var(--radius-card)]` for internal elements
+- Follow 4px spacing grid for all internal padding and margins
+- Maintain consistent typography hierarchy with main application
+
+This creates the signature soft UI experience where additional context enhances rather than interrupts the user's workflow, maintaining cognitive continuity while providing powerful functionality.
+
 ```
 
 ```
