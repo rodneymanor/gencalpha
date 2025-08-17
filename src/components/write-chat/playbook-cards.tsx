@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, FileText, PenTool, Users, BarChart3, ArrowUpRight } from "lucide-react";
+import { FileText, PenTool, Users, ArrowUpRight } from "lucide-react";
 
 export function PlaybookCards() {
   const handleCardClick = (cardType: "ideas" | "ghostwriter" | "creators") => {
@@ -56,26 +56,21 @@ export function PlaybookCards() {
             {/* Card Content */}
             <div className="flex flex-col gap-2">
               {/* Icon */}
-              <div className="bg-muted flex h-8 w-8 items-center justify-center rounded-full">
-                <div className="text-muted-foreground">{card.icon}</div>
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-800 border border-gray-300">
+                <div className="text-gray-100">{card.icon}</div>
               </div>
 
-              {/* Title */}
-              <h3 className="text-foreground line-clamp-2 text-sm leading-5 font-medium">{card.title}</h3>
+              {/* Title and Description */}
+              <div>
+                <h3 className="text-foreground text-sm leading-5 font-medium">{card.title}</h3>
+                <p className="text-muted-foreground text-xs leading-4 mt-1">{card.description}</p>
+              </div>
             </div>
 
-            {/* Footer - disappears on hover */}
-            <div className="mt-4 flex items-center justify-between transition-all duration-300 group-hover:invisible group-hover:opacity-0">
-              <div className="flex items-center gap-1.5">
-                <BarChart3 className="text-muted-foreground h-3 w-3" />
-                <span className="text-muted-foreground text-xs">{card.type}</span>
-              </div>
-              <ChevronRight className="text-foreground h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
-            </div>
 
             {/* Action Button - appears on hover */}
             <div className="invisible absolute right-4 bottom-4 left-4 opacity-0 transition-all duration-300 group-hover:visible group-hover:opacity-100">
-              <div className="border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground flex items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium transition-all duration-200">
+              <div className="border-border bg-background text-foreground hover:bg-muted hover:text-foreground flex items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium transition-all duration-200">
                 <ArrowUpRight className="h-4 w-4" />
                 <span>View Now</span>
               </div>

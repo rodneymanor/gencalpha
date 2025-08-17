@@ -22,7 +22,7 @@ interface CollectionsTabsProps {
 
 const tabs: Tab[] = [
   { id: "collections", label: "Collections", icon: GalleryVerticalEnd },
-  { id: "saved-collections", label: "Saved collections", icon: Bookmark },
+  { id: "saved-collections", label: "Saved videos", icon: Bookmark },
 ];
 
 export function CollectionsTabs({

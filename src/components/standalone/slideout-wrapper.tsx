@@ -190,7 +190,7 @@ export function SlideoutWrapper({
         {/* Slideout panel */}
         <div
           className={cn(
-            "border-border bg-card shadow-[var(--shadow-soft-drop)] transition-all duration-300",
+            "border-border bg-card transition-all duration-300",
             isWritePage
               ? // Write page: separate overlay slider
                 cn(
@@ -278,7 +278,7 @@ export function SlideoutWrapper({
             {/* Contextual dropdown for script components (dummy actions) */}
             {menuState?.isVisible ? (
               <div className="fixed z-50" style={{ top: menuState.top, left: menuState.left }} ref={menuRef}>
-                <div className="bg-card border-border text-foreground min-w-[220px] rounded-[var(--radius-card)] border shadow-[var(--shadow-soft-drop)]">
+                <div className="bg-card border-border text-foreground min-w-[220px] rounded-[var(--radius-card)] border">
                   <div className="px-3 py-2 text-xs opacity-80">{menuState.text || "Script component"}</div>
                   <div className="bg-border h-px w-full" />
                   <div className="p-1">

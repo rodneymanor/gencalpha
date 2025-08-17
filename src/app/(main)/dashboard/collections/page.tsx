@@ -2,22 +2,90 @@
 
 import { useState, useEffect, useCallback } from "react";
 
-import { Plus } from "lucide-react";
+import { Plus, Bookmark } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardSkeleton } from "@/components/ui/loading";
 import { CollectionCombobox } from "@/components/ui/collection-combobox";
+import { EditableText } from "@/components/ui/edit-button";
 import { VideoInsightsWrapper } from "@/components/video-insights";
+import { VideoSlideoutPlayer } from "@/components/video/video-slideout-player";
 import { useAuth } from "@/contexts/auth-context";
 import { VideoInsightsProvider } from "@/contexts/video-insights-context";
 import { VideoProcessingProvider } from "@/contexts/video-processing-context";
 import { RBACClientService } from "@/core/auth/rbac-client";
-import type { Collection } from "@/lib/collections";
+import { useRBAC } from "@/hooks/use-rbac";
+import { CollectionsService, type Collection, type Video } from "@/lib/collections";
 
 import { AddVideoDialog } from "./_components/add-video-dialog";
 import { CollectionsProvider, useCollections } from "./_components/collections-context";
 import { CollectionsTabs } from "./_components/collections-tabs";
+import { VideoCard } from "./_components/video-card";
 import { VideoGrid } from "./_components/video-grid";
+
+// Helper hook for collection editing
+const useCollectionEditing = (
+  user: { uid?: string } | null,
+  selectedCollectionId: string,
+  selectedCollection: Collection | null,
+  canWrite: boolean,
+  dispatch: (action: { type: string; payload: any }) => void
+) => {
+  const handleEditTitle = useCallback(async () => {
+    if (!user?.uid || !selectedCollection || !canWrite || selectedCollectionId === "all-videos") return;
+    
+    const newTitle = prompt("Edit collection title:", selectedCollection.title);
+    if (newTitle && newTitle !== selectedCollection.title) {
+      try {
+        await CollectionsService.updateCollection(user.uid, selectedCollectionId, {
+          title: newTitle,
+          updatedAt: new Date().toISOString()
+        });
+        
+        // Update local state
+        dispatch({
+          type: "UPDATE_COLLECTION",
+          payload: {
+            id: selectedCollectionId,
+            updates: { title: newTitle, updatedAt: new Date().toISOString() }
+          }
+        });
+      } catch (error) {
+        console.error("Failed to update collection title:", error);
+        alert("Failed to update title. Please try again.");
+      }
+    }
+  }, [user?.uid, selectedCollection, canWrite, selectedCollectionId, dispatch]);
+
+  const handleEditDescription = useCallback(async () => {
+    if (!user?.uid || !selectedCollection || !canWrite || selectedCollectionId === "all-videos") return;
+    
+    const newDescription = prompt("Edit collection description:", selectedCollection.description || "");
+    if (newDescription !== null && newDescription !== selectedCollection.description) {
+      try {
+        await CollectionsService.updateCollection(user.uid, selectedCollectionId, {
+          description: newDescription,
+          updatedAt: new Date().toISOString()
+        });
+        
+        // Update local state
+        dispatch({
+          type: "UPDATE_COLLECTION",
+          payload: {
+            id: selectedCollectionId,
+            updates: { description: newDescription, updatedAt: new Date().toISOString() }
+          }
+        });
+      } catch (error) {
+        console.error("Failed to update collection description:", error);
+        alert("Failed to update description. Please try again.");
+      }
+    }
+  }, [user?.uid, selectedCollection, canWrite, selectedCollectionId, dispatch]);
+
+  return { handleEditTitle, handleEditDescription };
+};
 
 // Helper function to load collections
 type LoadCollectionsAction =
@@ -72,24 +140,173 @@ function CollectionsTabContent({ selectedCollectionId }: { selectedCollectionId:
   );
 }
 
-// Saved collections tab content component
-function SavedCollectionsTabContent() {
+// Header component
+function CollectionsHeader({
+  selectedCollectionId,
+  selectedCollection,
+  canWrite,
+  handleEditTitle,
+  handleEditDescription,
+  setIsAddVideoDialogOpen
+}: {
+  selectedCollectionId: string;
+  selectedCollection: Collection | null;
+  canWrite: boolean;
+  handleEditTitle: () => void;
+  handleEditDescription: () => void;
+  setIsAddVideoDialogOpen: (open: boolean) => void;
+}) {
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-      <div className="col-span-1 lg:col-span-12">
-        <Card>
-          <CardHeader>
-            <CardTitle>Saved Collections</CardTitle>
-            <p className="text-muted-foreground mt-1 text-sm">Collections you&apos;ve saved for later</p>
-          </CardHeader>
-          <CardContent>
-            <div className="py-12 text-center">
-              <p className="text-muted-foreground">Saved collections functionality coming soon...</p>
-            </div>
-          </CardContent>
-        </Card>
+    <div className="mb-6 flex items-center justify-between">
+      <div>
+        {selectedCollectionId === "all-videos" ? (
+          <h1 className="text-3xl font-bold tracking-tight">All Videos</h1>
+        ) : (
+          <EditableText
+            onEdit={handleEditTitle}
+            editButtonSize="md"
+            showEditButton={canWrite && selectedCollection !== null}
+          >
+            <h1 className="text-3xl font-bold tracking-tight">
+              {selectedCollection?.title ?? "Collection"}
+            </h1>
+          </EditableText>
+        )}
+        
+        {selectedCollectionId === "all-videos" ? (
+          <p className="text-muted-foreground mt-1">All your video content in one place</p>
+        ) : (
+          <EditableText
+            onEdit={handleEditDescription}
+            editButtonSize="sm"
+            showEditButton={canWrite && selectedCollection !== null}
+            className="mt-1"
+          >
+            <p className="text-muted-foreground">
+              {selectedCollection?.description ?? "Organize and manage your video content"}
+            </p>
+          </EditableText>
+        )}
+      </div>
+      <div className="flex gap-3">
+        <Button onClick={() => setIsAddVideoDialogOpen(true)} className="gap-2">
+          <Plus className="h-4 w-4" />
+          Add Video
+        </Button>
       </div>
     </div>
+  );
+}
+
+// Saved videos tab content component
+function SavedCollectionsTabContent() {
+  const [savedVideos, setSavedVideos] = useState<Video[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
+  const { user } = useAuth();
+  const { canWrite, canDelete } = useRBAC();
+
+  const loadSavedVideos = useCallback(async () => {
+    if (!user?.uid) return;
+
+    setIsLoading(true);
+    try {
+      const result = await RBACClientService.getCollectionVideos(user.uid);
+      // Filter for videos marked as favorite
+      const favoriteVideos = result.videos.filter(video => video.favorite === true);
+      setSavedVideos(favoriteVideos);
+    } catch (error) {
+      console.error("Failed to load saved videos:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user?.uid]);
+
+  useEffect(() => {
+    if (user?.uid) {
+      loadSavedVideos();
+    }
+  }, [user?.uid, loadSavedVideos]);
+
+  const handleVideoClick = (video: Video) => {
+    setSelectedVideo(video);
+  };
+
+  const handleToggleFavorite = async (video: Video) => {
+    if (!user?.uid || !video.id) return;
+
+    try {
+      const newFavoriteStatus = !video.favorite;
+      await CollectionsService.setVideoFavorite(user.uid, video.id, newFavoriteStatus);
+      
+      // Remove from saved videos if unfavorited
+      if (!newFavoriteStatus) {
+        setSavedVideos(prev => prev.filter(v => v.id !== video.id));
+      }
+    } catch (error) {
+      console.error("Failed to toggle video favorite:", error);
+    }
+  };
+
+  return (
+    <>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <div className="col-span-1 lg:col-span-12">
+          <Card>
+            <CardHeader>
+              <CardTitle>Saved Videos</CardTitle>
+              <p className="text-muted-foreground mt-1 text-sm">Videos you&apos;ve saved for later</p>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="@container">
+                  <div className="grid grid-cols-1 gap-6 @sm:grid-cols-2 @lg:grid-cols-3 @xl:grid-cols-4">
+                    {Array.from({ length: 8 }, (_, index) => (
+                      <div key={`loading-skeleton-${index}`} className="relative aspect-[9/16]">
+                        <CardSkeleton />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : savedVideos.length > 0 ? (
+                <div className="@container">
+                  <div className="grid grid-cols-1 gap-6 @sm:grid-cols-2 @lg:grid-cols-3 @xl:grid-cols-4">
+                    {savedVideos.map((video) => (
+                      <VideoCard
+                        key={video.id}
+                        video={video}
+                        canWrite={canWrite}
+                        canDelete={canDelete}
+                        onVideoClick={handleVideoClick}
+                        onToggleFavorite={handleToggleFavorite}
+                        onMoveVideo={() => {}} // Disable move for saved videos
+                        onDeleteVideo={() => {}} // Disable delete for saved videos
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="py-12 text-center">
+                  <Bookmark className="text-muted-foreground mx-auto mb-4 h-16 w-16 opacity-50" />
+                  <h3 className="mb-2 text-lg font-semibold">No saved videos</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Videos you favorite will appear here for quick access.
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {selectedVideo && (
+        <VideoSlideoutPlayer 
+          isOpen={!!selectedVideo} 
+          onClose={() => setSelectedVideo(null)} 
+          video={selectedVideo} 
+        />
+      )}
+    </>
   );
 }
 
@@ -100,6 +317,7 @@ function CollectionsContent() {
   // Filter replaced by explicit collection picker
   const { state, dispatch } = useCollections();
   const { user } = useAuth();
+  const { canWrite } = useRBAC();
 
   // Load collections from database
   useLoadCollections(user, dispatch);
@@ -108,28 +326,27 @@ function CollectionsContent() {
   const selectedCollection =
     selectedCollectionId === "all-videos" ? null : state.collections.find((c) => c.id === selectedCollectionId);
 
+  // Use editing hook
+  const { handleEditTitle, handleEditDescription } = useCollectionEditing(
+    user,
+    selectedCollectionId,
+    selectedCollection ?? null,
+    canWrite,
+    dispatch
+  );
+
   return (
     <div className="bg-background min-h-screen">
       <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              {selectedCollectionId === "all-videos" ? "All Videos" : (selectedCollection?.title ?? "Collection")}
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              {selectedCollectionId === "all-videos"
-                ? "All your video content in one place"
-                : (selectedCollection?.description ?? "Organize and manage your video content")}
-            </p>
-          </div>
-          <div className="flex gap-3">
-            <Button onClick={() => setIsAddVideoDialogOpen(true)} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Add Video
-            </Button>
-          </div>
-        </div>
+        <CollectionsHeader
+          selectedCollectionId={selectedCollectionId}
+          selectedCollection={selectedCollection ?? null}
+          canWrite={canWrite}
+          handleEditTitle={handleEditTitle}
+          handleEditDescription={handleEditDescription}
+          setIsAddVideoDialogOpen={setIsAddVideoDialogOpen}
+        />
 
         {/* Collections Tabs */}
         <CollectionsTabs
