@@ -35,6 +35,8 @@ export interface SlideoutWrapperProps {
   closeEvents?: string[];
   // Profile-specific props
   variant?: "default" | "profile";
+  // Layout customization
+  slideoutWidth?: "default" | "wide"; // default = 1/2, wide = 2/3
 }
 
 // eslint-disable-next-line complexity
@@ -47,6 +49,7 @@ export function SlideoutWrapper({
   customHeaderActions,
   defaultSelectedOption,
   variant = "default",
+  slideoutWidth = "default",
   openEvents = variant === "profile" ? ["profile:open"] : ["write:editor-set-content"],
   closeEvents = variant === "profile" ? ["profile:close"] : ["write:close-slideout"],
 }: SlideoutWrapperProps) {
@@ -180,21 +183,23 @@ export function SlideoutWrapper({
   }, [menuState?.isVisible]);
 
   return (
-    <div className={cn("flex min-h-[100dvh] w-full flex-col font-sans", className)}>
+    <div className={cn("flex h-[100dvh] w-full flex-col overflow-hidden font-sans", className)}>
       <div className={cn("relative flex flex-1 overflow-hidden")}>
         {/* Main content area (wrapped) */}
         <div
           className={cn(
-            "min-h-0 transition-all duration-300",
+            "min-h-0 overflow-hidden transition-all duration-300",
             isWritePage && isOpen
               ? "flex w-full pr-[400px]" // On write page, add right padding for slideout width
               : isOpen
-                ? "hidden lg:flex lg:w-1/2" // On other pages, use original behavior
+                ? slideoutWidth === "wide"
+                  ? "hidden lg:flex lg:w-1/3" // Wide slideout: content takes 1/3
+                  : "hidden lg:flex lg:w-1/2" // Default slideout: content takes 1/2
                 : "flex w-full",
             contentClassName,
           )}
         >
-          <div className="flex w-full flex-col">{children}</div>
+          <div className="flex h-full w-full flex-col overflow-y-auto">{children}</div>
         </div>
 
         {/* Slideout panel */}
@@ -207,9 +212,10 @@ export function SlideoutWrapper({
                   "fixed inset-y-0 right-0 z-50 w-[400px] max-w-[90vw] border-l",
                   isOpen ? "translate-x-0" : "translate-x-full",
                 )
-              : // Other pages: original integrated behavior
+              : // Other pages: integrated behavior with width options
                 cn(
-                  "absolute inset-y-0 right-0 z-40 w-full max-w-full border-l lg:static lg:h-auto lg:w-1/2",
+                  "absolute inset-y-0 right-0 z-40 w-full max-w-full border-l lg:static lg:h-auto",
+                  slideoutWidth === "wide" ? "lg:w-2/3" : "lg:w-1/2",
                   isOpen ? "translate-x-0" : "translate-x-full lg:hidden lg:translate-x-0",
                 ),
           )}
@@ -218,27 +224,32 @@ export function SlideoutWrapper({
             {/* Toolbar/Header with option selection */}
             <div className="bg-card border-border flex items-center justify-between border-b px-3 py-2">
               <div className="flex items-center gap-2">
-                {/* Only show tabs if there are multiple options or not profile variant */}
-                {(variant !== "profile" || availableOptions.length > 1) &&
-                  availableOptions.map((option) => (
-                    <PillButton
-                      key={option.key}
-                      label={option.label}
-                      selected={selectedOption === option.key}
-                      onClick={() => setSelectedOption(option.key)}
-                      className="h-8 px-3 text-sm"
-                    />
-                  ))}
-                {/* Profile variant with single option shows title instead */}
-                {variant === "profile" && availableOptions.length === 1 && (
-                  <h2 className="text-foreground text-lg font-semibold">{availableOptions[0].label}</h2>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                {/* Custom header actions or default actions */}
+                {/* Custom header actions go on the left when in custom mode */}
                 {isCustomMode ? (
                   customHeaderActions
                 ) : (
+                  <>
+                    {/* Only show tabs if there are multiple options or not profile variant */}
+                    {(variant !== "profile" || availableOptions.length > 1) &&
+                      availableOptions.map((option) => (
+                        <PillButton
+                          key={option.key}
+                          label={option.label}
+                          selected={selectedOption === option.key}
+                          onClick={() => setSelectedOption(option.key)}
+                          className="h-8 px-3 text-sm"
+                        />
+                      ))}
+                    {/* Profile variant with single option shows title instead */}
+                    {variant === "profile" && availableOptions.length === 1 && (
+                      <h2 className="text-foreground text-lg font-semibold">{availableOptions[0].label}</h2>
+                    )}
+                  </>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                {/* Default header actions when not in custom mode */}
+                {!isCustomMode && (
                   <SlideoutHeaderActions selectedOption={selectedOption} isWritePage={isWritePage} variant={variant} />
                 )}
                 <Button

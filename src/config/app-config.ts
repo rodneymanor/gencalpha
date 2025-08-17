@@ -5,7 +5,7 @@ const currentYear = new Date().getFullYear();
 export const APP_CONFIG = {
   name: "Gen.C",
   version: packageJson.version,
-  copyright: `© ${currentYear}, Studio Admin.`,
+  copyright: `© ${currentYear}, Gen.C.`,
   meta: {
     title: "Gen.C - Your AI content co-pilot trained on what actually converts",
     description:

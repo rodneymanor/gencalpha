@@ -3,7 +3,7 @@ import { Metadata } from "next";
 import { OnboardingWizard } from "./_components/onboarding-wizard";
 
 export const metadata: Metadata = {
-  title: "Onboarding | Studio Admin",
+  title: "Onboarding | Gen.C",
   description: "Configure your personal AI and define your content topics",
 };
 
