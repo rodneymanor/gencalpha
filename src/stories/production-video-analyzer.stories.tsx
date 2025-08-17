@@ -24,6 +24,10 @@ const meta = {
       control: "object",
       description: "Pre-loaded video data for analysis",
     },
+    videoSrc: {
+      control: "text",
+      description: "Optional video source URL to display actual video",
+    },
     onExportProfile: {
       action: "exportProfile",
       description: "Callback when user exports analysis profile",
@@ -92,7 +96,21 @@ export const Default: Story = {
   parameters: {
     docs: {
       description: {
-        story: "Production-ready analyzer with pre-loaded video data and immediate insights display",
+        story: "Production-ready analyzer with pre-loaded video data and video placeholder",
+      },
+    },
+  },
+};
+
+export const WithVideo: Story = {
+  args: {
+    videoData: sampleVideoData,
+    videoSrc: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: "Production analyzer with actual video content loaded",
       },
     },
   },

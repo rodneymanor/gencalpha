@@ -7,12 +7,14 @@ import { cn } from "@/lib/utils";
 
 import { AnalyzerHeader } from "./analyzer-header";
 import { InsightsPane } from "./insights-pane";
+import { ProductionVideoPane } from "./production-video-pane";
 import type { AnalysisData, VideoData } from "./types";
 import { analyzeTranscriptBasic } from "./utils";
 
 export interface ProductionVideoAnalyzerProps {
   className?: string;
   videoData: VideoData;
+  videoSrc?: string | null;
   onExportProfile?: (analysis: AnalysisData) => void;
   onUseStyleForRescript?: (analysis: AnalysisData) => void;
 }
@@ -20,6 +22,7 @@ export interface ProductionVideoAnalyzerProps {
 export default function ProductionVideoAnalyzer({
   className,
   videoData,
+  videoSrc,
   onExportProfile,
   onUseStyleForRescript,
 }: ProductionVideoAnalyzerProps) {
@@ -110,15 +113,18 @@ export default function ProductionVideoAnalyzer({
         />
       </CardHeader>
       <CardContent className="p-0">
-        <InsightsPane
-          activeTab={activeTab}
-          onChangeTab={(v) => setActiveTab(v)}
-          isAnalyzing={isAnalyzing}
-          analysis={analysis}
-          video={videoData}
-          transcriptStats={transcriptStats}
-          onRunAnalysis={handleDeepAnalysis}
-        />
+        <div className="grid transition-all lg:grid-cols-2">
+          <ProductionVideoPane videoSrc={videoSrc} title={videoData.title} platform={videoData.platform} />
+          <InsightsPane
+            activeTab={activeTab}
+            onChangeTab={(v) => setActiveTab(v)}
+            isAnalyzing={isAnalyzing}
+            analysis={analysis}
+            video={videoData}
+            transcriptStats={transcriptStats}
+            onRunAnalysis={handleDeepAnalysis}
+          />
+        </div>
       </CardContent>
     </Card>
   );
