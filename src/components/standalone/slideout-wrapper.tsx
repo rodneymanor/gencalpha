@@ -46,9 +46,9 @@ export function SlideoutWrapper({
   customOptions,
   customHeaderActions,
   defaultSelectedOption,
+  variant = "default",
   openEvents = variant === "profile" ? ["profile:open"] : ["write:editor-set-content"],
   closeEvents = variant === "profile" ? ["profile:close"] : ["write:close-slideout"],
-  variant = "default",
 }: SlideoutWrapperProps) {
   const [isOpen, setIsOpen] = useState(false);
   // Determine available options (custom or default)
