@@ -65,7 +65,7 @@ export function OverviewTab({ video }: VideoAnalysisTabsProps) {
           <ul className="space-y-2">
             {video.deepAnalysis.emotionalTriggers.map((trigger) => (
               <li key={trigger} className="flex items-start gap-2 text-sm">
-                <span className="mt-1 text-yellow-500">★</span>
+                <span className="text-muted-foreground mt-1">★</span>
                 {trigger}
               </li>
             ))}
@@ -162,7 +162,7 @@ export function AnalysisTab({ video }: VideoAnalysisTabsProps) {
             <ul className="space-y-2">
               {video.deepAnalysis.visualElements.map((element) => (
                 <li key={element} className="flex items-start gap-2 text-sm">
-                  <span className="mt-1 text-blue-500">•</span>
+                  <span className="text-muted-foreground mt-1">•</span>
                   {element}
                 </li>
               ))}
@@ -178,7 +178,7 @@ export function AnalysisTab({ video }: VideoAnalysisTabsProps) {
             <ul className="space-y-2">
               {video.deepAnalysis.performanceFactors.map((factor) => (
                 <li key={factor} className="flex items-start gap-2 text-sm">
-                  <span className="mt-1 text-green-500">✓</span>
+                  <span className="text-muted-foreground mt-1">✓</span>
                   {factor}
                 </li>
               ))}
@@ -195,7 +195,7 @@ export function AnalysisTab({ video }: VideoAnalysisTabsProps) {
           <div className="grid gap-4 lg:grid-cols-2">
             {video.deepAnalysis.recommendedImprovements.map((improvement) => (
               <div key={improvement} className="bg-muted/30 flex items-start gap-3 rounded-[var(--radius-card)] p-3">
-                <span className="mt-0.5 text-orange-500">⚡</span>
+                <span className="text-muted-foreground mt-0.5">⚡</span>
                 <p className="text-sm">{improvement}</p>
               </div>
             ))}

@@ -2,6 +2,8 @@
 
 import { FileText, PenTool, Users, ArrowUpRight } from "lucide-react";
 
+import { CardBorderless } from "@/components/ui/card";
+
 export function PlaybookCards() {
   const handleCardClick = (cardType: "ideas" | "ghostwriter" | "creators") => {
     // Trigger slideout to open with the specific view
@@ -46,36 +48,37 @@ export function PlaybookCards() {
       </div>
 
       {/* Cards Grid */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        {cards.map((card, index) => (
-          <div
-            key={index}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        {cards.map((card) => (
+          <CardBorderless
+            key={card.view}
             onClick={() => handleCardClick(card.view)}
-            className="hover:bg-muted/50 group relative flex h-36 cursor-pointer flex-col justify-between rounded-xl border-[0.5px] border-[var(--border-visible)] p-4 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-[var(--border-hover)] hover:shadow-lg active:translate-y-0 active:scale-[0.98]"
+            className="group border-border relative h-36 cursor-pointer justify-between border bg-transparent hover:shadow-none"
           >
             {/* Card Content */}
-            <div className="flex flex-col gap-2">
-              {/* Icon */}
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-800 border border-gray-300">
-                <div className="text-gray-100">{card.icon}</div>
+            <div className="flex flex-col gap-3">
+              {/* Icon - Subtle, borderless approach */}
+              <div className="flex h-8 w-8 items-center justify-center">
+                <div className="text-muted-foreground group-hover:text-foreground transition-colors duration-200">
+                  {card.icon}
+                </div>
               </div>
 
               {/* Title and Description */}
               <div>
                 <h3 className="text-foreground text-sm leading-5 font-medium">{card.title}</h3>
-                <p className="text-muted-foreground text-xs leading-4 mt-1">{card.description}</p>
+                <p className="text-muted-foreground mt-1 text-xs leading-4">{card.description}</p>
               </div>
             </div>
 
-
             {/* Action Button - appears on hover */}
-            <div className="invisible absolute right-4 bottom-4 left-4 opacity-0 transition-all duration-300 group-hover:visible group-hover:opacity-100">
-              <div className="border-border bg-background text-foreground hover:bg-muted hover:text-foreground flex items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium transition-all duration-200">
+            <div className="invisible absolute right-4 bottom-4 left-4 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100">
+              <div className="bg-background text-foreground flex items-center justify-center gap-2 rounded-[var(--radius-button)] px-4 py-2 text-sm font-medium transition-all duration-200 hover:shadow-[var(--shadow-soft-drop)]">
                 <ArrowUpRight className="h-4 w-4" />
                 <span>View Now</span>
               </div>
             </div>
-          </div>
+          </CardBorderless>
         ))}
       </div>
     </div>

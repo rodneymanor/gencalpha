@@ -1,0 +1,68 @@
+import type { CollectionData } from "@/components/video/video-grid";
+
+export const sampleCollections: CollectionData[] = [
+  {
+    id: "1",
+    name: "Tech Reviews 2024",
+    description: "Latest technology reviews and unboxings from top creators",
+    videoCount: 24,
+    thumbnail: "https://picsum.photos/400/225?random=101",
+    creator: "tech_central",
+  },
+  {
+    id: "2",
+    name: "Cooking Masterclass",
+    description: "Professional cooking techniques and recipes",
+    videoCount: 18,
+    thumbnail: "https://picsum.photos/400/225?random=102",
+    creator: "chef_anna",
+  },
+  {
+    id: "3",
+    name: "Travel Adventures",
+    description: "Explore the world's most beautiful destinations",
+    videoCount: 31,
+    thumbnail: "https://picsum.photos/400/225?random=103",
+    creator: "wanderlust_soul",
+  },
+  {
+    id: "4",
+    name: "Fitness Challenges",
+    description: "30-day workout routines and fitness tips",
+    videoCount: 15,
+    thumbnail: "https://picsum.photos/400/225?random=104",
+    creator: "fit_trainer",
+  },
+  {
+    id: "5",
+    name: "Art Tutorials",
+    description: "Step-by-step drawing and painting lessons",
+    videoCount: 27,
+    thumbnail: "https://picsum.photos/400/225?random=105",
+    creator: "creative_artist",
+  },
+  {
+    id: "6",
+    name: "Comedy Sketches",
+    description: "Hilarious original comedy content",
+    videoCount: 12,
+    thumbnail: "https://picsum.photos/400/225?random=106",
+    creator: "funny_creator",
+  },
+  {
+    id: "7",
+    name: "Morning Routines",
+    description: "Productive morning habits and lifestyle tips",
+    videoCount: 20,
+    thumbnail: "https://picsum.photos/400/225?random=107",
+    creator: "lifestyle_guru",
+  },
+  {
+    id: "8",
+    name: "Dance Challenges",
+    description: "Latest viral dance trends and tutorials",
+    videoCount: 35,
+    thumbnail: "https://picsum.photos/400/225?random=108",
+    creator: "dancequeen",
+  },
+];

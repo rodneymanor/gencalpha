@@ -67,14 +67,6 @@ export function VideoAnalyzerSlideout({ video }: VideoAnalyzerSlideoutProps) {
     return num.toString();
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
-
   const getDescription = () => {
     const description = video.metadata.description;
     if (description.length <= 120) {
@@ -135,15 +127,15 @@ export function VideoAnalyzerSlideout({ video }: VideoAnalyzerSlideoutProps) {
 
               <div className="flex items-center gap-6">
                 <div className="flex items-center gap-2">
-                  <Heart className="h-5 w-5 text-red-500" />
+                  <Heart className="text-muted-foreground h-5 w-5" />
                   <span className="font-medium">{formatNumber(video.metrics.likes)}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <MessageCircle className="h-5 w-5 text-blue-500" />
+                  <MessageCircle className="text-muted-foreground h-5 w-5" />
                   <span className="font-medium">{formatNumber(video.metrics.comments)}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Bookmark className="h-5 w-5 text-green-500" />
+                  <Bookmark className="text-muted-foreground h-5 w-5" />
                   <span className="font-medium">{formatNumber(video.metrics.saves)}</span>
                 </div>
               </div>
@@ -157,28 +149,48 @@ export function VideoAnalyzerSlideout({ video }: VideoAnalyzerSlideoutProps) {
               </div>
             </div>
 
-            {/* Analysis Tabs */}
+            {/* Analysis Tabs - Segment Style for Panel Context */}
             <Tabs defaultValue="overview" className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="components">Components</TabsTrigger>
-                <TabsTrigger value="analysis">Deep Analysis</TabsTrigger>
-                <TabsTrigger value="transcript">Transcript</TabsTrigger>
+              <TabsList className="bg-muted/30 mb-6 flex h-auto w-full rounded-[var(--radius-button)] p-1">
+                <TabsTrigger
+                  value="overview"
+                  className="data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=inactive]:hover:bg-background/50 flex-1 rounded-[var(--radius-button)] px-3 py-2 text-sm font-medium transition-all duration-200 data-[state=active]:shadow-[var(--shadow-soft-drop)]"
+                >
+                  Overview
+                </TabsTrigger>
+                <TabsTrigger
+                  value="components"
+                  className="data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=inactive]:hover:bg-background/50 flex-1 rounded-[var(--radius-button)] px-3 py-2 text-sm font-medium transition-all duration-200 data-[state=active]:shadow-[var(--shadow-soft-drop)]"
+                >
+                  Components
+                </TabsTrigger>
+                <TabsTrigger
+                  value="analysis"
+                  className="data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=inactive]:hover:bg-background/50 flex-1 rounded-[var(--radius-button)] px-3 py-2 text-sm font-medium transition-all duration-200 data-[state=active]:shadow-[var(--shadow-soft-drop)]"
+                >
+                  Deep Analysis
+                </TabsTrigger>
+                <TabsTrigger
+                  value="transcript"
+                  className="data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=inactive]:hover:bg-background/50 flex-1 rounded-[var(--radius-button)] px-3 py-2 text-sm font-medium transition-all duration-200 data-[state=active]:shadow-[var(--shadow-soft-drop)]"
+                >
+                  Transcript
+                </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="overview" className="mt-6 space-y-6">
+              <TabsContent value="overview" className="space-y-4">
                 <OverviewTab video={video} />
               </TabsContent>
 
-              <TabsContent value="components" className="mt-6">
+              <TabsContent value="components" className="space-y-4">
                 <ComponentsTab video={video} />
               </TabsContent>
 
-              <TabsContent value="analysis" className="mt-6 space-y-6">
+              <TabsContent value="analysis" className="space-y-4">
                 <AnalysisTab video={video} />
               </TabsContent>
 
-              <TabsContent value="transcript" className="mt-6">
+              <TabsContent value="transcript" className="space-y-4">
                 <TranscriptTab video={video} />
               </TabsContent>
             </Tabs>

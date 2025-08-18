@@ -12,8 +12,6 @@ import MinimalSlideoutEditor from "@/components/standalone/minimal-slideout-edit
 import { ContextualMenu } from "@/components/standalone/slideout-contextual-menu";
 import { SlideoutHeaderActions } from "@/components/standalone/slideout-header-actions";
 import { UserProfileView } from "@/components/standalone/user-profile-view";
-import { Button } from "@/components/ui/button";
-import { PillButton } from "@/components/ui/pill-button";
 import { cn } from "@/lib/utils";
 
 export interface SlideoutOption {
@@ -188,9 +186,10 @@ export function SlideoutWrapper({
         {/* Main content area (wrapped) */}
         <div
           className={cn(
-            "min-h-0 overflow-hidden transition-all duration-300",
+            "min-h-0 overflow-hidden transition-all ease-out",
+            "cubic-bezier(0.32, 0.72, 0, 1) duration-300",
             isWritePage && isOpen
-              ? "flex w-full pr-[400px]" // On write page, add right padding for slideout width
+              ? "flex w-full pr-[600px]" // On write page, add right padding for slideout width
               : isOpen
                 ? slideoutWidth === "wide"
                   ? "hidden lg:flex lg:w-1/3" // Wide slideout: content takes 1/3
@@ -205,25 +204,28 @@ export function SlideoutWrapper({
         {/* Slideout panel */}
         <div
           className={cn(
-            "border-border bg-card transition-all duration-300",
+            "bg-background border-border transition-all ease-out",
+            "shadow-[var(--shadow-soft-drop)]",
             isWritePage
               ? // Write page: separate overlay slider
                 cn(
-                  "fixed inset-y-0 right-0 z-50 w-[400px] max-w-[90vw] border-l",
+                  "fixed inset-y-0 right-0 z-50 w-[600px] max-w-[90vw] border-l",
+                  "cubic-bezier(0.32, 0.72, 0, 1) transition-transform duration-300",
                   isOpen ? "translate-x-0" : "translate-x-full",
                 )
               : // Other pages: integrated behavior with width options
                 cn(
                   "absolute inset-y-0 right-0 z-40 w-full max-w-full border-l lg:static lg:h-auto",
+                  "cubic-bezier(0.32, 0.72, 0, 1) transition-all duration-300",
                   slideoutWidth === "wide" ? "lg:w-2/3" : "lg:w-1/2",
                   isOpen ? "translate-x-0" : "translate-x-full lg:hidden lg:translate-x-0",
                 ),
           )}
         >
           <div className="flex h-full flex-col">
-            {/* Toolbar/Header with option selection */}
-            <div className="bg-card border-border flex items-center justify-between border-b px-3 py-2">
-              <div className="flex items-center gap-2">
+            {/* Production-grade Header */}
+            <div className="bg-background border-border flex min-h-[60px] items-center justify-between border-b px-6 py-4">
+              <div className="flex items-center gap-3">
                 {/* Custom header actions go on the left when in custom mode */}
                 {isCustomMode ? (
                   customHeaderActions
@@ -232,13 +234,19 @@ export function SlideoutWrapper({
                     {/* Only show tabs if there are multiple options or not profile variant */}
                     {(variant !== "profile" || availableOptions.length > 1) &&
                       availableOptions.map((option) => (
-                        <PillButton
+                        <button
                           key={option.key}
-                          label={option.label}
-                          selected={selectedOption === option.key}
                           onClick={() => setSelectedOption(option.key)}
-                          className="h-8 px-3 text-sm"
-                        />
+                          className={cn(
+                            "px-4 py-2 text-sm font-medium transition-all duration-200",
+                            "rounded-[var(--radius-button)]",
+                            selectedOption === option.key
+                              ? "bg-accent/10 text-foreground shadow-[var(--shadow-soft-drop)]"
+                              : "text-muted-foreground hover:text-foreground hover:bg-accent/5",
+                          )}
+                        >
+                          {option.label}
+                        </button>
                       ))}
                     {/* Profile variant with single option shows title instead */}
                     {variant === "profile" && availableOptions.length === 1 && (
@@ -252,20 +260,20 @@ export function SlideoutWrapper({
                 {!isCustomMode && (
                   <SlideoutHeaderActions selectedOption={selectedOption} isWritePage={isWritePage} variant={variant} />
                 )}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="rounded-[var(--radius-button)]"
+                <button
                   onClick={() => setIsOpen(false)}
+                  className="text-muted-foreground hover:text-foreground hover:bg-accent/10 flex h-10 w-10 items-center justify-center rounded-[var(--radius-button)] transition-colors duration-200"
                 >
                   <X className="h-4 w-4" />
-                </Button>
+                </button>
               </div>
             </div>
 
-            {/* Editor area - minimal, no extra borders, specified padding */}
+            {/* Content area with panel-optimized styling */}
             <div className="flex-1 overflow-y-auto" ref={slideoutScrollRef}>
-              {availableOptions.find((option) => option.key === selectedOption)?.component}
+              <div className="space-y-4 p-6">
+                {availableOptions.find((option) => option.key === selectedOption)?.component}
+              </div>
             </div>
             <ContextualMenu
               isVisible={menuState?.isVisible ?? false}
