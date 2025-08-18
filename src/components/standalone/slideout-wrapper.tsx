@@ -41,7 +41,7 @@ export interface SlideoutWrapperProps {
 // eslint-disable-next-line complexity
 export function SlideoutWrapper({
   children,
-  slideout: _slideout,
+  slideout,
   className,
   contentClassName,
   customOptions,
@@ -53,39 +53,39 @@ export function SlideoutWrapper({
   closeEvents = variant === "profile" ? ["profile:close"] : ["write:close-slideout"],
 }: SlideoutWrapperProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(false);
   const isCreatorsPageEnabled = useCreatorsPageFlag();
   const isGhostWriterEnabled = useGhostWriterFlag();
   const isIdeaInboxEnabled = useIdeaInboxFlag();
-  
+
   // Determine available options (custom or default)
   const isCustomMode = customOptions && customOptions.length > 0;
-  
+  const isExternalSlideout = !isCustomMode && variant !== "profile" && Boolean(slideout);
+
   const getDefaultOptions = (): SlideoutOption[] => {
     if (variant === "profile") {
       return [{ key: "profile", label: "Profile Settings", component: <UserProfileView /> }];
     }
-    
+
     const baseOptions = [];
-    
+
     // Add Ghost Writer tab if feature flag is enabled
     if (isGhostWriterEnabled) {
       baseOptions.push({ key: "ghostwriter", label: "Ghost Writer", component: <MinimalSlideoutEditor /> });
     }
-    
+
     // Add Creators tab if feature flag is enabled
     if (isCreatorsPageEnabled) {
       baseOptions.push({ key: "creators", label: "Creators", component: <CreatorsView /> });
     }
-    
+
     // Add Ideas tab if feature flag is enabled
     if (isIdeaInboxEnabled) {
       baseOptions.push({ key: "ideas", label: "Ideas", component: <IdeasView /> });
     }
-    
+
     return baseOptions;
   };
-  
+
   const defaultOptions: SlideoutOption[] = getDefaultOptions();
 
   const availableOptions = isCustomMode ? customOptions : defaultOptions;
@@ -99,7 +99,7 @@ export function SlideoutWrapper({
     if (isIdeaInboxEnabled) return "ideas";
     return "profile";
   };
-  
+
   const initialSelectedOption = getInitialSelectedOption();
 
   const [selectedOption, setSelectedOption] = useState<string>(initialSelectedOption);
@@ -112,8 +112,6 @@ export function SlideoutWrapper({
   const pathname = usePathname();
   const slideoutScrollRef = useRef<HTMLDivElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
-  // Reference to satisfy linter while we intentionally ignore external slideout content
-  void _slideout;
 
   // Check if we're on the write page
   const isWritePage = pathname === "/write";
@@ -127,12 +125,7 @@ export function SlideoutWrapper({
   // Open slideout when configured events are triggered
   useEffect(() => {
     if (typeof window === "undefined" || !openEvents.length) return;
-    const openHandler = () => {
-      setIsTransitioning(true);
-      setIsOpen(true);
-      // Clear transitioning state after animation completes
-      setTimeout(() => setIsTransitioning(false), 300);
-    };
+    const openHandler = () => setIsOpen(true);
 
     openEvents.forEach((eventName) => {
       window.addEventListener(eventName, openHandler as EventListener);
@@ -148,12 +141,7 @@ export function SlideoutWrapper({
   // Close slideout when configured events are triggered
   useEffect(() => {
     if (typeof window === "undefined" || !closeEvents.length) return;
-    const closeHandler = () => {
-      setIsTransitioning(true);
-      setIsOpen(false);
-      // Clear transitioning state after animation completes
-      setTimeout(() => setIsTransitioning(false), 300);
-    };
+    const closeHandler = () => setIsOpen(false);
 
     closeEvents.forEach((eventName) => {
       window.addEventListener(eventName, closeHandler as EventListener);
@@ -174,7 +162,7 @@ export function SlideoutWrapper({
       const view = e.detail?.view;
       if (view) {
         // Check if the requested view is available
-        const isViewAvailable = availableOptions.some(option => option.key === view);
+        const isViewAvailable = availableOptions.some((option) => option.key === view);
         if (isViewAvailable) {
           setSelectedOption(view);
           setIsOpen(true);
@@ -243,7 +231,7 @@ export function SlideoutWrapper({
         <div
           className={cn(
             "min-h-0 overflow-hidden transition-all ease-out",
-            "duration-300",
+            "cubic-bezier(0.32, 0.72, 0, 1) duration-300",
             isWritePage && isOpen
               ? "flex w-full pr-[600px]" // On write page, add right padding for slideout width
               : isOpen
@@ -253,11 +241,6 @@ export function SlideoutWrapper({
                 : "flex w-full",
             contentClassName,
           )}
-          style={{
-            willChange: isOpen || isTransitioning ? "margin, padding, transform" : "auto",
-            transitionTimingFunction: "var(--ease-gentle)",
-            contain: "layout style",
-          }}
         >
           <div className="flex h-full w-full flex-col overflow-y-auto">{children}</div>
         </div>
@@ -271,33 +254,26 @@ export function SlideoutWrapper({
               ? // Write page: separate overlay slider
                 cn(
                   "fixed inset-y-0 right-0 z-50 w-[600px] max-w-[90vw] border-l",
-                  "transition-transform duration-300",
+                  "cubic-bezier(0.32, 0.72, 0, 1) transition-transform duration-300",
                   isOpen ? "translate-x-0" : "translate-x-full",
                 )
               : // Other pages: integrated behavior with width options
                 cn(
                   "absolute inset-y-0 right-0 z-40 w-full max-w-full border-l lg:static lg:h-auto",
-                  "transition-all duration-300",
+                  "cubic-bezier(0.32, 0.72, 0, 1) transition-all duration-300",
                   slideoutWidth === "wide" ? "lg:w-2/3" : "lg:w-1/2",
                   isOpen ? "translate-x-0" : "translate-x-full lg:hidden lg:translate-x-0",
                 ),
           )}
-          style={{
-            willChange: isOpen || isTransitioning ? "transform, opacity" : "auto",
-            transitionTimingFunction: "var(--ease-gentle)",
-            contain: "layout style paint",
-            backfaceVisibility: "hidden",
-            perspective: "1000px",
-          }}
         >
           <div className="flex h-full flex-col">
-            {/* Production-grade Header */}
+            {/* Header */}
             <div className="bg-background border-border flex min-h-[60px] items-center justify-between border-b px-6 py-4">
               <div className="flex items-center gap-3">
                 {/* Custom header actions go on the left when in custom mode */}
                 {isCustomMode ? (
                   customHeaderActions
-                ) : (
+                ) : isExternalSlideout ? null : ( // External slideout mode: no tabs, rely on external header actions (right side) and close button
                   <>
                     {/* Only show tabs if there are multiple options or not profile variant */}
                     {(variant !== "profile" || availableOptions.length > 1) &&
@@ -325,16 +301,12 @@ export function SlideoutWrapper({
               </div>
               <div className="flex items-center gap-2">
                 {/* Default header actions when not in custom mode */}
-                {!isCustomMode && (
+                {!isCustomMode && !isExternalSlideout && (
                   <SlideoutHeaderActions selectedOption={selectedOption} isWritePage={isWritePage} variant={variant} />
                 )}
                 <button
-                  onClick={() => {
-                    setIsTransitioning(true);
-                    setIsOpen(false);
-                    setTimeout(() => setIsTransitioning(false), 300);
-                  }}
-                  className="text-muted-foreground hover:text-foreground hover:bg-accent/10 flex h-10 w-10 items-center justify-center rounded-[var(--radius-button)] transition-colors duration-200 spring-interactive"
+                  onClick={() => setIsOpen(false)}
+                  className="text-muted-foreground hover:text-foreground hover:bg-accent/10 flex h-10 w-10 items-center justify-center rounded-[var(--radius-button)] transition-colors duration-200"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -342,16 +314,11 @@ export function SlideoutWrapper({
             </div>
 
             {/* Content area with panel-optimized styling */}
-            <div 
-              className="flex-1 overflow-y-auto" 
-              ref={slideoutScrollRef}
-              style={{
-                contain: "layout style paint",
-                willChange: isTransitioning ? "scroll-position" : "auto",
-              }}
-            >
+            <div className="flex-1 overflow-y-auto" ref={slideoutScrollRef}>
               <div className="space-y-4 p-6">
-                {availableOptions.find((option) => option.key === selectedOption)?.component}
+                {isExternalSlideout
+                  ? slideout
+                  : availableOptions.find((option) => option.key === selectedOption)?.component}
               </div>
             </div>
             <ContextualMenu
