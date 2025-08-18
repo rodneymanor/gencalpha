@@ -78,17 +78,6 @@ export function UnifiedWriteClient({
     <>
       <main className="relative flex min-h-screen w-full flex-col">
         <div className="relative z-0 flex w-full flex-1 flex-col">
-          {/* Hero state with centered layout */}
-          {isHeroState && (
-            <div className="flex flex-1 items-center justify-center px-4">
-              <div className="w-full max-w-4xl">
-                <div className="mb-8 text-center">
-                  <h1 className="text-foreground mb-4 text-4xl font-bold md:text-6xl">What would you like to write?</h1>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Non-hero state with sticky header */}
           {!isHeroState && (
             <div className="bg-background border-border sticky top-0 z-10 -mb-6 border-b">
