@@ -3,8 +3,6 @@ import { ReactNode } from "react";
 import { DashboardWrapper } from "@/app/(main)/dashboard/_components/dashboard-wrapper";
 import { AppSidebar } from "@/app/(main)/dashboard/_components/sidebar/app-sidebar";
 import { ResizableDashboardWrapper } from "@/components/dashboard/resizable-dashboard-wrapper";
-import ContentViewer from "@/components/standalone/content-viewer";
-import SlideoutWrapper from "@/components/standalone/slideout-wrapper";
 import { FloatingActionButton } from "@/components/ui/floating-action-button";
 import { NotificationHeader } from "@/components/ui/notification-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -58,16 +56,7 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
                     <div className="absolute top-6 right-6 z-10">
                       <NotificationHeader />
                     </div>
-                    <SlideoutWrapper slideout={<ContentViewer className="h-full" />}>
-                      <SlideoutWrapper
-                        variant="profile"
-                        slideout={null}
-                        openEvents={["profile:open"]}
-                        closeEvents={["profile:close"]}
-                      >
-                        {children}
-                      </SlideoutWrapper>
-                    </SlideoutWrapper>
+                    {children}
                   </div>
                 </ResizableDashboardWrapper>
               </div>

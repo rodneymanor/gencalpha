@@ -1,5 +1,5 @@
 import { type PersonaType } from "@/components/chatbot/persona-selector";
-import { WriteClient } from "@/components/write-chat/write-client";
+import { UnifiedWriteClient } from "@/components/write-chat/unified-write-client";
 
 export default async function WritePage({
   searchParams,
@@ -12,7 +12,7 @@ export default async function WritePage({
   const remountKey = typeof params.new === "string" ? params.new : undefined;
   return (
     <div className="font-sans">
-      <WriteClient key={remountKey} initialPrompt={initialPrompt} initialPersona={initialPersona} />
+      <UnifiedWriteClient key={remountKey} initialPrompt={initialPrompt} initialPersona={initialPersona} />
     </div>
   );
 }
