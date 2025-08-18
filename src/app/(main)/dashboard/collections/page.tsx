@@ -10,7 +10,7 @@ import { CardSkeleton } from "@/components/ui/loading";
 import { CollectionCombobox } from "@/components/ui/collection-combobox";
 import { EditableText } from "@/components/ui/edit-button";
 import { VideoInsightsWrapper } from "@/components/video-insights";
-import { GenericSlideout } from "@/components/video/generic-slideout";
+import { UnifiedSlideout, ClaudeArtifactConfig } from "@/components/ui/unified-slideout";
 import { VideoAnalyzerSlideout } from "@/app/test-video-analyzer/_components/video-analyzer-slideout";
 import { VideoGrid as NewVideoGrid, type VideoData } from "@/components/video/video-grid";
 import { useAuth } from "@/contexts/auth-context";
@@ -336,13 +336,14 @@ function SavedCollectionsTabContent() {
       </div>
 
       {selectedVideo && (
-        <GenericSlideout
+        <UnifiedSlideout
           isOpen={!!selectedVideo}
           onClose={() => setSelectedVideo(null)}
           title={selectedVideo.title || "Video Analysis"}
+          config={ClaudeArtifactConfig}
         >
           <VideoAnalyzerSlideout video={transformToAnalyzerData(selectedVideo)} />
-        </GenericSlideout>
+        </UnifiedSlideout>
       )}
     </>
   );

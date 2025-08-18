@@ -7,7 +7,7 @@ import { Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CardSkeleton, LoadingBoundary, useAsyncOperation, useIsLoading } from "@/components/ui/loading";
 import { VideoGridProcessingPlaceholder } from "@/components/ui/video-grid-processing-placeholder";
-import { GenericSlideout } from "@/components/video/generic-slideout";
+import { UnifiedSlideout, ClaudeArtifactConfig } from "@/components/ui/unified-slideout";
 import { VideoAnalyzerSlideout } from "@/app/test-video-analyzer/_components/video-analyzer-slideout";
 import { VideoGrid as NewVideoGrid, type VideoData } from "@/components/video/video-grid";
 import { useAuth } from "@/contexts/auth-context";
@@ -24,10 +24,11 @@ interface VideoGridProps {
   collectionId: string;
 }
 
+// eslint-disable-next-line complexity
 export function VideoGrid({ collectionId }: VideoGridProps) {
   const { state, dispatch } = useCollections();
   const { user } = useAuth();
-  const { canWrite, canDelete } = useRBAC();
+  const { canWrite: _canWrite, canDelete: _canDelete } = useRBAC();
   const { jobs } = useVideoProcessing();
   const [movingVideo, setMovingVideo] = useState<Video | null>(null);
   const [deletingVideo, setDeletingVideo] = useState<Video | null>(null);
@@ -245,13 +246,14 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
       />
 
       {selectedVideo && (
-        <GenericSlideout
+        <UnifiedSlideout
           isOpen={!!selectedVideo}
           onClose={() => setSelectedVideo(null)}
           title={selectedVideo.title || "Video Analysis"}
+          config={ClaudeArtifactConfig}
         >
           <VideoAnalyzerSlideout video={transformToAnalyzerData(selectedVideo)} />
-        </GenericSlideout>
+        </UnifiedSlideout>
       )}
     </>
   );
