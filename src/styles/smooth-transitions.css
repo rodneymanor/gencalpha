@@ -16,33 +16,57 @@
 }
 
 /* ========================================
-   HERO TO CHAT EXPANSION
+   HERO TO CHAT EXPANSION - Claude Style
    ======================================== */
 
-.chat-container {
-  position: relative;
-  width: 100%;
+.claude-chat-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
   height: 100vh;
   display: flex;
   flex-direction: column;
   will-change: transform;
-  transition: all var(--hero-expand-duration) var(--ease-claude);
+  transition: transform var(--hero-expand-duration) var(--ease-claude);
 }
 
-.chat-container.hero-state {
-  /* Hero state positioning - handled by .chat-interface styling */
-  justify-content: flex-start;
-  align-items: stretch;
+/* Hero state: show only input area (bottom 120px) */
+.claude-chat-container.hero-state {
+  transform: translateY(calc(100% - 120px));
 }
 
-.chat-container.expanded {
-  /* Expanded state - full chat interface */
-  justify-content: flex-start;
+/* Expanded state: slide up to reveal full chat */
+.claude-chat-container.expanded {
+  transform: translateY(0);
 }
 
-.chat-container.transitioning {
+.claude-chat-container.transitioning {
   /* Performance optimization during transition */
   will-change: transform, height;
+}
+
+/* Hero content positioning */
+.hero-content {
+  opacity: 1;
+  transition: opacity var(--hero-expand-duration) var(--ease-claude);
+}
+
+.hero-content.hero-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Chat messages area */
+.chat-messages-area {
+  flex: 1;
+  overflow-y: auto;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out 0.2s; /* Delayed reveal */
+}
+
+.claude-chat-container.expanded .chat-messages-area {
+  opacity: 1;
 }
 
 /* Hero Input Animation */
@@ -102,12 +126,25 @@
   -webkit-overflow-scrolling: touch;
 }
 
-/* Auto-scroll spacer - pushes messages to bottom initially */
+/* Claude-style: Auto-scroll spacer pushes messages to bottom initially */
 .messages-list::before {
   content: '';
   flex: 1;
   min-height: 0;
   transition: flex var(--scroll-duration) var(--ease-in-out-soft);
+}
+
+/* Fixed input area at bottom - Claude style */
+.chat-input-fixed {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--background);
+  border-top: 1px solid var(--border);
+  padding: 1rem;
+  z-index: 50;
+  /* No backdrop blur for true Claude feel */
 }
 
 /* Individual Message Animation */
