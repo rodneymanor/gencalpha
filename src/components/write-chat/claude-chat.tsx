@@ -2,12 +2,12 @@
 /* eslint-disable complexity */
 "use client";
 //
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 
 //
 import { ArrowUp, SlidersHorizontal, Lightbulb, Pencil, Loader2, Mic, Bot, Brain } from "lucide-react";
 
-import { type PersonaType, PERSONAS, PersonaSelector } from "@/components/chatbot/persona-selector";
+import { type PersonaType, PersonaSelector } from "@/components/chatbot/persona-selector";
 // header dropdown moved to parent wrapper
 import { AdvancedSlidingSwitch, type ModeType } from "@/components/ui/advanced-sliding-switch";
 import { Button } from "@/components/ui/button";
@@ -38,9 +38,9 @@ import { type ChatMessage } from "@/components/write-chat/types";
 import { sendToSlideout, delay } from "@/components/write-chat/utils";
 import { useAuth } from "@/contexts/auth-context";
 import { useIdeaInboxFlag } from "@/hooks/use-feature-flag";
+import { useMessageAnimations } from "@/hooks/use-message-animations";
 import { useScriptGeneration } from "@/hooks/use-script-generation";
 import { useSmoothChatTransitions } from "@/hooks/use-smooth-chat-transitions";
-import { useMessageAnimations } from "@/hooks/use-message-animations";
 import { auth as firebaseAuth } from "@/lib/firebase";
 import { buildAuthHeaders } from "@/lib/http/auth-headers";
 import { postJson } from "@/lib/http/post-json";
@@ -73,7 +73,7 @@ export function ClaudeChat({
   // replaces its content, opening automatically. This keeps the chat thread clean while preserving
   // a rich, editable surface for AI deliverables.
   const isIdeaInboxEnabled = useIdeaInboxFlag();
-  
+
   // Initialize smooth transitions
   const {
     isHeroState,
@@ -163,8 +163,6 @@ export function ClaudeChat({
   useEffect(() => {
     onHeroStateChange?.(isHeroState);
   }, [isHeroState, onHeroStateChange]);
-
-
 
   // Auto-resize textarea
   useEffect(() => {
@@ -310,11 +308,15 @@ export function ClaudeChat({
       }
       // Append the user message for context
       const userMsg = { id: crypto.randomUUID(), role: "user" as const, content: trimmed };
-      const assistantMsg = { id: crypto.randomUUID(), role: "assistant" as const, content: "Choose an action to process this video:" };
+      const assistantMsg = {
+        id: crypto.randomUUID(),
+        role: "assistant" as const,
+        content: "Choose an action to process this video:",
+      };
       const actionsMsg = { id: crypto.randomUUID(), role: "assistant" as const, content: VIDEO_ACTIONS };
-      
+
       setMessages((prev) => [...prev, userMsg, assistantMsg, actionsMsg]);
-      
+
       // Register messages for animations
       setTimeout(() => {
         [userMsg, assistantMsg, actionsMsg].forEach((msg) => {
@@ -360,16 +362,16 @@ export function ClaudeChat({
     const ackMessageId = crypto.randomUUID();
     const ackLoadingId = crypto.randomUUID();
     const ackText = createAcknowledgementFor(trimmed);
-    
+
     const newMessages = [
       { id: userMessageId, role: "user" as const, content: trimmed },
       { id: ackMessageId, role: "assistant" as const, content: ackText },
       // 2.1) Small loading indicator placeholder shown during analysis phase
       { id: ackLoadingId, role: "assistant" as const, content: ACK_LOADING },
     ];
-    
+
     setMessages((prev) => [...prev, ...newMessages]);
-    
+
     // Register messages for animations
     setTimeout(() => {
       newMessages.forEach((msg) => {
@@ -791,32 +793,26 @@ export function ClaudeChat({
   };
 
   return (
-    <div className={`font-sans ${className}`}>
-      {/* Floating Slideout Toggle */}
-      {/* Header */}
-      {/* Header moved to parent page wrapper */}
+    <div
+      ref={containerRef}
+      className={`chat-container font-sans ${
+        isHeroState ? "hero-state" : "expanded"
+      } ${isTransitioning ? "transitioning" : ""} ${className}`}
+    >
+      {/* Hero Content - visible in hero state */}
+      {isHeroState && (
+        <div className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center px-4">
+          <div className="w-full max-w-3xl space-y-6">
+            <div className="text-center">
+              <h1 className="text-foreground text-4xl leading-10 font-bold tracking-tight">
+                {`Hello${resolvedName ? ", " + resolvedName : ""}`}
+                <br />
+                <span className="text-muted-foreground">What will you script today?</span>
+              </h1>
+            </div>
 
-      {/* Single Chat Container with Smooth Transitions */}
-      <div 
-        ref={containerRef}
-        className={`chat-container ${
-          isHeroState ? "hero-state" : "expanded"
-        } ${isTransitioning ? "transitioning" : ""}`}
-      >
-        {/* Hero Content - visible in hero state */}
-        {isHeroState && (
-          <div className="flex min-h-[calc(100vh-4rem)] flex-col items-center px-4 pt-24 transition-all duration-300 md:pt-52">
-            <div className="mx-auto flex w-full max-w-3xl flex-col items-start gap-3 pb-8 px-5">
-              <div>
-                <h1 className="text-foreground text-4xl leading-10 font-bold tracking-tight">
-                  {`Hello${resolvedName ? ", " + resolvedName : ""}`}
-                  <br />
-                  <span className="text-muted-foreground">What will you script today?</span>
-                </h1>
-              </div>
-
-              <div className="w-full max-w-3xl">
-                <PromptComposer
+            <div>
+              <PromptComposer
                 value={inputValue}
                 onChange={setInputValue}
                 placeholder={isRecording ? (showListening ? "listening..." : "") : placeholder}
@@ -825,9 +821,13 @@ export function ClaudeChat({
                 textareaRef={heroInputRef}
                 submitEnabled={!isUrlProcessing && (hasValidVideoUrl || inputValue.trim().length > 0)}
                 highlightSubmit={hasValidVideoUrl}
-                submitIcon={isUrlProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-4 w-4" />}
+                submitIcon={
+                  isUrlProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-4 w-4" />
+                }
                 footerBanner={
-                  isUrlProcessing && linkDetection && (linkDetection.type === "instagram" || linkDetection.type === "tiktok") ? (
+                  isUrlProcessing &&
+                  linkDetection &&
+                  (linkDetection.type === "instagram" || linkDetection.type === "tiktok") ? (
                     <div className="bg-muted text-muted-foreground animate-in fade-in-0 rounded-[var(--radius-input)] px-3 py-2 text-sm duration-200">
                       🔄 Validating URL...
                     </div>
@@ -925,7 +925,9 @@ export function ClaudeChat({
                           ? "animate-pulse bg-red-500 text-white hover:bg-red-600"
                           : "bg-background text-foreground border-border hover:bg-accent hover:text-accent-foreground border"
                     }`}
-                    title={inputValue.trim() ? "Send message" : isRecording ? "Stop recording" : "Start voice recording"}
+                    title={
+                      inputValue.trim() ? "Send message" : isRecording ? "Stop recording" : "Start voice recording"
+                    }
                   >
                     {isUrlProcessing ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -940,183 +942,165 @@ export function ClaudeChat({
             </div>
 
             {!isIdeaMode && (
-              <div className="mx-auto w-full max-w-3xl">
-                <PersonaSelector
-                  selectedPersona={selectedPersona}
-                  onPersonaChange={setSelectedPersona}
-                  className="justify-center"
-                  showCallout={Boolean(selectedPersona)}
-                />
-              </div>
+              <PersonaSelector
+                selectedPersona={selectedPersona}
+                onPersonaChange={setSelectedPersona}
+                className="justify-center"
+                showCallout={Boolean(selectedPersona)}
+              />
             )}
             {isIdeaMode && (
-              <div className="mx-auto w-full max-w-2xl">
+              <div className="text-center">
                 <div className="bg-accent text-foreground mt-2 rounded-[var(--radius-input)] px-3 py-2 text-sm">
                   Idea mode is active. Your input will be saved to your Idea Inbox.
                 </div>
                 {ideaSaveMessage && <div className="text-muted-foreground mt-1 text-xs">{ideaSaveMessage}</div>}
               </div>
             )}
-            {/* Removed legacy duplicate callout: PersonaSelector renders the callout when a persona is selected */}
-
-              {/* Playbook Cards Section */}
-              <div className="mt-8 w-full">
-                <PlaybookCards />
-              </div>
+            {/* Playbook Cards Section */}
+            <div className="w-full">
+              <PlaybookCards />
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Chat Messages Area - visible in expanded state */}
-        <div 
-          className={`messages-area ${
-            isHeroState ? "opacity-0" : "opacity-100"
-          } flex-1 transition-all duration-300`}
-        >
-          <ScrollArea ref={messagesRef} className="flex-1 px-4 pb-32">
-            <div className="mx-auto max-w-3xl py-6">
-              <div ref={messagesContainerRef} className="space-y-6">
-                {messages.map((m, index) => (
-                  <div 
-                    key={m.id} 
-                    data-message-id={m.id}
-                    className="opacity-0 transform translate-y-4"
-                    style={{ ["--message-index" as any]: index }}
-                  >
-                    {/* Two-column layout: avatar column (40px) + content column */}
-                    <div className="grid grid-cols-[40px_1fr] items-start gap-x-3">
-                      {m.role === "user" ? (
-                        <>
-                          {/* Placeholder to align with content column start */}
-                          <div aria-hidden className="h-8 w-8" />
-                          {/* User message single pill containing avatar + text */}
-                          <div className="col-start-2">
-                            <div className="bg-accent text-foreground inline-flex max-w-[min(85%,_60ch)] items-center gap-2 rounded-[var(--radius-input)] px-4 py-3">
-                              <div className="bg-secondary text-secondary-foreground flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold">
-                                {(resolvedName?.[0] ?? "U").toUpperCase()}
-                              </div>
-                              <p className="text-base leading-relaxed break-words whitespace-pre-wrap">{m.content}</p>
-                            </div>
-                          </div>
-                        </>
+      {/* Chat Messages Area - visible in expanded state */}
+      <div className={`messages-area ${isHeroState ? "opacity-0" : "opacity-100"} flex-1 transition-all duration-300`}>
+        <ScrollArea ref={messagesRef} className="flex-1 px-4 pb-32">
+          <div className="mx-auto max-w-3xl py-6">
+            <div ref={messagesContainerRef} className="space-y-6">
+              {messages.map((m, index) => (
+                <div
+                  key={m.id}
+                  data-message-id={m.id}
+                  className="translate-y-4 transform opacity-0"
+                  style={{ ["--message-index" as any]: index }}
+                >
+                  {m.role === "user" ? (
+                    <div className="flex justify-end">
+                      <div className="bg-accent text-foreground inline-flex max-w-[min(85%,_60ch)] items-center gap-2 rounded-[var(--radius-input)] px-4 py-3">
+                        <div className="bg-secondary text-secondary-foreground flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold">
+                          {(resolvedName?.[0] ?? "U").toUpperCase()}
+                        </div>
+                        <p className="text-base leading-relaxed break-words whitespace-pre-wrap">{m.content}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex justify-start">
+                      {m.content === ACK_LOADING ? (
+                        <AckLoader />
+                      ) : m.content === VIDEO_ACTIONS && videoPanel ? (
+                        <VideoActionsPanel
+                          active={activeAction === null}
+                          onTranscribe={handleInlineTranscribe}
+                          onAnalyze={handleInlineAnalyze}
+                          onEmulate={handleInlineEmulateStart}
+                          onIdeas={handleInlineIdeas}
+                          onHooks={handleInlineHooks}
+                        />
+                      ) : m.content === EMULATE_INPUT && awaitingEmulateInput ? (
+                        <EmulateInputPanel
+                          value={emulateIdea}
+                          onChange={setEmulateIdea}
+                          onSubmit={handleInlineEmulateSubmit}
+                          disabled={!emulateIdea.trim()}
+                        />
                       ) : (
-                        <>
-                          {/* Placeholder to align with content column start */}
-                          <div aria-hidden className="h-8 w-8" />
-                          {/* Assistant message */}
-                          <div className="col-start-2">
-                            {m.content === ACK_LOADING ? (
-                              <AckLoader />
-                            ) : m.content === VIDEO_ACTIONS && videoPanel ? (
-                              <VideoActionsPanel
-                                active={activeAction === null}
-                                onTranscribe={handleInlineTranscribe}
-                                onAnalyze={handleInlineAnalyze}
-                                onEmulate={handleInlineEmulateStart}
-                                onIdeas={handleInlineIdeas}
-                                onHooks={handleInlineHooks}
-                              />
-                            ) : m.content === EMULATE_INPUT && awaitingEmulateInput ? (
-                              <EmulateInputPanel
-                                value={emulateIdea}
-                                onChange={setEmulateIdea}
-                                onSubmit={handleInlineEmulateSubmit}
-                                disabled={!emulateIdea.trim()}
-                              />
-                            ) : (
-                              <div className="prose text-foreground max-w-none">
-                                <p className="text-base leading-relaxed break-words whitespace-pre-wrap">{m.content}</p>
-                              </div>
-                            )}
-                          </div>
-                        </>
+                        <div className="prose text-foreground max-w-none">
+                          <p className="text-base leading-relaxed break-words whitespace-pre-wrap">{m.content}</p>
+                        </div>
                       )}
                     </div>
-                  </div>
-                ))}
-                <div ref={messagesEndRef} />
-              </div>
-            </div>
-          </ScrollArea>
-        </div>
-
-        {/* Sticky Chat Input - always present */}
-        {!isHeroState && (
-          <div className="input-container bg-background/95 border-border absolute right-0 bottom-0 left-0 z-10 border-t py-4 backdrop-blur-sm transition-all duration-300">
-            <div className="mx-auto w-full max-w-3xl">
-              <Card className="border-border bg-card/95 rounded-xl shadow-[var(--shadow-soft-drop)] backdrop-blur-sm">
-                <div className="px-2">
-                  <PromptComposer
-                    wrapInCard={false}
-                    variant="compact"
-                    value={inputValue}
-                    onChange={setInputValue}
-                    placeholder="Reply to Gen.C..."
-                    onSubmit={() => handleSend(inputValue)}
-                    isProcessing={isUrlProcessing}
-                    textareaRef={textareaRef}
-                    submitEnabled={!isUrlProcessing && (hasValidVideoUrl || inputValue.trim().length > 0)}
-                    highlightSubmit={false}
-                    submitIcon={isUrlProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-4 w-4" />}
-                    leftControls={
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className={`${isIdeaMode ? "bg-accent" : ""} size-8 rounded-full p-0`}
-                          onClick={() => {
-                            setIsIdeaMode((v) => !v);
-                            setTimeout(() => textareaRef.current?.focus(), 0);
-                          }}
-                          title="Write to Idea Inbox"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <AdvancedSlidingSwitch
-                          options={[
-                            { value: "ghost-write", icon: <Bot className="h-[18px] w-[18px]" />, tooltip: "Ghost Write" },
-                            { value: "web-search", icon: <Brain className="h-[18px] w-[18px]" />, tooltip: "Web Search" },
-                          ]}
-                          onChange={(_i, option) => setActiveMode(option.value)}
-                          disabled={false}
-                        />
-                      </div>
-                    }
-                    rightControls={
-                      <Button
-                        onClick={() => {
-                          if (inputValue.trim()) {
-                            if (!isUrlProcessing) handleSend(inputValue);
-                          } else {
-                            if (!isUrlProcessing) handleVoiceRecording();
-                          }
-                        }}
-                        disabled={isUrlProcessing}
-                        className={`size-9 rounded-full transition-colors ${
-                          inputValue.trim() && !isUrlProcessing
-                            ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                            : isRecording
-                              ? "animate-pulse bg-red-500 text-white hover:bg-red-600"
-                              : "bg-background text-foreground border-border hover:bg-accent hover:text-accent-foreground border"
-                        }`}
-                        title={inputValue.trim() ? "Send message" : isRecording ? "Stop recording" : "Start voice recording"}
-                      >
-                        {isUrlProcessing ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : inputValue.trim() ? (
-                          <ArrowUp className="h-4 w-4" />
-                        ) : (
-                          <Mic className="h-4 w-4" />
-                        )}
-                      </Button>
-                    }
-                  />
+                  )}
                 </div>
-              </Card>
+              ))}
+              <div ref={messagesEndRef} />
             </div>
           </div>
-        )}
+        </ScrollArea>
       </div>
+
+      {/* Sticky Chat Input - always present */}
+      {!isHeroState && (
+        <div className="input-container bg-background/95 border-border absolute right-0 bottom-0 left-0 z-10 border-t py-4 backdrop-blur-sm transition-all duration-300">
+          <div className="mx-auto w-full max-w-3xl">
+            <Card className="border-border bg-card/95 rounded-xl shadow-[var(--shadow-soft-drop)] backdrop-blur-sm">
+              <div className="px-2">
+                <PromptComposer
+                  wrapInCard={false}
+                  variant="compact"
+                  value={inputValue}
+                  onChange={setInputValue}
+                  placeholder="Reply to Gen.C..."
+                  onSubmit={() => handleSend(inputValue)}
+                  isProcessing={isUrlProcessing}
+                  textareaRef={textareaRef}
+                  submitEnabled={!isUrlProcessing && (hasValidVideoUrl || inputValue.trim().length > 0)}
+                  highlightSubmit={false}
+                  submitIcon={
+                    isUrlProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-4 w-4" />
+                  }
+                  leftControls={
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className={`${isIdeaMode ? "bg-accent" : ""} size-8 rounded-full p-0`}
+                        onClick={() => {
+                          setIsIdeaMode((v) => !v);
+                          setTimeout(() => textareaRef.current?.focus(), 0);
+                        }}
+                        title="Write to Idea Inbox"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <AdvancedSlidingSwitch
+                        options={[
+                          { value: "ghost-write", icon: <Bot className="h-[18px] w-[18px]" />, tooltip: "Ghost Write" },
+                          { value: "web-search", icon: <Brain className="h-[18px] w-[18px]" />, tooltip: "Web Search" },
+                        ]}
+                        onChange={(_i, option) => setActiveMode(option.value)}
+                        disabled={false}
+                      />
+                    </div>
+                  }
+                  rightControls={
+                    <Button
+                      onClick={() => {
+                        if (inputValue.trim()) {
+                          if (!isUrlProcessing) handleSend(inputValue);
+                        } else {
+                          if (!isUrlProcessing) handleVoiceRecording();
+                        }
+                      }}
+                      disabled={isUrlProcessing}
+                      className={`size-9 rounded-full transition-colors ${
+                        inputValue.trim() && !isUrlProcessing
+                          ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                          : isRecording
+                            ? "animate-pulse bg-red-500 text-white hover:bg-red-600"
+                            : "bg-background text-foreground border-border hover:bg-accent hover:text-accent-foreground border"
+                      }`}
+                      title={
+                        inputValue.trim() ? "Send message" : isRecording ? "Stop recording" : "Start voice recording"
+                      }
+                    >
+                      {isUrlProcessing ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : inputValue.trim() ? (
+                        <ArrowUp className="h-4 w-4" />
+                      ) : (
+                        <Mic className="h-4 w-4" />
+                      )}
+                    </Button>
+                  }
+                />
+              </div>
+            </Card>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
