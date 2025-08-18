@@ -9,8 +9,16 @@ import { notesService } from "@/lib/services/notes-service";
  */
 export async function GET(request: NextRequest) {
   try {
+    // Extract token from Authorization header
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Authorization required" }, { status: 401 });
+    }
+
+    const token = authHeader.substring(7);
+
     // Authenticate user
-    const authResult = await authenticateWithFirebaseToken(request);
+    const authResult = await authenticateWithFirebaseToken(token);
 
     if (authResult instanceof NextResponse) {
       return authResult;
