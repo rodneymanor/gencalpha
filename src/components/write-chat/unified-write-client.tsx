@@ -84,9 +84,6 @@ export function UnifiedWriteClient({
               <div className="w-full max-w-4xl">
                 <div className="mb-8 text-center">
                   <h1 className="text-foreground mb-4 text-4xl font-bold md:text-6xl">What would you like to write?</h1>
-                  <p className="text-muted-foreground text-lg md:text-xl">
-                    Choose a persona or let AI help you craft the perfect content
-                  </p>
                 </div>
               </div>
             </div>
