@@ -1,0 +1,354 @@
+/* Smooth UI Transitions - Claude-style Implementation */
+
+/* Core Transition Variables */
+:root {
+  /* Claude-style Easing Curves */
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-in-out-soft: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --ease-claude: cubic-bezier(0.32, 0.72, 0, 1);
+  
+  /* Timing Constants */
+  --hero-expand-duration: 400ms;
+  --message-appear-duration: 300ms;
+  --slideout-duration: 350ms;
+  --scroll-duration: 250ms;
+}
+
+/* ========================================
+   HERO TO CHAT EXPANSION
+   ======================================== */
+
+.chat-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
+  transition: all var(--hero-expand-duration) var(--ease-claude);
+}
+
+.chat-container.hero-state {
+  /* Hero state positioning - chat input centered */
+  justify-content: center;
+  align-items: center;
+}
+
+.chat-container.expanded {
+  /* Expanded state - full chat interface */
+  justify-content: flex-start;
+}
+
+.chat-container.transitioning {
+  /* Performance optimization during transition */
+  will-change: transform, height;
+}
+
+/* Hero Input Animation */
+.hero-input-area {
+  transition: all var(--hero-expand-duration) var(--ease-claude);
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.chat-container.expanded .hero-input-area {
+  opacity: 0;
+  transform: translateY(-20px);
+  pointer-events: none;
+}
+
+/* Chat Interface Reveal */
+.chat-interface {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all var(--hero-expand-duration) var(--ease-claude);
+  transition-delay: 150ms; /* Staggered reveal */
+}
+
+.chat-container.expanded .chat-interface {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ========================================
+   CHAT MESSAGES FLOW
+   ======================================== */
+
+.messages-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+}
+
+.messages-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  scroll-behavior: smooth;
+  /* Smooth scrolling with momentum on iOS */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Auto-scroll spacer - pushes messages to bottom initially */
+.messages-list::before {
+  content: '';
+  flex: 1;
+  min-height: 0;
+  transition: flex var(--scroll-duration) var(--ease-in-out-soft);
+}
+
+/* Individual Message Animation */
+.message {
+  flex-shrink: 0;
+  animation: slideUpFade var(--message-appear-duration) var(--ease-out-expo) forwards;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+/* Staggered message appearance */
+.message:nth-last-child(1) { animation-delay: 0ms; }
+.message:nth-last-child(2) { animation-delay: 50ms; }
+.message:nth-last-child(3) { animation-delay: 100ms; }
+.message:nth-last-child(4) { animation-delay: 150ms; }
+.message:nth-last-child(5) { animation-delay: 200ms; }
+
+@keyframes slideUpFade {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Typing Indicator Animation */
+.typing-indicator {
+  animation: fadeInUp var(--message-appear-duration) var(--ease-out-expo) forwards;
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========================================
+   SLIDEOUT INTEGRATION
+   ======================================== */
+
+/* Main Content Area Adjustment */
+.main-content {
+  transition: margin-right var(--slideout-duration) var(--ease-claude);
+  width: 100%;
+  min-height: 100vh;
+}
+
+.main-content.slideout-open {
+  margin-right: min(50vw, 600px);
+}
+
+/* Slideout Panel */
+.slideout-panel {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: min(50vw, 600px);
+  transform: translateX(100%);
+  transition: transform var(--slideout-duration) var(--ease-claude);
+  z-index: 50;
+  will-change: transform;
+  background: var(--background);
+  border-left: 1px solid var(--border-subtle);
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.08);
+}
+
+.slideout-panel.open {
+  transform: translateX(0);
+}
+
+/* Slideout Content Animation */
+.slideout-content {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all var(--slideout-duration) var(--ease-claude);
+  transition-delay: 100ms;
+}
+
+.slideout-panel.open .slideout-content {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ========================================
+   RESPONSIVE BEHAVIOR
+   ======================================== */
+
+/* Tablet: Overlay with scrim */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .slideout-panel {
+    width: min(70vw, 480px);
+  }
+  
+  .main-content.slideout-open {
+    margin-right: 0;
+    transform: scale(0.95);
+    opacity: 0.7;
+    pointer-events: none;
+  }
+  
+  .slideout-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    transition: opacity var(--slideout-duration) var(--ease-claude);
+    z-index: 40;
+    pointer-events: none;
+  }
+  
+  .slideout-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+/* Mobile: Full screen takeover */
+@media (max-width: 767px) {
+  .slideout-panel {
+    width: 100vw;
+  }
+  
+  .main-content.slideout-open {
+    margin-right: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+  
+  .slideout-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transition: opacity var(--slideout-duration) var(--ease-claude);
+    z-index: 40;
+    pointer-events: none;
+  }
+  
+  .slideout-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+/* ========================================
+   INTERACTION STATES
+   ======================================== */
+
+/* Smooth hover transitions */
+.interactive-element {
+  transition: all 200ms var(--ease-in-out-soft);
+}
+
+.interactive-element:hover {
+  transform: translateY(-1px);
+}
+
+.interactive-element:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Focus states with soft ring */
+.focus-ring {
+  transition: all 200ms var(--ease-in-out-soft);
+}
+
+.focus-ring:focus-visible {
+  box-shadow: 0 0 0 2px var(--ring);
+  outline: none;
+}
+
+/* ========================================
+   PERFORMANCE OPTIMIZATIONS
+   ======================================== */
+
+/* Contain layout changes during animations */
+.animation-container {
+  contain: layout style paint;
+}
+
+/* Hardware acceleration for smooth transitions */
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .chat-container,
+  .message,
+  .slideout-panel,
+  .main-content,
+  .interactive-element {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
+
+.fade-in {
+  animation: fadeIn 300ms var(--ease-out-expo) forwards;
+}
+
+.slide-up {
+  animation: slideUp 300ms var(--ease-out-expo) forwards;
+}
+
+.bounce-in {
+  animation: bounceIn 400ms var(--ease-bounce) forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

@@ -34,6 +34,7 @@ import { EmulateInputPanel } from "@/components/write-chat/messages/emulate-inpu
 import { VideoActionsPanel } from "@/components/write-chat/messages/video-actions-panel";
 import { PlaybookCards } from "@/components/write-chat/playbook-cards";
 import { PromptComposer } from "@/components/write-chat/prompt-composer";
+import { useSmoothMessageManager } from "@/components/write-chat/smooth-message-manager";
 import { type ChatMessage } from "@/components/write-chat/types";
 import { sendToSlideout, delay } from "@/components/write-chat/utils";
 import { useAuth } from "@/contexts/auth-context";
@@ -90,11 +91,19 @@ export function ClaudeChat({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const setUrlReachable = (_v: boolean | null) => {};
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const messagesContainerRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const heroInputRef = useRef<HTMLTextAreaElement | null>(null);
   const { user, userProfile } = useAuth();
   const { generateScript } = useScriptGeneration();
-  // header state moved to parent wrapper
+
+  // Enhanced smooth message manager
+  const smoothMessageManager = useSmoothMessageManager(mountedRef, {
+    staggerDelay: 50,
+    animationDuration: 300,
+    scrollBehavior: "smooth",
+    enableIntersectionObserver: true,
+  });
 
   // Inline video action selection state
   const [videoPanel, setVideoPanel] = useState<{ url: string; platform: "instagram" | "tiktok" } | null>(null);
@@ -106,11 +115,20 @@ export function ClaudeChat({
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [showListening, setShowListening] = useState(true);
-  const [_activeMode, setActiveMode] = useState<ModeType>("ghost-write");
+  const [_activeMode] = useState<ModeType>("ghost-write");
 
+  // Enhanced smooth scrolling with message manager
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (messagesContainerRef.current) {
+      smoothMessageManager.setContainer(messagesContainerRef.current);
+    }
+  }, [smoothMessageManager]);
+
+  // Smooth scroll to bottom when messages change
+  useEffect(() => {
+    // Use the smooth message manager for intelligent scrolling
+    smoothMessageManager.scrollToBottom();
+  }, [messages, smoothMessageManager]);
 
   // Prefetch ideas on mount to keep the menu snappy
   useEffect(() => {
@@ -135,7 +153,9 @@ export function ClaudeChat({
 
   // Notify parent when hero state changes
   useEffect(() => {
-    onHeroStateChange?.(isHeroState);
+    if (onHeroStateChange) {
+      onHeroStateChange(isHeroState);
+    }
   }, [isHeroState, onHeroStateChange]);
 
   // Auto-resize textarea
@@ -919,13 +939,22 @@ export function ClaudeChat({
 
       {/* Chat State */}
       {!isHeroState && (
-        <div className="relative flex h-[calc(100vh-4rem)] flex-col transition-all duration-300">
+        <div className="messages-container relative flex h-[calc(100vh-4rem)] flex-col transition-all duration-300">
           {/* Messages Area with bottom padding for sticky input */}
-          <ScrollArea className="flex-1 px-4 pb-32">
+          <ScrollArea
+            className="messages-list flex-1 px-4 pb-32"
+            ref={messagesContainerRef}
+          >
             <div className="mx-auto max-w-3xl py-6">
               <div className="space-y-6">
-                {messages.map((m) => (
-                  <div key={m.id} className="animate-in fade-in-0 zoom-in-95">
+                {messages.map((m, index) => (
+                  <div
+                    key={m.id}
+                    className="message slide-up interactive-element"
+                    style={{
+                      animationDelay: `${Math.max(0, messages.length - index - 1) * 50}ms`,
+                    }}
+                  >
                     {/* Two-column layout: avatar column (40px) + content column */}
                     <div className="grid grid-cols-[40px_1fr] items-start gap-x-3">
                       {m.role === "user" ? (
@@ -934,8 +963,8 @@ export function ClaudeChat({
                           <div aria-hidden className="h-8 w-8" />
                           {/* User message single pill containing avatar + text */}
                           <div className="col-start-2">
-                            <div className="bg-accent text-foreground inline-flex max-w-[min(85%,_60ch)] items-center gap-2 rounded-[var(--radius-input)] px-4 py-3">
-                              <div className="bg-secondary text-secondary-foreground flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold">
+                            <div className="bg-accent/10 text-foreground hover:bg-accent/15 interactive-element inline-flex max-w-[min(85%,_60ch)] items-center gap-2 rounded-[var(--radius-input)] px-4 py-3 shadow-[var(--shadow-input)] transition-all duration-200 hover:shadow-[var(--shadow-soft-drop)]">
+                              <div className="bg-accent/20 text-foreground flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold">
                                 {(resolvedName?.[0] ?? "U").toUpperCase()}
                               </div>
                               <p className="text-base leading-relaxed break-words whitespace-pre-wrap">{m.content}</p>
@@ -967,7 +996,7 @@ export function ClaudeChat({
                                 disabled={!emulateIdea.trim()}
                               />
                             ) : (
-                              <div className="prose text-foreground max-w-none">
+                              <div className="prose text-foreground interactive-element hover:bg-accent/5 -m-2 max-w-none rounded-[var(--radius-button)] p-2 transition-all duration-200">
                                 <p className="text-base leading-relaxed break-words whitespace-pre-wrap">{m.content}</p>
                               </div>
                             )}
@@ -983,9 +1012,9 @@ export function ClaudeChat({
           </ScrollArea>
 
           {/* Sticky Chat Input */}
-          <div className="bg-background/95 border-border absolute right-0 bottom-0 left-0 z-10 border-t py-4 backdrop-blur-sm transition-all duration-300">
+          <div className="bg-background/95 border-border-subtle absolute right-0 bottom-0 left-0 z-10 border-t py-4 backdrop-blur-sm transition-all duration-300">
             <div className="mx-auto w-full max-w-3xl">
-              <Card className="border-border bg-card/95 rounded-xl shadow-[var(--shadow-soft-drop)] backdrop-blur-sm">
+              <Card className="border-border-subtle bg-card/95 interactive-element rounded-[var(--radius-card)] shadow-[var(--shadow-soft-drop)] backdrop-blur-sm transition-all duration-200 hover:shadow-[var(--shadow-hover)]">
                 <div className="px-2">
                   <PromptComposer
                     wrapInCard={false}
