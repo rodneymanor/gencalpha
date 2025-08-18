@@ -53,6 +53,7 @@ export function SlideoutWrapper({
   closeEvents = variant === "profile" ? ["profile:close"] : ["write:close-slideout"],
 }: SlideoutWrapperProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const isCreatorsPageEnabled = useCreatorsPageFlag();
   const isGhostWriterEnabled = useGhostWriterFlag();
   const isIdeaInboxEnabled = useIdeaInboxFlag();
@@ -126,7 +127,12 @@ export function SlideoutWrapper({
   // Open slideout when configured events are triggered
   useEffect(() => {
     if (typeof window === "undefined" || !openEvents.length) return;
-    const openHandler = () => setIsOpen(true);
+    const openHandler = () => {
+      setIsTransitioning(true);
+      setIsOpen(true);
+      // Clear transitioning state after animation completes
+      setTimeout(() => setIsTransitioning(false), 300);
+    };
 
     openEvents.forEach((eventName) => {
       window.addEventListener(eventName, openHandler as EventListener);
@@ -142,7 +148,12 @@ export function SlideoutWrapper({
   // Close slideout when configured events are triggered
   useEffect(() => {
     if (typeof window === "undefined" || !closeEvents.length) return;
-    const closeHandler = () => setIsOpen(false);
+    const closeHandler = () => {
+      setIsTransitioning(true);
+      setIsOpen(false);
+      // Clear transitioning state after animation completes
+      setTimeout(() => setIsTransitioning(false), 300);
+    };
 
     closeEvents.forEach((eventName) => {
       window.addEventListener(eventName, closeHandler as EventListener);
@@ -232,7 +243,7 @@ export function SlideoutWrapper({
         <div
           className={cn(
             "min-h-0 overflow-hidden transition-all ease-out",
-            "cubic-bezier(0.32, 0.72, 0, 1) duration-300",
+            "duration-300",
             isWritePage && isOpen
               ? "flex w-full pr-[600px]" // On write page, add right padding for slideout width
               : isOpen
@@ -242,6 +253,11 @@ export function SlideoutWrapper({
                 : "flex w-full",
             contentClassName,
           )}
+          style={{
+            willChange: isOpen || isTransitioning ? "margin, padding, transform" : "auto",
+            transitionTimingFunction: "var(--ease-gentle)",
+            contain: "layout style",
+          }}
         >
           <div className="flex h-full w-full flex-col overflow-y-auto">{children}</div>
         </div>
@@ -255,17 +271,24 @@ export function SlideoutWrapper({
               ? // Write page: separate overlay slider
                 cn(
                   "fixed inset-y-0 right-0 z-50 w-[600px] max-w-[90vw] border-l",
-                  "cubic-bezier(0.32, 0.72, 0, 1) transition-transform duration-300",
+                  "transition-transform duration-300",
                   isOpen ? "translate-x-0" : "translate-x-full",
                 )
               : // Other pages: integrated behavior with width options
                 cn(
                   "absolute inset-y-0 right-0 z-40 w-full max-w-full border-l lg:static lg:h-auto",
-                  "cubic-bezier(0.32, 0.72, 0, 1) transition-all duration-300",
+                  "transition-all duration-300",
                   slideoutWidth === "wide" ? "lg:w-2/3" : "lg:w-1/2",
                   isOpen ? "translate-x-0" : "translate-x-full lg:hidden lg:translate-x-0",
                 ),
           )}
+          style={{
+            willChange: isOpen || isTransitioning ? "transform, opacity" : "auto",
+            transitionTimingFunction: "var(--ease-gentle)",
+            contain: "layout style paint",
+            backfaceVisibility: "hidden",
+            perspective: "1000px",
+          }}
         >
           <div className="flex h-full flex-col">
             {/* Production-grade Header */}
@@ -306,8 +329,12 @@ export function SlideoutWrapper({
                   <SlideoutHeaderActions selectedOption={selectedOption} isWritePage={isWritePage} variant={variant} />
                 )}
                 <button
-                  onClick={() => setIsOpen(false)}
-                  className="text-muted-foreground hover:text-foreground hover:bg-accent/10 flex h-10 w-10 items-center justify-center rounded-[var(--radius-button)] transition-colors duration-200"
+                  onClick={() => {
+                    setIsTransitioning(true);
+                    setIsOpen(false);
+                    setTimeout(() => setIsTransitioning(false), 300);
+                  }}
+                  className="text-muted-foreground hover:text-foreground hover:bg-accent/10 flex h-10 w-10 items-center justify-center rounded-[var(--radius-button)] transition-colors duration-200 spring-interactive"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -315,7 +342,14 @@ export function SlideoutWrapper({
             </div>
 
             {/* Content area with panel-optimized styling */}
-            <div className="flex-1 overflow-y-auto" ref={slideoutScrollRef}>
+            <div 
+              className="flex-1 overflow-y-auto" 
+              ref={slideoutScrollRef}
+              style={{
+                contain: "layout style paint",
+                willChange: isTransitioning ? "scroll-position" : "auto",
+              }}
+            >
               <div className="space-y-4 p-6">
                 {availableOptions.find((option) => option.key === selectedOption)?.component}
               </div>

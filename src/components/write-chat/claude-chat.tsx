@@ -82,7 +82,7 @@ export function ClaudeChat({
     messagesRef,
     expandFromHero,
     scrollToBottom,
-    setIsHeroState,
+    setIsHeroState: _setIsHeroState,
   } = useSmoothChatTransitions({
     heroTransitionDuration: 500,
     messagesDelay: 200,
@@ -91,7 +91,7 @@ export function ClaudeChat({
   // Initialize message animations
   const {
     registerMessage,
-    animateMessageBatch,
+    animateMessageBatch: _animateMessageBatch,
     messagesContainerRef,
   } = useMessageAnimations({
     staggerDelay: 80,
@@ -164,22 +164,7 @@ export function ClaudeChat({
     onHeroStateChange?.(isHeroState);
   }, [isHeroState, onHeroStateChange]);
 
-  // Enhanced message adding with animations
-  const addMessageWithAnimation = useCallback((message: ChatMessage) => {
-    setMessages((prev) => {
-      const newMessages = [...prev, message];
-      
-      // Register message for animation on next frame
-      requestAnimationFrame(() => {
-        const messageElement = document.querySelector(`[data-message-id="${message.id}"]`) as HTMLElement;
-        if (messageElement) {
-          registerMessage(message.id, messageElement);
-        }
-      });
-      
-      return newMessages;
-    });
-  }, [registerMessage]);
+
 
   // Auto-resize textarea
   useEffect(() => {
@@ -261,7 +246,6 @@ export function ClaudeChat({
   const hasValidVideoUrl = Boolean(urlCandidate && urlSupported);
 
   // Personas list no longer needed here; PersonaSelector renders from internal source
-  const getPersonaByKey = (key: PersonaType | null) => PERSONAS.find((p) => p.key === key);
   const resolvedName = userProfile?.displayName ?? user?.displayName;
 
   const handleSend = async (value: string) => {
