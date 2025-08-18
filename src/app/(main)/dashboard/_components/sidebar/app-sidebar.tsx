@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 import { PanelLeft } from "lucide-react";
 
+import { useThemeChooserFlag } from "@/hooks/use-feature-flag";
 import { ThemeSwitcher as ColorThemeSwitcher } from "@/components/theme/theme-switcher";
 import {
   Sidebar,
@@ -16,7 +17,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { sidebarItems } from "@/navigation/sidebar/sidebar-items";
+// import { sidebarItems } from "@/navigation/sidebar/sidebar-items"; // No longer needed - using dynamic items
 import { type SidebarVariant, type SidebarCollapsible, type ContentLayout } from "@/types/preferences/layout";
 
 import { NavMain } from "./nav-main";
@@ -76,6 +77,7 @@ function SidebarLogo({ isPinned, onPinToggle }: { isPinned: boolean; onPinToggle
 }
 
 export function AppSidebar({ layoutPreferences: _layoutPreferences, ...props }: AppSidebarProps) {
+  const isThemeChooserEnabled = useThemeChooserFlag();
   const { setOpen, isMobile } = useSidebar();
   const sidebarRef = useRef<HTMLDivElement>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout>();
@@ -177,14 +179,14 @@ export function AppSidebar({ layoutPreferences: _layoutPreferences, ...props }: 
       </SidebarHeader>
       <SidebarContent className="flex flex-col">
         <div className="flex-1 overflow-auto">
-          <NavMain items={sidebarItems} />
+          <NavMain />
         </div>
       </SidebarContent>
       <SidebarFooter>
         <div className="flex flex-col items-center gap-2 px-2 pb-2">
-          <ColorThemeSwitcher />
+          {isThemeChooserEnabled && <ColorThemeSwitcher />}
           {/* <LayoutControls
-            {...(layoutPreferences ?? { variant: "inset", collapsible: "icon", contentLayout: "centered" })}
+            {...(layoutPreferences ?? { variant: "sidebar", collapsible: "icon", contentLayout: "centered" })}
           />
           <ThemeSwitcher /> */}
         </div>

@@ -7,7 +7,9 @@ import { Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CardSkeleton, LoadingBoundary, useAsyncOperation, useIsLoading } from "@/components/ui/loading";
 import { VideoGridProcessingPlaceholder } from "@/components/ui/video-grid-processing-placeholder";
-import { VideoSlideoutPlayer } from "@/components/video/video-slideout-player";
+import { GenericSlideout } from "@/components/video/generic-slideout";
+import { VideoAnalyzerSlideout } from "@/app/test-video-analyzer/_components/video-analyzer-slideout";
+import { VideoGrid as NewVideoGrid, type VideoData } from "@/components/video/video-grid";
 import { useAuth } from "@/contexts/auth-context";
 import { useVideoProcessing } from "@/contexts/video-processing-context";
 import { RBACClientService } from "@/core/auth/rbac-client";
@@ -17,7 +19,6 @@ import { Video, CollectionsService } from "@/lib/collections";
 import { useCollections } from "./collections-context";
 import { DeleteConfirmDialog } from "./delete-confirm-dialog";
 import { MoveVideoDialog } from "./move-video-dialog";
-import { VideoCard } from "./video-card";
 
 interface VideoGridProps {
   collectionId: string;
@@ -31,6 +32,32 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
   const [movingVideo, setMovingVideo] = useState<Video | null>(null);
   const [deletingVideo, setDeletingVideo] = useState<Video | null>(null);
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
+
+  // Transform Video to VideoData for the new grid component
+  const transformVideoToVideoData = useCallback((video: Video): VideoData => {
+    return {
+      id: video.id || "",
+      title: video.title || "Untitled Video",
+      creator: video.metadata?.author || "Unknown Creator",
+      thumbnail: video.thumbnailUrl || "/api/placeholder/300/400",
+      platform: video.platform as "instagram" | "tiktok" | "youtube" | undefined,
+      views: video.metrics?.views,
+      likes: video.metrics?.likes,
+      duration: video.metadata?.duration?.toString(),
+    };
+  }, []);
+
+  // Handle click from new VideoGrid component
+  const handleNewVideoGridClick = useCallback(
+    (videoData: VideoData) => {
+      // Find the original Video object by ID to preserve all metadata
+      const originalVideo = state.videos.find(v => v.id === videoData.id);
+      if (originalVideo) {
+        setSelectedVideo(originalVideo);
+      }
+    },
+    [state.videos],
+  );
 
   const loadVideosFn = useCallback(async () => {
     if (!user?.uid) return { videos: [] as Video[] };
@@ -74,28 +101,50 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
   // Only show active jobs (pending, processing) in the grid
   const activeJobs = relevantJobs.filter((job) => job.status === "pending" || job.status === "processing");
 
-  const handleVideoClick = (video: Video) => {
-    setSelectedVideo(video);
-  };
 
-  const handleToggleFavorite = async (video: Video) => {
-    if (!user?.uid || !video.id) return;
-
-    try {
-      const newFavoriteStatus = !video.favorite;
-      await CollectionsService.setVideoFavorite(user.uid, video.id, newFavoriteStatus);
-
-      dispatch({
-        type: "UPDATE_VIDEO",
-        payload: {
-          id: video.id,
-          updates: { favorite: newFavoriteStatus },
+  // Transform Video to VideoAnalyzer format
+  const transformToAnalyzerData = useCallback((video: Video) => {
+    return {
+      id: video.id || "",
+      url: video.originalUrl || "",
+      title: video.title || "Untitled Video",
+      thumbnailUrl: video.thumbnailUrl || "/api/placeholder/300/400",
+      transcript: video.transcript || "No transcript available",
+      components: {
+        hook: "Opening statement to grab attention",
+        bridge: "Transition element connecting ideas",
+        nugget: "Key value proposition or insight",
+        wta: "Clear call to action"
+      },
+      metadata: {
+        author: video.metadata?.author || "Unknown Creator",
+        description: video.metadata?.description || "No description available",
+        platform: video.platform || "unknown",
+        duration: typeof video.metadata?.duration === 'number' ? video.metadata.duration : 0,
+      },
+      metrics: {
+        likes: video.metrics?.likes || 0,
+        comments: video.metrics?.comments || 0,
+        saves: video.metrics?.saves || 0,
+        shares: video.metrics?.shares || 0,
+      },
+      hashtags: video.hashtags || [],
+      addedAt: video.addedAt || new Date().toISOString(),
+      deepAnalysis: {
+        contentThemes: ["Entertainment", "Educational", "Lifestyle"],
+        targetAudience: "General audience",
+        emotionalTriggers: ["Curiosity", "Excitement", "Inspiration"],
+        scriptStructure: {
+          introduction: "Engaging opening to capture attention",
+          body: "Main content delivering value",
+          conclusion: "Strong ending with clear next steps"
         },
-      });
-    } catch (error) {
-      console.error("Failed to toggle video favorite:", error);
-    }
-  };
+        visualElements: ["Dynamic visuals", "Text overlays", "Smooth transitions"],
+        performanceFactors: ["Strong hook", "Clear messaging", "Engaging visuals"],
+        recommendedImprovements: ["Enhance audio quality", "Add more visual elements", "Improve call-to-action"]
+      }
+    };
+  }, []);
 
   const handleDeleteVideo = async (video: Video) => {
     if (!user?.uid || !video.id) return;
@@ -124,39 +173,37 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
   return (
     <>
       <div className="space-y-6">
-        <LoadingBoundary id="collections-videos" fallback={gridFallback}>
-          <div className="@container">
-            <div className="grid grid-cols-1 gap-6 @sm:grid-cols-2 @lg:grid-cols-3 @xl:grid-cols-4">
-              {/* Processing placeholders first */}
-              {activeJobs.map((job) => (
-                <VideoGridProcessingPlaceholder
-                  key={job.id}
-                  job={job}
-                  onRetry={() => {
-                    // TODO: Implement retry logic
-                    console.log("Retry job:", job.id);
-                  }}
-                  onRemove={() => {
-                    // TODO: Implement remove logic
-                    console.log("Remove job:", job.id);
-                  }}
-                />
-              ))}
 
-              {/* Existing videos */}
-              {state.videos.map((video) => (
-                <VideoCard
-                  key={video.id}
-                  video={video}
-                  canWrite={canWrite}
-                  canDelete={canDelete}
-                  onVideoClick={handleVideoClick}
-                  onToggleFavorite={handleToggleFavorite}
-                  onMoveVideo={setMovingVideo}
-                  onDeleteVideo={setDeletingVideo}
-                />
-              ))}
-            </div>
+        <LoadingBoundary id="collections-videos" fallback={gridFallback}>
+          <div className="space-y-6">
+            {/* Processing placeholders first - rendered above the new grid */}
+            {activeJobs.length > 0 && (
+              <div className="@container">
+                <div className="grid grid-cols-1 gap-6 @sm:grid-cols-2 @lg:grid-cols-3 @xl:grid-cols-4">
+                  {activeJobs.map((job) => (
+                    <VideoGridProcessingPlaceholder
+                      key={job.id}
+                      job={job}
+                      onRetry={() => {
+                        console.log("Retry job:", job.id);
+                      }}
+                      onRemove={() => {
+                        console.log("Remove job:", job.id);
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* VideoGrid component */}
+            {state.videos.length > 0 && (
+              <NewVideoGrid
+                videos={state.videos.map(transformVideoToVideoData)}
+                columns={4}
+                onVideoClick={handleNewVideoGridClick}
+              />
+            )}
           </div>
         </LoadingBoundary>
 
@@ -198,7 +245,13 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
       />
 
       {selectedVideo && (
-        <VideoSlideoutPlayer isOpen={!!selectedVideo} onClose={() => setSelectedVideo(null)} video={selectedVideo} />
+        <GenericSlideout
+          isOpen={!!selectedVideo}
+          onClose={() => setSelectedVideo(null)}
+          title={selectedVideo.title || "Video Analysis"}
+        >
+          <VideoAnalyzerSlideout video={transformToAnalyzerData(selectedVideo)} />
+        </GenericSlideout>
       )}
     </>
   );

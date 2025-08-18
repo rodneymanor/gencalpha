@@ -10,27 +10,31 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        // SOFT UI ALIGNED VARIANTS
+        // SOFT UI ALIGNED VARIANTS - Enhanced with better visibility
 
         // Ghost - Default, most common (60% usage)
+        // Subtle hover with slight elevation
         ghost:
-          "text-foreground/70 hover:text-foreground hover:bg-accent/5",
+          "text-foreground/70 hover:text-foreground hover:bg-accent/10 hover:-translate-y-px hover:shadow-[0_0.25rem_0.75rem_rgba(0,0,0,0.04),0_0_0_1px_rgba(0,0,0,0.06)]",
 
         // Soft - Primary action in a group (30% usage)
+        // More visible with gradient-like effect and stronger border
         soft:
-          "bg-accent/10 text-foreground hover:bg-accent/15 hover:shadow-sm",
+          "bg-accent/10 text-foreground border border-border-visible/30 shadow-[0_0_0_1px_rgba(0,0,0,0.04)] hover:bg-accent/20 hover:border-border-visible/40 hover:-translate-y-px hover:shadow-[var(--shadow-soft-drop)]",
 
         // Solid - Critical actions only (<10% usage)
+        // Strong presence with good shadow depth
         solid:
-          "bg-foreground text-background shadow-sm hover:opacity-90",
+          "bg-foreground text-background border border-foreground/10 shadow-[var(--shadow-soft-drop)] hover:opacity-90 hover:-translate-y-px hover:shadow-[var(--shadow-hover)]",
 
         // Outline - Alternative to soft for certain contexts
+        // More visible border that matches Claude's approach
         outline:
-          "border border-border bg-transparent hover:bg-accent/5 hover:border-border-hover",
+          "border border-border-visible/40 bg-gradient-to-b from-background to-background/80 hover:from-accent/5 hover:to-accent/10 hover:border-border-visible/50 hover:-translate-y-px hover:shadow-[0_0.25rem_0.75rem_rgba(0,0,0,0.05),0_0_0_1px_rgba(0,0,0,0.08)]",
 
-        // Destructive - Special case, still subtle
+        // Destructive - Special case, still subtle but visible
         destructive:
-          "text-destructive hover:bg-destructive/10",
+          "text-destructive border border-destructive/20 hover:bg-destructive/10 hover:border-destructive/30 hover:-translate-y-px hover:shadow-[0_0.25rem_0.75rem_rgba(239,68,68,0.08),0_0_0_1px_rgba(239,68,68,0.15)]",
 
         // Link - Inline text-like buttons
         link:
@@ -38,9 +42,9 @@ const buttonVariants = cva(
 
         // Legacy variants (deprecated but kept for compatibility)
         default:
-          "bg-accent/10 text-foreground hover:bg-accent/15 hover:shadow-sm", // Maps to soft
+          "bg-accent/10 text-foreground border border-border-visible/30 shadow-[0_0_0_1px_rgba(0,0,0,0.04)] hover:bg-accent/20 hover:border-border-visible/40 hover:-translate-y-px hover:shadow-[var(--shadow-soft-drop)]", // Maps to soft
         secondary:
-          "bg-muted text-foreground hover:bg-muted/80", // Similar to soft but on muted bg
+          "bg-muted text-foreground border border-border/50 hover:bg-muted/80 hover:border-border hover:-translate-y-px hover:shadow-[0_0_0_1px_rgba(0,0,0,0.06)]",
       },
       size: {
         default: "h-9 px-4 has-[>svg]:px-3",
@@ -50,7 +54,7 @@ const buttonVariants = cva(
       },
     },
     defaultVariants: {
-      variant: "ghost", // Changed from "default" to "ghost" - most common
+      variant: "ghost",
       size: "default",
     },
   }

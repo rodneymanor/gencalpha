@@ -6,6 +6,7 @@ import { Inter } from "next/font/google";
 import { LoadingProvider } from "@/components/ui/loading";
 import { Toaster } from "@/components/ui/sonner";
 import { APP_CONFIG } from "@/config/app-config";
+import { PostHogProvider } from "@/providers/posthog-provider";
 import { getPreference } from "@/server/server-actions";
 import { PreferencesStoreProvider } from "@/stores/preferences/preferences-provider";
 import { THEME_MODE_VALUES, THEME_PRESET_VALUES, type ThemePreset, type ThemeMode } from "@/types/preferences/theme";
@@ -38,12 +39,14 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <link rel="dns-prefetch" href="https://firebaseio.com" />
       </head>
       <body className={`${inter.className} min-h-screen antialiased`}>
-        <LoadingProvider>
-          <PreferencesStoreProvider themeMode={themeMode} themePreset={themePreset}>
-            {children}
-            <Toaster />
-          </PreferencesStoreProvider>
-        </LoadingProvider>
+        <PostHogProvider>
+          <LoadingProvider>
+            <PreferencesStoreProvider themeMode={themeMode} themePreset={themePreset}>
+              {children}
+              <Toaster />
+            </PreferencesStoreProvider>
+          </LoadingProvider>
+        </PostHogProvider>
       </body>
     </html>
   );

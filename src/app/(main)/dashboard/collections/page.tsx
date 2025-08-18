@@ -10,7 +10,9 @@ import { CardSkeleton } from "@/components/ui/loading";
 import { CollectionCombobox } from "@/components/ui/collection-combobox";
 import { EditableText } from "@/components/ui/edit-button";
 import { VideoInsightsWrapper } from "@/components/video-insights";
-import { VideoSlideoutPlayer } from "@/components/video/video-slideout-player";
+import { GenericSlideout } from "@/components/video/generic-slideout";
+import { VideoAnalyzerSlideout } from "@/app/test-video-analyzer/_components/video-analyzer-slideout";
+import { VideoGrid as NewVideoGrid, type VideoData } from "@/components/video/video-grid";
 import { useAuth } from "@/contexts/auth-context";
 import { VideoInsightsProvider } from "@/contexts/video-insights-context";
 import { VideoProcessingProvider } from "@/contexts/video-processing-context";
@@ -21,7 +23,6 @@ import { CollectionsService, type Collection, type Video } from "@/lib/collectio
 import { AddVideoDialog } from "./_components/add-video-dialog";
 import { CollectionsProvider, useCollections } from "./_components/collections-context";
 import { CollectionsTabs } from "./_components/collections-tabs";
-import { VideoCard } from "./_components/video-card";
 import { VideoGrid } from "./_components/video-grid";
 
 // Helper hook for collection editing
@@ -126,15 +127,9 @@ function CollectionsTabContent({ selectedCollectionId }: { selectedCollectionId:
   return (
     <>
       {/* Main Content */}
-      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-12">
+      <div className="mt-6">
         {/* Video Grid */}
-        <div className="col-span-1 lg:col-span-12">
-          <Card>
-            <CardContent>
-              <VideoGrid collectionId={selectedCollectionId} />
-            </CardContent>
-          </Card>
-        </div>
+        <VideoGrid collectionId={selectedCollectionId} />
       </div>
     </>
   );
@@ -189,7 +184,7 @@ function CollectionsHeader({
         )}
       </div>
       <div className="flex gap-3">
-        <Button onClick={() => setIsAddVideoDialogOpen(true)} className="gap-2">
+        <Button onClick={() => setIsAddVideoDialogOpen(true)} variant="soft" className="gap-2">
           <Plus className="h-4 w-4" />
           Add Video
         </Button>
@@ -204,7 +199,6 @@ function SavedCollectionsTabContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const { user } = useAuth();
-  const { canWrite, canDelete } = useRBAC();
 
   const loadSavedVideos = useCallback(async () => {
     if (!user?.uid) return;
@@ -228,25 +222,77 @@ function SavedCollectionsTabContent() {
     }
   }, [user?.uid, loadSavedVideos]);
 
-  const handleVideoClick = (video: Video) => {
-    setSelectedVideo(video);
-  };
 
-  const handleToggleFavorite = async (video: Video) => {
-    if (!user?.uid || !video.id) return;
+  // Transform Video to VideoData for the new grid component
+  const transformVideoToVideoData = useCallback((video: Video): VideoData => {
+    return {
+      id: video.id || "",
+      title: video.title || "Untitled Video",
+      creator: video.metadata?.author || "Unknown Creator",
+      thumbnail: video.thumbnailUrl || "/api/placeholder/300/400",
+      platform: video.platform as "instagram" | "tiktok" | "youtube" | undefined,
+      views: video.metrics?.views,
+      likes: video.metrics?.likes,
+      duration: video.metadata?.duration?.toString(),
+    };
+  }, []);
 
-    try {
-      const newFavoriteStatus = !video.favorite;
-      await CollectionsService.setVideoFavorite(user.uid, video.id, newFavoriteStatus);
-      
-      // Remove from saved videos if unfavorited
-      if (!newFavoriteStatus) {
-        setSavedVideos(prev => prev.filter(v => v.id !== video.id));
+  // Handle click from new VideoGrid component
+  const handleNewVideoGridClick = useCallback(
+    (videoData: VideoData) => {
+      // Find the original Video object by ID to preserve all metadata
+      const originalVideo = savedVideos.find(v => v.id === videoData.id);
+      if (originalVideo) {
+        setSelectedVideo(originalVideo);
       }
-    } catch (error) {
-      console.error("Failed to toggle video favorite:", error);
-    }
-  };
+    },
+    [savedVideos],
+  );
+
+  // Transform Video to VideoAnalyzer format
+  const transformToAnalyzerData = useCallback((video: Video) => {
+    return {
+      id: video.id || "",
+      url: video.originalUrl || "",
+      title: video.title || "Untitled Video",
+      thumbnailUrl: video.thumbnailUrl || "/api/placeholder/300/400",
+      transcript: video.transcript || "No transcript available",
+      components: {
+        hook: "Opening statement to grab attention",
+        bridge: "Transition element connecting ideas",
+        nugget: "Key value proposition or insight",
+        wta: "Clear call to action"
+      },
+      metadata: {
+        author: video.metadata?.author || "Unknown Creator",
+        description: video.metadata?.description || "No description available",
+        platform: video.platform || "unknown",
+        duration: typeof video.metadata?.duration === 'number' ? video.metadata.duration : 0,
+      },
+      metrics: {
+        likes: video.metrics?.likes || 0,
+        comments: video.metrics?.comments || 0,
+        saves: video.metrics?.saves || 0,
+        shares: video.metrics?.shares || 0,
+      },
+      hashtags: video.hashtags || [],
+      addedAt: video.addedAt || new Date().toISOString(),
+      deepAnalysis: {
+        contentThemes: ["Entertainment", "Educational", "Lifestyle"],
+        targetAudience: "General audience",
+        emotionalTriggers: ["Curiosity", "Excitement", "Inspiration"],
+        scriptStructure: {
+          introduction: "Engaging opening to capture attention",
+          body: "Main content delivering value",
+          conclusion: "Strong ending with clear next steps"
+        },
+        visualElements: ["Dynamic visuals", "Text overlays", "Smooth transitions"],
+        performanceFactors: ["Strong hook", "Clear messaging", "Engaging visuals"],
+        recommendedImprovements: ["Enhance audio quality", "Add more visual elements", "Improve call-to-action"]
+      }
+    };
+  }, []);
+
 
   return (
     <>
@@ -258,6 +304,7 @@ function SavedCollectionsTabContent() {
               <p className="text-muted-foreground mt-1 text-sm">Videos you&apos;ve saved for later</p>
             </CardHeader>
             <CardContent>
+
               {isLoading ? (
                 <div className="@container">
                   <div className="grid grid-cols-1 gap-6 @sm:grid-cols-2 @lg:grid-cols-3 @xl:grid-cols-4">
@@ -269,22 +316,11 @@ function SavedCollectionsTabContent() {
                   </div>
                 </div>
               ) : savedVideos.length > 0 ? (
-                <div className="@container">
-                  <div className="grid grid-cols-1 gap-6 @sm:grid-cols-2 @lg:grid-cols-3 @xl:grid-cols-4">
-                    {savedVideos.map((video) => (
-                      <VideoCard
-                        key={video.id}
-                        video={video}
-                        canWrite={canWrite}
-                        canDelete={canDelete}
-                        onVideoClick={handleVideoClick}
-                        onToggleFavorite={handleToggleFavorite}
-                        onMoveVideo={() => {}} // Disable move for saved videos
-                        onDeleteVideo={() => {}} // Disable delete for saved videos
-                      />
-                    ))}
-                  </div>
-                </div>
+                <NewVideoGrid
+                  videos={savedVideos.map(transformVideoToVideoData)}
+                  columns={4}
+                  onVideoClick={handleNewVideoGridClick}
+                />
               ) : (
                 <div className="py-12 text-center">
                   <Bookmark className="text-muted-foreground mx-auto mb-4 h-16 w-16 opacity-50" />
@@ -300,11 +336,13 @@ function SavedCollectionsTabContent() {
       </div>
 
       {selectedVideo && (
-        <VideoSlideoutPlayer 
-          isOpen={!!selectedVideo} 
-          onClose={() => setSelectedVideo(null)} 
-          video={selectedVideo} 
-        />
+        <GenericSlideout
+          isOpen={!!selectedVideo}
+          onClose={() => setSelectedVideo(null)}
+          title={selectedVideo.title || "Video Analysis"}
+        >
+          <VideoAnalyzerSlideout video={transformToAnalyzerData(selectedVideo)} />
+        </GenericSlideout>
       )}
     </>
   );

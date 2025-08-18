@@ -1,8 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 import { RefreshCw, Bookmark } from "lucide-react";
+
+import { useGhostWriterFlag } from "@/hooks/use-feature-flag";
 
 import { GhostCard } from "@/app/(main)/dashboard/ai-ghostwriter/_components/ghost-card";
 import { generateGhostWritingCards } from "@/app/(main)/dashboard/ai-ghostwriter/_components/ghost-card-generator";
@@ -23,12 +26,26 @@ const useToast = () => ({
 });
 
 export default function IdeasGhostwriterPage() {
+  const router = useRouter();
+  const isGhostWriterEnabled = useGhostWriterFlag();
   const [ghostCards, setGhostCards] = useState<GhostWritingCard[]>([]);
   const [savedCards, setSavedCards] = useState<GhostWritingCard[]>([]);
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("trending");
   const { toast } = useToast();
+
+  // Redirect if feature flag is disabled
+  useEffect(() => {
+    if (!isGhostWriterEnabled) {
+      router.replace("/dashboard");
+    }
+  }, [isGhostWriterEnabled, router]);
+
+  // Don't render if feature flag is disabled
+  if (!isGhostWriterEnabled) {
+    return null;
+  }
 
   // Load user's onboarding topics
   useEffect(() => {

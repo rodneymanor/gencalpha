@@ -2,13 +2,14 @@
 /* eslint-disable complexity */
 "use client";
 //
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 //
-import { ArrowUp, SlidersHorizontal, Lightbulb, Pencil, Loader2 } from "lucide-react";
+import { ArrowUp, SlidersHorizontal, Lightbulb, Pencil, Loader2, Mic, Bot, Brain } from "lucide-react";
 
-import { type PersonaType, PERSONAS } from "@/components/chatbot/persona-selector";
+import { type PersonaType, PERSONAS, PersonaSelector } from "@/components/chatbot/persona-selector";
 // header dropdown moved to parent wrapper
+import { AdvancedSlidingSwitch, type ModeType } from "@/components/ui/advanced-sliding-switch";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -32,10 +33,14 @@ import { AckLoader } from "@/components/write-chat/messages/ack-loader";
 import { EmulateInputPanel } from "@/components/write-chat/messages/emulate-input-panel";
 import { VideoActionsPanel } from "@/components/write-chat/messages/video-actions-panel";
 import { PlaybookCards } from "@/components/write-chat/playbook-cards";
+import { PromptComposer } from "@/components/write-chat/prompt-composer";
 import { type ChatMessage } from "@/components/write-chat/types";
 import { sendToSlideout, delay } from "@/components/write-chat/utils";
 import { useAuth } from "@/contexts/auth-context";
+import { useIdeaInboxFlag } from "@/hooks/use-feature-flag";
 import { useScriptGeneration } from "@/hooks/use-script-generation";
+import { useSmoothChatTransitions } from "@/hooks/use-smooth-chat-transitions";
+import { useMessageAnimations } from "@/hooks/use-message-animations";
 import { auth as firebaseAuth } from "@/lib/firebase";
 import { buildAuthHeaders } from "@/lib/http/auth-headers";
 import { postJson } from "@/lib/http/post-json";
@@ -67,7 +72,31 @@ export function ClaudeChat({
   // BlockNote slideout via a global event. The slideout listens for `write:editor-set-content` and
   // replaces its content, opening automatically. This keeps the chat thread clean while preserving
   // a rich, editable surface for AI deliverables.
-  const [isHeroState, setIsHeroState] = useState(true);
+  const isIdeaInboxEnabled = useIdeaInboxFlag();
+  
+  // Initialize smooth transitions
+  const {
+    isHeroState,
+    isTransitioning,
+    containerRef,
+    messagesRef,
+    expandFromHero,
+    scrollToBottom,
+    setIsHeroState,
+  } = useSmoothChatTransitions({
+    heroTransitionDuration: 500,
+    messagesDelay: 200,
+  });
+
+  // Initialize message animations
+  const {
+    registerMessage,
+    animateMessageBatch,
+    messagesContainerRef,
+  } = useMessageAnimations({
+    staggerDelay: 80,
+    maxStaggerDelay: 400,
+  });
   const [inputValue, setInputValue] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   // Processing UI is represented via ACK_LOADING messages
@@ -99,10 +128,15 @@ export function ClaudeChat({
   );
   const [awaitingEmulateInput, setAwaitingEmulateInput] = useState(false);
   const [emulateIdea, setEmulateIdea] = useState("");
+  const [isRecording, setIsRecording] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [showListening, setShowListening] = useState(true);
+  const [_activeMode, setActiveMode] = useState<ModeType>("ghost-write");
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    // Use the enhanced scroll management instead of basic scrollIntoView
+    scrollToBottom();
+  }, [messages, scrollToBottom]);
 
   // Prefetch ideas on mount to keep the menu snappy
   useEffect(() => {
@@ -130,6 +164,23 @@ export function ClaudeChat({
     onHeroStateChange?.(isHeroState);
   }, [isHeroState, onHeroStateChange]);
 
+  // Enhanced message adding with animations
+  const addMessageWithAnimation = useCallback((message: ChatMessage) => {
+    setMessages((prev) => {
+      const newMessages = [...prev, message];
+      
+      // Register message for animation on next frame
+      requestAnimationFrame(() => {
+        const messageElement = document.querySelector(`[data-message-id="${message.id}"]`) as HTMLElement;
+        if (messageElement) {
+          registerMessage(message.id, messageElement);
+        }
+      });
+      
+      return newMessages;
+    });
+  }, [registerMessage]);
+
   // Auto-resize textarea
   useEffect(() => {
     const textareaEl = isHeroState ? heroInputRef.current : textareaRef.current;
@@ -138,6 +189,19 @@ export function ClaudeChat({
       textareaEl.style.height = Math.min(textareaEl.scrollHeight, 200) + "px";
     }
   }, [inputValue, isHeroState]);
+
+  // Blinking "listening" label when recording
+  useEffect(() => {
+    let interval: NodeJS.Timeout | undefined;
+    if (isRecording) {
+      interval = setInterval(() => setShowListening((prev) => !prev), 800);
+    } else {
+      setShowListening(true);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isRecording]);
 
   // Debounced URL detection + validation (300ms)
   useEffect(() => {
@@ -196,7 +260,7 @@ export function ClaudeChat({
 
   const hasValidVideoUrl = Boolean(urlCandidate && urlSupported);
 
-  const personas = useMemo(() => PERSONAS.map((p) => ({ key: p.key, label: p.label })), []);
+  // Personas list no longer needed here; PersonaSelector renders from internal source
   const getPersonaByKey = (key: PersonaType | null) => PERSONAS.find((p) => p.key === key);
   const resolvedName = userProfile?.displayName ?? user?.displayName;
 
@@ -257,14 +321,23 @@ export function ClaudeChat({
 
     // If a valid social video URL is present, transition to chat and show inline action options
     if (hasValidVideoUrl && urlCandidate && urlSupported) {
-      setIsHeroState(false);
+      if (isHeroState) {
+        expandFromHero();
+      }
       // Append the user message for context
-      setMessages((prev) => [
-        ...prev,
-        { id: crypto.randomUUID(), role: "user", content: trimmed },
-        { id: crypto.randomUUID(), role: "assistant", content: "Choose an action to process this video:" },
-        { id: crypto.randomUUID(), role: "assistant", content: VIDEO_ACTIONS },
-      ]);
+      const userMsg = { id: crypto.randomUUID(), role: "user" as const, content: trimmed };
+      const assistantMsg = { id: crypto.randomUUID(), role: "assistant" as const, content: "Choose an action to process this video:" };
+      const actionsMsg = { id: crypto.randomUUID(), role: "assistant" as const, content: VIDEO_ACTIONS };
+      
+      setMessages((prev) => [...prev, userMsg, assistantMsg, actionsMsg]);
+      
+      // Register messages for animations
+      setTimeout(() => {
+        [userMsg, assistantMsg, actionsMsg].forEach((msg) => {
+          const element = document.querySelector(`[data-message-id="${msg.id}"]`) as HTMLElement;
+          if (element) registerMessage(msg.id, element);
+        });
+      }, 50);
       setVideoPanel({ url: urlCandidate, platform: urlSupported });
       setInputValue("");
       return;
@@ -303,15 +376,28 @@ export function ClaudeChat({
     const ackMessageId = crypto.randomUUID();
     const ackLoadingId = crypto.randomUUID();
     const ackText = createAcknowledgementFor(trimmed);
-    setMessages((prev) => [
-      ...prev,
-      { id: userMessageId, role: "user", content: trimmed },
-      { id: ackMessageId, role: "assistant", content: ackText },
+    
+    const newMessages = [
+      { id: userMessageId, role: "user" as const, content: trimmed },
+      { id: ackMessageId, role: "assistant" as const, content: ackText },
       // 2.1) Small loading indicator placeholder shown during analysis phase
-      { id: ackLoadingId, role: "assistant", content: ACK_LOADING },
-    ]);
+      { id: ackLoadingId, role: "assistant" as const, content: ACK_LOADING },
+    ];
+    
+    setMessages((prev) => [...prev, ...newMessages]);
+    
+    // Register messages for animations
+    setTimeout(() => {
+      newMessages.forEach((msg) => {
+        const element = document.querySelector(`[data-message-id="${msg.id}"]`) as HTMLElement;
+        if (element) registerMessage(msg.id, element);
+      });
+      scrollToBottom();
+    }, 50);
     setInputValue("");
-    setIsHeroState(false);
+    if (isHeroState) {
+      expandFromHero();
+    }
     onSend?.(trimmed, selectedPersona ?? "MiniBuddy");
     // Persist user message
     (async () => {
@@ -511,6 +597,64 @@ export function ClaudeChat({
 
   // Helpers for inline actions are imported
 
+  // Voice recording
+  const handleVoiceRecording = async () => {
+    if (isRecording) {
+      if (mediaRecorder) {
+        mediaRecorder.stop();
+        setIsRecording(false);
+      }
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      const audioChunks: Blob[] = [];
+      recorder.ondataavailable = (event) => {
+        audioChunks.push(event.data);
+      };
+      recorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+        await processVoiceRecording(audioBlob);
+        stream.getTracks().forEach((t) => t.stop());
+      };
+      recorder.start();
+      setMediaRecorder(recorder);
+      setIsRecording(true);
+    } catch (err) {
+      console.error("Error accessing microphone:", err);
+    }
+  };
+
+  const processVoiceRecording = async (audioBlob: Blob) => {
+    try {
+      const user = firebaseAuth?.currentUser;
+      if (!user || typeof user.getIdToken !== "function") {
+        console.error("Please sign in to use voice transcription");
+        return;
+      }
+      const token = await user.getIdToken();
+      const arrayBuffer = await audioBlob.arrayBuffer();
+      const base64Audio = Buffer.from(arrayBuffer).toString("base64");
+      const response = await fetch("/api/transcribe/voice", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ audio: base64Audio, format: "wav" }),
+      });
+      const result = await response.json();
+      if (result.success && result.transcription) {
+        setInputValue(result.transcription as string);
+      } else {
+        console.error("Transcription failed:", result.error);
+      }
+    } catch (error) {
+      console.error("Error processing voice recording:", error);
+    }
+  };
+
   const handleInlineTranscribe = async () => {
     if (!videoPanel) return;
     setActiveAction("transcribe");
@@ -668,49 +812,46 @@ export function ClaudeChat({
       {/* Header */}
       {/* Header moved to parent page wrapper */}
 
-      {/* Hero State */}
-      {isHeroState && (
-        <div className="mt-18 flex min-h-[calc(100vh-4rem)] flex-col items-center px-4 pt-24 transition-all duration-300 md:pt-52">
-          <div className="mx-auto flex w-full max-w-2xl flex-col items-start gap-3 pb-8">
-            <div>
-              <h1 className="text-foreground text-4xl leading-10 font-bold tracking-tight">
-                {`Hello${resolvedName ? ", " + resolvedName : ""}`}
-                <br />
-                <span className="text-muted-foreground">What will you script today?</span>
-              </h1>
-            </div>
+      {/* Single Chat Container with Smooth Transitions */}
+      <div 
+        ref={containerRef}
+        className={`chat-container ${
+          isHeroState ? "hero-state" : "expanded"
+        } ${isTransitioning ? "transitioning" : ""}`}
+      >
+        {/* Hero Content - visible in hero state */}
+        {isHeroState && (
+          <div className="flex min-h-[calc(100vh-4rem)] flex-col items-center px-4 pt-24 transition-all duration-300 md:pt-52">
+            <div className="mx-auto flex w-full max-w-3xl flex-col items-start gap-3 pb-8 px-5">
+              <div>
+                <h1 className="text-foreground text-4xl leading-10 font-bold tracking-tight">
+                  {`Hello${resolvedName ? ", " + resolvedName : ""}`}
+                  <br />
+                  <span className="text-muted-foreground">What will you script today?</span>
+                </h1>
+              </div>
 
-            <div className="w-full max-w-2xl">
-              <Card className="rounded-xl shadow-sm transition-shadow duration-200 hover:shadow-md">
-                <div className="flex flex-col gap-3 px-4">
-                  <div className={`relative ${isIdeaMode ? "rounded-[var(--radius-input)]" : ""}`}>
-                    <textarea
-                      ref={heroInputRef}
-                      value={inputValue}
-                      onChange={(e) => setInputValue(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) {
-                          e.preventDefault();
-                          if (!isUrlProcessing && (hasValidVideoUrl || inputValue.trim())) {
-                            handleSend(inputValue);
-                          }
-                        }
-                      }}
-                      placeholder={placeholder}
-                      className="max-h-[200px] min-h-[48px] w-full resize-none bg-transparent text-base leading-relaxed text-zinc-900 placeholder:text-zinc-400 focus:outline-none dark:text-zinc-100 dark:placeholder:text-zinc-600"
-                      rows={1}
-                    />
-                  </div>
-                  {selectedPersona && (
-                    <div className="flex items-center gap-2 text-xs">
-                      <div className="bg-secondary/10 text-secondary flex h-6 w-6 items-center justify-center rounded-[var(--radius-input)]">
-                        {getPersonaByKey(selectedPersona)?.icon}
-                      </div>
-                      <span className="text-foreground font-medium">{getPersonaByKey(selectedPersona)?.label}</span>
-                      <span className="text-muted-foreground">mode</span>
+              <div className="w-full max-w-3xl">
+                <PromptComposer
+                value={inputValue}
+                onChange={setInputValue}
+                placeholder={isRecording ? (showListening ? "listening..." : "") : placeholder}
+                onSubmit={() => handleSend(inputValue)}
+                isProcessing={isUrlProcessing}
+                textareaRef={heroInputRef}
+                submitEnabled={!isUrlProcessing && (hasValidVideoUrl || inputValue.trim().length > 0)}
+                highlightSubmit={hasValidVideoUrl}
+                submitIcon={isUrlProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-4 w-4" />}
+                footerBanner={
+                  isUrlProcessing && linkDetection && (linkDetection.type === "instagram" || linkDetection.type === "tiktok") ? (
+                    <div className="bg-muted text-muted-foreground animate-in fade-in-0 rounded-[var(--radius-input)] px-3 py-2 text-sm duration-200">
+                      🔄 Validating URL...
                     </div>
-                  )}
-                  {linkDetection && linkDetection.type !== "text" && !hasValidVideoUrl && (
+                  ) : hasValidVideoUrl && !isUrlProcessing ? (
+                    <div className="bg-accent text-foreground animate-in fade-in-0 rounded-[var(--radius-input)] px-3 py-2 text-sm duration-200">
+                      ✓ Link identified. Press submit to continue
+                    </div>
+                  ) : linkDetection && linkDetection.type !== "text" ? (
                     <div className="bg-muted/80 border-border/50 text-muted-foreground flex items-center gap-2 rounded-[var(--radius-input)] border p-2 text-sm">
                       <span className="text-foreground font-medium">
                         {linkDetection.type === "other_url" ? "Link" : linkDetection.type}
@@ -719,36 +860,34 @@ export function ClaudeChat({
                       {linkDetection.extracted.postId && <span>#{linkDetection.extracted.postId}</span>}
                       {linkDetection.extracted.contentType && <span>· {linkDetection.extracted.contentType}</span>}
                     </div>
-                  )}
-                  {isUrlProcessing &&
-                    linkDetection &&
-                    (linkDetection.type === "instagram" || linkDetection.type === "tiktok") && (
-                      <div className="bg-muted text-muted-foreground animate-in fade-in-0 rounded-[var(--radius-input)] px-3 py-2 text-sm duration-200">
-                        🔄 Validating URL...
-                      </div>
-                    )}
-                  {hasValidVideoUrl && !isUrlProcessing && (
-                    <div className="bg-accent text-foreground animate-in fade-in-0 rounded-[var(--radius-input)] px-3 py-2 text-sm duration-200">
-                      ✓ Link identified. Press submit to continue
-                    </div>
-                  )}
-                  <div className="flex w-full items-center justify-between gap-3">
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className={`${isIdeaMode ? "bg-accent" : ""}`}
-                        onClick={() => {
-                          setIsIdeaMode((v) => !v);
-                          setTimeout(() => heroInputRef.current?.focus(), 0);
-                        }}
-                        title="Write to Idea Inbox"
-                      >
-                        <Pencil className="h-3 w-3" />
-                      </Button>
-                      <Button variant="outline" size="icon">
-                        <SlidersHorizontal className="h-3 w-3" />
-                      </Button>
+                  ) : undefined
+                }
+                leftControls={
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={`${isIdeaMode ? "bg-accent" : ""} size-8 rounded-full p-0`}
+                      onClick={() => {
+                        setIsIdeaMode((v) => !v);
+                        setTimeout(() => heroInputRef.current?.focus(), 0);
+                      }}
+                      title="Write to Idea Inbox"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <AdvancedSlidingSwitch
+                      options={[
+                        { value: "ghost-write", icon: <Bot className="h-[18px] w-[18px]" />, tooltip: "Ghost Write" },
+                        { value: "web-search", icon: <Brain className="h-[18px] w-[18px]" />, tooltip: "Web Search" },
+                      ]}
+                      onChange={(_i, option) => setActiveMode(option.value)}
+                      disabled={isIdeaMode}
+                    />
+                    <Button variant="outline" size="icon">
+                      <SlidersHorizontal className="h-3 w-3" />
+                    </Button>
+                    {isIdeaInboxEnabled && (
                       <DropdownMenu open={ideasOpen} onOpenChange={setIdeasOpen}>
                         <DropdownMenuTrigger asChild>
                           <Button variant="outline" size="sm" className="gap-1.5">
@@ -770,7 +909,6 @@ export function ClaudeChat({
                                   const text = note.title ? `${note.title}: ${note.content}` : note.content;
                                   setInputValue(text);
                                   setIdeasOpen(false);
-                                  // Focus the textarea in chat input (non-hero state)
                                   requestAnimationFrame(() => textareaRef.current?.focus());
                                 }}
                               >
@@ -783,43 +921,48 @@ export function ClaudeChat({
                           )}
                         </DropdownMenuContent>
                       </DropdownMenu>
-                    </div>
-                    <Button
-                      size="icon"
-                      variant={!isUrlProcessing && (hasValidVideoUrl || inputValue.trim()) ? "default" : "secondary"}
-                      className={`transition-shadow ${
-                        !isUrlProcessing && (hasValidVideoUrl || inputValue.trim())
-                          ? `hover:opacity-90 ${hasValidVideoUrl ? "animate-clarity-pulse shadow-[var(--shadow-soft-drop)]" : ""}`
-                          : ""
-                      }`}
-                      disabled={isUrlProcessing || !(hasValidVideoUrl || inputValue.trim())}
-                      onClick={() => {
-                        if (!isUrlProcessing) {
-                          handleSend(inputValue);
-                        }
-                      }}
-                    >
-                      {isUrlProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-4 w-4" />}
-                    </Button>
+                    )}
                   </div>
-                </div>
-              </Card>
+                }
+                rightControls={
+                  <Button
+                    onClick={() => {
+                      if (inputValue.trim()) {
+                        if (!isUrlProcessing) handleSend(inputValue);
+                      } else {
+                        if (!isUrlProcessing) handleVoiceRecording();
+                      }
+                    }}
+                    disabled={isUrlProcessing}
+                    className={`size-9 rounded-full transition-colors ${
+                      inputValue.trim() && !isUrlProcessing
+                        ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                        : isRecording
+                          ? "animate-pulse bg-red-500 text-white hover:bg-red-600"
+                          : "bg-background text-foreground border-border hover:bg-accent hover:text-accent-foreground border"
+                    }`}
+                    title={inputValue.trim() ? "Send message" : isRecording ? "Stop recording" : "Start voice recording"}
+                  >
+                    {isUrlProcessing ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : inputValue.trim() ? (
+                      <ArrowUp className="h-4 w-4" />
+                    ) : (
+                      <Mic className="h-4 w-4" />
+                    )}
+                  </Button>
+                }
+              />
             </div>
 
             {!isIdeaMode && (
-              <div className="mx-auto flex w-full max-w-2xl flex-wrap justify-center gap-2">
-                {personas.map((p) => (
-                  <Button
-                    key={p.key}
-                    variant={selectedPersona === p.key ? "default" : "outline"}
-                    size="sm"
-                    className="rounded-pill gap-2 px-4 transition-all"
-                    onClick={() => setSelectedPersona((prev) => (prev === p.key ? null : p.key))}
-                  >
-                    {getPersonaByKey(p.key)?.icon}
-                    <span>{p.label}</span>
-                  </Button>
-                ))}
+              <div className="mx-auto w-full max-w-3xl">
+                <PersonaSelector
+                  selectedPersona={selectedPersona}
+                  onPersonaChange={setSelectedPersona}
+                  className="justify-center"
+                  showCallout={Boolean(selectedPersona)}
+                />
               </div>
             )}
             {isIdeaMode && (
@@ -830,39 +973,32 @@ export function ClaudeChat({
                 {ideaSaveMessage && <div className="text-muted-foreground mt-1 text-xs">{ideaSaveMessage}</div>}
               </div>
             )}
-            {selectedPersona && (
-              <div className="bg-card border-border mx-auto mt-2 w-full max-w-2xl rounded-[var(--radius-input)] border p-4 text-left shadow-[var(--shadow-soft-drop)]">
-                <div className="flex items-start gap-3">
-                  <div className="bg-secondary/10 text-secondary flex h-10 w-10 items-center justify-center rounded-[var(--radius-input)]">
-                    {getPersonaByKey(selectedPersona)?.icon}
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-foreground font-semibold">
-                      {getPersonaByKey(selectedPersona)?.label} Mode Active
-                    </div>
-                    <p className="text-muted-foreground text-sm">{getPersonaByKey(selectedPersona)?.description}</p>
-                  </div>
-                </div>
-              </div>
-            )}
+            {/* Removed legacy duplicate callout: PersonaSelector renders the callout when a persona is selected */}
 
-            {/* Playbook Cards Section */}
-            <div className="mt-8 w-full">
-              <PlaybookCards />
+              {/* Playbook Cards Section */}
+              <div className="mt-8 w-full">
+                <PlaybookCards />
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Chat State */}
-      {!isHeroState && (
-        <div className="relative flex h-[calc(100vh-4rem)] flex-col transition-all duration-300">
-          {/* Messages Area with bottom padding for sticky input */}
-          <ScrollArea className="flex-1 px-4 pb-32">
+        {/* Chat Messages Area - visible in expanded state */}
+        <div 
+          className={`messages-area ${
+            isHeroState ? "opacity-0" : "opacity-100"
+          } flex-1 transition-all duration-300`}
+        >
+          <ScrollArea ref={messagesRef} className="flex-1 px-4 pb-32">
             <div className="mx-auto max-w-3xl py-6">
-              <div className="space-y-6">
-                {messages.map((m) => (
-                  <div key={m.id} className="animate-in fade-in-0 zoom-in-95">
+              <div ref={messagesContainerRef} className="space-y-6">
+                {messages.map((m, index) => (
+                  <div 
+                    key={m.id} 
+                    data-message-id={m.id}
+                    className="opacity-0 transform translate-y-4"
+                    style={{ ["--message-index" as any]: index }}
+                  >
                     {/* Two-column layout: avatar column (40px) + content column */}
                     <div className="grid grid-cols-[40px_1fr] items-start gap-x-3">
                       {m.role === "user" ? (
@@ -918,52 +1054,85 @@ export function ClaudeChat({
               </div>
             </div>
           </ScrollArea>
+        </div>
 
-          {/* Sticky Chat Input */}
-          <div className="bg-background/95 border-border absolute right-0 bottom-0 left-0 z-10 border-t py-4 backdrop-blur-sm transition-all duration-300">
+        {/* Sticky Chat Input - always present */}
+        {!isHeroState && (
+          <div className="input-container bg-background/95 border-border absolute right-0 bottom-0 left-0 z-10 border-t py-4 backdrop-blur-sm transition-all duration-300">
             <div className="mx-auto w-full max-w-3xl">
               <Card className="border-border bg-card/95 rounded-xl shadow-[var(--shadow-soft-drop)] backdrop-blur-sm">
-                <div className="flex flex-col gap-3 px-4 pt-4 pb-3">
-                  <div className="flex items-end gap-3">
-                    <textarea
-                      ref={textareaRef}
-                      value={inputValue}
-                      onChange={(e) => setInputValue(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) {
-                          e.preventDefault();
-                          if (!isUrlProcessing && (hasValidVideoUrl || inputValue.trim())) {
-                            handleSend(inputValue);
+                <div className="px-2">
+                  <PromptComposer
+                    wrapInCard={false}
+                    variant="compact"
+                    value={inputValue}
+                    onChange={setInputValue}
+                    placeholder="Reply to Gen.C..."
+                    onSubmit={() => handleSend(inputValue)}
+                    isProcessing={isUrlProcessing}
+                    textareaRef={textareaRef}
+                    submitEnabled={!isUrlProcessing && (hasValidVideoUrl || inputValue.trim().length > 0)}
+                    highlightSubmit={false}
+                    submitIcon={isUrlProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-4 w-4" />}
+                    leftControls={
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className={`${isIdeaMode ? "bg-accent" : ""} size-8 rounded-full p-0`}
+                          onClick={() => {
+                            setIsIdeaMode((v) => !v);
+                            setTimeout(() => textareaRef.current?.focus(), 0);
+                          }}
+                          title="Write to Idea Inbox"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <AdvancedSlidingSwitch
+                          options={[
+                            { value: "ghost-write", icon: <Bot className="h-[18px] w-[18px]" />, tooltip: "Ghost Write" },
+                            { value: "web-search", icon: <Brain className="h-[18px] w-[18px]" />, tooltip: "Web Search" },
+                          ]}
+                          onChange={(_i, option) => setActiveMode(option.value)}
+                          disabled={false}
+                        />
+                      </div>
+                    }
+                    rightControls={
+                      <Button
+                        onClick={() => {
+                          if (inputValue.trim()) {
+                            if (!isUrlProcessing) handleSend(inputValue);
+                          } else {
+                            if (!isUrlProcessing) handleVoiceRecording();
                           }
-                        }
-                      }}
-                      placeholder="Reply to Gen.C..."
-                      className="text-foreground placeholder:text-muted-foreground max-h-[200px] min-h-[40px] flex-1 resize-none bg-transparent text-base leading-relaxed focus:outline-none"
-                      rows={1}
-                    />
-                    <Button
-                      size="icon"
-                      variant={!isUrlProcessing && (hasValidVideoUrl || inputValue.trim()) ? "default" : "secondary"}
-                      className={`transition-shadow ${
-                        !isUrlProcessing && (hasValidVideoUrl || inputValue.trim()) ? "hover:opacity-90" : ""
-                      }`}
-                      disabled={isUrlProcessing || !(hasValidVideoUrl || inputValue.trim())}
-                      onClick={() => {
-                        if (!isUrlProcessing) {
-                          handleSend(inputValue);
-                        }
-                      }}
-                    >
-                      {isUrlProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-4 w-4" />}
-                    </Button>
-                  </div>
+                        }}
+                        disabled={isUrlProcessing}
+                        className={`size-9 rounded-full transition-colors ${
+                          inputValue.trim() && !isUrlProcessing
+                            ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                            : isRecording
+                              ? "animate-pulse bg-red-500 text-white hover:bg-red-600"
+                              : "bg-background text-foreground border-border hover:bg-accent hover:text-accent-foreground border"
+                        }`}
+                        title={inputValue.trim() ? "Send message" : isRecording ? "Stop recording" : "Start voice recording"}
+                      >
+                        {isUrlProcessing ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : inputValue.trim() ? (
+                          <ArrowUp className="h-4 w-4" />
+                        ) : (
+                          <Mic className="h-4 w-4" />
+                        )}
+                      </Button>
+                    }
+                  />
                 </div>
               </Card>
             </div>
           </div>
-        </div>
-      )}
-      {/* Inline actions replace the modal; no modal rendering here */}
+        )}
+      </div>
     </div>
   );
 }

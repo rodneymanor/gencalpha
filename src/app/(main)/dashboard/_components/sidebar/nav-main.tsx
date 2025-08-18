@@ -24,10 +24,10 @@ import {
   SidebarMenuSubItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { type NavGroup, type NavMainItem } from "@/navigation/sidebar/sidebar-items";
+import { type NavGroup, type NavMainItem, useDynamicSidebarItems } from "@/navigation/sidebar/dynamic-sidebar-items";
 
 interface NavMainProps {
-  readonly items: readonly NavGroup[];
+  readonly items?: readonly NavGroup[];
 }
 
 const IsComingSoon = () => (
@@ -173,6 +173,10 @@ const NavItemCollapsed = ({
 export function NavMain({ items }: NavMainProps) {
   const path = usePathname();
   const { state, isMobile } = useSidebar();
+  const dynamicItems = useDynamicSidebarItems();
+  
+  // Use dynamic items if no items are passed (backward compatibility)
+  const sidebarItems = items || dynamicItems;
 
   const isItemActive = (url: string, subItems?: NavMainItem["subItems"]) => {
     if (subItems?.length) {
@@ -203,7 +207,7 @@ export function NavMain({ items }: NavMainProps) {
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup> */}
-      {items.map((group) => (
+      {sidebarItems.map((group) => (
         <SidebarGroup key={group.id}>
           {group.label && <SidebarGroupLabel>{group.label}</SidebarGroupLabel>}
           <SidebarGroupContent className="flex flex-col gap-2">

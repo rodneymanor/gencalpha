@@ -3,8 +3,13 @@
 import { FileText, PenTool, Users, ArrowUpRight } from "lucide-react";
 
 import { CardBorderless } from "@/components/ui/card";
+import { useCreatorsPageFlag, useGhostWriterFlag, useIdeaInboxFlag } from "@/hooks/use-feature-flag";
 
 export function PlaybookCards() {
+  const isCreatorsPageEnabled = useCreatorsPageFlag();
+  const isGhostWriterEnabled = useGhostWriterFlag();
+  const isIdeaInboxEnabled = useIdeaInboxFlag();
+  
   const handleCardClick = (cardType: "ideas" | "ghostwriter" | "creators") => {
     // Trigger slideout to open with the specific view
     const event = new CustomEvent("playbook:open-slideout", {
@@ -13,29 +18,54 @@ export function PlaybookCards() {
     window.dispatchEvent(event);
   };
 
-  const cards = [
-    {
-      title: "Idea inbox",
-      type: "Notes",
-      icon: <FileText className="h-4 w-4" />,
-      description: "Capture and organize your creative ideas",
-      view: "ideas" as const,
-    },
-    {
-      title: "Ghost writer",
-      type: "Ideas",
-      icon: <PenTool className="h-4 w-4" />,
-      description: "AI-powered content creation assistant",
-      view: "ghostwriter" as const,
-    },
-    {
-      title: "Follow Creators",
-      type: "Videos",
-      icon: <Users className="h-4 w-4" />,
-      description: "Track and engage with content creators",
-      view: "creators" as const,
-    },
-  ];
+  const baseCards = [];
+
+  const ideaInboxCard = {
+    title: "Idea inbox",
+    type: "Notes",
+    icon: <FileText className="h-4 w-4" />,
+    description: "Capture and organize your creative ideas",
+    view: "ideas" as const,
+  };
+
+  const ghostWriterCard = {
+    title: "Ghost writer",
+    type: "Ideas",
+    icon: <PenTool className="h-4 w-4" />,
+    description: "AI-powered content creation assistant",
+    view: "ghostwriter" as const,
+  };
+
+  const creatorsCard = {
+    title: "Follow Creators",
+    type: "Videos",
+    icon: <Users className="h-4 w-4" />,
+    description: "Track and engage with content creators",
+    view: "creators" as const,
+  };
+
+  // Build cards array based on feature flags
+  let cards = [...baseCards];
+  
+  // Add idea inbox card if enabled
+  if (isIdeaInboxEnabled) {
+    cards.push(ideaInboxCard);
+  }
+  
+  // Add ghost writer card if enabled
+  if (isGhostWriterEnabled) {
+    cards.push(ghostWriterCard);
+  }
+  
+  // Add creators card if enabled
+  if (isCreatorsPageEnabled) {
+    cards.push(creatorsCard);
+  }
+
+  // Don't render the section if no cards are available
+  if (cards.length === 0) {
+    return null;
+  }
 
   return (
     <div className="mx-auto w-full max-w-4xl rounded-lg p-4">
@@ -47,8 +77,8 @@ export function PlaybookCards() {
         </div>
       </div>
 
-      {/* Cards Grid */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+      {/* Cards Grid - Adapts to number of cards */}
+      <div className={`grid grid-cols-1 gap-6 ${cards.length === 3 ? 'md:grid-cols-3' : cards.length === 2 ? 'md:grid-cols-2' : 'md:grid-cols-1'}`}>
         {cards.map((card) => (
           <CardBorderless
             key={card.view}

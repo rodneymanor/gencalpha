@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 
 import { Plus, Filter, X, Star, Calendar, Tag, Type, Globe } from "lucide-react";
+
+import { useIdeaInboxFlag } from "@/hooks/use-feature-flag";
 
 import { IdeaDetailDialog } from "@/app/(main)/dashboard/idea-inbox/_components/idea-detail-dialog";
 import { mapNotesToIdeas } from "@/app/(main)/dashboard/idea-inbox/_components/note-mapper";
@@ -25,6 +28,8 @@ interface FilterState {
 }
 
 export default function IdeasIdeaInboxPage() {
+  const router = useRouter();
+  const isIdeaInboxEnabled = useIdeaInboxFlag();
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [filteredIdeas, setFilteredIdeas] = useState<Idea[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -40,6 +45,18 @@ export default function IdeasIdeaInboxPage() {
     dateRange: "all",
     tags: [],
   });
+
+  // Redirect if feature flag is disabled
+  useEffect(() => {
+    if (!isIdeaInboxEnabled) {
+      router.replace("/dashboard");
+    }
+  }, [isIdeaInboxEnabled, router]);
+
+  // Don't render if feature flag is disabled
+  if (!isIdeaInboxEnabled) {
+    return null;
+  }
 
   useEffect(() => {
     if (!auth) {

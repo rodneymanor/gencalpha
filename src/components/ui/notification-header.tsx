@@ -4,6 +4,7 @@ import React from 'react';
 
 import { Hexagon, Zap } from 'lucide-react';
 
+import { useBrandSettingsFlag } from '@/hooks/use-feature-flag';
 import { NotificationDropdown } from '@/components/ui/notification-dropdown';
 
 interface NotificationHeaderProps {
@@ -19,6 +20,13 @@ export const NotificationHeader: React.FC<NotificationHeaderProps> = ({
   onBrandClick,
   onUpgradeClick
 }) => {
+  const isBrandSettingsEnabled = useBrandSettingsFlag();
+
+  // Hide entire component if brand_settings feature flag is disabled
+  if (!isBrandSettingsEnabled) {
+    return null;
+  }
+
   const handleBrandClick = () => {
     if (onBrandClick) {
       onBrandClick();
@@ -27,6 +35,7 @@ export const NotificationHeader: React.FC<NotificationHeaderProps> = ({
       window.dispatchEvent(new CustomEvent("profile:open"));
     }
   };
+  
   return (
     <div className="flex items-center gap-2">
       {/* Notification Dropdown */}

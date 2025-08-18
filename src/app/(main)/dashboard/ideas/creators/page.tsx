@@ -1,8 +1,11 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 import { UserPlus, Check, ChevronsUpDown } from "lucide-react";
+
+import { useCreatorsPageFlag } from "@/hooks/use-feature-flag";
 
 import CreatorVideosGrid, { type VideoData } from "@/app/(main)/dashboard/daily/_components/creator-videos-grid";
 import { Button } from "@/components/ui/button";
@@ -13,6 +16,8 @@ import { FloatingVideoPlayer, useFloatingVideo } from "@/components/video/video-
 import { transformVideoDataToVideo } from "@/lib/video-player-helpers";
 
 export default function IdeasCreatorsPage() {
+  const router = useRouter();
+  const isCreatorsPageEnabled = useCreatorsPageFlag();
   const { isOpen, currentVideo, openVideo, closeVideo } = useFloatingVideo();
   const [showNewCreatorForm, setShowNewCreatorForm] = useState(false);
   const [selectedCreator, setSelectedCreator] = useState("all");
@@ -24,6 +29,18 @@ export default function IdeasCreatorsPage() {
     }>
   >([]);
   const [comboboxOpen, setComboboxOpen] = useState(false);
+
+  // Redirect if feature flag is disabled
+  useEffect(() => {
+    if (!isCreatorsPageEnabled) {
+      router.replace("/dashboard");
+    }
+  }, [isCreatorsPageEnabled, router]);
+
+  // Don't render if feature flag is disabled
+  if (!isCreatorsPageEnabled) {
+    return null;
+  }
 
   const handleVideoClick = useCallback(
     (videoData: VideoData) => {

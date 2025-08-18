@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 
 import { CheckCircle2, PencilLine, Save, X } from "lucide-react";
 
+import { useBrandSettingsFlag } from "@/hooks/use-feature-flag";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -35,9 +37,15 @@ const CONTENT_TYPES = [
 ];
 
 export function BrandSettingsModal({ open, onOpenChange }: BrandSettingsModalProps) {
+  const isBrandSettingsEnabled = useBrandSettingsFlag();
   const [selections, setSelections] = useState<OnboardingSelections | null>(null);
   const [editMode, setEditMode] = useState(false);
   const [pending, setPending] = useState(false);
+
+  // If feature flag is disabled, don't render the modal
+  if (!isBrandSettingsEnabled) {
+    return null;
+  }
 
   useEffect(() => {
     if (!open) return;

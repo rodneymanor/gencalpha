@@ -12,6 +12,8 @@ import {
   Globe
 } from 'lucide-react'
 
+import { useBrandSettingsFlag } from '@/hooks/use-feature-flag'
+
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -63,8 +65,14 @@ export function BrandSettingsSummaryModal({
   onClose,
   onEdit
 }: BrandSettingsSummaryModalProps) {
+  const isBrandSettingsEnabled = useBrandSettingsFlag()
   const [onboardingData, setOnboardingData] = useState<OnboardingSelections | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+
+  // If feature flag is disabled, don't render the modal
+  if (!isBrandSettingsEnabled) {
+    return null
+  }
 
   useEffect(() => {
     if (isOpen) {

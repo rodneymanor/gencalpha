@@ -12,6 +12,7 @@ import MinimalSlideoutEditor from "@/components/standalone/minimal-slideout-edit
 import { ContextualMenu } from "@/components/standalone/slideout-contextual-menu";
 import { SlideoutHeaderActions } from "@/components/standalone/slideout-header-actions";
 import { UserProfileView } from "@/components/standalone/user-profile-view";
+import { useCreatorsPageFlag, useGhostWriterFlag, useIdeaInboxFlag } from "@/hooks/use-feature-flag";
 import { cn } from "@/lib/utils";
 
 export interface SlideoutOption {
@@ -52,20 +53,53 @@ export function SlideoutWrapper({
   closeEvents = variant === "profile" ? ["profile:close"] : ["write:close-slideout"],
 }: SlideoutWrapperProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const isCreatorsPageEnabled = useCreatorsPageFlag();
+  const isGhostWriterEnabled = useGhostWriterFlag();
+  const isIdeaInboxEnabled = useIdeaInboxFlag();
+  
   // Determine available options (custom or default)
   const isCustomMode = customOptions && customOptions.length > 0;
-  const defaultOptions: SlideoutOption[] =
-    variant === "profile"
-      ? [{ key: "profile", label: "Profile Settings", component: <UserProfileView /> }]
-      : [
-          { key: "ghostwriter", label: "Ghost Writer", component: <MinimalSlideoutEditor /> },
-          { key: "creators", label: "Creators", component: <CreatorsView /> },
-          { key: "ideas", label: "Ideas", component: <IdeasView /> },
-        ];
+  
+  const getDefaultOptions = (): SlideoutOption[] => {
+    if (variant === "profile") {
+      return [{ key: "profile", label: "Profile Settings", component: <UserProfileView /> }];
+    }
+    
+    const baseOptions = [];
+    
+    // Add Ghost Writer tab if feature flag is enabled
+    if (isGhostWriterEnabled) {
+      baseOptions.push({ key: "ghostwriter", label: "Ghost Writer", component: <MinimalSlideoutEditor /> });
+    }
+    
+    // Add Creators tab if feature flag is enabled
+    if (isCreatorsPageEnabled) {
+      baseOptions.push({ key: "creators", label: "Creators", component: <CreatorsView /> });
+    }
+    
+    // Add Ideas tab if feature flag is enabled
+    if (isIdeaInboxEnabled) {
+      baseOptions.push({ key: "ideas", label: "Ideas", component: <IdeasView /> });
+    }
+    
+    return baseOptions;
+  };
+  
+  const defaultOptions: SlideoutOption[] = getDefaultOptions();
 
   const availableOptions = isCustomMode ? customOptions : defaultOptions;
-  const initialSelectedOption =
-    defaultSelectedOption ?? availableOptions[0]?.key ?? (variant === "profile" ? "profile" : "ghostwriter");
+  const getInitialSelectedOption = () => {
+    if (defaultSelectedOption) return defaultSelectedOption;
+    if (variant === "profile") return "profile";
+    if (availableOptions.length > 0) return availableOptions[0].key;
+    // Fallback hierarchy: ghostwriter -> creators -> ideas -> profile
+    if (isGhostWriterEnabled) return "ghostwriter";
+    if (isCreatorsPageEnabled) return "creators";
+    if (isIdeaInboxEnabled) return "ideas";
+    return "profile";
+  };
+  
+  const initialSelectedOption = getInitialSelectedOption();
 
   const [selectedOption, setSelectedOption] = useState<string>(initialSelectedOption);
   const [menuState, setMenuState] = useState<{
@@ -128,15 +162,26 @@ export function SlideoutWrapper({
       const e = ev as CustomEvent<{ view: "ideas" | "ghostwriter" | "creators" }>;
       const view = e.detail?.view;
       if (view) {
-        setSelectedOption(view);
-        setIsOpen(true);
+        // Check if the requested view is available
+        const isViewAvailable = availableOptions.some(option => option.key === view);
+        if (isViewAvailable) {
+          setSelectedOption(view);
+          setIsOpen(true);
+        } else {
+          // If requested view is not available due to feature flag, fallback to first available option
+          const fallbackOption = availableOptions[0]?.key;
+          if (fallbackOption) {
+            setSelectedOption(fallbackOption);
+            setIsOpen(true);
+          }
+        }
       }
     };
     window.addEventListener("playbook:open-slideout", openWithView as EventListener);
     return () => {
       window.removeEventListener("playbook:open-slideout", openWithView as EventListener);
     };
-  }, []);
+  }, [availableOptions, isCreatorsPageEnabled, isGhostWriterEnabled, isIdeaInboxEnabled]);
 
   // Handle contextual interactions from read-only editor
   useEffect(() => {

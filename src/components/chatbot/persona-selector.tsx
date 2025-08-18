@@ -76,10 +76,14 @@ export function PersonaSelector({
         <div className="bg-card border-border rounded-[var(--radius-card)] border p-6 shadow-[var(--shadow-soft-drop)]">
           <div className="flex items-start space-x-4">
             <div className="flex-shrink-0">
-              <div className="bg-secondary/10 flex h-12 w-12 items-center justify-center rounded-[var(--radius-button)]">
+              <div
+                className="bg-secondary/10 flex h-12 w-12 items-center justify-center rounded-[var(--radius-button)]"
+                style={{ backgroundColor: "hsl(var(--secondary, var(--foreground)) / 0.1)" }}
+              >
                 <div className="text-secondary text-xl">
                   {React.cloneElement(selectedPersonaData.icon as React.ReactElement, {
                     className: "h-6 w-6",
+                    style: { color: "hsl(var(--secondary, var(--foreground)))" },
                   })}
                 </div>
               </div>
@@ -101,7 +105,7 @@ export function PersonaSelector({
       {PERSONAS.map(({ key, label, tooltip, icon }) => (
         <Button
           key={key}
-          variant="outline"
+          variant="soft"
           size="sm"
           onClick={() => onPersonaChange(key)}
           className={cn(

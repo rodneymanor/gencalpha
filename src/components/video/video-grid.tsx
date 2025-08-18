@@ -1,12 +1,17 @@
 "use client";
 
 import Image from "next/image";
+import { Play } from "lucide-react";
 
 export interface VideoData {
   id: string;
   title: string;
   creator: string;
   thumbnail: string;
+  platform?: "instagram" | "tiktok" | "youtube";
+  views?: number;
+  likes?: number;
+  duration?: string;
 }
 
 export interface CollectionData {
@@ -66,9 +71,32 @@ export interface CreatorGridProps {
 }
 
 export function VideoCard({ video, onClick }: VideoCardProps) {
+  const formatNumber = (num?: number): string => {
+    if (!num) return "0";
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+    return num.toString();
+  };
+
+  const getPlatformBadge = () => {
+    if (!video.platform) return null;
+    
+    const badgeStyles = {
+      instagram: "bg-muted text-foreground",
+      tiktok: "bg-black text-white",
+      youtube: "bg-red-600 text-white",
+    };
+
+    return (
+      <div className={`absolute top-2 left-2 rounded px-1.5 py-0.5 text-xs font-medium ${badgeStyles[video.platform]}`}>
+        {video.platform.charAt(0).toUpperCase() + video.platform.slice(1)}
+      </div>
+    );
+  };
+
   return (
     <div
-      className="bg-card cursor-pointer overflow-hidden rounded-[var(--radius-card)] shadow-[var(--shadow-soft-drop)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[var(--shadow-hover)]"
+      className="bg-card cursor-pointer overflow-hidden rounded-[var(--radius-card)] shadow-[var(--shadow-soft-drop)] transition-all duration-200 group"
       onClick={() => onClick?.(video)}
     >
       <div className="relative aspect-[9/16] overflow-hidden bg-black">
@@ -76,17 +104,40 @@ export function VideoCard({ video, onClick }: VideoCardProps) {
           src={video.thumbnail}
           alt={video.title}
           fill
-          className="object-cover"
+          className="object-cover transition-all duration-200 group-hover:scale-105"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
+        
+        {/* Hover overlay with darkening effect */}
+        <div className="absolute inset-0 bg-black/0 transition-all duration-200 group-hover:bg-black/10" />
+        
+        {/* Play icon overlay */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-80">
+          <Play className="h-12 w-12 text-white fill-white" />
+        </div>
+        
+        {/* Platform badge */}
+        {getPlatformBadge()}
+        
+        {/* Views badge */}
+        {video.views && (
+          <div className="absolute bottom-2 left-2 flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-white">
+            <Play className="h-3 w-3 fill-white" />
+            {formatNumber(video.views)}
+          </div>
+        )}
+        
       </div>
+      
       <div className="flex items-center gap-3 p-4">
         <div className="bg-muted rounded-pill flex h-8 w-8 flex-shrink-0 items-center justify-center">
           <span className="text-foreground text-xs font-medium">{video.creator.slice(0, 2).toUpperCase()}</span>
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-foreground truncate text-sm font-medium">{video.creator}</p>
-          <p className="text-muted-foreground truncate text-xs">@{video.creator.toLowerCase()}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-muted-foreground truncate text-xs">@{video.creator.toLowerCase()}</p>
+          </div>
         </div>
       </div>
     </div>
@@ -107,7 +158,7 @@ export function CollectionCard({ collection, onClick }: CollectionCardProps) {
           className="object-cover"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
-        <div className="bg-background/90 absolute right-2 bottom-2 rounded-[var(--radius-button)] px-2 py-1 backdrop-blur-sm">
+        <div className="bg-background/90 absolute right-2 bottom-2 rounded-[var(--radius-button)] px-2 py-1">
           <span className="text-foreground text-xs font-medium">{collection.videoCount} videos</span>
         </div>
       </div>
