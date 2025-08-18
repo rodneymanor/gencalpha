@@ -30,9 +30,9 @@
 }
 
 .chat-container.hero-state {
-  /* Hero state positioning - chat input centered */
-  justify-content: center;
-  align-items: center;
+  /* Hero state positioning - handled by .chat-interface styling */
+  justify-content: flex-start;
+  align-items: stretch;
 }
 
 .chat-container.expanded {
@@ -60,15 +60,25 @@
 
 /* Chat Interface Reveal */
 .chat-interface {
-  opacity: 0;
-  transform: translateY(20px);
+  opacity: 1;
+  transform: translateY(0);
   transition: all var(--hero-expand-duration) var(--ease-claude);
-  transition-delay: 150ms; /* Staggered reveal */
+}
+
+/* The interface is always visible, but content positioning changes */
+.chat-container.hero-state .chat-interface {
+  /* Hero state: interface is centered */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
 }
 
 .chat-container.expanded .chat-interface {
-  opacity: 1;
-  transform: translateY(0);
+  /* Expanded state: interface flows normally */
+  display: block;
+  min-height: auto;
 }
 
 /* ========================================
