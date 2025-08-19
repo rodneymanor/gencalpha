@@ -11,7 +11,8 @@
   /* Timing Constants */
   --hero-expand-duration: 400ms;
   --message-appear-duration: 300ms;
-  --slideout-duration: 350ms;
+  --slideout-duration: 400ms;
+  --slideout-close-duration: 250ms;
   --scroll-duration: 250ms;
 }
 
@@ -36,6 +37,12 @@
   transform: translateY(0);
 }
 
+/* Hero state: hide messages area */
+.claude-chat-container.hero-state .chat-messages-area {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
 /* Expanded state: slide up to reveal full chat */
 .claude-chat-container.expanded {
   transform: translateY(0);
@@ -55,6 +62,9 @@
 .hero-content.hero-hidden {
   opacity: 0;
   pointer-events: none;
+  /* Remove hero from layout when chat expands so messages can occupy space */
+  position: absolute;
+  inset: 0;
 }
 
 /* Chat messages area */
@@ -66,7 +76,8 @@
 }
 
 .claude-chat-container.expanded .chat-messages-area {
-  opacity: 1;
+  opacity: 1 !important;
+  pointer-events: auto;
 }
 
 /* Hero Input Animation */
@@ -184,38 +195,68 @@
 }
 
 /* ========================================
-   SLIDEOUT INTEGRATION
+   SLIDEOUT INTEGRATION - FLEXBOX APPROACH
    ======================================== */
 
-/* Main Content Area Adjustment */
+/* Layout Container - Flexbox approach for true responsiveness */
+.slideout-layout-container {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Main Content Area - Naturally flexible */
 .main-content {
-  transition: margin-right var(--slideout-duration) var(--ease-claude);
-  width: 100%;
+  flex: 1;
   min-height: 100vh;
+  overflow: auto;
 }
 
-.main-content.slideout-open {
-  margin-right: min(50vw, 600px);
-}
-
-/* Slideout Panel */
+/* Slideout Panel - Width-based animation */
 .slideout-panel {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  right: 0;
-  width: min(50vw, 600px);
-  transform: translateX(100%);
-  transition: transform var(--slideout-duration) var(--ease-claude);
-  z-index: 50;
-  will-change: transform;
+  width: 0;
+  overflow: hidden;
+  transition: width var(--slideout-duration) var(--ease-claude);
   background: var(--background);
-  border-left: 1px solid var(--border-subtle);
-  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.08);
+  /* Soft UI border - barely visible is the goal */
+  border-left: 1px solid var(--border); /* 6% opacity - design system default */
+  z-index: 50;
 }
 
+/* Panel open states - Mobile first */
 .slideout-panel.open {
-  transform: translateX(0);
+  width: 100vw; /* Mobile: Full width */
+}
+
+/* Tablet: 70% width with max 480px */
+@media (min-width: 768px) {
+  .slideout-panel.open {
+    width: min(70vw, 480px);
+  }
+}
+
+/* Desktop: Fixed widths based on size */
+@media (min-width: 1024px) {
+  .slideout-panel.open {
+    width: 600px; /* Default lg width */
+  }
+  
+  .slideout-panel.open[data-panel-width="sm"] {
+    width: 320px;
+  }
+  
+  .slideout-panel.open[data-panel-width="md"] {
+    width: 384px;
+  }
+  
+  .slideout-panel.open[data-panel-width="xl"] {
+    width: 800px;
+  }
+}
+
+/* Panel closing transition */
+.slideout-panel:not(.open) {
+  transition: width var(--slideout-close-duration) var(--ease-claude);
 }
 
 /* Slideout Content Animation */
@@ -232,64 +273,30 @@
 }
 
 /* ========================================
-   RESPONSIVE BEHAVIOR
+   RESPONSIVE BEHAVIOR - FLEXBOX APPROACH
    ======================================== */
 
-/* Tablet: Overlay with scrim */
-@media (min-width: 768px) and (max-width: 1023px) {
-  .slideout-panel {
-    width: min(70vw, 480px);
-  }
-  
-  .main-content.slideout-open {
-    margin-right: 0;
-    transform: scale(0.95);
-    opacity: 0.7;
-    pointer-events: none;
-  }
-  
-  .slideout-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(2px);
-    opacity: 0;
-    transition: opacity var(--slideout-duration) var(--ease-claude);
-    z-index: 40;
-    pointer-events: none;
-  }
-  
-  .slideout-backdrop.open {
-    opacity: 1;
-    pointer-events: auto;
-  }
+/* Optional: Add overlay effects for mobile/tablet if desired */
+.slideout-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  transition: opacity var(--slideout-duration) var(--ease-claude);
+  z-index: 40;
+  pointer-events: none;
 }
 
-/* Mobile: Full screen takeover */
-@media (max-width: 767px) {
-  .slideout-panel {
-    width: 100vw;
-  }
-  
-  .main-content.slideout-open {
-    margin-right: 0;
-    opacity: 0;
-    pointer-events: none;
-  }
-  
+.slideout-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Hide backdrop on desktop since we use side-by-side layout */
+@media (min-width: 1024px) {
   .slideout-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.3);
-    opacity: 0;
-    transition: opacity var(--slideout-duration) var(--ease-claude);
-    z-index: 40;
-    pointer-events: none;
-  }
-  
-  .slideout-backdrop.open {
-    opacity: 1;
-    pointer-events: auto;
+    display: none;
   }
 }
 
