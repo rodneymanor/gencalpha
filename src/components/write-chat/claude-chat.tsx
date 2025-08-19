@@ -30,6 +30,7 @@ import { useIdeaInboxFlag } from "@/hooks/use-feature-flag";
 import { useScriptGeneration } from "@/hooks/use-script-generation";
 import { buildAuthHeaders } from "@/lib/http/auth-headers";
 import { clientNotesService, type Note } from "@/lib/services/client-notes-service";
+import { detectSocialLink } from "@/lib/utils/social-link-detector";
 
 // primitives moved to a separate file to reduce linter max-lines and improve reuse
 type ClaudeChatProps = {
@@ -233,17 +234,40 @@ export function ClaudeChat({
 
     // Timing utilities and constants imported from helpers
 
-    // If a valid social video URL is present, either show action panel or auto-run analysis if enabled
-    if (hasValidVideoUrl && urlCandidate && urlSupported) {
-      if (analysisEnabled) {
-        // Auto-run inline forensic analysis path
+    // Check if analysis mode is enabled and we have a social URL
+    if (analysisEnabled) {
+      // Immediately detect the URL from the input to avoid timing issues
+      const immediateDetection = detectSocialLink(trimmed);
+
+      // If we have a social media URL, use it directly for analysis
+      if (
+        immediateDetection?.type &&
+        (immediateDetection.type === "instagram" || immediateDetection.type === "tiktok") &&
+        immediateDetection.url
+      ) {
         setIsHeroState(false);
         setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "user", content: trimmed }]);
-        // Trigger analyze flow reusing inline action helper
+        const detectedPlatform = immediateDetection.type;
+        await handleAnalyze({ url: immediateDetection.url, platform: detectedPlatform });
+        setInputValue("");
+        return;
+      }
+
+      // Alternative: check if we have validated URL already
+      if (hasValidVideoUrl && urlCandidate && urlSupported) {
+        setIsHeroState(false);
+        setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "user", content: trimmed }]);
         await handleAnalyze({ url: urlCandidate, platform: urlSupported });
         setInputValue("");
         return;
       }
+    }
+
+    // URL detection (for potential future embed/preview behavior)
+    detectManually(trimmed);
+
+    // If a valid social video URL is present (but not in analysis mode), show action panel
+    if (hasValidVideoUrl && urlCandidate && urlSupported) {
       setIsHeroState(false);
       // Append the user message for context
       setMessages((prev) => [
