@@ -8,11 +8,13 @@ import { ForensicVoiceAnalysisSchema } from "@/lib/validation/voice-analysis-sch
 // Prompts are large; keep inline to reduce imports churn
 const VOICE_ANALYSIS_PROMPT = `You are the industry's most advanced voice pattern recognition AI, capable of extracting a creator's complete speaking DNA from a single video transcript. You specialize in identifying micro-patterns, unconscious speech habits, and the exact linguistic formulas that make each creator unique.
 
-CRITICAL: Return ONLY valid JSON. No text outside the JSON structure.
+CRITICAL: Return ONLY a valid JSON object. Do NOT include any text, explanations, or formatting outside the JSON structure. Do NOT wrap the JSON in markdown code blocks. Do NOT add comments or additional text.
+
+Your response must be PURE JSON only, starting with { and ending with }.
 
 Transform any single video transcript into a comprehensive voice replication blueprint that captures patterns so precisely that generated content becomes indistinguishable from the original creator.
 
-Analyze with FORENSIC PRECISION and return the EXACT JSON structure previously described. Perform FORENSIC-LEVEL analysis. Extract EXACT phrases, patterns, and formulas. This is industry-leading voice replication requiring microscopic precision.`;
+Analyze with FORENSIC PRECISION and return the EXACT JSON structure. Perform FORENSIC-LEVEL analysis. Extract EXACT phrases, patterns, and formulas. This is industry-leading voice replication requiring microscopic precision.`;
 
 export async function POST(request: NextRequest) {
   console.log("🧠 [VOICE_ANALYZE] Forensic analysis start");
@@ -63,7 +65,7 @@ TRANSCRIPT TO ANALYZE:\n${transcript}\n\nRemember: Return ONLY the JSON structur
       maxTokens: 4000,
       responseType: "json",
       systemPrompt:
-        "You are a forensic-level voice pattern analysis model. Output strictly valid JSON adhering to the specified schema.",
+        "You are a forensic-level voice pattern analysis model. Your output must be PURE JSON ONLY - no markdown, no explanations, no text outside the JSON object. Start with { and end with }. Adhere strictly to the specified schema.",
     });
 
     if (!ai.success || !ai.content) {
@@ -73,9 +75,34 @@ TRANSCRIPT TO ANALYZE:\n${transcript}\n\nRemember: Return ONLY the JSON structur
     // Attempt to parse JSON (Gemini returns string content)
     let parsed: unknown;
     try {
-      parsed = typeof ai.content === "string" ? JSON.parse(ai.content) : ai.content;
+      const rawContent = typeof ai.content === "string" ? ai.content : JSON.stringify(ai.content);
+      console.log("🔍 [VOICE_ANALYZE] Raw AI content (first 500 chars):", rawContent.slice(0, 500));
+
+      // Try to clean up the JSON if it has markdown formatting
+      let cleanedContent = rawContent;
+      if (rawContent.includes("```json")) {
+        // Extract JSON from markdown code blocks
+        const jsonMatch = rawContent.match(/```json\s*([\s\S]*?)\s*```/);
+        if (jsonMatch && jsonMatch[1]) {
+          cleanedContent = jsonMatch[1].trim();
+          console.log("🧹 [VOICE_ANALYZE] Extracted JSON from markdown");
+        }
+      } else if (rawContent.includes("```")) {
+        // Extract JSON from generic code blocks
+        const codeMatch = rawContent.match(/```\s*([\s\S]*?)\s*```/);
+        if (codeMatch && codeMatch[1]) {
+          cleanedContent = codeMatch[1].trim();
+          console.log("🧹 [VOICE_ANALYZE] Extracted JSON from code block");
+        }
+      }
+
+      parsed = JSON.parse(cleanedContent);
     } catch (e) {
       console.error("❌ [VOICE_ANALYZE] JSON parse error", e);
+      console.error(
+        "❌ [VOICE_ANALYZE] Failed content:",
+        typeof ai.content === "string" ? ai.content.slice(0, 1000) : ai.content,
+      );
       return NextResponse.json({ success: false, error: "Invalid JSON returned from model" }, { status: 422 });
     }
 

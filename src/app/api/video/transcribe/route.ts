@@ -17,9 +17,9 @@ export async function POST(request: NextRequest) {
     const contentType = request.headers.get("content-type");
 
     if (contentType?.includes("application/json")) {
-      return await handleCdnTranscription(request);
+      return await handleCdnTranscription(request, authResult);
     } else {
-      return await handleFileTranscription(request);
+      return await handleFileTranscription(request, authResult);
     }
   } catch (error) {
     console.error("❌ [TRANSCRIBE] Transcription error:", error);
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function handleCdnTranscription(request: NextRequest) {
+async function handleCdnTranscription(request: NextRequest, authResult: { user: { uid: string } }) {
   const { videoUrl, platform } = await request.json();
 
   if (!videoUrl) {
@@ -171,7 +171,7 @@ async function tryTikTokScraperFallback(videoUrl: string) {
   };
 }
 
-async function handleFileTranscription(request: NextRequest) {
+async function handleFileTranscription(request: NextRequest, authResult: { user: { uid: string } }) {
   const formData = await request.formData();
   const file = formData.get("video") as File;
 
