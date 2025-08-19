@@ -14,7 +14,209 @@ Your response must be PURE JSON only, starting with { and ending with }.
 
 Transform any single video transcript into a comprehensive voice replication blueprint that captures patterns so precisely that generated content becomes indistinguishable from the original creator.
 
-Analyze with FORENSIC PRECISION and return the EXACT JSON structure. Perform FORENSIC-LEVEL analysis. Extract EXACT phrases, patterns, and formulas. This is industry-leading voice replication requiring microscopic precision.`;
+You MUST return a JSON object with this EXACT structure (all fields are required):
+
+{
+  "metadata": {
+    "creatorName": "string",
+    "transcriptWordCount": number,
+    "transcriptDuration": "string",
+    "accuracyLevel": "Limited" | "Optimal" | "Excessive",
+    "analysisTimestamp": "ISO date string",
+    "confidenceScore": number
+  },
+  "hookEngineering": {
+    "taxonomy": {
+      "questionHooks": {
+        "pattern": "string",
+        "exactExamplesFromTranscript": ["string"],
+        "frequency": number,
+        "subPatterns": [{"structure": "string", "example": "string", "usage": "string"}],
+        "generatedVariations": ["string"]
+      },
+      "storyHooks": {
+        "pattern": "string",
+        "exactExamplesFromTranscript": ["string"],
+        "frequency": number,
+        "narrativeStyle": "string",
+        "generatedVariations": ["string"]
+      },
+      "statementHooks": {
+        "pattern": "string",
+        "exactExamplesFromTranscript": ["string"],
+        "frequency": number,
+        "boldnessLevel": "conservative" | "moderate" | "aggressive",
+        "generatedVariations": ["string"]
+      },
+      "problemSolutionHooks": {
+        "pattern": "string",
+        "exactExamplesFromTranscript": ["string"],
+        "frequency": number,
+        "tensionBuildStyle": "string",
+        "generatedVariations": ["string"]
+      }
+    },
+    "primaryHookFormula": {
+      "type": "question" | "story" | "statement" | "problem_solution",
+      "usagePercentage": number,
+      "signature": "string"
+    }
+  },
+  "sentenceArchitecturePatterns": {
+    "bridgeDetectionSystem": {
+      "conjunctionPatterns": [
+        {
+          "word": "string",
+          "occurrences": number,
+          "rank": number,
+          "contexts": ["string"]
+        }
+      ],
+      "bridgePhrases": {
+        "afterPoint": {"exactPhrase": "string", "frequency": number, "example": "string"},
+        "beforeExamples": {"exactPhrase": "string", "frequency": number, "example": "string"},
+        "topicChange": {"exactPhrase": "string", "frequency": number, "example": "string"},
+        "buildingAnticipation": {"exactPhrase": "string", "frequency": number, "example": "string"},
+        "circlingBack": {"exactPhrase": "string", "frequency": number, "example": "string"}
+      }
+    },
+    "sentenceFlowFormulas": [
+      {
+        "patternName": "string",
+        "structure": "string",
+        "usagePercentage": number,
+        "example": "string",
+        "components": {
+          "opening": "string",
+          "middle": "string",
+          "closing": "string"
+        }
+      }
+    ]
+  },
+  "microLanguageFingerprint": {
+    "adjectiveStackingPatterns": {
+      "single": {
+        "percentage": number,
+        "structure": "string",
+        "topAdjectives": ["string"],
+        "examples": ["string"]
+      },
+      "double": {
+        "percentage": number,
+        "structure": "string",
+        "commonCombos": [{"combo": "string", "frequency": number, "example": "string"}]
+      },
+      "triple": {
+        "percentage": number,
+        "structure": "string",
+        "examples": ["string"]
+      },
+      "signatureCombinations": ["string"]
+    },
+    "emphasisEscalationLadder": {
+      "mild": {"words": ["string"], "usage": "string", "frequency": "string"},
+      "medium": {"words": ["string"], "usage": "string", "frequency": "string"},
+      "strong": {"words": ["string"], "usage": "string", "frequency": "string"},
+      "peak": {"words": ["string"], "usage": "string", "frequency": "string"},
+      "progressionPattern": "string"
+    },
+    "unconsciousVerbalTics": {
+      "thinkingPauses": {
+        "exactFiller": "string",
+        "averagePauseLength": "string",
+        "occurrenceRate": "string",
+        "placement": "string"
+      },
+      "excitementMarkers": {
+        "indicators": ["string"],
+        "physicalDescription": "string",
+        "frequency": "string"
+      },
+      "uncertaintyMarkers": {
+        "phrases": ["string"],
+        "pattern": "string",
+        "frequency": "string"
+      },
+      "agreementBuilders": {
+        "phrases": ["string"],
+        "technique": "string",
+        "frequency": "string"
+      }
+    }
+  },
+  "contentRhythmMapping": {
+    "paragraphBreathingPattern": {
+      "shortBurst": {"sentenceCount": number, "wordCount": number, "percentage": number, "purpose": "string"},
+      "mediumFlow": {"sentenceCount": number, "wordCount": number, "percentage": number, "purpose": "string"},
+      "longForm": {"sentenceCount": number, "wordCount": number, "percentage": number, "purpose": "string"},
+      "naturalPattern": "string"
+    },
+    "energyWavePattern": {
+      "opening": {"level": "string", "duration": "string", "markers": ["string"]},
+      "buildup": {"level": "string", "duration": "string", "markers": ["string"]},
+      "peak": {"level": "string", "duration": "string", "markers": ["string"]},
+      "resolution": {"level": "string", "duration": "string", "markers": ["string"]},
+      "waveShape": "string"
+    }
+  },
+  "instantReplicationFormula": {
+    "step1": "string",
+    "step2": "string",
+    "step3": "string",
+    "keyIngredients": ["string"],
+    "criticalTiming": "string"
+  },
+  "patternFrequencyGuide": {
+    "mustInclude": {
+      "everyScript": ["string"],
+      "everyParagraph": ["string"],
+      "every3Sentences": ["string"],
+      "every5Sentences": ["string"]
+    },
+    "ratios": {
+      "hookTypeDistribution": {"primary": number, "secondary": number, "tertiary": number},
+      "sentencePatternDistribution": {"patternA": number, "patternB": number, "patternC": number},
+      "bridgeFrequency": "string",
+      "ticFrequency": "string"
+    }
+  },
+  "authenticityVerification": {
+    "checklist": {
+      "hookMatchesTop2": boolean,
+      "bridgeWordsCorrectFrequency": boolean,
+      "sentencePatternsRotated": boolean,
+      "adjectiveCombosMatch": boolean,
+      "energyProgressionFollowed": boolean,
+      "unconsciousTicsInserted": boolean,
+      "conjunctionHierarchyRespected": boolean,
+      "paragraphLengthsMatch": boolean
+    },
+    "qualityMetrics": {
+      "patternMatchScore": number,
+      "hookSimilarity": number,
+      "bridgeAccuracy": number,
+      "sentencePatterns": number,
+      "vocabularyMatch": number,
+      "rhythmReplication": number,
+      "overallScore": number
+    },
+    "redFlags": ["string"]
+  },
+  "sampleOutputParagraph": {
+    "generatedText": "string",
+    "annotatedBreakdown": [
+      {
+        "sentence": "string",
+        "patternUsed": "string",
+        "bridgeUsed": "string",
+        "emphasisLevel": "string"
+      }
+    ]
+  }
+}
+
+Analyze with FORENSIC PRECISION and return the EXACT JSON structure above. Perform FORENSIC-LEVEL analysis. Extract EXACT phrases, patterns, and formulas. This is industry-leading voice replication requiring microscopic precision.`;
 
 export async function POST(request: NextRequest) {
   console.log("🧠 [VOICE_ANALYZE] Forensic analysis start");
@@ -62,7 +264,7 @@ TRANSCRIPT TO ANALYZE:\n${transcript}\n\nRemember: Return ONLY the JSON structur
       prompt: enhancedPrompt,
       model: "gemini-1.5-pro",
       temperature: 0.3,
-      maxTokens: 4000,
+      maxTokens: 8000,
       responseType: "json",
       systemPrompt:
         "You are a forensic-level voice pattern analysis model. Your output must be PURE JSON ONLY - no markdown, no explanations, no text outside the JSON object. Start with { and end with }. Adhere strictly to the specified schema.",
@@ -76,7 +278,6 @@ TRANSCRIPT TO ANALYZE:\n${transcript}\n\nRemember: Return ONLY the JSON structur
     let parsed: unknown;
     try {
       const rawContent = typeof ai.content === "string" ? ai.content : JSON.stringify(ai.content);
-      console.log("🔍 [VOICE_ANALYZE] Raw AI content (first 500 chars):", rawContent.slice(0, 500));
 
       // Try to clean up the JSON if it has markdown formatting
       let cleanedContent = rawContent;
@@ -85,14 +286,12 @@ TRANSCRIPT TO ANALYZE:\n${transcript}\n\nRemember: Return ONLY the JSON structur
         const jsonMatch = rawContent.match(/```json\s*([\s\S]*?)\s*```/);
         if (jsonMatch && jsonMatch[1]) {
           cleanedContent = jsonMatch[1].trim();
-          console.log("🧹 [VOICE_ANALYZE] Extracted JSON from markdown");
         }
       } else if (rawContent.includes("```")) {
         // Extract JSON from generic code blocks
         const codeMatch = rawContent.match(/```\s*([\s\S]*?)\s*```/);
         if (codeMatch && codeMatch[1]) {
           cleanedContent = codeMatch[1].trim();
-          console.log("🧹 [VOICE_ANALYZE] Extracted JSON from code block");
         }
       }
 
@@ -100,7 +299,7 @@ TRANSCRIPT TO ANALYZE:\n${transcript}\n\nRemember: Return ONLY the JSON structur
     } catch (e) {
       console.error("❌ [VOICE_ANALYZE] JSON parse error", e);
       console.error(
-        "❌ [VOICE_ANALYZE] Failed content:",
+        "❌ [VOICE_ANALYZE] Failed content (first 1000 chars):",
         typeof ai.content === "string" ? ai.content.slice(0, 1000) : ai.content,
       );
       return NextResponse.json({ success: false, error: "Invalid JSON returned from model" }, { status: 422 });
