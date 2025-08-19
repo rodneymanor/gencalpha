@@ -103,10 +103,10 @@
 
   /* Enhanced Border System - More Subtle */
   --border-transparent: transparent;
-  --border-subtle: rgba(0,0,0,0.03);
-  --border-hover: rgba(0,0,0,0.08);
-  --border-visible: rgba(0,0,0,0.12);
-  --border-focus: rgba(29, 41, 63, 0.2);
+  --border-subtle: rgba(0,0,0,0.08);
+  --border-hover: rgba(0,0,0,0.12);
+  --border-visible: rgba(0,0,0,0.16);
+  --border-focus: rgba(29, 41, 63, 0.25);
 
   /* Soft UI Background Layers */
   --background-elevated: rgba(255, 255, 255, 0.5);
@@ -212,10 +212,10 @@
 
   /* Enhanced Border System - Dark - More Subtle */
   --border-transparent: transparent;
-  --border-subtle: rgba(255,255,255,0.04);
-  --border-hover: rgba(255,255,255,0.10);
-  --border-visible: rgba(255,255,255,0.15);
-  --border-focus: rgba(29, 41, 63, 0.3);
+  --border-subtle: rgba(255,255,255,0.08);
+  --border-hover: rgba(255,255,255,0.14);
+  --border-visible: rgba(255,255,255,0.19);
+  --border-focus: rgba(29, 41, 63, 0.35);
 
   /* Soft UI Background Layers - Dark */
   --background-elevated: rgba(38, 38, 37, 0.5);

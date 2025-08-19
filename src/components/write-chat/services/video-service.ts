@@ -11,15 +11,21 @@ export async function transcribeVideo(args: { url: string; platform: "instagram"
 
 export async function stylometricAnalysis(args: { transcript: string; url: string; platform: "instagram" | "tiktok" }) {
   const { transcript, url, platform } = args;
-  const analysisData = await postJson<{ analysis: string }>("/api/gemini/stylometric-analysis", {
+  const analysisData = await postJson<{ success: boolean; analysis: unknown }>("/api/voice/analyze", {
     transcript,
     sourceUrl: url,
     platform,
   });
-  return analysisData.analysis;
+  if (!analysisData?.success || !analysisData.analysis) throw new Error("Forensic analysis failed");
+  return analysisData.analysis as unknown;
 }
 
-export async function emulateStyle(args: { transcript: string; url: string; platform: "instagram" | "tiktok"; newTopic: string }) {
+export async function emulateStyle(args: {
+  transcript: string;
+  url: string;
+  platform: "instagram" | "tiktok";
+  newTopic: string;
+}) {
   const { transcript, url, platform, newTopic } = args;
   const emulationData = await postJson<{
     script: { hook: string; bridge: string; goldenNugget: string; wta: string };
@@ -44,4 +50,17 @@ export async function generateHooks(args: { transcript: string }) {
   return hooksResp;
 }
 
-
+export async function generateScriptFromVoice(args: {
+  analysis: unknown;
+  topic: string;
+  length: "short" | "medium" | "long";
+}) {
+  const { analysis, topic, length } = args;
+  const resp = await postJson<{ success: boolean; script: unknown }>("/api/voice/generate", {
+    analysis,
+    topic,
+    length,
+  });
+  if (!resp.success) throw new Error("Script generation failed");
+  return resp.script;
+}

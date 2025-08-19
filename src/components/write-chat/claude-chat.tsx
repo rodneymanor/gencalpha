@@ -103,6 +103,7 @@ export function ClaudeChat({
   // Voice recording
   const { isRecording, toggle: toggleRecording } = useVoiceRecorder({ onTranscription: setInputValue });
   const [showListening, setShowListening] = useState(true);
+  const [analysisEnabled, setAnalysisEnabled] = useState(false);
 
   // Enhanced smooth scrolling with message manager
   useEffect(() => {
@@ -170,7 +171,7 @@ export function ClaudeChat({
   // hasValidVideoUrl provided by useUrlDetection
 
   // Personas list no longer needed here; PersonaSelector renders from internal source
-  const resolvedName = userProfile?.displayName ?? user?.displayName;
+  const resolvedName = userProfile?.displayName ?? user?.displayName ?? null;
 
   const handleSend = async (value: string) => {
     const trimmed = value.trim();
@@ -187,15 +188,15 @@ export function ClaudeChat({
       const lower = text.toLowerCase();
 
       // 1) Script intent has top priority (even if the text also mentions "ideas")
-      const hasScriptIntent = Boolean(
-        lower.match(/\bwrite\s+(?:a\s+)?script\b/i) ??
-          lower.match(/\bscript\b/i) ??
-          lower.match(/^\s*\/script\b/i) ??
-          lower.match(/generate\s+script/i),
-      );
+      const hasScriptIntent =
+        /\bwrite\s+(?:a\s+)?script\b/i.test(lower) ||
+        /\bscript\b/i.test(lower) ||
+        /^\s*\/script\b/i.test(lower) ||
+        /generate\s+script/i.test(lower);
       if (hasScriptIntent) {
         // Try to extract the topic from common patterns
-        const topicAboutMatch = text.match(/\b(?:about|on)\s+([^.!?\n\r]{3,})/i);
+        // Safe regex for topic extraction
+        const topicAboutMatch = /\b(?:about|on)\s+([^.!?\n\r]{3,})/i.exec(text);
         const topicFromAbout = topicAboutMatch ? topicAboutMatch[1].trim() : undefined;
         const topic = topicFromAbout
           ? topicFromAbout.split(/\s+/).slice(0, 10).join(" ")
@@ -232,8 +233,17 @@ export function ClaudeChat({
 
     // Timing utilities and constants imported from helpers
 
-    // If a valid social video URL is present, transition to chat and show inline action options
+    // If a valid social video URL is present, either show action panel or auto-run analysis if enabled
     if (hasValidVideoUrl && urlCandidate && urlSupported) {
+      if (analysisEnabled) {
+        // Auto-run inline forensic analysis path
+        setIsHeroState(false);
+        setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "user", content: trimmed }]);
+        // Trigger analyze flow reusing inline action helper
+        await handleAnalyze({ url: urlCandidate, platform: urlSupported });
+        setInputValue("");
+        return;
+      }
       setIsHeroState(false);
       // Append the user message for context
       setMessages((prev) => [
@@ -518,7 +528,7 @@ export function ClaudeChat({
           resolvedName={resolvedName}
           inputValue={inputValue}
           setInputValue={setInputValue}
-                placeholder={isRecording ? (showListening ? "listening..." : "") : placeholder}
+          placeholder={isRecording ? (showListening ? "listening..." : "") : placeholder}
           isRecording={isRecording}
           showListening={showListening}
           isUrlProcessing={isUrlProcessing}
@@ -526,7 +536,7 @@ export function ClaudeChat({
           hasValidVideoUrl={hasValidVideoUrl}
           handleSend={handleSend}
           heroInputRef={heroInputRef}
-                  selectedPersona={selectedPersona}
+          selectedPersona={selectedPersona}
           setSelectedPersona={setSelectedPersona}
           isIdeaMode={isIdeaMode}
           setIsIdeaMode={setIsIdeaMode}
@@ -568,6 +578,8 @@ export function ClaudeChat({
             setInputValue={setInputValue}
             onSubmit={() => handleSend(inputValue)}
             textareaRef={textareaRef}
+            analysisEnabled={analysisEnabled}
+            onToggleAnalysis={(next) => setAnalysisEnabled(next)}
           />
         </div>
       </div>
