@@ -5,22 +5,10 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 
 //
-import { ArrowUp, SlidersHorizontal, Lightbulb, Pencil, Loader2, Mic, Bot, Brain } from "lucide-react";
+// icons moved to presentational components
 
-import { type PersonaType, PersonaSelector } from "@/components/chatbot/persona-selector";
-// header dropdown moved to parent wrapper
-import { AdvancedSlidingSwitch } from "@/components/ui/advanced-sliding-switch";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { type PersonaType } from "@/components/chatbot/persona-selector";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { startAckWithLoader, finishAndRemoveLoader } from "@/components/write-chat/ack-helpers";
 import {
   ACK_BEFORE_SLIDE_MS,
   SLIDE_DURATION_MS,
@@ -28,23 +16,20 @@ import {
   VIDEO_ACTIONS,
   EMULATE_INPUT,
 } from "@/components/write-chat/constants";
-import { AckLoader } from "@/components/write-chat/messages/ack-loader";
-import { EmulateInputPanel } from "@/components/write-chat/messages/emulate-input-panel";
-import { VideoActionsPanel } from "@/components/write-chat/messages/video-actions-panel";
-import { PlaybookCards } from "@/components/write-chat/playbook-cards";
-import { PromptComposer } from "@/components/write-chat/prompt-composer";
+import { useInlineVideoActions } from "@/components/write-chat/hooks/use-inline-video-actions";
+import { useUrlDetection } from "@/components/write-chat/hooks/use-url-detection";
+import { useVoiceRecorder } from "@/components/write-chat/hooks/use-voice-recorder";
+import { MessageList } from "@/components/write-chat/messages/message-list";
+import { FixedChatInput } from "@/components/write-chat/presentation/fixed-chat-input";
+import { HeroSection } from "@/components/write-chat/presentation/hero-section";
 import { useSmoothMessageManager } from "@/components/write-chat/smooth-message-manager";
 import { type ChatMessage } from "@/components/write-chat/types";
 import { sendToSlideout, delay } from "@/components/write-chat/utils";
 import { useAuth } from "@/contexts/auth-context";
 import { useIdeaInboxFlag } from "@/hooks/use-feature-flag";
 import { useScriptGeneration } from "@/hooks/use-script-generation";
-import { auth as firebaseAuth } from "@/lib/firebase";
 import { buildAuthHeaders } from "@/lib/http/auth-headers";
-import { postJson } from "@/lib/http/post-json";
 import { clientNotesService, type Note } from "@/lib/services/client-notes-service";
-import { detectSocialLink, type DetectionResult } from "@/lib/utils/social-link-detector";
-import { ensureResolved } from "@/lib/video/ensure-resolved";
 
 // primitives moved to a separate file to reduce linter max-lines and improve reuse
 type ClaudeChatProps = {
@@ -82,13 +67,9 @@ export function ClaudeChat({
   const [isIdeaMode, setIsIdeaMode] = useState(false);
   const [ideaSaveMessage, setIdeaSaveMessage] = useState<string | null>(null);
   const mountedRef = useRef(true);
-  const [linkDetection, setLinkDetection] = useState<DetectionResult | null>(null);
-  // removed unused: actionsOpen state
-  const [urlCandidate, setUrlCandidate] = useState<string | null>(null);
-  const [urlSupported, setUrlSupported] = useState<false | "instagram" | "tiktok" | null>(null);
-  const [isUrlProcessing, setIsUrlProcessing] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const setUrlReachable = (_v: boolean | null) => {};
+  // URL detection & validation
+  const { linkDetection, urlCandidate, urlSupported, isUrlProcessing, hasValidVideoUrl, detectManually } =
+    useUrlDetection(inputValue);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -106,13 +87,21 @@ export function ClaudeChat({
 
   // Inline video action selection state
   const [videoPanel, setVideoPanel] = useState<{ url: string; platform: "instagram" | "tiktok" } | null>(null);
-  const [activeAction, setActiveAction] = useState<null | "transcribe" | "analyze" | "emulate" | "ideas" | "hooks">(
-    null,
-  );
-  const [awaitingEmulateInput, setAwaitingEmulateInput] = useState(false);
-  const [emulateIdea, setEmulateIdea] = useState("");
-  const [isRecording, setIsRecording] = useState(false);
-  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const {
+    activeAction,
+    awaitingEmulateInput,
+    emulateIdea,
+    setEmulateIdea,
+    handleTranscribe,
+    handleAnalyze,
+    handleEmulateStart,
+    handleEmulateSubmit,
+    handleIdeas,
+    handleHooks,
+  } = useInlineVideoActions({ setMessages, onAnswerReady });
+
+  // Voice recording
+  const { isRecording, toggle: toggleRecording } = useVoiceRecorder({ onTranscription: setInputValue });
   const [showListening, setShowListening] = useState(true);
 
   // Enhanced smooth scrolling with message manager
@@ -178,62 +167,7 @@ export function ClaudeChat({
     };
   }, [isRecording]);
 
-  // Debounced URL detection + validation (300ms)
-  useEffect(() => {
-    const controller = new AbortController();
-    const handle = setTimeout(async () => {
-      const detection = detectSocialLink(inputValue);
-      setLinkDetection(detection);
-      if (detection.type === "instagram" || detection.type === "tiktok") {
-        setUrlCandidate(detection.url ?? null);
-        setIsUrlProcessing(true);
-        try {
-          const token =
-            firebaseAuth && firebaseAuth.currentUser && typeof firebaseAuth.currentUser.getIdToken === "function"
-              ? await firebaseAuth.currentUser.getIdToken()
-              : undefined;
-          const res = await fetch("/api/url/validate", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              ...(token ? { authorization: `Bearer ${token}` } : {}),
-            },
-            body: JSON.stringify({ url: detection.url }),
-            signal: controller.signal,
-          });
-          if (!res.ok) throw new Error(String(res.status));
-          const data: {
-            success: boolean;
-            isSupported: boolean;
-            isReachable: boolean;
-            platform: "instagram" | "tiktok" | null;
-          } = await res.json();
-          if (data.success && data.isSupported && data.platform) {
-            setUrlSupported(data.platform);
-            setUrlReachable(!!data.isReachable);
-          } else {
-            setUrlSupported(false);
-            setUrlReachable(false);
-          }
-        } catch {
-          setUrlSupported(false);
-          setUrlReachable(false);
-        } finally {
-          setIsUrlProcessing(false);
-        }
-      } else {
-        setUrlCandidate(null);
-        setUrlSupported(null);
-        setIsUrlProcessing(false);
-      }
-    }, 300);
-    return () => {
-      clearTimeout(handle);
-      controller.abort();
-    };
-  }, [inputValue]);
-
-  const hasValidVideoUrl = Boolean(urlCandidate && urlSupported);
+  // hasValidVideoUrl provided by useUrlDetection
 
   // Personas list no longer needed here; PersonaSelector renders from internal source
   const resolvedName = userProfile?.displayName ?? user?.displayName;
@@ -337,8 +271,7 @@ export function ClaudeChat({
     }
 
     // URL detection (for potential future embed/preview behavior)
-    const detection = detectSocialLink(trimmed);
-    setLinkDetection(detection);
+    detectManually(trimmed);
 
     // 1) Push user message immediately
     const userMessageId = crypto.randomUUID();
@@ -554,213 +487,10 @@ export function ClaudeChat({
 
   // Helpers for inline actions are imported
 
-  // Voice recording
-  const handleVoiceRecording = async () => {
-    if (isRecording) {
-      if (mediaRecorder) {
-        mediaRecorder.stop();
-        setIsRecording(false);
-      }
-      return;
-    }
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
-      const audioChunks: Blob[] = [];
-      recorder.ondataavailable = (event) => {
-        audioChunks.push(event.data);
-      };
-      recorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
-        await processVoiceRecording(audioBlob);
-        stream.getTracks().forEach((t) => t.stop());
-      };
-      recorder.start();
-      setMediaRecorder(recorder);
-      setIsRecording(true);
-    } catch (err) {
-      console.error("Error accessing microphone:", err);
-    }
-  };
-
-  const processVoiceRecording = async (audioBlob: Blob) => {
-    try {
-      const user = firebaseAuth?.currentUser;
-      if (!user || typeof user.getIdToken !== "function") {
-        console.error("Please sign in to use voice transcription");
-        return;
-      }
-      const token = await user.getIdToken();
-      const arrayBuffer = await audioBlob.arrayBuffer();
-      const base64Audio = Buffer.from(arrayBuffer).toString("base64");
-      const response = await fetch("/api/transcribe/voice", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ audio: base64Audio, format: "wav" }),
-      });
-      const result = await response.json();
-      if (result.success && result.transcription) {
-        setInputValue(result.transcription as string);
-      } else {
-        console.error("Transcription failed:", result.error);
-      }
-    } catch (error) {
-      console.error("Error processing voice recording:", error);
-    }
-  };
-
-  const handleInlineTranscribe = async () => {
-    if (!videoPanel) return;
-    setActiveAction("transcribe");
-    startAckWithLoader(setMessages, "I'll transcribe this video for you.");
-    try {
-      const { url, platform } = await ensureResolved(videoPanel);
-      const t = await postJson<{ transcript: string }>("/api/video/transcribe", { videoUrl: url, platform });
-      if (!t.transcript) throw new Error("No transcript received from server");
-      const markdown = `# Transcript\n\n${t.transcript}`;
-      sendToSlideout(markdown);
-      finishAndRemoveLoader(setMessages);
-      onAnswerReady?.();
-    } catch (error) {
-      finishAndRemoveLoader(setMessages);
-      const errorMessage = error instanceof Error ? error.message : "Transcription failed";
-      setMessages((prev) => [
-        ...prev,
-        { id: crypto.randomUUID(), role: "assistant", content: `Error: ${errorMessage}` },
-      ]);
-    } finally {
-      setActiveAction(null);
-    }
-  };
-
-  const handleInlineAnalyze = async () => {
-    if (!videoPanel) return;
-    setActiveAction("analyze");
-    startAckWithLoader(setMessages, "I'll perform advanced stylometric analysis using Gemini AI.");
-    try {
-      const { url, platform } = await ensureResolved(videoPanel);
-      const t = await postJson<{ transcript: string }>("/api/video/transcribe", { videoUrl: url, platform });
-      if (!t.transcript) throw new Error("Could not get transcript for analysis");
-      const analysisData = await postJson<{ analysis: string }>("/api/gemini/stylometric-analysis", {
-        transcript: t.transcript,
-        sourceUrl: url,
-        platform,
-      });
-      const markdown = `# Advanced Stylometric Analysis\n\n${analysisData.analysis}`;
-      sendToSlideout(markdown);
-      finishAndRemoveLoader(setMessages);
-      onAnswerReady?.();
-    } catch (error) {
-      finishAndRemoveLoader(setMessages);
-      const errorMessage = error instanceof Error ? error.message : "Stylometric analysis failed";
-      setMessages((prev) => [
-        ...prev,
-        { id: crypto.randomUUID(), role: "assistant", content: `Error: ${errorMessage}` },
-      ]);
-    } finally {
-      setActiveAction(null);
-    }
-  };
-
+  // Inline emulate prompt message injection
   const handleInlineEmulateStart = () => {
-    setAwaitingEmulateInput(true);
+    handleEmulateStart();
     setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "assistant", content: EMULATE_INPUT }]);
-  };
-
-  const handleInlineEmulateSubmit = async () => {
-    if (!videoPanel || !emulateIdea.trim()) return;
-    setActiveAction("emulate");
-    startAckWithLoader(setMessages, "I'll help you write a script about your idea in this creator's style.");
-    try {
-      const { url, platform } = await ensureResolved(videoPanel);
-      const t = await postJson<{ transcript: string }>("/api/video/transcribe", { videoUrl: url, platform });
-      if (!t.transcript) throw new Error("Could not get transcript for script generation");
-      const emulationData = await postJson<{
-        script: { hook: string; bridge: string; goldenNugget: string; wta: string };
-      }>("/api/style/emulate", {
-        transcript: t.transcript,
-        sourceUrl: url,
-        platform,
-        newTopic: emulateIdea.trim(),
-      });
-      const markdown = `# Generated Script\n\n## Hook\n${emulationData.script.hook}\n\n## Bridge\n${emulationData.script.bridge}\n\n## Golden Nugget\n${emulationData.script.goldenNugget}\n\n## Call to Action\n${emulationData.script.wta}`;
-      sendToSlideout(markdown);
-      finishAndRemoveLoader(setMessages);
-      onAnswerReady?.();
-      setAwaitingEmulateInput(false);
-      setEmulateIdea("");
-    } catch (error) {
-      finishAndRemoveLoader(setMessages);
-      const errorMessage = error instanceof Error ? error.message : "Script generation failed";
-      setMessages((prev) => [
-        ...prev,
-        { id: crypto.randomUUID(), role: "assistant", content: `Error: ${errorMessage}` },
-      ]);
-    } finally {
-      setActiveAction(null);
-    }
-  };
-
-  const handleInlineIdeas = async () => {
-    if (!videoPanel) return;
-    setActiveAction("ideas");
-    startAckWithLoader(setMessages, "I'll help you create 10 content ideas.");
-    try {
-      const { url, platform } = await ensureResolved(videoPanel);
-      const t = await postJson<{ transcript: string }>("/api/video/transcribe", { videoUrl: url, platform });
-      if (!t.transcript) throw new Error("Could not get transcript for idea generation");
-      const ideasData = await postJson<{ ideas: string }>("/api/content/ideas", {
-        transcript: t.transcript,
-        sourceUrl: url,
-      });
-      const markdown = `# Content Ideas\n\n${ideasData.ideas}`;
-      sendToSlideout(markdown);
-      finishAndRemoveLoader(setMessages);
-      onAnswerReady?.();
-    } catch (error) {
-      finishAndRemoveLoader(setMessages);
-      const errorMessage = error instanceof Error ? error.message : "Ideas generation failed";
-      setMessages((prev) => [
-        ...prev,
-        { id: crypto.randomUUID(), role: "assistant", content: `Error: ${errorMessage}` },
-      ]);
-    } finally {
-      setActiveAction(null);
-    }
-  };
-
-  const handleInlineHooks = async () => {
-    if (!videoPanel) return;
-    setActiveAction("hooks");
-    startAckWithLoader(setMessages, "I'll help you write hooks.");
-    try {
-      const { url, platform } = await ensureResolved(videoPanel);
-      const t = await postJson<{ transcript: string }>("/api/video/transcribe", { videoUrl: url, platform });
-      if (!t.transcript) throw new Error("Could not get transcript for hook generation");
-      const hooksResp = await postJson<{
-        success: boolean;
-        hooks: Array<{ text: string; rating: number; focus: string; rationale: string }>;
-        topHook: { text: string; rating: number };
-      }>("/api/video/generate-hooks", { transcript: t.transcript });
-      if (!hooksResp.success || !Array.isArray(hooksResp.hooks)) throw new Error("Hook generation failed");
-      const list = hooksResp.hooks.map((h, i) => `${i + 1}. ${h.text} — ${h.rating}/100 (${h.focus})`).join("\n");
-      const markdown = `# Hooks\n\n${list}\n\n**Top Hook:** ${hooksResp.topHook.text} (${hooksResp.topHook.rating}/100)`;
-      sendToSlideout(markdown);
-      finishAndRemoveLoader(setMessages);
-      onAnswerReady?.();
-    } catch (error) {
-      finishAndRemoveLoader(setMessages);
-      const errorMessage = error instanceof Error ? error.message : "Hooks generation failed";
-      setMessages((prev) => [
-        ...prev,
-        { id: crypto.randomUUID(), role: "assistant", content: `Error: ${errorMessage}` },
-      ]);
-    } finally {
-      setActiveAction(null);
-    }
   };
 
   // Add transition state for FLIP animation
@@ -769,315 +499,78 @@ export function ClaudeChat({
   // Handle hero to chat expansion with transform
   const handleHeroExpansion = useCallback(() => {
     if (!isHeroState || isTransitioning) return;
-    
     setIsTransitioning(true);
     setIsHeroState(false);
-    
-    // Clean up after animation
     setTimeout(() => {
       setIsTransitioning(false);
     }, 400); // Match CSS transition duration
   }, [isHeroState, isTransitioning]);
 
   return (
-    <div className={`claude-chat-container ${isHeroState ? 'hero-state' : 'expanded'} ${isTransitioning ? 'transitioning' : ''} ${className}`}>
-      
+    <div
+      className={`claude-chat-container ${isHeroState ? "hero-state" : "expanded"} ${
+        isTransitioning ? "transitioning" : ""
+      } ${className}`}
+    >
       {/* Hero Content - always rendered but positioned */}
-      <div className={`hero-content ${!isHeroState ? 'hero-hidden' : ''}`}>
-        <div className="flex min-h-screen max-h-screen flex-col items-center justify-center px-4 py-8 overflow-y-auto transition-all duration-300">
-          <div className="mx-auto flex w-full max-w-3xl flex-col items-start gap-3 px-5">
-            <div>
-              <h1 className="text-foreground text-4xl leading-10 font-bold tracking-tight">
-                {`Hello${resolvedName ? ", " + resolvedName : ""}`}
-                <br />
-                <span className="text-muted-foreground">What will you script today?</span>
-              </h1>
-            </div>
-
-            <div className="w-full max-w-3xl">
-              <PromptComposer
-                value={inputValue}
-                onChange={setInputValue}
+      <div className={`hero-content ${!isHeroState ? "hero-hidden" : ""}`}>
+        <HeroSection
+          resolvedName={resolvedName}
+          inputValue={inputValue}
+          setInputValue={setInputValue}
                 placeholder={isRecording ? (showListening ? "listening..." : "") : placeholder}
-                onSubmit={() => handleSend(inputValue)}
-                isProcessing={isUrlProcessing}
-                textareaRef={heroInputRef}
-                submitEnabled={!isUrlProcessing && (hasValidVideoUrl || inputValue.trim().length > 0)}
-                highlightSubmit={hasValidVideoUrl}
-                submitIcon={
-                  isUrlProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-4 w-4" />
-                }
-                footerBanner={
-                  isUrlProcessing &&
-                  linkDetection &&
-                  (linkDetection.type === "instagram" || linkDetection.type === "tiktok") ? (
-                    <div className="bg-muted text-muted-foreground animate-in fade-in-0 rounded-[var(--radius-input)] px-3 py-2 text-sm duration-200">
-                      🔄 Validating URL...
-                    </div>
-                  ) : hasValidVideoUrl && !isUrlProcessing ? (
-                    <div className="bg-accent text-foreground animate-in fade-in-0 rounded-[var(--radius-input)] px-3 py-2 text-sm duration-200">
-                      ✓ Link identified. Press submit to continue
-                    </div>
-                  ) : linkDetection && linkDetection.type !== "text" ? (
-                    <div className="bg-muted/80 border-border/50 text-muted-foreground flex items-center gap-2 rounded-[var(--radius-input)] border p-2 text-sm">
-                      <span className="text-foreground font-medium">
-                        {linkDetection.type === "other_url" ? "Link" : linkDetection.type}
-                      </span>
-                      {linkDetection.extracted.username && <span>@{linkDetection.extracted.username}</span>}
-                      {linkDetection.extracted.postId && <span>#{linkDetection.extracted.postId}</span>}
-                      {linkDetection.extracted.contentType && <span>· {linkDetection.extracted.contentType}</span>}
-                    </div>
-                  ) : undefined
-                }
-                leftControls={
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className={`${isIdeaMode ? "bg-accent" : ""} size-8 rounded-full p-0`}
-                      onClick={() => {
-                        setIsIdeaMode((v) => !v);
-                        setTimeout(() => heroInputRef.current?.focus(), 0);
-                      }}
-                      title="Write to Idea Inbox"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <AdvancedSlidingSwitch
-                      options={[
-                        { value: "ghost-write", icon: <Bot className="h-[18px] w-[18px]" />, tooltip: "Ghost Write" },
-                        { value: "web-search", icon: <Brain className="h-[18px] w-[18px]" />, tooltip: "Web Search" },
-                      ]}
-                      onChange={() => {}}
-                      disabled={isIdeaMode}
-                    />
-                    <Button variant="outline" size="icon">
-                      <SlidersHorizontal className="h-3 w-3" />
-                    </Button>
-                    {isIdeaInboxEnabled && (
-                      <DropdownMenu open={ideasOpen} onOpenChange={setIdeasOpen}>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="outline" size="sm" className="gap-1.5">
-                            <Lightbulb className="h-3 w-3" />
-                            <span className="hidden sm:inline">Ideas</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-[280px]">
-                          <DropdownMenuLabel>Idea Inbox</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          {ideas.length === 0 ? (
-                            <DropdownMenuItem disabled>No ideas yet</DropdownMenuItem>
-                          ) : (
-                            ideas.slice(0, 12).map((note) => (
-                              <DropdownMenuItem
-                                key={note.id}
-                                onSelect={(e) => {
-                                  e.preventDefault();
-                                  const text = note.title ? `${note.title}: ${note.content}` : note.content;
-                                  setInputValue(text);
-                                  setIdeasOpen(false);
-                                  requestAnimationFrame(() => textareaRef.current?.focus());
-                                }}
-                              >
-                                <div className="flex min-w-0 flex-col">
-                                  <span className="truncate text-sm font-medium">{note.title || "Untitled"}</span>
-                                  <span className="text-muted-foreground truncate text-xs">{note.content}</span>
-                                </div>
-                              </DropdownMenuItem>
-                            ))
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
-                  </div>
-                }
-                rightControls={
-                  <Button
-                    onClick={() => {
-                      if (inputValue.trim()) {
-                        if (!isUrlProcessing) handleSend(inputValue);
-                      } else {
-                        if (!isUrlProcessing) handleVoiceRecording();
-                      }
-                    }}
-                    disabled={isUrlProcessing}
-                    className={`size-9 rounded-full transition-colors ${
-                      inputValue.trim() && !isUrlProcessing
-                        ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                        : isRecording
-                          ? "animate-pulse bg-red-500 text-white hover:bg-red-600"
-                          : "bg-background text-foreground border-border hover:bg-accent hover:text-accent-foreground border"
-                    }`}
-                    title={
-                      inputValue.trim() ? "Send message" : isRecording ? "Stop recording" : "Start voice recording"
-                    }
-                  >
-                    {isUrlProcessing ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : inputValue.trim() ? (
-                      <ArrowUp className="h-4 w-4" />
-                    ) : (
-                      <Mic className="h-4 w-4" />
-                    )}
-                  </Button>
-                }
-              />
-            </div>
-
-            {!isIdeaMode && (
-              <div className="mx-auto w-full max-w-3xl">
-                <PersonaSelector
+          isRecording={isRecording}
+          showListening={showListening}
+          isUrlProcessing={isUrlProcessing}
+          linkDetection={linkDetection}
+          hasValidVideoUrl={hasValidVideoUrl}
+          handleSend={handleSend}
+          heroInputRef={heroInputRef}
                   selectedPersona={selectedPersona}
-                  onPersonaChange={setSelectedPersona}
-                  className="justify-center"
-                  showCallout={Boolean(selectedPersona)}
-                />
-              </div>
-            )}
-            {isIdeaMode && (
-              <div className="mx-auto w-full max-w-2xl">
-                <div className="bg-accent text-foreground mt-2 rounded-[var(--radius-input)] px-3 py-2 text-sm">
-                  Idea mode is active. Your input will be saved to your Idea Inbox.
-                </div>
-                {ideaSaveMessage && <div className="text-muted-foreground mt-1 text-xs">{ideaSaveMessage}</div>}
-              </div>
-            )}
-            {/* Removed legacy duplicate callout: PersonaSelector renders the callout when a persona is selected */}
-
-            {/* Playbook Cards Section */}
-            <div className="mt-6 w-full">
-              <PlaybookCards />
-            </div>
-          </div>
-        </div>
+          setSelectedPersona={setSelectedPersona}
+          isIdeaMode={isIdeaMode}
+          setIsIdeaMode={setIsIdeaMode}
+          ideaSaveMessage={ideaSaveMessage}
+          ideas={ideas}
+          ideasOpen={ideasOpen}
+          setIdeasOpen={setIdeasOpen}
+          isIdeaInboxEnabled={isIdeaInboxEnabled}
+          onVoiceClick={toggleRecording}
+        />
       </div>
 
       {/* Chat Messages Area - always rendered but positioned */}
-      <div className={`chat-messages-area ${isHeroState ? 'opacity-0' : 'opacity-100'}`}>
+      <div className="chat-messages-area">
         <div className="messages-container relative flex h-screen flex-col transition-all duration-300">
           {/* Messages Area with bottom padding for sticky input */}
-          <ScrollArea
-            className="messages-list flex-1 px-4 pb-24"
-            ref={messagesContainerRef}
-          >
-            <div className="mx-auto max-w-3xl py-6">
-              <div className="space-y-6">
-                {messages.map((m, index) => (
-                  <div
-                    key={m.id}
-                    className="message slide-up interactive-element"
-                    style={{
-                      animationDelay: `${Math.max(0, messages.length - index - 1) * 50}ms`,
-                    }}
-                  >
-                    {/* Two-column layout: avatar column (40px) + content column */}
-                    <div className="grid grid-cols-[40px_1fr] items-start gap-x-3">
-                      {m.role === "user" ? (
-                        <>
-                          {/* Placeholder to align with content column start */}
-                          <div aria-hidden className="h-8 w-8" />
-                          {/* User message single pill containing avatar + text */}
-                          <div className="col-start-2">
-                            <div className="bg-accent/10 text-foreground hover:bg-accent/15 interactive-element inline-flex max-w-[min(85%,_60ch)] items-center gap-2 rounded-[var(--radius-input)] px-4 py-3 shadow-[var(--shadow-input)] transition-all duration-200 hover:shadow-[var(--shadow-soft-drop)]">
-                              <div className="bg-accent/20 text-foreground flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold">
-                                {(resolvedName?.[0] ?? "U").toUpperCase()}
-                              </div>
-                              <p className="text-base leading-relaxed break-words whitespace-pre-wrap">{m.content}</p>
-                            </div>
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          {/* Placeholder to align with content column start */}
-                          <div aria-hidden className="h-8 w-8" />
-                          {/* Assistant message */}
-                          <div className="col-start-2">
-                            {m.content === ACK_LOADING ? (
-                              <AckLoader />
-                            ) : m.content === VIDEO_ACTIONS && videoPanel ? (
-                              <VideoActionsPanel
-                                active={activeAction === null}
-                                onTranscribe={handleInlineTranscribe}
-                                onAnalyze={handleInlineAnalyze}
-                                onEmulate={handleInlineEmulateStart}
-                                onIdeas={handleInlineIdeas}
-                                onHooks={handleInlineHooks}
-                              />
-                            ) : m.content === EMULATE_INPUT && awaitingEmulateInput ? (
-                              <EmulateInputPanel
-                                value={emulateIdea}
-                                onChange={setEmulateIdea}
-                                onSubmit={handleInlineEmulateSubmit}
-                                disabled={!emulateIdea.trim()}
-                              />
-                            ) : (
-                              <div className="prose text-foreground interactive-element hover:bg-accent/5 -m-2 max-w-none rounded-[var(--radius-button)] p-2 transition-all duration-200">
-                                <p className="text-base leading-relaxed break-words whitespace-pre-wrap">{m.content}</p>
-                              </div>
-                            )}
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                ))}
-                <div ref={messagesEndRef} />
-              </div>
-            </div>
+          <ScrollArea className="messages-list flex-1 px-4 pb-24" ref={messagesContainerRef}>
+            <MessageList
+              messages={messages}
+              resolvedName={resolvedName ?? null}
+              videoPanel={videoPanel}
+              activeAction={activeAction}
+              awaitingEmulateInput={awaitingEmulateInput}
+              emulateIdea={emulateIdea}
+              onEmulateIdeaChange={setEmulateIdea}
+              onTranscribe={() => handleTranscribe(videoPanel)}
+              onAnalyze={() => handleAnalyze(videoPanel)}
+              onEmulateStart={handleInlineEmulateStart}
+              onEmulateSubmit={() => handleEmulateSubmit(videoPanel)}
+              onIdeas={() => handleIdeas(videoPanel)}
+              onHooks={() => handleHooks(videoPanel)}
+              messagesEndRef={messagesEndRef}
+            />
           </ScrollArea>
 
           {/* Minimal Fixed Chat Input */}
-          <div className="chat-input-fixed">
-            <div className="mx-auto w-full max-w-3xl">
-              <div className="bg-card rounded-lg border border-border-subtle shadow-sm">
-                <div className="flex items-center gap-3 p-3">
-                  <div className="flex-1">
-                    <textarea
-                      ref={textareaRef}
-                      value={inputValue}
-                      onChange={(e) => setInputValue(e.target.value)}
-                      placeholder="Reply to Gen.C..."
-                      className="w-full resize-none border-0 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-0"
-                      rows={1}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          if (inputValue.trim()) {
-                            handleSend(inputValue);
-                          }
-                        }
-                      }}
-                      style={{
-                        minHeight: '20px',
-                        maxHeight: '100px',
-                        height: 'auto',
-                      }}
-                      onInput={(e) => {
-                        const target = e.target as HTMLTextAreaElement;
-                        target.style.height = 'auto';
-                        target.style.height = Math.min(target.scrollHeight, 100) + 'px';
-                      }}
-                    />
-                  </div>
-                  <Button
-                    onClick={() => {
-                      if (inputValue.trim()) {
-                        handleSend(inputValue);
-                      }
-                    }}
-                    disabled={!inputValue.trim()}
-                    size="sm"
-                    className="rounded-full"
-                  >
-                    <ArrowUp className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <FixedChatInput
+            inputValue={inputValue}
+            setInputValue={setInputValue}
+            onSubmit={() => handleSend(inputValue)}
+            textareaRef={textareaRef}
+          />
         </div>
       </div>
-      
       {/* Inline actions replace the modal; no modal rendering here */}
     </div>
   );

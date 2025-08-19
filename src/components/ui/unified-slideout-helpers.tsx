@@ -77,19 +77,20 @@ export const getPositionClasses = (position?: string) => {
   }
 };
 
-// Width mappings following design system and Claude's patterns
+// Width mappings with responsive behavior following Claude's patterns
 export const widthMap = {
-  sm: "w-80",      // 320px - Narrow panels
-  md: "w-96",      // 384px - Standard panels  
-  lg: "w-[600px]", // 600px - Claude artifact panel width
-  xl: "w-[800px]", // 800px - Extra wide panels
-  full: "w-full"   // Full width
+  sm: "w-full md:w-[320px] lg:w-[320px]",  // 320px on desktop, responsive on mobile/tablet
+  md: "w-full md:w-[384px] lg:w-[384px]",  // 384px on desktop, responsive on mobile/tablet  
+  lg: "w-full md:w-[70vw] md:max-w-[480px] lg:w-[600px]", // Claude artifact panel width with responsive behavior
+  xl: "w-full md:w-[70vw] md:max-w-[600px] lg:w-[800px]", // Extra wide panels with responsive behavior
+  full: "w-full"   // Full width on all breakpoints
 };
 
-// Get width classes
+// Get width classes with responsive behavior
 export const getWidthClasses = (width?: string) => {
   if (typeof width === "string" && width in widthMap) {
     return widthMap[width as keyof typeof widthMap];
   }
-  return width ?? widthMap.lg;
+  // Default to lg width with responsive behavior
+  return widthMap.lg;
 };

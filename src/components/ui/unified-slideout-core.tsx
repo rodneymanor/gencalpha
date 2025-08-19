@@ -106,28 +106,17 @@ export function UnifiedSlideoutCore({
         />
       )}
       
-      {/* Slideout Panel */}
+      {/* Slideout Panel Content - Flexbox approach */}
       <div
         ref={slideoutRef}
         className={cn(
-          // Base positioning and sizing
-          getPositionClasses(config.position),
-          getWidthClasses(config.width),
-          
           // Variant styling
           getVariantClasses(config.variant),
           
-          // Animation
-          getAnimationClasses(isOpen, config.position!, config.animationType!),
+          // Layout - Full height and width within flex container
+          "flex flex-col h-full w-full",
           
-          // Layout
-          "flex flex-col",
-          
-          // Performance optimization
-          "will-change-transform",
-          
-          // Responsive max width on mobile
-          "max-w-[90vw] sm:max-w-none",
+          // Remove positioning classes since parent handles layout
           
           className
         )}

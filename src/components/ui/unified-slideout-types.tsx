@@ -94,34 +94,49 @@ export const SlideoutBackdrop = ({
   );
 };
 
-// Content adjustment hook for Claude-style panels
+// Simplified content adjustment hook - No longer needed for flexbox approach
+// This hook is kept for backward compatibility but does nothing when adjustsContent is false
 export const useContentAdjustment = (isOpen: boolean, width: string, adjustsContent: boolean) => {
   useEffect(() => {
-    if (!adjustsContent) return;
-    
-    const mainContent = document.querySelector('[data-slot="sidebar-inset"]') ?? 
-                       document.querySelector('main') ??
-                       document.body;
-    
-    if (mainContent instanceof HTMLElement) {
-      if (isOpen) {
-        // Apply margin adjustment with Claude's easing
-        const widthValue = width === "lg" ? "600px" : 
-                          width === "md" ? "384px" :
-                          width === "sm" ? "320px" : "600px";
-        mainContent.style.marginRight = widthValue;
-        mainContent.style.transition = "margin 400ms cubic-bezier(0.32, 0.72, 0, 1)";
-      } else {
-        mainContent.style.marginRight = "0";
-        mainContent.style.transition = "margin 250ms cubic-bezier(0.32, 0.72, 0, 1)";
-      }
+    // With flexbox approach, no manual content adjustment is needed
+    // The flex container automatically handles layout changes
+    if (!adjustsContent) {
+      return;
     }
+    
+    // Legacy support: For layouts that still need manual adjustment
+    // This will primarily be for non-flexbox layouts
+    const findMainContent = () => {
+      return document.querySelector('main.main-content') ??
+             document.querySelector('[data-slot="sidebar-inset"]') ?? 
+             document.querySelector('main') ??
+             document.body;
+    };
+    
+    const applyLegacyAdjustment = () => {
+      const currentMainContent = findMainContent();
+      if (!(currentMainContent instanceof HTMLElement)) {
+        return;
+      }
+      
+      // For legacy layouts, just toggle a class - let CSS handle the rest
+      if (isOpen) {
+        currentMainContent.classList.add('slideout-open');
+        currentMainContent.setAttribute('data-slideout-width', width);
+      } else {
+        currentMainContent.classList.remove('slideout-open');
+        currentMainContent.removeAttribute('data-slideout-width');
+      }
+    };
+    
+    applyLegacyAdjustment();
     
     // Cleanup function
     return () => {
+      const mainContent = findMainContent();
       if (mainContent instanceof HTMLElement) {
-        mainContent.style.marginRight = "0";
-        mainContent.style.transition = "";
+        mainContent.classList.remove('slideout-open');
+        mainContent.removeAttribute('data-slideout-width');
       }
     };
   }, [isOpen, width, adjustsContent]);

@@ -5,7 +5,7 @@ import React, { useState, useEffect } from "react";
 
 import { useRouter } from "next/navigation";
 
-import { ArrowUp, Link, AlertCircle, CheckCircle2, Bot, Brain, Pencil, X, Mic } from "lucide-react";
+import { ArrowUp, Link, AlertCircle, CheckCircle2, Bot, Brain, Pencil, X, Mic, SlidersHorizontal } from "lucide-react";
 
 import { PersonaSelector, PersonaType } from "@/components/chatbot/persona-selector";
 import { AdvancedSlidingSwitch, type ModeType, type SwitchOption } from "@/components/ui/advanced-sliding-switch";
@@ -389,6 +389,14 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
               title="Toggle Idea Inbox"
             >
               <Pencil className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="size-8"
+              title="Settings"
+            >
+              <SlidersHorizontal className="h-3 w-3" />
             </Button>
             <AdvancedSlidingSwitch options={switchOptions} onChange={handleSwitchChange} disabled={showIdeaInbox} />
             {personaSelected && (

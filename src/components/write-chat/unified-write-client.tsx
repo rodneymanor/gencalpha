@@ -2,18 +2,12 @@
 
 import React, { useRef, useState, useEffect, useCallback } from "react";
 
-import { ChevronDown } from "lucide-react";
+//
 
 import { type PersonaType } from "@/components/chatbot/persona-selector";
 import MinimalSlideoutEditor from "@/components/standalone/minimal-slideout-editor";
 import { Button } from "@/components/ui/button";
-import { CollectionCombobox } from "@/components/ui/collection-combobox";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+//
 import { UnifiedSlideout, ClaudeArtifactConfig } from "@/components/ui/unified-slideout";
 import ClaudeChat from "@/components/write-chat/claude-chat";
 
@@ -26,10 +20,7 @@ export function UnifiedWriteClient({
 }) {
   // State management
   const [isHeroState, setIsHeroState] = useState(true);
-  const [_isTransitioning, _setIsTransitioning] = useState(false);
-  const [_chatTitle, _setChatTitle] = useState<string>("Untitled Chat");
-  const _titleInputRef = useRef<HTMLInputElement | null>(null);
-  const [_selectedCollectionId, _setSelectedCollectionId] = useState<string>("all-videos");
+  // Unused legacy states/refs removed to satisfy lints
 
   // Slideout state
   const [isSlideoutOpen, setIsSlideoutOpen] = useState(false);
@@ -39,49 +30,7 @@ export function UnifiedWriteClient({
   // Animation refs
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  // FLIP animation for hero to chat expansion (unused in Claude-style implementation)
-  const _expandFromHero = useCallback(() => {
-    if (!containerRef.current || _isTransitioning) return;
-
-    const container = containerRef.current;
-    _setIsTransitioning(true);
-
-    // Capture first state (hero)
-    const firstRect = container.getBoundingClientRect();
-
-    // Apply expanded state
-    setIsHeroState(false);
-
-    // Force layout calculation
-    void container.offsetHeight;
-
-    // Capture last state (expanded)
-    const lastRect = container.getBoundingClientRect();
-
-    // Calculate difference
-    const deltaY = firstRect.top - lastRect.top;
-
-    // Apply initial transform to match first state
-    container.style.transform = `translateY(${deltaY}px)`;
-    container.classList.add("transitioning");
-
-    // Animate to final position
-    requestAnimationFrame(() => {
-      container.style.transform = "";
-
-      // Clean up after animation
-      const cleanup = () => {
-        _setIsTransitioning(false);
-        container.classList.remove("transitioning");
-        container.removeEventListener("transitionend", cleanup);
-      };
-
-      container.addEventListener("transitionend", cleanup, { once: true });
-
-      // Fallback cleanup after max duration
-      setTimeout(cleanup, 500);
-    });
-  }, [_isTransitioning]);
+  //
 
   // Handle slideout opening with content adjustment
   const handleSlideoutOpen = useCallback(() => {
@@ -136,12 +85,9 @@ export function UnifiedWriteClient({
   }, [handleSlideoutOpen]);
 
   return (
-    <>
-      {/* Simplified wrapper for Claude-style chat */}
-      <main
-        ref={containerRef}
-        className={`main-content relative w-full ${isSlideoutOpen ? "slideout-open" : ""}`}
-      >
+    <div className="slideout-layout-container">
+      {/* Main Content Area - Flexbox approach */}
+      <main ref={containerRef} className="main-content">
         {/* Claude Chat with built-in transitions */}
         <ClaudeChat
           initialPrompt={initialPrompt}
@@ -158,84 +104,74 @@ export function UnifiedWriteClient({
         />
       </main>
 
-      {/* Slideout Backdrop for tablet/mobile */}
+      {/* Slideout Backdrop for tablet/mobile - Only show when needed */}
       {isSlideoutOpen && (
-                <>
-          <div
-            className="slideout-backdrop md:hidden open"
-            onClick={handleSlideoutClose}
-            aria-hidden="true"
-          />
-          <div
-            className="slideout-backdrop hidden md:block lg:hidden open"
-            onClick={handleSlideoutClose}
-            aria-hidden="true"
-          />
-        </>
+        <div
+          className={`slideout-backdrop ${isSlideoutOpen ? "open" : ""}`}
+          onClick={handleSlideoutClose}
+          aria-hidden="true"
+        />
       )}
 
-      {/* Enhanced Unified Slideout with smooth transitions */}
-      <UnifiedSlideout
-        isOpen={isSlideoutOpen}
-        onClose={handleSlideoutClose}
-        title={slideoutTitle}
-        config={{
-          ...ClaudeArtifactConfig,
-          // Enhanced Claude-style configuration
-          animationType: "claude",
-          adjustsContent: true,
-          responsive: {
-            mobile: "takeover",
-            tablet: "overlay",
-            desktop: "sidebar",
-          },
-        }}
-        className={`slideout-panel gpu-accelerated ${isSlideoutOpen ? "open" : ""}`}
-        contentClassName="slideout-content animation-container"
-        headerActions={
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="interactive-element rounded-[var(--radius-button)]"
-              onClick={() => {
-                // Copy content to clipboard with feedback
-                if (slideoutContent) {
-                  navigator.clipboard.writeText(slideoutContent);
-                  // TODO: Add toast notification
-                }
-              }}
-            >
-              Copy
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="interactive-element rounded-[var(--radius-button)]"
-              onClick={() => {
-                // Placeholder for publish functionality
-                console.log("Publish clicked");
-                // TODO: Implement publish workflow
-              }}
-            >
-              Publish
-            </Button>
+      {/* Enhanced Unified Slideout with flexbox approach */}
+      <div className={`slideout-panel ${isSlideoutOpen ? "open" : ""}`} data-panel-width={ClaudeArtifactConfig.width}>
+        <UnifiedSlideout
+          isOpen={isSlideoutOpen}
+          onClose={handleSlideoutClose}
+          title={slideoutTitle}
+          config={{
+            ...ClaudeArtifactConfig,
+            // Simplified configuration for flexbox approach
+            animationType: "claude",
+            adjustsContent: false, // No longer needed with flexbox
+          }}
+          className="h-full w-full"
+          contentClassName="slideout-content animation-container"
+          headerActions={
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="interactive-element rounded-[var(--radius-button)]"
+                onClick={() => {
+                  // Copy content to clipboard with feedback
+                  if (slideoutContent) {
+                    navigator.clipboard.writeText(slideoutContent);
+                    // TODO: Add toast notification
+                  }
+                }}
+              >
+                Copy
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="interactive-element rounded-[var(--radius-button)]"
+                onClick={() => {
+                  // Placeholder for publish functionality
+                  console.log("Publish clicked");
+                  // TODO: Implement publish workflow
+                }}
+              >
+                Publish
+              </Button>
+            </div>
+          }
+        >
+          {/* Enhanced BlockNote Editor with smooth content loading */}
+          <div className="slideout-content h-full">
+            <div className="fade-in">
+              <MinimalSlideoutEditor
+                initialValue={slideoutContent}
+                onChange={(value) => {
+                  // Handle editor changes if needed
+                  console.log("Editor content changed:", value);
+                }}
+              />
+            </div>
           </div>
-        }
-      >
-        {/* Enhanced BlockNote Editor with smooth content loading */}
-        <div className="slideout-content h-full">
-          <div className="fade-in">
-            <MinimalSlideoutEditor
-              initialValue={slideoutContent}
-              onChange={(value) => {
-                // Handle editor changes if needed
-                console.log("Editor content changed:", value);
-              }}
-            />
-          </div>
-        </div>
-      </UnifiedSlideout>
-    </>
+        </UnifiedSlideout>
+      </div>
+    </div>
   );
 }
