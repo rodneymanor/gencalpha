@@ -6,7 +6,7 @@ import { Clock, CheckCircle, XCircle, RefreshCw, ExternalLink, Info } from "luci
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ClarityLoader } from "@/components/ui/loading";
+import { ThinkingIndicator } from "@/components/ui/skeleton-screens";
 import { Progress } from "@/components/ui/progress";
 import {
   Tooltip,
@@ -106,7 +106,7 @@ export function VideoGridProcessingPlaceholder({
       progressColor: "bg-blue-500"
     },
     processing: {
-      icon: <ClarityLoader size="md" />,
+      icon: <ThinkingIndicator message="" className="text-yellow-500" />,
       color: "border-yellow-500/30 bg-yellow-500/10",
       text: "Processing",
       progressColor: "bg-yellow-500"

@@ -61,7 +61,7 @@ export class SmoothMessageManager {
           if (entry.isIntersecting) {
             entry.target.classList.add('visible');
             // Add staggered animation class
-            const index = Array.from(entry.target.parentNode?.children || []).indexOf(entry.target);
+            const index = Array.from(entry.target.parentNode?.children ?? []).indexOf(entry.target);
             entry.target.setAttribute('style', `animation-delay: ${index * this.options.staggerDelay}ms`);
           }
         });
@@ -151,7 +151,7 @@ export class SmoothMessageManager {
   private createMessageElement(message: ChatMessage): HTMLElement {
     const messageEl = document.createElement('div');
     messageEl.className = `message message-${message.role} fade-in`;
-    messageEl.setAttribute('data-message-id', message.id || '');
+    messageEl.setAttribute('data-message-id', message.id ?? '');
     
     // Add animation timing
     messageEl.style.cssText = `

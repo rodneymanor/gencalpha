@@ -76,11 +76,9 @@ export function SectionLoader({ action = "fetch", message, className }: { action
 }
 
 export function PageLoader({ message }: { message?: string }) {
-  return (
-    <div role="status" aria-busy className="flex h-[60vh] w-full items-center justify-center">
-      <ClarityLoader size="lg" message={message ?? "Loading page..."} />
-    </div>
-  );
+  // For backwards compatibility - redirect to skeleton screens
+  const { SkeletonPageLayout } = require("@/components/ui/skeleton-screens");
+  return <SkeletonPageLayout />;
 }
 
 export function CardSkeleton() {

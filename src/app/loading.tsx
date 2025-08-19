@@ -1,7 +1,7 @@
 "use client";
 
-import { PageLoader } from "@/components/ui/loading";
+import { SkeletonPageLayout } from "@/components/ui/skeleton-screens";
 
 export default function GlobalAppLoading() {
-  return <PageLoader message="Loading application..." />;
+  return <SkeletonPageLayout />;
 }

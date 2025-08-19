@@ -26,10 +26,10 @@ export function UnifiedWriteClient({
 }) {
   // State management
   const [isHeroState, setIsHeroState] = useState(true);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [chatTitle, setChatTitle] = useState<string>("Untitled Chat");
-  const titleInputRef = useRef<HTMLInputElement | null>(null);
-  const [selectedCollectionId, setSelectedCollectionId] = useState<string>("all-videos");
+  const [_isTransitioning, _setIsTransitioning] = useState(false);
+  const [_chatTitle, _setChatTitle] = useState<string>("Untitled Chat");
+  const _titleInputRef = useRef<HTMLInputElement | null>(null);
+  const [_selectedCollectionId, _setSelectedCollectionId] = useState<string>("all-videos");
 
   // Slideout state
   const [isSlideoutOpen, setIsSlideoutOpen] = useState(false);
@@ -39,12 +39,12 @@ export function UnifiedWriteClient({
   // Animation refs
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  // FLIP animation for hero to chat expansion
-  const expandFromHero = useCallback(() => {
-    if (!containerRef.current || isTransitioning) return;
+  // FLIP animation for hero to chat expansion (unused in Claude-style implementation)
+  const _expandFromHero = useCallback(() => {
+    if (!containerRef.current || _isTransitioning) return;
 
     const container = containerRef.current;
-    setIsTransitioning(true);
+    _setIsTransitioning(true);
 
     // Capture first state (hero)
     const firstRect = container.getBoundingClientRect();
@@ -53,7 +53,7 @@ export function UnifiedWriteClient({
     setIsHeroState(false);
 
     // Force layout calculation
-    container.offsetHeight;
+    void container.offsetHeight;
 
     // Capture last state (expanded)
     const lastRect = container.getBoundingClientRect();
@@ -71,7 +71,7 @@ export function UnifiedWriteClient({
 
       // Clean up after animation
       const cleanup = () => {
-        setIsTransitioning(false);
+        _setIsTransitioning(false);
         container.classList.remove("transitioning");
         container.removeEventListener("transitionend", cleanup);
       };
@@ -81,7 +81,7 @@ export function UnifiedWriteClient({
       // Fallback cleanup after max duration
       setTimeout(cleanup, 500);
     });
-  }, [isTransitioning]);
+  }, [_isTransitioning]);
 
   // Handle slideout opening with content adjustment
   const handleSlideoutOpen = useCallback(() => {
@@ -137,120 +137,37 @@ export function UnifiedWriteClient({
 
   return (
     <>
-      {/* Main Content Area with smooth transitions */}
+      {/* Simplified wrapper for Claude-style chat */}
       <main
         ref={containerRef}
-        className={`chat-container main-content gpu-accelerated relative flex min-h-screen w-full flex-col ${
-          isHeroState ? "hero-state" : "expanded"
-        } ${isSlideoutOpen ? "slideout-open" : ""}`}
+        className={`main-content relative w-full ${isSlideoutOpen ? "slideout-open" : ""}`}
       >
-        <div className="relative z-0 flex w-full flex-1 flex-col">
-          {/* Chat Interface - revealed after hero expansion */}
-          <div className="chat-interface">
-            {/* Sticky Header - shown only in expanded state */}
-            {!isHeroState && (
-              <div className="bg-background border-border sticky top-0 z-10 -mb-6 border-b">
-                <div
-                  aria-hidden
-                  className="pointer-events-none absolute inset-x-0 top-0 -z-10"
-                  style={{
-                    bottom: "-20px",
-                    backgroundImage: "linear-gradient(var(--background), var(--background) 65%, rgba(0,0,0,0))",
-                    filter: "blur(4px)",
-                  }}
-                />
-                <div className="flex h-12 w-full items-center justify-between pr-3 pl-8">
-                  <div className="flex min-w-0 flex-1 items-center gap-2">
-                    <input
-                      ref={titleInputRef}
-                      value={chatTitle}
-                      onChange={(e) => setChatTitle(e.target.value)}
-                      placeholder="Untitled Chat"
-                      className="text-foreground placeholder:text-muted-foreground hover:border-input focus:border-input focus-ring w-full max-w-sm rounded-[var(--radius-input)] border border-transparent bg-transparent px-3 py-2 text-sm font-medium transition-all duration-200 outline-none"
-                    />
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="interactive-element rounded-[var(--radius-button)]"
-                        >
-                          <ChevronDown className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start" className="w-40">
-                        <DropdownMenuItem
-                          onSelect={(e) => {
-                            e.preventDefault();
-                            const el = titleInputRef.current;
-                            if (el) {
-                              el.focus();
-                              el.select();
-                            }
-                          }}
-                        >
-                          Rename title
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Edit options</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CollectionCombobox
-                      selectedCollectionId={selectedCollectionId}
-                      onChange={setSelectedCollectionId}
-                      placeholder="Select collection"
-                      className="hidden sm:flex"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Chat Component with enhanced positioning */}
-            <div className={isHeroState ? "-mt-24 md:-mt-32" : ""}>
-              <ClaudeChat
-                initialPrompt={initialPrompt}
-                initialPersona={initialPersona}
-                onSend={(msg: string) => {
-                  if (isHeroState && msg.trim()) {
-                    // Trigger smooth expansion
-                    expandFromHero();
-                    
-                    // Update title if needed
-                    if (chatTitle === "Untitled Chat" && msg.length > 0) {
-                      const truncatedTitle = msg.length > 30 ? msg.substring(0, 30) + "..." : msg;
-                      setChatTitle(truncatedTitle);
-                    }
-                  }
-                }}
-                onHeroStateChange={(isHero: boolean) => {
-                  if (!isHero && isHeroState) {
-                    expandFromHero();
-                  }
-                }}
-                // When an assistant answer is appended, broadcast event
-                onAnswerReady={() => {
-                  if (typeof window !== "undefined") {
-                    window.dispatchEvent(new CustomEvent("write:answer-ready"));
-                  }
-                }}
-              />
-            </div>
-          </div>
-        </div>
+        {/* Claude Chat with built-in transitions */}
+        <ClaudeChat
+          initialPrompt={initialPrompt}
+          initialPersona={initialPersona}
+          onHeroStateChange={(isHero: boolean) => {
+            setIsHeroState(isHero);
+          }}
+          /* When an assistant answer is appended, broadcast event */
+          onAnswerReady={() => {
+            if (typeof window !== "undefined") {
+              window.dispatchEvent(new CustomEvent("write:answer-ready"));
+            }
+          }}
+        />
       </main>
 
       {/* Slideout Backdrop for tablet/mobile */}
       {isSlideoutOpen && (
                 <>
           <div
-            className={`slideout-backdrop md:hidden ${isSlideoutOpen ? "open" : ""}`}
+            className="slideout-backdrop md:hidden open"
             onClick={handleSlideoutClose}
             aria-hidden="true"
           />
           <div
-            className={`slideout-backdrop hidden md:block lg:hidden ${isSlideoutOpen ? "open" : ""}`}
+            className="slideout-backdrop hidden md:block lg:hidden open"
             onClick={handleSlideoutClose}
             aria-hidden="true"
           />

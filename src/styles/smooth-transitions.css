@@ -20,20 +20,20 @@
    ======================================== */
 
 .claude-chat-container {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 100vh;
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  max-height: 100vh;
   display: flex;
   flex-direction: column;
   will-change: transform;
   transition: transform var(--hero-expand-duration) var(--ease-claude);
+  overflow: hidden;
 }
 
-/* Hero state: show only input area (bottom 120px) */
+/* Hero state: show full content normally positioned */
 .claude-chat-container.hero-state {
-  transform: translateY(calc(100% - 120px));
+  transform: translateY(0);
 }
 
 /* Expanded state: slide up to reveal full chat */
@@ -76,7 +76,7 @@
   transform: translateY(0);
 }
 
-.chat-container.expanded .hero-input-area {
+.claude-chat-container.expanded .hero-input-area {
   opacity: 0;
   transform: translateY(-20px);
   pointer-events: none;
@@ -90,7 +90,7 @@
 }
 
 /* The interface is always visible, but content positioning changes */
-.chat-container.hero-state .chat-interface {
+.claude-chat-container.hero-state .chat-interface {
   /* Hero state: interface is centered */
   display: flex;
   flex-direction: column;
@@ -99,7 +99,7 @@
   min-height: 100vh;
 }
 
-.chat-container.expanded .chat-interface {
+.claude-chat-container.expanded .chat-interface {
   /* Expanded state: interface flows normally */
   display: block;
   min-height: auto;
@@ -141,10 +141,10 @@
   left: 0;
   right: 0;
   background: var(--background);
-  border-top: 1px solid var(--border);
-  padding: 1rem;
+  border-top: 1px solid var(--border-subtle);
+  padding: 0.75rem 1rem;
   z-index: 50;
-  /* No backdrop blur for true Claude feel */
+  /* Compact height for minimal design */
 }
 
 /* Individual Message Animation */
@@ -338,7 +338,7 @@
 
 /* Reduce motion for accessibility */
 @media (prefers-reduced-motion: reduce) {
-  .chat-container,
+  .claude-chat-container,
   .message,
   .slideout-panel,
   .main-content,

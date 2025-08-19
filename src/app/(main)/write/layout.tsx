@@ -8,6 +8,7 @@ import { NotificationHeader } from "@/components/ui/notification-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { ResizableLayoutProvider } from "@/contexts/resizable-layout-context";
 import { ScriptPanelProvider } from "@/contexts/script-panel-context";
+import { ThemeProvider } from "@/contexts/theme-context";
 import { cn } from "@/lib/utils";
 import { getPreference } from "@/server/server-actions";
 import {
@@ -33,10 +34,11 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
   };
 
   return (
-    <DashboardWrapper>
-      <ScriptPanelProvider>
-        <ResizableLayoutProvider>
-          <SidebarProvider defaultOpen={false}>
+    <ThemeProvider>
+      <DashboardWrapper>
+        <ScriptPanelProvider>
+          <ResizableLayoutProvider>
+            <SidebarProvider defaultOpen={false}>
             <AppSidebar
               variant={sidebarVariant}
               collapsible={sidebarCollapsible}
@@ -66,5 +68,6 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
         </ResizableLayoutProvider>
       </ScriptPanelProvider>
     </DashboardWrapper>
+    </ThemeProvider>
   );
 }

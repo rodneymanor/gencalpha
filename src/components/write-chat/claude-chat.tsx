@@ -2,16 +2,15 @@
 /* eslint-disable complexity */
 "use client";
 //
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 //
 import { ArrowUp, SlidersHorizontal, Lightbulb, Pencil, Loader2, Mic, Bot, Brain } from "lucide-react";
 
-import { type PersonaType, PERSONAS, PersonaSelector } from "@/components/chatbot/persona-selector";
+import { type PersonaType, PersonaSelector } from "@/components/chatbot/persona-selector";
 // header dropdown moved to parent wrapper
-import { AdvancedSlidingSwitch, type ModeType } from "@/components/ui/advanced-sliding-switch";
+import { AdvancedSlidingSwitch } from "@/components/ui/advanced-sliding-switch";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -115,7 +114,6 @@ export function ClaudeChat({
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [showListening, setShowListening] = useState(true);
-  const [_activeMode] = useState<ModeType>("ghost-write");
 
   // Enhanced smooth scrolling with message manager
   useEffect(() => {
@@ -137,7 +135,7 @@ export function ClaudeChat({
       .getIdeaInboxNotes()
       .then((res) => {
         // Set immediately; in-flight cleanup will prevent later updates
-        setIdeas(res.notes || []);
+        setIdeas(res.notes ?? []);
       })
       .catch(() => void 0);
     return () => {
@@ -238,12 +236,16 @@ export function ClaudeChat({
   const hasValidVideoUrl = Boolean(urlCandidate && urlSupported);
 
   // Personas list no longer needed here; PersonaSelector renders from internal source
-  const getPersonaByKey = (key: PersonaType | null) => PERSONAS.find((p) => p.key === key);
   const resolvedName = userProfile?.displayName ?? user?.displayName;
 
   const handleSend = async (value: string) => {
     const trimmed = value.trim();
     if (!trimmed) return;
+
+    // Trigger hero expansion if in hero state
+    if (isHeroState) {
+      handleHeroExpansion();
+    }
 
     // Helper: create a short acknowledgement message describing the task.
     // This gives immediate feedback and sets expectations while we "think".
@@ -761,16 +763,29 @@ export function ClaudeChat({
     }
   };
 
-  return (
-    <div className={`font-sans ${className}`}>
-      {/* Floating Slideout Toggle */}
-      {/* Header */}
-      {/* Header moved to parent page wrapper */}
+  // Add transition state for FLIP animation
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
-      {/* Hero State */}
-      {isHeroState && (
-        <div className="mt-18 flex min-h-[calc(100vh-4rem)] flex-col items-center px-4 pt-24 transition-all duration-300 md:pt-52">
-          <div className="mx-auto flex w-full max-w-3xl flex-col items-start gap-3 px-5 pb-8">
+  // Handle hero to chat expansion with transform
+  const handleHeroExpansion = useCallback(() => {
+    if (!isHeroState || isTransitioning) return;
+    
+    setIsTransitioning(true);
+    setIsHeroState(false);
+    
+    // Clean up after animation
+    setTimeout(() => {
+      setIsTransitioning(false);
+    }, 400); // Match CSS transition duration
+  }, [isHeroState, isTransitioning]);
+
+  return (
+    <div className={`claude-chat-container ${isHeroState ? 'hero-state' : 'expanded'} ${isTransitioning ? 'transitioning' : ''} ${className}`}>
+      
+      {/* Hero Content - always rendered but positioned */}
+      <div className={`hero-content ${!isHeroState ? 'hero-hidden' : ''}`}>
+        <div className="flex min-h-screen max-h-screen flex-col items-center justify-center px-4 py-8 overflow-y-auto transition-all duration-300">
+          <div className="mx-auto flex w-full max-w-3xl flex-col items-start gap-3 px-5">
             <div>
               <h1 className="text-foreground text-4xl leading-10 font-bold tracking-tight">
                 {`Hello${resolvedName ? ", " + resolvedName : ""}`}
@@ -833,7 +848,7 @@ export function ClaudeChat({
                         { value: "ghost-write", icon: <Bot className="h-[18px] w-[18px]" />, tooltip: "Ghost Write" },
                         { value: "web-search", icon: <Brain className="h-[18px] w-[18px]" />, tooltip: "Web Search" },
                       ]}
-                      onChange={(_i, option) => setActiveMode(option.value)}
+                      onChange={() => {}}
                       disabled={isIdeaMode}
                     />
                     <Button variant="outline" size="icon">
@@ -930,19 +945,19 @@ export function ClaudeChat({
             {/* Removed legacy duplicate callout: PersonaSelector renders the callout when a persona is selected */}
 
             {/* Playbook Cards Section */}
-            <div className="mt-8 w-full">
+            <div className="mt-6 w-full">
               <PlaybookCards />
             </div>
           </div>
         </div>
-      )}
+      </div>
 
-      {/* Chat State */}
-      {!isHeroState && (
-        <div className="messages-container relative flex h-[calc(100vh-4rem)] flex-col transition-all duration-300">
+      {/* Chat Messages Area - always rendered but positioned */}
+      <div className={`chat-messages-area ${isHeroState ? 'opacity-0' : 'opacity-100'}`}>
+        <div className="messages-container relative flex h-screen flex-col transition-all duration-300">
           {/* Messages Area with bottom padding for sticky input */}
           <ScrollArea
-            className="messages-list flex-1 px-4 pb-32"
+            className="messages-list flex-1 px-4 pb-24"
             ref={messagesContainerRef}
           >
             <div className="mx-auto max-w-3xl py-6">
@@ -1011,94 +1026,58 @@ export function ClaudeChat({
             </div>
           </ScrollArea>
 
-          {/* Sticky Chat Input */}
-          <div className="bg-background/95 border-border-subtle absolute right-0 bottom-0 left-0 z-10 border-t py-4 backdrop-blur-sm transition-all duration-300">
+          {/* Minimal Fixed Chat Input */}
+          <div className="chat-input-fixed">
             <div className="mx-auto w-full max-w-3xl">
-              <Card className="border-border-subtle bg-card/95 interactive-element rounded-[var(--radius-card)] shadow-[var(--shadow-soft-drop)] backdrop-blur-sm transition-all duration-200 hover:shadow-[var(--shadow-hover)]">
-                <div className="px-2">
-                  <PromptComposer
-                    wrapInCard={false}
-                    variant="compact"
-                    value={inputValue}
-                    onChange={setInputValue}
-                    placeholder="Reply to Gen.C..."
-                    onSubmit={() => handleSend(inputValue)}
-                    isProcessing={isUrlProcessing}
-                    textareaRef={textareaRef}
-                    submitEnabled={!isUrlProcessing && (hasValidVideoUrl || inputValue.trim().length > 0)}
-                    highlightSubmit={false}
-                    submitIcon={
-                      isUrlProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-4 w-4" />
-                    }
-                    leftControls={
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className={`${isIdeaMode ? "bg-accent" : ""} size-8 rounded-full p-0`}
-                          onClick={() => {
-                            setIsIdeaMode((v) => !v);
-                            setTimeout(() => textareaRef.current?.focus(), 0);
-                          }}
-                          title="Write to Idea Inbox"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <AdvancedSlidingSwitch
-                          options={[
-                            {
-                              value: "ghost-write",
-                              icon: <Bot className="h-[18px] w-[18px]" />,
-                              tooltip: "Ghost Write",
-                            },
-                            {
-                              value: "web-search",
-                              icon: <Brain className="h-[18px] w-[18px]" />,
-                              tooltip: "Web Search",
-                            },
-                          ]}
-                          onChange={(_i, option) => setActiveMode(option.value)}
-                          disabled={false}
-                        />
-                      </div>
-                    }
-                    rightControls={
-                      <Button
-                        onClick={() => {
+              <div className="bg-card rounded-lg border border-border-subtle shadow-sm">
+                <div className="flex items-center gap-3 p-3">
+                  <div className="flex-1">
+                    <textarea
+                      ref={textareaRef}
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                      placeholder="Reply to Gen.C..."
+                      className="w-full resize-none border-0 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-0"
+                      rows={1}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
                           if (inputValue.trim()) {
-                            if (!isUrlProcessing) handleSend(inputValue);
-                          } else {
-                            if (!isUrlProcessing) handleVoiceRecording();
+                            handleSend(inputValue);
                           }
-                        }}
-                        disabled={isUrlProcessing}
-                        className={`size-9 rounded-full transition-colors ${
-                          inputValue.trim() && !isUrlProcessing
-                            ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                            : isRecording
-                              ? "animate-pulse bg-red-500 text-white hover:bg-red-600"
-                              : "bg-background text-foreground border-border hover:bg-accent hover:text-accent-foreground border"
-                        }`}
-                        title={
-                          inputValue.trim() ? "Send message" : isRecording ? "Stop recording" : "Start voice recording"
                         }
-                      >
-                        {isUrlProcessing ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : inputValue.trim() ? (
-                          <ArrowUp className="h-4 w-4" />
-                        ) : (
-                          <Mic className="h-4 w-4" />
-                        )}
-                      </Button>
-                    }
-                  />
+                      }}
+                      style={{
+                        minHeight: '20px',
+                        maxHeight: '100px',
+                        height: 'auto',
+                      }}
+                      onInput={(e) => {
+                        const target = e.target as HTMLTextAreaElement;
+                        target.style.height = 'auto';
+                        target.style.height = Math.min(target.scrollHeight, 100) + 'px';
+                      }}
+                    />
+                  </div>
+                  <Button
+                    onClick={() => {
+                      if (inputValue.trim()) {
+                        handleSend(inputValue);
+                      }
+                    }}
+                    disabled={!inputValue.trim()}
+                    size="sm"
+                    className="rounded-full"
+                  >
+                    <ArrowUp className="h-4 w-4" />
+                  </Button>
                 </div>
-              </Card>
+              </div>
             </div>
           </div>
         </div>
-      )}
+      </div>
+      
       {/* Inline actions replace the modal; no modal rendering here */}
     </div>
   );
