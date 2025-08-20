@@ -301,6 +301,11 @@
     @apply bg-background text-foreground overscroll-none;
   }
 
+  /* Global icon stroke weight */
+  svg[class*="lucide"] {
+    stroke-width: 1.5;
+  }
+
   /* Disable focus rings/outlines globally per design directive */
   :where(input, textarea, select, button):focus {
     outline: none !important;
