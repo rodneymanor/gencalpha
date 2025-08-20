@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 import { ChevronRight, Plus } from "lucide-react";
 
@@ -35,7 +35,6 @@ const IsComingSoon = () => (
 );
 
 const CustomDailyButton = ({ url }: { url: string }) => {
-  const router = useRouter();
   const handleClick = () => {
     // Close slideout wrapper by dispatching a global event
     if (typeof window !== "undefined") {
@@ -53,8 +52,8 @@ const CustomDailyButton = ({ url }: { url: string }) => {
       onClick={handleClick}
       className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground data-[active=true]:bg-transparent data-[active=true]:font-normal"
     >
-      <div className="bg-primary hover:bg-primary/90 flex h-4 w-4 shrink-0 items-center justify-center rounded-[var(--radius-pill)] shadow-[var(--shadow-soft-drop)] transition-all duration-200 ease-linear">
-        <Plus className="text-primary-foreground h-3 w-3" />
+      <div className="bg-primary hover:bg-primary/90 flex h-6 w-6 shrink-0 items-center justify-center rounded-[var(--radius-pill)] shadow-[var(--shadow-soft-drop)] transition-all duration-200 ease-linear [&>svg]:!size-4">
+        <Plus className="text-primary-foreground" />
       </div>
       <span>New Script</span>
     </SidebarMenuButton>
@@ -174,9 +173,9 @@ export function NavMain({ items }: NavMainProps) {
   const path = usePathname();
   const { state, isMobile } = useSidebar();
   const dynamicItems = useDynamicSidebarItems();
-  
+
   // Use dynamic items if no items are passed (backward compatibility)
-  const sidebarItems = items || dynamicItems;
+  const sidebarItems = items ?? dynamicItems;
 
   const isItemActive = (url: string, subItems?: NavMainItem["subItems"]) => {
     if (subItems?.length) {
