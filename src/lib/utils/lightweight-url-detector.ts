@@ -11,12 +11,13 @@ export interface LightweightDetectionResult {
 }
 
 // Optimized regex patterns for Instagram and TikTok URLs
+// Using global flag to extract the full URL match
 
 const INSTAGRAM_PATTERN =
-  /(?:https?:\/\/)?(?:www\.)?instagram\.com\/(?:p\/|reel\/|tv\/|stories\/[^/]+\/)?([A-Za-z0-9_-]+)\/?(?:\?[^#]*)?(?:#.*)?/i;
+  /((?:https?:\/\/)?(?:www\.)?instagram\.com\/(?:p\/|reel\/|tv\/|stories\/[^/]+\/)?[A-Za-z0-9_-]+\/?(?:\?[^#]*)?(?:#.*)?)/i;
 
 const TIKTOK_PATTERN =
-  /(?:https?:\/\/)?(?:www\.|vm\.|m\.)?tiktok\.com\/(?:@[^/]+\/video\/|v\/|embed\/|t\/)?([A-Za-z0-9_-]+)\/?(?:\?[^#]*)?(?:#.*)?/i;
+  /((?:https?:\/\/)?(?:www\.|vm\.|m\.)?tiktok\.com\/(?:@[^/]+\/video\/|v\/|embed\/|t\/)?[A-Za-z0-9_-]+\/?(?:\?[^#]*)?(?:#.*)?)/i;
 
 /**
  * Lightweight URL detection - pure regex, no network calls
@@ -32,8 +33,9 @@ export function detectSocialUrl(input: string): LightweightDetectionResult {
 
   // Instagram detection
   const instagramMatch = trimmed.match(INSTAGRAM_PATTERN);
-  if (instagramMatch) {
-    const url = normalizeUrl(trimmed, "instagram");
+  if (instagramMatch && instagramMatch[1]) {
+    const extractedUrl = instagramMatch[1];
+    const url = normalizeUrl(extractedUrl, "instagram");
     const contentType = getInstagramContentType(url);
     return {
       isValid: true,
@@ -45,8 +47,9 @@ export function detectSocialUrl(input: string): LightweightDetectionResult {
 
   // TikTok detection
   const tiktokMatch = trimmed.match(TIKTOK_PATTERN);
-  if (tiktokMatch) {
-    const url = normalizeUrl(trimmed, "tiktok");
+  if (tiktokMatch && tiktokMatch[1]) {
+    const extractedUrl = tiktokMatch[1];
+    const url = normalizeUrl(extractedUrl, "tiktok");
     const contentType = getTikTokContentType(url);
     return {
       isValid: true,

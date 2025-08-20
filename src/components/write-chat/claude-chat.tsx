@@ -7,7 +7,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 //
 // icons moved to presentational components
 
-import { type PersonaType } from "@/components/chatbot/persona-selector";
+import { type AssistantType } from "@/components/chatbot/persona-selector";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   ACK_BEFORE_SLIDE_MS,
@@ -17,7 +17,6 @@ import {
   EMULATE_INPUT,
 } from "@/components/write-chat/constants";
 import { useInlineVideoActions } from "@/components/write-chat/hooks/use-inline-video-actions";
-import { useUrlDetection } from "@/components/write-chat/hooks/use-url-detection";
 import { useVoiceRecorder } from "@/components/write-chat/hooks/use-voice-recorder";
 import { MessageList } from "@/components/write-chat/messages/message-list";
 import { FixedChatInput } from "@/components/write-chat/presentation/fixed-chat-input";
@@ -27,20 +26,21 @@ import { type ChatMessage } from "@/components/write-chat/types";
 import { sendToSlideout, delay } from "@/components/write-chat/utils";
 import { useAuth } from "@/contexts/auth-context";
 import { useIdeaInboxFlag } from "@/hooks/use-feature-flag";
+import { useLightweightUrlDetection } from "@/hooks/use-lightweight-url-detection";
 import { useScriptGeneration } from "@/hooks/use-script-generation";
 import { buildAuthHeaders } from "@/lib/http/auth-headers";
 import { clientNotesService, type Note } from "@/lib/services/client-notes-service";
-import { detectSocialLink } from "@/lib/utils/social-link-detector";
+import { type DetectionResult, type DetectedType, detectSocialLink } from "@/lib/utils/social-link-detector";
 
 // primitives moved to a separate file to reduce linter max-lines and improve reuse
 type ClaudeChatProps = {
   className?: string;
   placeholder?: string;
-  onSend?: (message: string, persona: PersonaType) => void;
+  onSend?: (message: string, assistant: AssistantType) => void;
   onAnswerReady?: () => void;
   onHeroStateChange?: (isHero: boolean) => void;
   initialPrompt?: string;
-  initialPersona?: PersonaType;
+  initialAssistant?: AssistantType;
 };
 
 export function ClaudeChat({
@@ -50,7 +50,7 @@ export function ClaudeChat({
   onAnswerReady,
   onHeroStateChange,
   initialPrompt,
-  initialPersona,
+  initialAssistant,
 }: ClaudeChatProps) {
   // Chat renders conversational text; structured results (scripts, analysis, hooks) are sent to the
   // BlockNote slideout via a global event. The slideout listens for `write:editor-set-content` and
@@ -61,7 +61,7 @@ export function ClaudeChat({
   const [inputValue, setInputValue] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   // Processing UI is represented via ACK_LOADING messages
-  const [selectedPersona, setSelectedPersona] = useState<PersonaType | null>(initialPersona ?? null);
+  const [selectedAssistant, setSelectedAssistant] = useState<AssistantType | null>(initialAssistant ?? null);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [ideas, setIdeas] = useState<Note[]>([]);
   const [ideasOpen, setIdeasOpen] = useState(false);
@@ -69,8 +69,21 @@ export function ClaudeChat({
   const [ideaSaveMessage, setIdeaSaveMessage] = useState<string | null>(null);
   const mountedRef = useRef(true);
   // URL detection & validation
-  const { linkDetection, urlCandidate, urlSupported, isUrlProcessing, hasValidVideoUrl, detectManually } =
-    useUrlDetection(inputValue);
+  const { detection, isProcessing: isUrlProcessing } = useLightweightUrlDetection(inputValue);
+
+  // Legacy compatibility mappings
+  const hasValidVideoUrl = detection.isValid;
+  const urlCandidate = detection.url;
+  const urlSupported = detection.platform;
+
+  // Map new detection result to old DetectionResult interface for compatibility
+  const linkDetection: DetectionResult = {
+    type: (detection.platform ?? (detection.isValid ? "other_url" : "text")) as DetectedType,
+    url: detection.url,
+    extracted: {
+      contentType: detection.contentType ?? undefined,
+    },
+  };
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -137,8 +150,8 @@ export function ClaudeChat({
   // Initialize from props
   useEffect(() => {
     if (initialPrompt) setInputValue(initialPrompt);
-    setSelectedPersona(initialPersona ?? null);
-  }, [initialPrompt, initialPersona]);
+    setSelectedAssistant(initialAssistant ?? null);
+  }, [initialPrompt, initialAssistant]);
 
   // Notify parent when hero state changes
   useEffect(() => {
@@ -171,7 +184,7 @@ export function ClaudeChat({
 
   // hasValidVideoUrl provided by useUrlDetection
 
-  // Personas list no longer needed here; PersonaSelector renders from internal source
+  // Assistants list no longer needed here; AssistantSelector renders from internal source
   const resolvedName = userProfile?.displayName ?? user?.displayName ?? null;
 
   const handleSend = async (value: string) => {
@@ -197,12 +210,14 @@ export function ClaudeChat({
       if (hasScriptIntent) {
         // Try to extract the topic from common patterns
         // Safe regex for topic extraction
+
         const topicAboutMatch = /\b(?:about|on)\s+([^.!?\n\r]{3,})/i.exec(text);
         const topicFromAbout = topicAboutMatch ? topicAboutMatch[1].trim() : undefined;
         const topic = topicFromAbout
           ? topicFromAbout.split(/\s+/).slice(0, 10).join(" ")
           : text
               .replace(/^\s*\/script\s+/i, "")
+
               .replace(/^(generate\s+script\s*:?)\s*/i, "")
               .replace(/\bwrite\s+(a\s+)?script\b/i, "")
               .replace(/\bscript\b/i, "")
@@ -210,7 +225,7 @@ export function ClaudeChat({
               .split(/\s+/)
               .slice(0, 10)
               .join(" ");
-        const safeTopic = topic ?? "your idea";
+        const safeTopic = topic || "your idea";
         return `I'll help you write a script about ${safeTopic}.`;
       }
 
@@ -241,7 +256,8 @@ export function ClaudeChat({
 
       // If we have a social media URL, use it directly for analysis
       if (
-        immediateDetection?.type &&
+        immediateDetection &&
+        immediateDetection.type &&
         (immediateDetection.type === "instagram" || immediateDetection.type === "tiktok") &&
         immediateDetection.url
       ) {
@@ -263,8 +279,7 @@ export function ClaudeChat({
       }
     }
 
-    // URL detection (for potential future embed/preview behavior)
-    detectManually(trimmed);
+    // URL detection happens automatically via useLightweightUrlDetection hook
 
     // If a valid social video URL is present (but not in analysis mode), show action panel
     if (hasValidVideoUrl && urlCandidate && urlSupported) {
@@ -304,8 +319,7 @@ export function ClaudeChat({
       }
     }
 
-    // URL detection (for potential future embed/preview behavior)
-    detectManually(trimmed);
+    // URL detection happens automatically via useLightweightUrlDetection hook
 
     // 1) Push user message immediately
     const userMessageId = crypto.randomUUID();
@@ -322,7 +336,7 @@ export function ClaudeChat({
     ]);
     setInputValue("");
     setIsHeroState(false);
-    onSend?.(trimmed, selectedPersona ?? "MiniBuddy");
+    onSend?.(trimmed, selectedAssistant ?? "MiniBuddy");
     // Persist user message
     (async () => {
       try {
@@ -332,7 +346,7 @@ export function ClaudeChat({
           const res = await fetch("/api/chat/conversations", {
             method: "POST",
             headers,
-            body: JSON.stringify({ persona: selectedPersona ?? "MiniBuddy", initialPrompt: initialPrompt ?? null }),
+            body: JSON.stringify({ assistant: selectedAssistant ?? "MiniBuddy", initialPrompt: initialPrompt ?? null }),
           });
           if (res.ok) {
             const json = (await res.json()) as { success: boolean; conversationId?: string };
@@ -358,8 +372,8 @@ export function ClaudeChat({
 
     // Helper: route structured content to slideout BlockNote editor
 
-    // If no persona selected, treat the input as a script idea and run Speed Write
-    if (!selectedPersona) {
+    // If no assistant selected, treat the input as a script idea and run Speed Write
+    if (!selectedAssistant) {
       try {
         const res = await generateScript(trimmed, "60");
         await delay(ACK_BEFORE_SLIDE_MS);
@@ -461,7 +475,7 @@ export function ClaudeChat({
         headers: authHeaders,
         body: JSON.stringify({
           message: trimmed,
-          persona: selectedPersona,
+          assistant: selectedAssistant,
           conversationHistory: messages.map((m) => ({ role: m.role, content: m.content })),
         }),
       });
@@ -560,8 +574,8 @@ export function ClaudeChat({
           hasValidVideoUrl={hasValidVideoUrl}
           handleSend={handleSend}
           heroInputRef={heroInputRef}
-          selectedPersona={selectedPersona}
-          setSelectedPersona={setSelectedPersona}
+          selectedAssistant={selectedAssistant}
+          setSelectedAssistant={setSelectedAssistant}
           isIdeaMode={isIdeaMode}
           setIsIdeaMode={setIsIdeaMode}
           ideaSaveMessage={ideaSaveMessage}

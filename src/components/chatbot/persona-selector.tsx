@@ -7,17 +7,17 @@ import { FileText, Bot, BookOpen, Fish, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-export type PersonaType = "Scribo" | "MiniBuddy" | "StoryBuddy" | "HookBuddy" | "MVBB";
+export type AssistantType = "Scribo" | "MiniBuddy" | "StoryBuddy" | "HookBuddy" | "MVBB";
 
-interface PersonaSelectorProps {
-  selectedPersona: PersonaType | null;
-  onPersonaChange: (persona: PersonaType) => void;
+interface AssistantSelectorProps {
+  selectedAssistant: AssistantType | null;
+  onAssistantChange: (assistant: AssistantType) => void;
   className?: string;
   showCallout?: boolean;
 }
 
-export const PERSONAS: Array<{
-  key: PersonaType;
+export const ASSISTANTS: Array<{
+  key: AssistantType;
   label: string;
   tooltip?: string;
   icon: React.ReactNode;
@@ -61,16 +61,16 @@ export const PERSONAS: Array<{
   },
 ];
 
-export function PersonaSelector({
-  selectedPersona,
-  onPersonaChange,
+export function AssistantSelector({
+  selectedAssistant,
+  onAssistantChange,
   className,
   showCallout = false,
-}: PersonaSelectorProps) {
-  const selectedPersonaData = selectedPersona ? PERSONAS.find((p) => p.key === selectedPersona) : null;
+}: AssistantSelectorProps) {
+  const selectedAssistantData = selectedAssistant ? ASSISTANTS.find((p) => p.key === selectedAssistant) : null;
 
-  // Show callout when persona is selected and showCallout is true
-  if (showCallout && selectedPersonaData) {
+  // Show callout when assistant is selected and showCallout is true
+  if (showCallout && selectedAssistantData) {
     return (
       <div className={cn("space-y-4", className)}>
         <div className="bg-card border-border rounded-[var(--radius-card)] border p-6 shadow-[var(--shadow-soft-drop)]">
@@ -81,7 +81,7 @@ export function PersonaSelector({
                 style={{ backgroundColor: "hsl(var(--secondary, var(--foreground)) / 0.1)" }}
               >
                 <div className="text-secondary text-xl">
-                  {React.cloneElement(selectedPersonaData.icon as React.ReactElement, {
+                  {React.cloneElement(selectedAssistantData.icon as React.ReactElement, {
                     className: "h-6 w-6",
                     style: { color: "hsl(var(--secondary, var(--foreground)))" },
                   })}
@@ -90,9 +90,9 @@ export function PersonaSelector({
             </div>
             <div className="flex-1">
               <div className="mb-2 flex items-center space-x-2">
-                <h3 className="text-foreground font-semibold">{selectedPersonaData.label} Mode Active</h3>
+                <h3 className="text-foreground font-semibold">{selectedAssistantData.label} Assistant Active</h3>
               </div>
-              <p className="text-muted-foreground text-sm">{selectedPersonaData.description}</p>
+              <p className="text-muted-foreground text-sm">{selectedAssistantData.description}</p>
             </div>
           </div>
         </div>
@@ -102,15 +102,15 @@ export function PersonaSelector({
 
   return (
     <div className={cn("flex flex-wrap gap-2", className)}>
-      {PERSONAS.map(({ key, label, tooltip, icon }) => (
+      {ASSISTANTS.map(({ key, label, tooltip, icon }) => (
         <Button
           key={key}
           variant="soft"
           size="sm"
-          onClick={() => onPersonaChange(key)}
+          onClick={() => onAssistantChange(key)}
           className={cn(
             "gap-1.5 rounded-full !bg-transparent px-4 py-1 text-xs font-medium transition-all",
-            selectedPersona === key
+            selectedAssistant === key
               ? "border-primary text-primary hover:bg-primary/5"
               : "border-border hover:bg-accent hover:text-accent-foreground",
           )}

@@ -2,9 +2,9 @@
 
 import { Loader2, ArrowUp, SlidersHorizontal, Lightbulb, Pencil, Bot, Brain, Mic } from "lucide-react";
 
-import { type PersonaType, PersonaSelector } from "@/components/chatbot/persona-selector";
-import { Button } from "@/components/ui/button";
+import { type AssistantType, AssistantSelector } from "@/components/chatbot/persona-selector";
 import { AdvancedSlidingSwitch } from "@/components/ui/advanced-sliding-switch";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,10 +13,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { PromptComposer } from "@/components/write-chat/prompt-composer";
 import { PlaybookCards } from "@/components/write-chat/playbook-cards";
+import { PromptComposer } from "@/components/write-chat/prompt-composer";
 import type { DetectionResult } from "@/lib/utils/social-link-detector";
 
+// eslint-disable-next-line complexity
 export function HeroSection(props: {
   resolvedName?: string | null;
   inputValue: string;
@@ -29,8 +30,8 @@ export function HeroSection(props: {
   hasValidVideoUrl: boolean;
   handleSend: (value: string) => void;
   heroInputRef: React.RefObject<HTMLTextAreaElement | null>;
-  selectedPersona: PersonaType | null;
-  setSelectedPersona: (p: PersonaType | null) => void;
+  selectedAssistant: AssistantType | null;
+  setSelectedAssistant: (p: AssistantType | null) => void;
   isIdeaMode: boolean;
   setIsIdeaMode: (v: boolean) => void;
   ideaSaveMessage: string | null;
@@ -52,11 +53,11 @@ export function HeroSection(props: {
     hasValidVideoUrl,
     handleSend,
     heroInputRef,
-    selectedPersona,
-    setSelectedPersona,
+    selectedAssistant,
+    setSelectedAssistant,
     isIdeaMode,
     setIsIdeaMode,
-    ideaSaveMessage,
+    ideaSaveMessage, // eslint-disable-line @typescript-eslint/no-unused-vars
     ideas,
     ideasOpen,
     setIdeasOpen,
@@ -65,7 +66,7 @@ export function HeroSection(props: {
   } = props;
 
   return (
-    <div className="flex min-h-screen max-h-screen flex-col items-center justify-center px-4 py-8 overflow-y-auto transition-all duration-300">
+    <div className="flex max-h-screen min-h-screen flex-col items-center justify-center overflow-y-auto px-4 py-8 transition-all duration-300">
       <div className="mx-auto flex w-full max-w-3xl flex-col items-start gap-3 px-5">
         <div>
           <h1 className="text-foreground text-4xl leading-10 font-bold tracking-tight">
@@ -85,9 +86,13 @@ export function HeroSection(props: {
             textareaRef={heroInputRef}
             submitEnabled={!isUrlProcessing && (hasValidVideoUrl || inputValue.trim().length > 0)}
             highlightSubmit={hasValidVideoUrl}
-            submitIcon={isUrlProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-4 w-4" />}
+            submitIcon={
+              isUrlProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-4 w-4" />
+            }
             footerBanner={
-              isUrlProcessing && linkDetection && (linkDetection.type === "instagram" || linkDetection.type === "tiktok") ? (
+              isUrlProcessing &&
+              linkDetection &&
+              (linkDetection.type === "instagram" || linkDetection.type === "tiktok") ? (
                 <div className="bg-muted text-muted-foreground animate-in fade-in-0 rounded-[var(--radius-input)] px-3 py-2 text-sm duration-200">
                   🔄 Validating URL...
                 </div>
@@ -97,7 +102,9 @@ export function HeroSection(props: {
                 </div>
               ) : linkDetection && linkDetection.type !== "text" ? (
                 <div className="bg-muted/80 border-border/50 text-muted-foreground flex items-center gap-2 rounded-[var(--radius-input)] border p-2 text-sm">
-                  <span className="text-foreground font-medium">{linkDetection.type === "other_url" ? "Link" : linkDetection.type}</span>
+                  <span className="text-foreground font-medium">
+                    {linkDetection.type === "other_url" ? "Link" : linkDetection.type}
+                  </span>
                   {linkDetection.extracted.username && <span>@{linkDetection.extracted.username}</span>}
                   {linkDetection.extracted.postId && <span>#{linkDetection.extracted.postId}</span>}
                   {linkDetection.extracted.contentType && <span>· {linkDetection.extracted.contentType}</span>}
@@ -199,11 +206,11 @@ export function HeroSection(props: {
 
         {!isIdeaMode && (
           <div className="mx-auto w-full max-w-3xl">
-            <PersonaSelector
-              selectedPersona={selectedPersona}
-              onPersonaChange={setSelectedPersona}
+            <AssistantSelector
+              selectedAssistant={selectedAssistant}
+              onAssistantChange={setSelectedAssistant}
               className="justify-center"
-              showCallout={Boolean(selectedPersona)}
+              showCallout={Boolean(selectedAssistant)}
             />
           </div>
         )}
@@ -225,5 +232,3 @@ export function HeroSection(props: {
 }
 
 export default HeroSection;
-
-

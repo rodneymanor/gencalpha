@@ -10,11 +10,11 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 interface ChatRequest {
   message: string;
-  persona: string;
+  assistant: string;
   conversationHistory?: Array<{ role: "user" | "assistant"; content: string }>;
 }
 
-const PERSONA_PROMPTS = {
+const ASSISTANT_PROMPTS = {
   Scribo:
     "You are Scribo, a professional script writer specialized in creating viral social media content. You help users craft compelling scripts for videos, posts, and stories. Focus on engagement, storytelling, and viral potential.",
   MiniBuddy:
@@ -39,17 +39,17 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     console.log("📥 [Chatbot API] Request body:", JSON.stringify(body, null, 2));
 
-    const { message, persona, conversationHistory = [] }: ChatRequest = body;
+    const { message, assistant, conversationHistory = [] }: ChatRequest = body;
 
     console.log("🔍 [Chatbot API] Extracted data:", {
       message: message?.substring(0, 100) + (message?.length > 100 ? "..." : ""),
-      persona,
+      assistant,
       historyLength: conversationHistory.length,
     });
 
-    if (!message || !persona) {
+    if (!message || !assistant) {
       console.log("❌ [Chatbot API] Missing required fields");
-      return NextResponse.json({ error: "Message and persona are required" }, { status: 400 });
+      return NextResponse.json({ error: "Message and assistant are required" }, { status: 400 });
     }
 
     console.log("🔑 [Chatbot API] Checking API key...");
@@ -66,9 +66,9 @@ export async function POST(request: NextRequest) {
     // Get the model - using gemini-1.5-flash (faster and more cost-effective)
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    // Build the prompt with persona context
-    const systemPrompt = PERSONA_PROMPTS[persona as keyof typeof PERSONA_PROMPTS] || PERSONA_PROMPTS.MiniBuddy;
-    console.log("🎭 [Chatbot API] Using persona:", persona);
+    // Build the prompt with assistant context
+    const systemPrompt = ASSISTANT_PROMPTS[assistant as keyof typeof ASSISTANT_PROMPTS] || ASSISTANT_PROMPTS.MiniBuddy;
+    console.log("🎭 [Chatbot API] Using assistant:", assistant);
     console.log("🎭 [Chatbot API] System prompt:", systemPrompt.substring(0, 100) + "...");
 
     // Build conversation context
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
     const fullPrompt = `${systemPrompt}${conversationContext}\n\nUser: ${message}\n\nAssistant:`;
     console.log("📝 [Chatbot API] Full prompt length:", fullPrompt.length);
 
-    console.log("🤖 [Chatbot API] Generating response for persona:", persona);
+    console.log("🤖 [Chatbot API] Generating response for assistant:", assistant);
 
     // Generate response
     console.log("⚡ [Chatbot API] Calling Gemini API...");
@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
         const now = new Date().toISOString();
         await adminDb.collection("chat_logs").add({
           userId: authResult.user.uid,
-          persona,
+          assistant,
           request: { message, conversationHistory },
           response: text,
           createdAt: now,
@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       response: text,
-      persona,
+      assistant,
     });
   } catch (error) {
     console.error("❌ [Chatbot API] Detailed error:", {
