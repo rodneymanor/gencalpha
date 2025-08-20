@@ -61,18 +61,13 @@ const useSlideoutEffects = (isOpen: boolean, onClose: () => void, config: Slideo
   }, [isOpen, config.preventBodyScroll]);
 };
 
-const getBackdropVariant = (windowWidth: number) => {
-  if (windowWidth < 768) return "mobile";
-  if (windowWidth < 1024) return "tablet";
+const getBackdropVariant = () => {
+  if (typeof window !== 'undefined') {
+    const width = window.innerWidth;
+    if (width < 768) return "mobile";
+    if (width < 1024) return "tablet";
+  }
   return "default";
-};
-
-// Helper to determine if backdrop should be shown for non-modal slideouts
-const shouldShowBackdrop = (modal: boolean, backdrop: boolean, windowWidth: number) => {
-  if (modal) return backdrop; // For modal slideouts, respect the backdrop setting
-
-  // For non-modal slideouts, show backdrop only on mobile/tablet
-  return windowWidth < 1024; // Show backdrop on mobile and tablet for non-modal
 };
 
 // Helper function to build slideout classes
@@ -80,7 +75,7 @@ const getSlideoutClasses = (isOpen: boolean, config: SlideoutConfig, className?:
   return cn(
     // Base positioning and layout
     getPositionClasses(config.position),
-    getWidthClasses(config.width, config.modal),
+    getWidthClasses(config.width),
 
     // Animation classes
     getAnimationClasses(isOpen, config.position ?? "right", config.animationType ?? "claude"),
@@ -108,18 +103,6 @@ export function UnifiedSlideoutCore({
   footerActions
 }: SlideoutProps) {
   const slideoutRef = useRef<HTMLDivElement>(null);
-  const [windowWidth, setWindowWidth] = useState(0);
-
-  // Track window width for responsive backdrop behavior
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const updateWidth = () => setWindowWidth(window.innerWidth);
-    updateWidth(); // Set initial width
-
-    window.addEventListener('resize', updateWidth);
-    return () => window.removeEventListener('resize', updateWidth);
-  }, []);
 
   // Claude-style content adjustment
   useContentAdjustment(isOpen, config.width!, config.adjustsContent!);
@@ -133,13 +116,13 @@ export function UnifiedSlideoutCore({
 
   return (
     <>
-      {/* Backdrop - Smart backdrop logic for modal vs non-modal behavior */}
-      {shouldShowBackdrop(config.modal!, config.backdrop!, windowWidth) && (
+      {/* Backdrop - Only for overlay modes, not Claude-style */}
+      {config.backdrop && (
         <SlideoutBackdrop
           isOpen={isOpen}
           onClose={onClose}
           modal={config.modal}
-          variant={getBackdropVariant(windowWidth)}
+          variant={getBackdropVariant()}
         />
       )}
 

@@ -86,22 +86,11 @@ export const widthMap = {
   full: "w-full"   // Full width on all breakpoints
 };
 
-// Non-modal width mappings - respects responsive breakpoints for desktop behavior
-export const nonModalWidthMap = {
-  sm: "w-full sm:w-[320px]",  // 320px on all screen sizes except mobile
-  md: "w-full sm:w-[384px]",  // 384px on all screen sizes except mobile
-  lg: "w-full sm:w-[70vw] sm:max-w-[480px] lg:w-[600px]", // Claude artifact panel behavior
-  xl: "w-full sm:w-[70vw] sm:max-w-[600px] lg:w-[800px]", // Extra wide panels
-  full: "w-full"   // Full width on all breakpoints
-};
-
 // Get width classes with responsive behavior
-export const getWidthClasses = (width?: string, modal: boolean = true) => {
-  const targetMap = modal ? widthMap : nonModalWidthMap;
-
-  if (typeof width === "string" && width in targetMap) {
-    return targetMap[width as keyof typeof targetMap];
+export const getWidthClasses = (width?: string) => {
+  if (typeof width === "string" && width in widthMap) {
+    return widthMap[width as keyof typeof widthMap];
   }
-  // Default to lg width with appropriate responsive behavior
-  return modal ? widthMap.lg : nonModalWidthMap.lg;
+  // Default to lg width with responsive behavior
+  return widthMap.lg;
 };
