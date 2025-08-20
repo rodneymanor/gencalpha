@@ -6,7 +6,6 @@ import { startAckWithLoader, finishAndRemoveLoader } from "@/components/write-ch
 import { generateHooks, generateIdeas, transcribeVideo } from "@/components/write-chat/services/video-service";
 import { sendToSlideout, sendScriptToSlideout } from "@/components/write-chat/utils";
 import { processScriptComponents } from "@/hooks/use-script-analytics";
-import { ensureResolved } from "@/lib/video/ensure-resolved";
 import { ScriptData, ScriptComponent } from "@/types/script-panel";
 
 export type InlineVideoAction = "transcribe" | "ideas" | "hooks";
@@ -62,11 +61,12 @@ export function useInlineVideoActions(options: {
       setActiveAction("transcribe");
       startAckWithLoader(setMessages, "I'll transcribe this video for you.");
       try {
-        const { url, platform } = await ensureResolved(videoPanel);
-        const transcript = await transcribeVideo({ url, platform });
+        // For video action selector flow, skip ensureResolved and use the original URL directly
+        // This avoids triggering the unified video scraper unnecessarily
+        const transcript = await transcribeVideo({ url: videoPanel.url, platform: videoPanel.platform });
 
         // Convert transcript to script data format and send to script panel slideout
-        const scriptData = convertTranscriptToScriptData(transcript, url);
+        const scriptData = convertTranscriptToScriptData(transcript, videoPanel.url);
         sendScriptToSlideout(scriptData, "Video Transcript");
 
         finishAndRemoveLoader(setMessages);
@@ -91,9 +91,9 @@ export function useInlineVideoActions(options: {
       setActiveAction("ideas");
       startAckWithLoader(setMessages, "I'll help you create 10 content ideas.");
       try {
-        const { url, platform } = await ensureResolved(videoPanel);
-        const transcript = await transcribeVideo({ url, platform });
-        const ideas = await generateIdeas({ transcript, url });
+        // For video action selector flow, skip ensureResolved and use the original URL directly
+        const transcript = await transcribeVideo({ url: videoPanel.url, platform: videoPanel.platform });
+        const ideas = await generateIdeas({ transcript, url: videoPanel.url });
         const markdown = `# Content Ideas\n\n${ideas}`;
         sendToSlideout(markdown);
         finishAndRemoveLoader(setMessages);
@@ -118,8 +118,8 @@ export function useInlineVideoActions(options: {
       setActiveAction("hooks");
       startAckWithLoader(setMessages, "I'll help you write hooks.");
       try {
-        const { url, platform } = await ensureResolved(videoPanel);
-        const transcript = await transcribeVideo({ url, platform });
+        // For video action selector flow, skip ensureResolved and use the original URL directly
+        const transcript = await transcribeVideo({ url: videoPanel.url, platform: videoPanel.platform });
         const hooksResp = await generateHooks({ transcript });
         const list = hooksResp.hooks.map((h, i) => `${i + 1}. ${h.text} — ${h.rating}/100 (${h.focus})`).join("\n");
         const markdown = `# Hooks\n\n${list}\n\n**Top Hook:** ${hooksResp.topHook.text} (${hooksResp.topHook.rating}/100)`;
