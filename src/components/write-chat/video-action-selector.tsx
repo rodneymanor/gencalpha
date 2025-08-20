@@ -2,10 +2,10 @@
 
 import React from "react";
 
-import { FileText, BarChart3, Copy, Lightbulb, Fish } from "lucide-react";
+import { FileText, Lightbulb, Fish } from "lucide-react";
 
 export interface VideoActionSelectorProps {
-  onAction: (action: "transcribe" | "analyze" | "emulate" | "ideas" | "hooks") => void;
+  onAction: (action: "transcribe" | "ideas" | "hooks") => void;
   disabled?: boolean;
   className?: string;
 }
@@ -14,8 +14,8 @@ interface ActionCardProps {
   title: string;
   description: string;
   icon: React.ReactNode;
-  action: "transcribe" | "analyze" | "emulate" | "ideas" | "hooks";
-  onAction: (action: "transcribe" | "analyze" | "emulate" | "ideas" | "hooks") => void;
+  action: "transcribe" | "ideas" | "hooks";
+  onAction: (action: "transcribe" | "ideas" | "hooks") => void;
   disabled?: boolean;
   gradientClasses: string;
 }
@@ -83,20 +83,6 @@ const VideoActionSelector: React.FC<VideoActionSelectorProps> = ({ onAction, dis
       icon: <FileText className="h-full w-full" />,
       action: "transcribe",
       gradientClasses: "bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30",
-    },
-    {
-      title: "Advanced Stylometric Analysis",
-      description: "Deep linguistic forensics & voice replication analysis",
-      icon: <BarChart3 className="h-full w-full" />,
-      action: "analyze",
-      gradientClasses: "bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/30 dark:to-orange-900/30",
-    },
-    {
-      title: "Emulate Style (@Analyze)",
-      description: "Generate new script in source style",
-      icon: <Copy className="h-full w-full" />,
-      action: "emulate",
-      gradientClasses: "bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/30",
     },
     {
       title: "Create Content Ideas (@Content Ideas.md)",

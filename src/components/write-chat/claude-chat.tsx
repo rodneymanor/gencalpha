@@ -9,13 +9,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 
 import { type AssistantType } from "@/components/chatbot/persona-selector";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  ACK_BEFORE_SLIDE_MS,
-  SLIDE_DURATION_MS,
-  ACK_LOADING,
-  VIDEO_ACTIONS,
-  EMULATE_INPUT,
-} from "@/components/write-chat/constants";
+import { ACK_BEFORE_SLIDE_MS, SLIDE_DURATION_MS, ACK_LOADING } from "@/components/write-chat/constants";
 import { useInlineVideoActions } from "@/components/write-chat/hooks/use-inline-video-actions";
 import { useVoiceRecorder } from "@/components/write-chat/hooks/use-voice-recorder";
 import { MessageList } from "@/components/write-chat/messages/message-list";
@@ -30,7 +24,6 @@ import { useLightweightUrlDetection } from "@/hooks/use-lightweight-url-detectio
 import { useScriptGeneration } from "@/hooks/use-script-generation";
 import { buildAuthHeaders } from "@/lib/http/auth-headers";
 import { clientNotesService, type Note } from "@/lib/services/client-notes-service";
-import { type DetectionResult, type DetectedType, detectSocialLink } from "@/lib/utils/social-link-detector";
 
 // primitives moved to a separate file to reduce linter max-lines and improve reuse
 type ClaudeChatProps = {
@@ -71,19 +64,6 @@ export function ClaudeChat({
   // URL detection & validation
   const { detection, isProcessing: isUrlProcessing } = useLightweightUrlDetection(inputValue);
 
-  // Legacy compatibility mappings
-  const hasValidVideoUrl = detection.isValid;
-  const urlCandidate = detection.url;
-  const urlSupported = detection.platform;
-
-  // Map new detection result to old DetectionResult interface for compatibility
-  const linkDetection: DetectionResult = {
-    type: (detection.platform ?? (detection.isValid ? "other_url" : "text")) as DetectedType,
-    url: detection.url,
-    extracted: {
-      contentType: detection.contentType ?? undefined,
-    },
-  };
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -99,25 +79,14 @@ export function ClaudeChat({
     enableIntersectionObserver: true,
   });
 
-  // Inline video action selection state
-  const [videoPanel, setVideoPanel] = useState<{ url: string; platform: "instagram" | "tiktok" } | null>(null);
-  const {
-    activeAction,
-    awaitingEmulateInput,
-    emulateIdea,
-    setEmulateIdea,
-    handleTranscribe,
-    handleAnalyze,
-    handleEmulateStart,
-    handleEmulateSubmit,
-    handleIdeas,
-    handleHooks,
-  } = useInlineVideoActions({ setMessages, onAnswerReady });
+  const { activeAction, handleTranscribe, handleIdeas, handleHooks } = useInlineVideoActions({
+    setMessages,
+    onAnswerReady,
+  });
 
   // Voice recording
   const { isRecording, toggle: toggleRecording } = useVoiceRecorder({ onTranscription: setInputValue });
   const [showListening, setShowListening] = useState(true);
-  const [analysisEnabled, setAnalysisEnabled] = useState(false);
 
   // Enhanced smooth scrolling with message manager
   useEffect(() => {
@@ -249,52 +218,7 @@ export function ClaudeChat({
 
     // Timing utilities and constants imported from helpers
 
-    // Check if analysis mode is enabled and we have a social URL
-    if (analysisEnabled) {
-      // Immediately detect the URL from the input to avoid timing issues
-      const immediateDetection = detectSocialLink(trimmed);
-
-      // If we have a social media URL, use it directly for analysis
-      if (
-        immediateDetection &&
-        immediateDetection.type &&
-        (immediateDetection.type === "instagram" || immediateDetection.type === "tiktok") &&
-        immediateDetection.url
-      ) {
-        setIsHeroState(false);
-        setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "user", content: trimmed }]);
-        const detectedPlatform = immediateDetection.type;
-        await handleAnalyze({ url: immediateDetection.url, platform: detectedPlatform });
-        setInputValue("");
-        return;
-      }
-
-      // Alternative: check if we have validated URL already
-      if (hasValidVideoUrl && urlCandidate && urlSupported) {
-        setIsHeroState(false);
-        setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "user", content: trimmed }]);
-        await handleAnalyze({ url: urlCandidate, platform: urlSupported });
-        setInputValue("");
-        return;
-      }
-    }
-
     // URL detection happens automatically via useLightweightUrlDetection hook
-
-    // If a valid social video URL is present (but not in analysis mode), show action panel
-    if (hasValidVideoUrl && urlCandidate && urlSupported) {
-      setIsHeroState(false);
-      // Append the user message for context
-      setMessages((prev) => [
-        ...prev,
-        { id: crypto.randomUUID(), role: "user", content: trimmed },
-        { id: crypto.randomUUID(), role: "assistant", content: "Choose an action to process this video:" },
-        { id: crypto.randomUUID(), role: "assistant", content: VIDEO_ACTIONS },
-      ]);
-      setVideoPanel({ url: urlCandidate, platform: urlSupported });
-      setInputValue("");
-      return;
-    }
 
     // Idea Inbox submission from hero input when Idea Mode is active
     if (isHeroState && isIdeaMode) {
@@ -535,12 +459,6 @@ export function ClaudeChat({
 
   // Helpers for inline actions are imported
 
-  // Inline emulate prompt message injection
-  const handleInlineEmulateStart = () => {
-    handleEmulateStart();
-    setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "assistant", content: EMULATE_INPUT }]);
-  };
-
   // Add transition state for FLIP animation
   const [isTransitioning, setIsTransitioning] = useState(false);
 
@@ -570,8 +488,6 @@ export function ClaudeChat({
           isRecording={isRecording}
           showListening={showListening}
           isUrlProcessing={isUrlProcessing}
-          linkDetection={linkDetection}
-          hasValidVideoUrl={hasValidVideoUrl}
           handleSend={handleSend}
           heroInputRef={heroInputRef}
           selectedAssistant={selectedAssistant}
@@ -595,17 +511,11 @@ export function ClaudeChat({
             <MessageList
               messages={messages}
               resolvedName={resolvedName ?? null}
-              videoPanel={videoPanel}
+              videoPanel={null}
               activeAction={activeAction}
-              awaitingEmulateInput={awaitingEmulateInput}
-              emulateIdea={emulateIdea}
-              onEmulateIdeaChange={setEmulateIdea}
-              onTranscribe={() => handleTranscribe(videoPanel)}
-              onAnalyze={() => handleAnalyze(videoPanel)}
-              onEmulateStart={handleInlineEmulateStart}
-              onEmulateSubmit={() => handleEmulateSubmit(videoPanel)}
-              onIdeas={() => handleIdeas(videoPanel)}
-              onHooks={() => handleHooks(videoPanel)}
+              onTranscribe={() => handleTranscribe(null)}
+              onIdeas={() => handleIdeas(null)}
+              onHooks={() => handleHooks(null)}
               messagesEndRef={messagesEndRef}
             />
           </ScrollArea>
@@ -616,8 +526,6 @@ export function ClaudeChat({
             setInputValue={setInputValue}
             onSubmit={() => handleSend(inputValue)}
             textareaRef={textareaRef}
-            analysisEnabled={analysisEnabled}
-            onToggleAnalysis={(next) => setAnalysisEnabled(next)}
           />
         </div>
       </div>

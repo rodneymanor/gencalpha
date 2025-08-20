@@ -5,30 +5,15 @@ import VideoActionSelector from "@/components/write-chat/video-action-selector";
 type VideoActionsPanelProps = {
   active: boolean;
   onTranscribe: () => void;
-  onAnalyze: () => void;
-  onEmulate: () => void;
   onIdeas: () => void;
   onHooks: () => void;
 };
 
-export function VideoActionsPanel({
-  active,
-  onTranscribe,
-  onAnalyze,
-  onEmulate,
-  onIdeas,
-  onHooks,
-}: VideoActionsPanelProps) {
-  const handleAction = (action: "transcribe" | "analyze" | "emulate" | "ideas" | "hooks") => {
+export function VideoActionsPanel({ active, onTranscribe, onIdeas, onHooks }: VideoActionsPanelProps) {
+  const handleAction = (action: "transcribe" | "ideas" | "hooks") => {
     switch (action) {
       case "transcribe":
         onTranscribe();
-        break;
-      case "analyze":
-        onAnalyze();
-        break;
-      case "emulate":
-        onEmulate();
         break;
       case "ideas":
         onIdeas();
