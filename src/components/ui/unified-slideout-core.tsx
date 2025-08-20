@@ -125,7 +125,7 @@ export function UnifiedSlideoutCore({
         aria-labelledby={title ? "slideout-title" : undefined}
       >
         {/* Header - Claude-style with inside close button */}
-        {config.showHeader && (title ?? config.showCloseButton ?? headerActions) && (
+        {config.showHeader && (
           <div className="border-border flex items-center justify-between border-b p-4">
             <div className="flex items-center gap-3">
               {title && (
@@ -152,9 +152,14 @@ export function UnifiedSlideoutCore({
         
         {/* Content */}
         <div className={cn("min-h-0 flex-1 overflow-y-auto", contentClassName)}>
-          <div className="p-4">
-            {children}
-          </div>
+          {/* Conditionally apply padding: if showHeader is false, assume content is modular and handles its own padding */}
+          {config.showHeader ? (
+            <div className="p-4">
+              {children}
+            </div>
+          ) : (
+            children
+          )}
         </div>
         
         {/* Footer */}

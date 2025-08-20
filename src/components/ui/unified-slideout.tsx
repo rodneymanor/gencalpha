@@ -2,8 +2,8 @@
 
 import React from "react";
 
-import { SlideoutConfig } from "./unified-slideout-types";
 import { UnifiedSlideoutCore } from "./unified-slideout-core";
+import { SlideoutConfig } from "./unified-slideout-types";
 
 // Default configuration following Claude's artifact panel philosophy
 const defaultConfig: SlideoutConfig = {
@@ -20,7 +20,7 @@ const defaultConfig: SlideoutConfig = {
     desktop: "sidebar"            // Desktop: side-by-side
   },
   variant: "artifact",            // Artifact panel styling
-  showHeader: true,
+  showHeader: false,
   showCloseButton: true,
   escapeToClose: true,
   preventBodyScroll: false,       // Don't prevent scroll for non-modal
@@ -46,7 +46,6 @@ export function UnifiedSlideout({
   ...props
 }: UnifiedSlideoutProps) {
   const config = { ...defaultConfig, ...userConfig };
-  
   return (
     <UnifiedSlideoutCore
       {...props}
@@ -58,11 +57,9 @@ export function UnifiedSlideout({
 // Convenience hook for managing slideout state
 export function useSlideout(initialOpen = false) {
   const [isOpen, setIsOpen] = React.useState(initialOpen);
-  
   const open = () => setIsOpen(true);
   const close = () => setIsOpen(false);
   const toggle = () => setIsOpen(prev => !prev);
-  
   return {
     isOpen,
     open,
@@ -82,7 +79,7 @@ export const ClaudeArtifactConfig: SlideoutConfig = {
   backdrop: false,                // No backdrop - contextual layers
   modal: false,                   // Non-modal interaction
   variant: "artifact",            // Claude's visual styling
-  showHeader: true,
+  showHeader: false,
   showCloseButton: true,
   escapeToClose: true,
   preventBodyScroll: false,       // Allow scrolling in both contexts
