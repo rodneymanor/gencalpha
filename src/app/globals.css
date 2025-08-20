@@ -164,7 +164,7 @@
 /* Clarity Design System - Light Theme */
 :root {
   /* Core Semantic Colors (Preserved) */
-  --background: #F8F8F7;
+  --background: var(--neutral-100);
   --foreground: #34322D;
   --card: #FFFFFF;
   --card-foreground: #34322D;
@@ -355,7 +355,7 @@
 /* Clarity Design System - Dark Theme */
 .dark {
   /* Core Semantic Colors (Preserved) */
-  --background: #1A1A19;
+  --background: var(--neutral-100);
   --foreground: #EAEAE9;
   --card: #262625;
   --card-foreground: #EAEAE9;
