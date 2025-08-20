@@ -174,6 +174,8 @@ function MyComponent() {
           backdrop: false, // Non-modal behavior
           position: "right",
           modal: false,
+          animationType: "claude",
+          adjustsContent: true,
         }}
       >
         <ScriptPanel

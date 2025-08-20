@@ -94,42 +94,74 @@ export const SlideoutBackdrop = ({
   );
 };
 
-// Simplified content adjustment hook - No longer needed for flexbox approach
-// This hook is kept for backward compatibility but does nothing when adjustsContent is false
+// Content adjustment hook for Claude-style contextual layers
 export const useContentAdjustment = (isOpen: boolean, width: string, adjustsContent: boolean) => {
   useEffect(() => {
-    // With flexbox approach, no manual content adjustment is needed
-    // The flex container automatically handles layout changes
     if (!adjustsContent) {
       return;
     }
 
-    // Legacy support: For layouts that still need manual adjustment
-    // This will primarily be for non-flexbox layouts
+    // Smart content element finder - tries multiple strategies
     const findMainContent = () => {
-      return document.querySelector('main.main-content') ??
-             document.querySelector('[data-slot="sidebar-inset"]') ??
-             document.querySelector('main') ??
-             document.body;
+      // Strategy 1: Look for explicit main content selectors
+      const explicitMain = document.querySelector('main.main-content') ??
+                          document.querySelector('[data-slot="sidebar-inset"]') ??
+                          document.querySelector('main');
+
+      if (explicitMain) return explicitMain;
+
+      // Strategy 2: Look for the immediate child of body that contains most content
+      // This handles simple page structures like test pages
+      const bodyChildren = Array.from(document.body.children);
+      const contentCandidate = bodyChildren.find(el => {
+        // Skip script tags, style tags, and fixed positioned elements
+        if (el.tagName === 'SCRIPT' || el.tagName === 'STYLE') return false;
+        const computedStyle = window.getComputedStyle(el);
+        if (computedStyle.position === 'fixed') return false;
+
+        // Look for elements that likely contain the main content
+        return el.children.length > 0 || (el as HTMLElement).innerText.length > 100;
+      });
+
+      if (contentCandidate) return contentCandidate;
+
+      // Strategy 3: Look for common layout patterns
+      const layoutSelectors = [
+        '.min-h-screen',
+        '[class*="container"]',
+        '[class*="wrapper"]',
+        '[class*="layout"]',
+        'div[class*="p-"]', // Tailwind padding classes
+      ];
+
+      for (const selector of layoutSelectors) {
+        const element = document.querySelector(selector);
+        if (element && element !== document.body) {
+          return element;
+        }
+      }
+
+      // Strategy 4: Fallback to body
+      return document.body;
     };
 
-    const applyLegacyAdjustment = () => {
-      const currentMainContent = findMainContent();
-      if (!(currentMainContent instanceof HTMLElement)) {
+    const applyContentAdjustment = () => {
+      const mainContent = findMainContent();
+      if (!(mainContent instanceof HTMLElement)) {
         return;
       }
 
-      // For legacy layouts, just toggle a class - let CSS handle the rest
+      // Apply slideout adjustment
       if (isOpen) {
-        currentMainContent.classList.add('slideout-open');
-        currentMainContent.setAttribute('data-slideout-width', width);
+        mainContent.classList.add('slideout-open');
+        mainContent.setAttribute('data-slideout-width', width);
       } else {
-        currentMainContent.classList.remove('slideout-open');
-        currentMainContent.removeAttribute('data-slideout-width');
+        mainContent.classList.remove('slideout-open');
+        mainContent.removeAttribute('data-slideout-width');
       }
     };
 
-    applyLegacyAdjustment();
+    applyContentAdjustment();
 
     // Cleanup function
     return () => {

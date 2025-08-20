@@ -379,6 +379,46 @@
   --floating-player-width: 420px;
 }
 
+/* Slideout Content Adjustment - Claude-style contextual layers */
+.slideout-open {
+  transition: margin-right 400ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.slideout-open[data-slideout-width="sm"] {
+  margin-right: 320px;
+}
+
+.slideout-open[data-slideout-width="md"] {
+  margin-right: 384px;
+}
+
+.slideout-open[data-slideout-width="lg"] {
+  margin-right: 600px;
+}
+
+.slideout-open[data-slideout-width="xl"] {
+  margin-right: 800px;
+}
+
+/* Responsive behavior for slideout content adjustment */
+@media (max-width: 639px) {
+  /* Mobile: no margin adjustment - slideout takes full width */
+  .slideout-open {
+    margin-right: 0 !important;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  /* Tablet: reduced margin adjustment for smaller screens */
+  .slideout-open[data-slideout-width="lg"] {
+    margin-right: 480px;
+  }
+  
+  .slideout-open[data-slideout-width="xl"] {
+    margin-right: 600px;
+  }
+}
+
 /* Responsive content adjustment when floating player is active */
 @media (min-width: 768px) {
   .responsive-layout:has(.floating-video-container) {
