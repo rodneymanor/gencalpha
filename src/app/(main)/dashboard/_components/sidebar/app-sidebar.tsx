@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 
 import { PanelLeft } from "lucide-react";
 
-import { useThemeChooserFlag } from "@/hooks/use-feature-flag";
 import { ThemeSwitcher as ColorThemeSwitcher } from "@/components/theme/theme-switcher";
 import {
   Sidebar,
@@ -17,6 +16,8 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { APP_CONFIG } from "@/config/app-config";
+import { useThemeChooserFlag } from "@/hooks/use-feature-flag";
 // import { sidebarItems } from "@/navigation/sidebar/sidebar-items"; // No longer needed - using dynamic items
 import { type SidebarVariant, type SidebarCollapsible, type ContentLayout } from "@/types/preferences/layout";
 
@@ -37,7 +38,7 @@ function SidebarLogo({ isPinned, onPinToggle }: { isPinned: boolean; onPinToggle
   const isCollapsed = state === "collapsed";
 
   const handleLogoClick = () => {
-    router.push("/dashboard");
+    router.push(APP_CONFIG.navigation.homePage);
   };
 
   return (

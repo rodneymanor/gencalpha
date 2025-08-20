@@ -6,6 +6,9 @@ export const APP_CONFIG = {
   name: "Gen.C",
   version: packageJson.version,
   copyright: `© ${currentYear}, Gen.C.`,
+  navigation: {
+    homePage: "/write", // Configure the application's home page
+  },
   meta: {
     title: "Gen.C - Your AI content co-pilot trained on what actually converts",
     description:
