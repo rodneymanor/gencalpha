@@ -8,13 +8,7 @@ export default async function WritePage({
 }) {
   const params = await searchParams;
   const initialPrompt = typeof params.prompt === "string" ? params.prompt : undefined;
-  const initialAssistant =
-    typeof params.assistant === "string"
-      ? (params.assistant as AssistantType)
-      : // Support legacy "persona" parameter for backwards compatibility
-        typeof params.persona === "string"
-        ? (params.persona as AssistantType)
-        : undefined;
+  const initialAssistant = typeof params.assistant === "string" ? (params.assistant as AssistantType) : undefined;
   const remountKey = typeof params.new === "string" ? params.new : undefined;
   return (
     <div className="font-sans">
