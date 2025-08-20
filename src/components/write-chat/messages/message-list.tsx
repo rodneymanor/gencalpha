@@ -5,6 +5,7 @@ import { memo } from "react";
 import { ACK_LOADING } from "@/components/write-chat/constants";
 import { AckLoader } from "@/components/write-chat/messages/ack-loader";
 import type { ChatMessage } from "@/components/write-chat/types";
+import VideoActionSelector from "@/components/write-chat/video-action-selector";
 
 type MessageListProps = {
   messages: ChatMessage[];
@@ -14,11 +15,13 @@ type MessageListProps = {
   onTranscribe: () => void;
   onIdeas: () => void;
   onHooks: () => void;
+  onVideoAction?: (action: "transcribe" | "ideas" | "hooks") => void;
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
+  isProcessingVideoAction?: boolean;
 };
 
 function MessageListComponent(props: MessageListProps) {
-  const { messages, resolvedName, videoPanel, activeAction, onTranscribe, onIdeas, onHooks, messagesEndRef } = props;
+  const { messages, resolvedName, activeAction, onVideoAction, messagesEndRef, isProcessingVideoAction } = props;
 
   return (
     <div className="mx-auto max-w-3xl py-6">
@@ -50,6 +53,13 @@ function MessageListComponent(props: MessageListProps) {
                   <div className="col-start-2">
                     {m.content === ACK_LOADING ? (
                       <AckLoader />
+                    ) : m.content === "<video-actions>" ? (
+                      <div className="my-4">
+                        <VideoActionSelector
+                          onAction={onVideoAction ?? (() => {})}
+                          disabled={activeAction !== null || isProcessingVideoAction}
+                        />
+                      </div>
                     ) : (
                       <div className="prose text-foreground interactive-element hover:bg-accent/5 -m-2 max-w-none rounded-[var(--radius-button)] p-2 transition-all duration-200">
                         <p className="text-base leading-relaxed break-words whitespace-pre-wrap">{m.content}</p>

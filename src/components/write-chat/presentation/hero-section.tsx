@@ -2,7 +2,6 @@
 
 import { Loader2, ArrowUp, SlidersHorizontal, Lightbulb, Pencil, Bot, Brain, Mic } from "lucide-react";
 
-import { type AssistantType, AssistantSelector } from "@/components/chatbot/persona-selector";
 import { AdvancedSlidingSwitch } from "@/components/ui/advanced-sliding-switch";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { type AssistantType, AssistantSelector } from "@/components/write-chat/persona-selector";
 import { PlaybookCards } from "@/components/write-chat/playbook-cards";
 import { PromptComposer } from "@/components/write-chat/prompt-composer";
 import type { DetectionResult } from "@/lib/utils/social-link-detector";

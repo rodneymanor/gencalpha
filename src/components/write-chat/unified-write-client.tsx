@@ -4,13 +4,13 @@ import React, { useRef, useState, useEffect, useCallback } from "react";
 
 //
 
-import { type AssistantType } from "@/components/chatbot/persona-selector";
 import { ScriptPanel } from "@/components/script-panel/script-panel";
 import MinimalSlideoutEditor from "@/components/standalone/minimal-slideout-editor";
 import { Button } from "@/components/ui/button";
 //
 import { UnifiedSlideout, ClaudeArtifactConfig } from "@/components/ui/unified-slideout";
 import ClaudeChat from "@/components/write-chat/claude-chat";
+import { type AssistantType } from "@/components/write-chat/persona-selector";
 import { ScriptData } from "@/types/script-panel";
 
 export function UnifiedWriteClient({
@@ -21,7 +21,7 @@ export function UnifiedWriteClient({
   initialAssistant?: AssistantType;
 }) {
   // State management
-  const [isHeroState, setIsHeroState] = useState(true);
+  const [_isHeroState, setIsHeroState] = useState(true);
   // Unused legacy states/refs removed to satisfy lints
 
   // Slideout state
@@ -33,7 +33,6 @@ export function UnifiedWriteClient({
 
   // Animation refs
   const containerRef = useRef<HTMLDivElement | null>(null);
-
 
   //
 
@@ -112,7 +111,6 @@ export function UnifiedWriteClient({
     <div className="slideout-layout-container">
       {/* Main Content Area - Flexbox approach */}
       <main ref={containerRef} className="main-content">
-
         {/* Claude Chat with built-in transitions */}
         <ClaudeChat
           initialPrompt={initialPrompt}

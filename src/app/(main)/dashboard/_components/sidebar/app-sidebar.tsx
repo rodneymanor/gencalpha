@@ -17,7 +17,6 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { APP_CONFIG } from "@/config/app-config";
-import { useThemeChooserFlag } from "@/hooks/use-feature-flag";
 // import { sidebarItems } from "@/navigation/sidebar/sidebar-items"; // No longer needed - using dynamic items
 import { type SidebarVariant, type SidebarCollapsible, type ContentLayout } from "@/types/preferences/layout";
 
@@ -78,7 +77,6 @@ function SidebarLogo({ isPinned, onPinToggle }: { isPinned: boolean; onPinToggle
 }
 
 export function AppSidebar({ layoutPreferences: _layoutPreferences, ...props }: AppSidebarProps) {
-  const isThemeChooserEnabled = useThemeChooserFlag();
   const { setOpen, isMobile } = useSidebar();
   const sidebarRef = useRef<HTMLDivElement>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout>();
@@ -185,7 +183,8 @@ export function AppSidebar({ layoutPreferences: _layoutPreferences, ...props }: 
       </SidebarContent>
       <SidebarFooter>
         <div className="flex flex-col items-center gap-2 px-2 pb-2">
-          {isThemeChooserEnabled && <ColorThemeSwitcher />}
+          {/* Always show theme switcher for development - remove feature flag dependency */}
+          <ColorThemeSwitcher />
           {/* <LayoutControls
             {...(layoutPreferences ?? { variant: "sidebar", collapsible: "icon", contentLayout: "centered" })}
           />

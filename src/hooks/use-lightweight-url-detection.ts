@@ -7,6 +7,8 @@ import { useState, useEffect } from "react";
 
 import { detectSocialUrl, type LightweightDetectionResult } from "@/lib/utils/lightweight-url-detector";
 
+export type { LightweightDetectionResult };
+
 interface UseLightweightUrlDetectionReturn {
   detection: LightweightDetectionResult;
   isProcessing: boolean;

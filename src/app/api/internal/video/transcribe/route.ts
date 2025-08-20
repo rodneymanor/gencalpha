@@ -9,8 +9,23 @@ import { GoogleAIFileManager } from "@google/generative-ai/server";
 
 import { detectPlatform } from "@/core/video/platform-detector";
 
+// File upload and processing limits
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
+const TRANSCRIPTION_TIMEOUT = 7 * 60 * 1000; // 7 minutes in milliseconds
+
+// Helper function to add timeout to any async operation
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, operation: string): Promise<T> {
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(() => {
+      reject(new Error(`Operation '${operation}' timed out after ${timeoutMs / 1000} seconds`));
+    }, timeoutMs);
+  });
+
+  return Promise.race([promise, timeoutPromise]);
+}
+
 // Function to transcribe video from URL using Gemini with proper file upload
-async function transcribeVideoFromUrl(url: string, platform: "tiktok" | "instagram" | "youtube" | "unknown") {
+async function transcribeVideoFromUrlInternal(url: string, platform: "tiktok" | "instagram" | "youtube" | "unknown") {
   let tempFilePath: string | null = null;
   let uploadedFile: any = null;
 
@@ -38,6 +53,13 @@ async function transcribeVideoFromUrl(url: string, platform: "tiktok" | "instagr
 
     const videoBuffer = await response.arrayBuffer();
     console.log(`📦 [GEMINI] Video downloaded: ${videoBuffer.byteLength} bytes`);
+
+    // Check file size limit
+    if (videoBuffer.byteLength > MAX_FILE_SIZE) {
+      throw new Error(
+        `Video file too large: ${(videoBuffer.byteLength / 1024 / 1024).toFixed(2)}MB exceeds ${MAX_FILE_SIZE / 1024 / 1024}MB limit`,
+      );
+    }
 
     // Step 2: Save to temporary file
     const tempDir = "/tmp";
@@ -206,8 +228,22 @@ Return the response in this exact JSON format:
     }
   }
 }
+
+// Wrapper function that adds timeout to URL transcription
+async function transcribeVideoFromUrl(url: string, platform: "tiktok" | "instagram" | "youtube" | "unknown") {
+  console.log(
+    `⏱️ [TRANSCRIBE_LIMITS] Starting transcription with ${TRANSCRIPTION_TIMEOUT / 1000}s timeout and ${MAX_FILE_SIZE / 1024 / 1024}MB size limit`,
+  );
+
+  return withTimeout(
+    transcribeVideoFromUrlInternal(url, platform),
+    TRANSCRIPTION_TIMEOUT,
+    "video transcription from URL",
+  );
+}
+
 // Buffer transcription function that reuses the existing upload logic
-async function transcribeVideoFromBuffer(
+async function transcribeVideoFromBufferInternal(
   videoBuffer: ArrayBuffer,
   platform: "tiktok" | "instagram" | "youtube" | "unknown",
 ) {
@@ -217,6 +253,13 @@ async function transcribeVideoFromBuffer(
   try {
     console.log("🌐 [GEMINI] Starting video transcription from buffer data");
     console.log(`📦 [GEMINI] Video buffer size: ${videoBuffer.byteLength} bytes`);
+
+    // Check file size limit
+    if (videoBuffer.byteLength > MAX_FILE_SIZE) {
+      throw new Error(
+        `Video buffer too large: ${(videoBuffer.byteLength / 1024 / 1024).toFixed(2)}MB exceeds ${MAX_FILE_SIZE / 1024 / 1024}MB limit`,
+      );
+    }
 
     // Check if API key is configured
     if (!process.env.GEMINI_API_KEY) {
@@ -386,6 +429,22 @@ Return the response in this exact JSON format:
   }
 }
 
+// Wrapper function that adds timeout to buffer transcription
+async function transcribeVideoFromBuffer(
+  videoBuffer: ArrayBuffer,
+  platform: "tiktok" | "instagram" | "youtube" | "unknown",
+) {
+  console.log(
+    `⏱️ [TRANSCRIBE_LIMITS] Starting buffer transcription with ${TRANSCRIPTION_TIMEOUT / 1000}s timeout and ${MAX_FILE_SIZE / 1024 / 1024}MB size limit`,
+  );
+
+  return withTimeout(
+    transcribeVideoFromBufferInternal(videoBuffer, platform),
+    TRANSCRIPTION_TIMEOUT,
+    "video transcription from buffer",
+  );
+}
+
 // Create fallback transcription when processing fails
 function createFallbackTranscription(platform: "tiktok" | "instagram" | "youtube" | "unknown") {
   return {
@@ -460,11 +519,39 @@ async function handleCdnTranscription(request: NextRequest) {
     // Convert the buffer data back to ArrayBuffer and use buffer transcription
     const buffer = new Uint8Array(videoBuffer).buffer;
 
-    const result = await transcribeVideoFromBuffer(buffer, detectedPlatform);
+    // Early size validation before processing
+    if (buffer.byteLength > MAX_FILE_SIZE) {
+      console.error(
+        `❌ [TRANSCRIBE_LIMITS] Buffer too large: ${(buffer.byteLength / 1024 / 1024).toFixed(2)}MB exceeds ${MAX_FILE_SIZE / 1024 / 1024}MB limit`,
+      );
+      return NextResponse.json(
+        {
+          error: "File too large",
+          details: `Video file size ${(buffer.byteLength / 1024 / 1024).toFixed(2)}MB exceeds the ${MAX_FILE_SIZE / 1024 / 1024}MB limit`,
+        },
+        { status: 413 },
+      );
+    }
 
-    if (result) {
-      console.log("✅ [INTERNAL_TRANSCRIBE] Buffer-based transcription completed successfully");
-      return NextResponse.json(result);
+    try {
+      const result = await transcribeVideoFromBuffer(buffer, detectedPlatform);
+
+      if (result) {
+        console.log("✅ [INTERNAL_TRANSCRIBE] Buffer-based transcription completed successfully");
+        return NextResponse.json(result);
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("timed out")) {
+        console.error(`⏰ [TRANSCRIBE_LIMITS] Transcription timed out after ${TRANSCRIPTION_TIMEOUT / 1000} seconds`);
+        return NextResponse.json(
+          {
+            error: "Transcription timeout",
+            details: `Transcription took longer than ${TRANSCRIPTION_TIMEOUT / 1000} seconds and was cancelled`,
+          },
+          { status: 408 },
+        );
+      }
+      throw error; // Re-throw other errors
     }
   }
 
@@ -473,11 +560,38 @@ async function handleCdnTranscription(request: NextRequest) {
     console.log("🌐 [INTERNAL_TRANSCRIBE] No buffer provided, falling back to URL download:", videoUrl);
 
     const detectedPlatform = platform ?? detectPlatform(videoUrl).platform;
-    const result = await transcribeVideoFromUrl(videoUrl, detectedPlatform);
 
-    if (result) {
-      console.log("✅ [INTERNAL_TRANSCRIBE] URL-based transcription completed successfully");
-      return NextResponse.json(result);
+    try {
+      const result = await transcribeVideoFromUrl(videoUrl, detectedPlatform);
+
+      if (result) {
+        console.log("✅ [INTERNAL_TRANSCRIBE] URL-based transcription completed successfully");
+        return NextResponse.json(result);
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("timed out")) {
+        console.error(
+          `⏰ [TRANSCRIBE_LIMITS] URL transcription timed out after ${TRANSCRIPTION_TIMEOUT / 1000} seconds`,
+        );
+        return NextResponse.json(
+          {
+            error: "Transcription timeout",
+            details: `Transcription took longer than ${TRANSCRIPTION_TIMEOUT / 1000} seconds and was cancelled`,
+          },
+          { status: 408 },
+        );
+      }
+      if (error instanceof Error && error.message.includes("too large")) {
+        console.error(`📏 [TRANSCRIBE_LIMITS] File size exceeded: ${error.message}`);
+        return NextResponse.json(
+          {
+            error: "File too large",
+            details: error.message,
+          },
+          { status: 413 },
+        );
+      }
+      throw error; // Re-throw other errors
     }
   }
 

@@ -4,7 +4,7 @@ import { ScriptPanelExample } from "@/components/script-panel/script-panel-examp
 
 export default function TestScriptPanelPage() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background min-h-screen">
       <ScriptPanelExample />
     </div>
   );

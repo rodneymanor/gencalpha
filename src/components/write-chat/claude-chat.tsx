@@ -7,28 +7,89 @@ import { useEffect, useRef, useState, useCallback } from "react";
 //
 // icons moved to presentational components
 
-import { type AssistantType } from "@/components/chatbot/persona-selector";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ACK_BEFORE_SLIDE_MS, SLIDE_DURATION_MS, ACK_LOADING } from "@/components/write-chat/constants";
 import { useInlineVideoActions } from "@/components/write-chat/hooks/use-inline-video-actions";
 import { useVoiceRecorder } from "@/components/write-chat/hooks/use-voice-recorder";
 import { MessageList } from "@/components/write-chat/messages/message-list";
+import { type AssistantType } from "@/components/write-chat/persona-selector";
 import { FixedChatInput } from "@/components/write-chat/presentation/fixed-chat-input";
 import { HeroSection } from "@/components/write-chat/presentation/hero-section";
 import { useSmoothMessageManager } from "@/components/write-chat/smooth-message-manager";
 import { type ChatMessage } from "@/components/write-chat/types";
-import { sendToSlideout, sendScriptToSlideout, delay } from "@/components/write-chat/utils";
+import { sendScriptToSlideout, delay } from "@/components/write-chat/utils";
 import { useAuth } from "@/contexts/auth-context";
 import { useIdeaInboxFlag } from "@/hooks/use-feature-flag";
-import { useLightweightUrlDetection } from "@/hooks/use-lightweight-url-detection";
-import { useScriptGeneration } from "@/hooks/use-script-generation";
+import { useLightweightUrlDetection, type LightweightDetectionResult } from "@/hooks/use-lightweight-url-detection";
 import { processScriptComponents } from "@/hooks/use-script-analytics";
+import { useScriptGeneration } from "@/hooks/use-script-generation";
 import { buildAuthHeaders } from "@/lib/http/auth-headers";
 import { clientNotesService, type Note } from "@/lib/services/client-notes-service";
+import { detectSocialUrl } from "@/lib/utils/lightweight-url-detector";
+import { type DetectionResult } from "@/lib/utils/social-link-detector";
 import { ScriptData, ScriptComponent } from "@/types/script-panel";
 
+// Helper function to convert LightweightDetectionResult to legacy DetectionResult format
+function convertDetectionResult(lightweight: LightweightDetectionResult): DetectionResult | null {
+  if (!lightweight.isValid || !lightweight.platform || !lightweight.url) {
+    return null;
+  }
+
+  const extracted: { username?: string; postId?: string; contentType?: string } = {};
+
+  if (lightweight.platform === "instagram") {
+    if (lightweight.contentType === "reel") {
+      extracted.contentType = "reel";
+    } else if (lightweight.contentType === "post") {
+      extracted.contentType = "post";
+    } else if (lightweight.contentType === "profile") {
+      extracted.contentType = "profile";
+    }
+
+    // Extract post ID from Instagram URL
+    const postMatch = lightweight.url.match(/\/(?:p|reel)\/([A-Za-z0-9_-]+)/);
+    if (postMatch) {
+      extracted.postId = postMatch[1];
+    }
+
+    // Extract username from profile URLs
+    const profileMatch = lightweight.url.match(/instagram\.com\/([A-Za-z0-9_.-]+)\/?$/);
+    if (profileMatch && lightweight.contentType === "profile") {
+      extracted.username = profileMatch[1];
+    }
+  } else if (lightweight.platform === "tiktok") {
+    if (lightweight.contentType === "video") {
+      extracted.contentType = "video";
+    } else if (lightweight.contentType === "profile") {
+      extracted.contentType = "profile";
+    }
+
+    // Extract username and video ID from TikTok URL
+    const videoMatch = lightweight.url.match(/@([A-Za-z0-9_.]+)\/video\/(\d+)/);
+    if (videoMatch) {
+      extracted.username = videoMatch[1];
+      extracted.postId = videoMatch[2];
+    }
+
+    // Extract username from profile URLs
+    const profileMatch = lightweight.url.match(/@([A-Za-z0-9_.]+)\/?$/);
+    if (profileMatch) {
+      extracted.username = profileMatch[1];
+    }
+  }
+
+  return {
+    type: lightweight.platform,
+    url: lightweight.url,
+    extracted,
+  };
+}
+
 // Helper function to convert GeneratedScript to ScriptData format
-function convertToScriptData(script: { hook: string; bridge: string; goldenNugget: string; wta: string }, originalIdea: string): ScriptData {
+function convertToScriptData(
+  script: { hook: string; bridge: string; goldenNugget: string; wta: string },
+  originalIdea: string,
+): ScriptData {
   // Create full script text
   const fullScript = `Hook: ${script.hook}
 
@@ -49,7 +110,7 @@ Call to Action: ${script.wta}`;
     },
     {
       id: "bridge-generated",
-      type: "bridge", 
+      type: "bridge",
       label: "Bridge",
       content: script.bridge,
       icon: "B",
@@ -57,7 +118,7 @@ Call to Action: ${script.wta}`;
     {
       id: "nugget-generated",
       type: "nugget",
-      label: "Golden Nugget", 
+      label: "Golden Nugget",
       content: script.goldenNugget,
       icon: "G",
     },
@@ -74,8 +135,8 @@ Call to Action: ${script.wta}`;
   const processedComponents = processScriptComponents(components);
 
   // Calculate total metrics
-  const totalWords = processedComponents.reduce((sum, comp) => sum + (comp.wordCount || 0), 0);
-  const totalDuration = processedComponents.reduce((sum, comp) => sum + (comp.estimatedDuration || 0), 0);
+  const totalWords = processedComponents.reduce((sum, comp) => sum + (comp.wordCount ?? 0), 0);
+  const totalDuration = processedComponents.reduce((sum, comp) => sum + (comp.estimatedDuration ?? 0), 0);
 
   return {
     id: `generated-script-${Date.now()}`,
@@ -132,9 +193,17 @@ export function ClaudeChat({
   const [ideasOpen, setIdeasOpen] = useState(false);
   const [isIdeaMode, setIsIdeaMode] = useState(false);
   const [ideaSaveMessage, setIdeaSaveMessage] = useState<string | null>(null);
+  const [pendingVideoUrl, setPendingVideoUrl] = useState<{ url: string; platform: "instagram" | "tiktok" } | null>(
+    null,
+  );
+  const [isProcessingVideoAction, setIsProcessingVideoAction] = useState(false);
   const mountedRef = useRef(true);
   // URL detection & validation
   const { detection, isProcessing: isUrlProcessing } = useLightweightUrlDetection(inputValue);
+
+  // Convert lightweight detection to legacy format for HeroSection compatibility
+  const linkDetection = convertDetectionResult(detection);
+  const hasValidVideoUrl = detection.isValid && (detection.platform === "instagram" || detection.platform === "tiktok");
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
@@ -155,6 +224,58 @@ export function ClaudeChat({
     setMessages,
     onAnswerReady,
   });
+
+  // Handler to bridge video action selector to inline video actions
+  const handleVideoAction = useCallback(
+    (action: "transcribe" | "ideas" | "hooks") => {
+      if (!pendingVideoUrl || isProcessingVideoAction) return;
+
+      // Set processing flag to prevent duplicate calls
+      setIsProcessingVideoAction(true);
+
+      // Remove the video-actions message and replace with selected action processing
+      setMessages((prev) => {
+        // Filter out the video-actions message and add loading message
+        const filtered = prev.filter((m) => m.content !== "<video-actions>");
+        const actionText =
+          action === "transcribe"
+            ? "I'll transcribe this video for you."
+            : action === "ideas"
+              ? "I'll create content ideas from this video."
+              : "I'll generate hooks from this video.";
+
+        return [
+          ...filtered,
+          { id: crypto.randomUUID(), role: "assistant", content: actionText },
+          { id: crypto.randomUUID(), role: "assistant", content: ACK_LOADING },
+        ];
+      });
+
+      const videoPanel = {
+        url: pendingVideoUrl.url,
+        platform: pendingVideoUrl.platform,
+      };
+
+      // Clear the pending video URL since we're processing it now
+      setPendingVideoUrl(null);
+
+      switch (action) {
+        case "transcribe":
+          handleTranscribe(videoPanel);
+          break;
+        case "ideas":
+          handleIdeas(videoPanel);
+          break;
+        case "hooks":
+          handleHooks(videoPanel);
+          break;
+      }
+
+      // Reset processing flag after a short delay to allow for action completion
+      setTimeout(() => setIsProcessingVideoAction(false), 1000);
+    },
+    [pendingVideoUrl, isProcessingVideoAction, handleTranscribe, handleIdeas, handleHooks, setMessages],
+  );
 
   // Voice recording
   const { isRecording, toggle: toggleRecording } = useVoiceRecorder({ onTranscription: setInputValue });
@@ -315,24 +436,51 @@ export function ClaudeChat({
       }
     }
 
-    // URL detection happens automatically via useLightweightUrlDetection hook
+    // Check if this is a video URL submission that needs action selection
+    const currentDetection = detectSocialUrl(trimmed);
+    const isVideoUrlSubmission =
+      currentDetection.isValid && (currentDetection.platform === "instagram" || currentDetection.platform === "tiktok");
 
     // 1) Push user message immediately
     const userMessageId = crypto.randomUUID();
-    // 2) Push acknowledgement message immediately below user message
-    const ackMessageId = crypto.randomUUID();
-    const ackLoadingId = crypto.randomUUID();
-    const ackText = createAcknowledgementFor(trimmed);
-    setMessages((prev) => [
-      ...prev,
-      { id: userMessageId, role: "user", content: trimmed },
-      { id: ackMessageId, role: "assistant", content: ackText },
-      // 2.1) Small loading indicator placeholder shown during analysis phase
-      { id: ackLoadingId, role: "assistant", content: ACK_LOADING },
-    ]);
+
+    if (isVideoUrlSubmission) {
+      // Store the video URL for later use when action is selected
+      setPendingVideoUrl({
+        url: currentDetection.url!,
+        platform: currentDetection.platform!,
+      });
+
+      // For video URLs, add acknowledgment and show action cards instead of processing immediately
+      const ackMessageId = crypto.randomUUID();
+      const videoActionsId = crypto.randomUUID();
+      setMessages((prev) => [
+        ...prev,
+        { id: userMessageId, role: "user", content: trimmed },
+        { id: ackMessageId, role: "assistant", content: "I found a video! What would you like me to do with it?" },
+        { id: videoActionsId, role: "assistant", content: "<video-actions>" },
+      ]);
+    } else {
+      // Regular flow for non-video content
+      const ackMessageId = crypto.randomUUID();
+      const ackLoadingId = crypto.randomUUID();
+      const ackText = createAcknowledgementFor(trimmed);
+      setMessages((prev) => [
+        ...prev,
+        { id: userMessageId, role: "user", content: trimmed },
+        { id: ackMessageId, role: "assistant", content: ackText },
+        // 2.1) Small loading indicator placeholder shown during analysis phase
+        { id: ackLoadingId, role: "assistant", content: ACK_LOADING },
+      ]);
+    }
     setInputValue("");
     setIsHeroState(false);
     onSend?.(trimmed, selectedAssistant ?? "MiniBuddy");
+
+    // If this is a video URL submission, stop here and wait for user to select an action
+    if (isVideoUrlSubmission) {
+      return;
+    }
     // Persist user message
     (async () => {
       try {
@@ -379,12 +527,12 @@ export function ClaudeChat({
           onAnswerReady?.();
           await delay(SLIDE_DURATION_MS);
           // Remove loader only; do not append structured answer to chat
-          setMessages((prev): ChatMessage[] => prev.filter((m) => m.id !== ackLoadingId && m.content !== ACK_LOADING));
+          setMessages((prev): ChatMessage[] => prev.filter((m) => m.content !== ACK_LOADING));
         } else {
           // Keep error in chat; do not open slideout
           await delay(SLIDE_DURATION_MS);
           setMessages((prev): ChatMessage[] => {
-            const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== ACK_LOADING);
+            const filtered = prev.filter((m) => m.content !== ACK_LOADING);
             const next: ChatMessage[] = [
               ...filtered,
               {
@@ -400,7 +548,7 @@ export function ClaudeChat({
         await delay(ACK_BEFORE_SLIDE_MS);
         await delay(SLIDE_DURATION_MS);
         setMessages((prev): ChatMessage[] => {
-          const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== ACK_LOADING);
+          const filtered = prev.filter((m) => m.content !== ACK_LOADING);
           const next: ChatMessage[] = [
             ...filtered,
             {
@@ -433,7 +581,7 @@ export function ClaudeChat({
         }
         await delay(SLIDE_DURATION_MS);
         setMessages((prev): ChatMessage[] => {
-          const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== ACK_LOADING);
+          const filtered = prev.filter((m) => m.content !== ACK_LOADING);
           const next: ChatMessage[] = [
             ...filtered,
             {
@@ -449,7 +597,7 @@ export function ClaudeChat({
         await delay(ACK_BEFORE_SLIDE_MS);
         await delay(SLIDE_DURATION_MS);
         setMessages((prev): ChatMessage[] => {
-          const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== ACK_LOADING);
+          const filtered = prev.filter((m) => m.content !== ACK_LOADING);
           const next: ChatMessage[] = [
             ...filtered,
             {
@@ -560,6 +708,8 @@ export function ClaudeChat({
           isRecording={isRecording}
           showListening={showListening}
           isUrlProcessing={isUrlProcessing}
+          linkDetection={linkDetection}
+          hasValidVideoUrl={hasValidVideoUrl}
           handleSend={handleSend}
           heroInputRef={heroInputRef}
           selectedAssistant={selectedAssistant}
@@ -588,7 +738,9 @@ export function ClaudeChat({
               onTranscribe={() => handleTranscribe(null)}
               onIdeas={() => handleIdeas(null)}
               onHooks={() => handleHooks(null)}
+              onVideoAction={handleVideoAction}
               messagesEndRef={messagesEndRef}
+              isProcessingVideoAction={isProcessingVideoAction}
             />
           </ScrollArea>
 

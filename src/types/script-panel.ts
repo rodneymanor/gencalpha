@@ -14,6 +14,7 @@ export type ScriptComponentType =
   | "transition"
   | "value"
   | "close"
+  | "transcript"
   | "custom";
 
 export interface ScriptComponent {

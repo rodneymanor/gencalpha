@@ -7,11 +7,11 @@ import { useRouter } from "next/navigation";
 
 import { ArrowUp, Link, AlertCircle, CheckCircle2, Bot, Brain, Pencil, X, Mic, SlidersHorizontal } from "lucide-react";
 
-import { AssistantSelector, AssistantType } from "@/components/chatbot/persona-selector";
 import { AdvancedSlidingSwitch, type ModeType, type SwitchOption } from "@/components/ui/advanced-sliding-switch";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ClarityLoader } from "@/components/ui/loading";
+import { AssistantSelector, AssistantType } from "@/components/write-chat/persona-selector";
 import { PromptComposer } from "@/components/write-chat/prompt-composer";
 import { useAuth } from "@/contexts/auth-context";
 import { auth } from "@/lib/firebase";

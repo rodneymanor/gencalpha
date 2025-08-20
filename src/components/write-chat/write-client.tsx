@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 
 import { ChevronDown } from "lucide-react";
 
-import { type AssistantType } from "@/components/chatbot/persona-selector";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -14,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import ClaudeChat from "@/components/write-chat/claude-chat";
+import { type AssistantType } from "@/components/write-chat/persona-selector";
 
 export function WriteClient({
   initialPrompt,

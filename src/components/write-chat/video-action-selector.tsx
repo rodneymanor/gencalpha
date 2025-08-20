@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useRef } from "react";
 
 import { FileText, Lightbulb, Fish } from "lucide-react";
 
@@ -29,15 +29,32 @@ const ActionCard: React.FC<ActionCardProps> = ({
   disabled = false,
   gradientClasses,
 }) => {
+  const lastClickTime = useRef(0);
+
   const handleClick = () => {
-    if (!disabled) {
-      onAction(action);
+    if (disabled) return;
+
+    // Debounce rapid clicks (prevent clicks within 500ms)
+    const now = Date.now();
+    if (now - lastClickTime.current < 500) {
+      return;
     }
+    lastClickTime.current = now;
+
+    onAction(action);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if ((e.key === "Enter" || e.key === " ") && !disabled) {
       e.preventDefault();
+
+      // Same debouncing for keyboard events
+      const now = Date.now();
+      if (now - lastClickTime.current < 500) {
+        return;
+      }
+      lastClickTime.current = now;
+
       onAction(action);
     }
   };

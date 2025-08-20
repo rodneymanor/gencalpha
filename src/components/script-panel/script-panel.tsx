@@ -126,6 +126,12 @@ function ScriptPanelHeader({
         <Badge variant="secondary" className="bg-accent/10 text-foreground px-3 py-1.5 text-sm font-medium">
           Script
         </Badge>
+        <Badge
+          variant="secondary"
+          className="bg-muted/50 text-foreground max-w-[300px] truncate px-3 py-1.5 text-sm font-medium"
+        >
+          {scriptData.title}
+        </Badge>
       </div>
 
       <div className="flex items-center gap-2">

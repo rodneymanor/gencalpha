@@ -1,4 +1,4 @@
-import { type AssistantType } from "@/components/chatbot/persona-selector";
+import { type AssistantType } from "@/components/write-chat/persona-selector";
 import { UnifiedWriteClient } from "@/components/write-chat/unified-write-client";
 
 export default async function WritePage({

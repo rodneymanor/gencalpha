@@ -4,8 +4,6 @@ import { ReactNode } from "react";
 
 import { Panel, PanelGroup } from "react-resizable-panels";
 
-import { ChatbotPanel } from "@/components/chatbot/chatbot-panel";
-import type { AssistantType } from "@/components/chatbot/persona-selector";
 import { useResizableLayout } from "@/contexts/resizable-layout-context";
 import { cn } from "@/lib/utils";
 
@@ -19,74 +17,47 @@ interface ResizableDashboardWrapperProps {
 
 export function ResizableDashboardWrapper({ children, className }: ResizableDashboardWrapperProps) {
   const { state, updatePanelSizes } = useResizableLayout();
-  const {
-    showWritingPanel,
-    showNotesPanel,
-    showChatbotPanel,
-    writingPanelSize,
-    mainContentSize,
-    notesPanelSize,
-    chatbotPanelSize,
-    chatbotInitialPrompt,
-    chatbotInitialAssistant,
-  } = state;
+  const { showWritingPanel, showNotesPanel, writingPanelSize, mainContentSize, notesPanelSize } = state;
 
   // Helper functions to reduce complexity
   const mapSinglePanelSizes = (sizes: number[]) => {
     let writing = writingPanelSize;
     let main = mainContentSize;
     let notes = notesPanelSize;
-    let chatbot = chatbotPanelSize;
 
     if (showWritingPanel) [main, writing] = sizes;
     else if (showNotesPanel) [main, notes] = sizes;
-    else if (showChatbotPanel) [main, chatbot] = sizes;
 
-    return [writing, main, notes, chatbot];
+    return [writing, main, notes];
   };
 
   const mapDoublePanelSizes = (sizes: number[]) => {
-    let writing = writingPanelSize;
-    let main = mainContentSize;
-    let notes = notesPanelSize;
-    let chatbot = chatbotPanelSize;
-
-    if (showWritingPanel && showNotesPanel) [main, writing, notes] = sizes;
-    else if (showWritingPanel && showChatbotPanel) [main, writing, chatbot] = sizes;
-    else if (showNotesPanel && showChatbotPanel) [main, notes, chatbot] = sizes;
-
-    return [writing, main, notes, chatbot];
-  };
-
-  const mapTriplePanelSizes = (sizes: number[]) => {
-    const [main, writing, notes, chatbot] = sizes;
-    return [writing, main, notes, chatbot];
+    const [main, writing, notes] = sizes;
+    return [writing, main, notes];
   };
 
   // Helper function to map panel sizes based on visible panels
   const mapPanelSizes = (sizes: number[], visiblePanels: string[]) => {
     if (visiblePanels.length === 1) return mapSinglePanelSizes(sizes);
     if (visiblePanels.length === 2) return mapDoublePanelSizes(sizes);
-    if (visiblePanels.length === 3) return mapTriplePanelSizes(sizes);
 
-    return [writingPanelSize, mainContentSize, notesPanelSize, chatbotPanelSize];
+    return [writingPanelSize, mainContentSize, notesPanelSize];
   };
 
-  // Handle layout size updates and map to context order [writing, main, notes, chatbot]
+  // Handle layout size updates and map to context order [writing, main, notes]
   const handleLayout = (sizes: number[]) => {
-    if (!showWritingPanel && !showNotesPanel && !showChatbotPanel) return;
+    if (!showWritingPanel && !showNotesPanel) return;
 
     const visiblePanels = [];
     if (showWritingPanel) visiblePanels.push("writing");
     if (showNotesPanel) visiblePanels.push("notes");
-    if (showChatbotPanel) visiblePanels.push("chatbot");
 
     const mappedSizes = mapPanelSizes(sizes, visiblePanels);
     updatePanelSizes(mappedSizes);
   };
 
   // If no side panels, render children directly.
-  if (!showWritingPanel && !showNotesPanel && !showChatbotPanel) {
+  if (!showWritingPanel && !showNotesPanel) {
     return <>{children}</>;
   }
 
@@ -120,22 +91,6 @@ export function ResizableDashboardWrapper({ children, className }: ResizableDash
           className="h-full overflow-hidden border-l"
         >
           <NotesPanel />
-        </Panel>
-      )}
-
-      {/* Optional Chatbot panel (outermost right) */}
-      {showChatbotPanel && (
-        <Panel
-          defaultSize={chatbotPanelSize}
-          minSize={10}
-          maxSize={30}
-          order={4}
-          className="h-full overflow-hidden border-l"
-        >
-          <ChatbotPanel
-            initialPrompt={chatbotInitialPrompt}
-            initialAssistant={chatbotInitialAssistant as AssistantType}
-          />
         </Panel>
       )}
     </PanelGroup>
