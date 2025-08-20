@@ -44,20 +44,24 @@ export const getAnimationClasses = (
   return "transform transition-transform duration-300 ease-out";
 };
 
-// Get variant styling following Claude's artifact panel design
+// Get variant styling following Soft UI principles - borders over shadows
 export const getVariantClasses = (variant?: string) => {
   switch (variant) {
     case "artifact":
-      // Claude artifact panel: subtle border, soft shadow, unified background
-      return "bg-background border-l border-border-subtle shadow-[-4px_0_24px_rgba(0,0,0,0.08)] dark:shadow-[-4px_0_24px_rgba(0,0,0,0.3)]";
+      // Soft UI artifact panel: subtle border, no shadow - contextual layers approach
+      return "bg-background border-l border-border-subtle";
     case "elevated":
-      return "bg-background border-l border-border shadow-[var(--shadow-soft-drop)]";
+      // Slightly more visible border for elevated panels
+      return "bg-background border-l border-border-hover";
     case "flush":
+      // Minimal border for flush panels
       return "bg-background border-l border-border";
     case "floating":
+      // Floating panels can have subtle shadows since they're detached
       return "bg-card rounded-l-[var(--radius-card)] shadow-[var(--shadow-soft-drop)] border border-border m-4";
     default:
-      return "bg-background border-l border-border shadow-[var(--shadow-soft-drop)]";
+      // Default to soft border approach
+      return "bg-background border-l border-border";
   }
 };
 
