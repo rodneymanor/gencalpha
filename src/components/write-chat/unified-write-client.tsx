@@ -5,11 +5,11 @@ import React, { useRef, useState, useEffect, useCallback } from "react";
 //
 
 import { type AssistantType } from "@/components/chatbot/persona-selector";
-import { ScriptPanel } from "@/components/script-panel";
+import MinimalSlideoutEditor from "@/components/standalone/minimal-slideout-editor";
+import { Button } from "@/components/ui/button";
 //
 import { UnifiedSlideout, ClaudeArtifactConfig } from "@/components/ui/unified-slideout";
 import ClaudeChat from "@/components/write-chat/claude-chat";
-import type { ScriptData, ScriptComponent } from "@/types/script-panel";
 
 export function UnifiedWriteClient({
   initialPrompt,
@@ -24,67 +24,11 @@ export function UnifiedWriteClient({
 
   // Slideout state
   const [isSlideoutOpen, setIsSlideoutOpen] = useState(false);
-  const [scriptData, setScriptData] = useState<ScriptData | null>(null);
-  const [isLoadingScript, setIsLoadingScript] = useState(false);
+  const [slideoutContent, setSlideoutContent] = useState<string>("");
+  const [slideoutTitle, setSlideoutTitle] = useState<string>("AI Response");
 
   // Animation refs
   const containerRef = useRef<HTMLDivElement | null>(null);
-
-  // Helper function to generate ScriptData from markdown content
-  const generateScriptData = useCallback((content: string, title?: string): ScriptData => {
-    const wordCount = content
-      .trim()
-      .split(/\s+/)
-      .filter((word) => word.length > 0).length;
-    const estimatedDuration = Math.ceil(wordCount / 2.5); // ~2.5 words per second for speech
-
-    // Basic component parsing (this could be enhanced with actual AI analysis)
-    const components: ScriptComponent[] = [];
-    const lines = content.split("\n").filter((line) => line.trim().length > 0);
-
-    if (lines.length > 0) {
-      // Create a basic hook component from the first few lines
-      const hookContent = lines.slice(0, Math.min(2, lines.length)).join(" ");
-      if (hookContent.trim()) {
-        components.push({
-          id: "hook-1",
-          type: "hook",
-          label: "Opening Hook",
-          content: hookContent,
-          wordCount: hookContent.split(/\s+/).length,
-          estimatedDuration: Math.ceil(hookContent.split(/\s+/).length / 2.5),
-        });
-      }
-
-      // If there's more content, create a value proposition component
-      if (lines.length > 2) {
-        const valueContent = lines.slice(2).join(" ");
-        components.push({
-          id: "value-1",
-          type: "value",
-          label: "Value Proposition",
-          content: valueContent,
-          wordCount: valueContent.split(/\s+/).length,
-          estimatedDuration: Math.ceil(valueContent.split(/\s+/).length / 2.5),
-        });
-      }
-    }
-
-    return {
-      id: `script-${Date.now()}`,
-      title: title ?? "Generated Script",
-      fullScript: content,
-      components,
-      metrics: {
-        totalWords: wordCount,
-        totalDuration: estimatedDuration,
-        avgWordsPerSecond: 2.5,
-      },
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      version: "1.0",
-    };
-  }, []);
 
   //
 
@@ -120,14 +64,10 @@ export function UnifiedWriteClient({
       }>;
       const detail = event.detail;
 
-      if (detail.markdown) {
-        setIsLoadingScript(true);
-        // Generate script data from markdown content
-        const newScriptData = generateScriptData(detail.markdown, detail.title ?? undefined);
-        setScriptData(newScriptData);
-        setIsLoadingScript(false);
-        handleSlideoutOpen();
-      }
+      // Set content and title
+      setSlideoutContent(detail.markdown ?? "");
+      setSlideoutTitle(detail.title ?? "AI Response");
+      handleSlideoutOpen();
     };
 
     const handleAnswerReady = () => {
@@ -142,10 +82,10 @@ export function UnifiedWriteClient({
       window.removeEventListener("write:editor-set-content", handleEditorContent as EventListener);
       window.removeEventListener("write:answer-ready", handleAnswerReady as EventListener);
     };
-  }, [handleSlideoutOpen, generateScriptData]);
+  }, [handleSlideoutOpen]);
 
   return (
-    <div className={`slideout-layout-container ${isHeroState ? "hero-mode" : "chat-mode"}`}>
+    <div className="slideout-layout-container">
       {/* Main Content Area - Flexbox approach */}
       <main ref={containerRef} className="main-content">
         {/* Claude Chat with built-in transitions */}
@@ -154,7 +94,6 @@ export function UnifiedWriteClient({
           initialAssistant={initialAssistant}
           onHeroStateChange={(isHero: boolean) => {
             setIsHeroState(isHero);
-            // Hero state affects the layout behavior
           }}
           /* When an assistant answer is appended, broadcast event */
           onAnswerReady={() => {
@@ -174,47 +113,63 @@ export function UnifiedWriteClient({
         />
       )}
 
-      {/* Enhanced Unified Slideout with ScriptPanel */}
+      {/* Enhanced Unified Slideout with flexbox approach */}
       <div className={`slideout-panel ${isSlideoutOpen ? "open" : ""}`} data-panel-width={ClaudeArtifactConfig.width}>
         <UnifiedSlideout
           isOpen={isSlideoutOpen}
           onClose={handleSlideoutClose}
-          title={scriptData?.title ?? "Generated Script"}
+          title={slideoutTitle}
           config={{
             ...ClaudeArtifactConfig,
             // Simplified configuration for flexbox approach
             animationType: "claude",
             adjustsContent: false, // No longer needed with flexbox
-            showHeader: false, // ScriptPanel has its own header
           }}
           className="h-full w-full"
           contentClassName="slideout-content animation-container"
-        >
-          {/* ScriptPanel with smooth content loading */}
-          {scriptData ? (
-            <ScriptPanel
-              scriptData={scriptData}
-              isLoading={isLoadingScript}
-              onCopy={(content, componentType) => {
-                // Copy to clipboard with feedback
-                navigator.clipboard.writeText(content);
-                console.log(`Copied ${componentType ?? "script"} content`);
-                // TODO: Add toast notification
-              }}
-              onDownload={(scriptData) => {
-                console.log("Download requested for:", scriptData.title);
-                // TODO: Implement download workflow
-              }}
-              onClose={handleSlideoutClose}
-              showDownload={true}
-              showMetrics={true}
-              className="h-full"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center">
-              <div className="text-muted-foreground text-sm">No script data available</div>
+          headerActions={
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="interactive-element rounded-[var(--radius-button)]"
+                onClick={() => {
+                  // Copy content to clipboard with feedback
+                  if (slideoutContent) {
+                    navigator.clipboard.writeText(slideoutContent);
+                    // TODO: Add toast notification
+                  }
+                }}
+              >
+                Copy
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="interactive-element rounded-[var(--radius-button)]"
+                onClick={() => {
+                  // Placeholder for publish functionality
+                  console.log("Publish clicked");
+                  // TODO: Implement publish workflow
+                }}
+              >
+                Publish
+              </Button>
             </div>
-          )}
+          }
+        >
+          {/* Enhanced BlockNote Editor with smooth content loading */}
+          <div className="slideout-content h-full">
+            <div className="fade-in">
+              <MinimalSlideoutEditor
+                initialValue={slideoutContent}
+                onChange={(value) => {
+                  // Handle editor changes if needed
+                  console.log("Editor content changed:", value);
+                }}
+              />
+            </div>
+          </div>
         </UnifiedSlideout>
       </div>
     </div>

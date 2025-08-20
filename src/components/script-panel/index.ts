@@ -3,7 +3,6 @@
  */
 
 export { ScriptPanel, ScriptPanel as default } from "./script-panel";
-export { ScriptPanelTabs, ScriptPanelHeader, FullScriptView, ComponentsView } from "./script-panel-views";
 
 // Re-export types for convenience
 export type {
