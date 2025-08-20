@@ -52,8 +52,8 @@ const CustomDailyButton = ({ url }: { url: string }) => {
       onClick={handleClick}
       className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground data-[active=true]:bg-transparent data-[active=true]:font-normal"
     >
-      <div className="bg-primary hover:bg-primary/90 flex size-4 shrink-0 items-center justify-center rounded-[var(--radius-pill)] shadow-[var(--shadow-soft-drop)] transition-all duration-200 ease-linear [&>svg]:!size-3">
-        <Plus className="text-primary-foreground" />
+      <div className="bg-primary hover:bg-primary/90 flex size-6 shrink-0 items-center justify-center rounded-[var(--radius-pill)] shadow-[var(--shadow-soft-drop)] transition-all duration-200 ease-linear">
+        <Plus className="text-primary-foreground size-5" />
       </div>
       <span>New Script</span>
     </SidebarMenuButton>
