@@ -1,11 +1,13 @@
 import fs from "fs";
+import path from "path";
+
 import { NextRequest, NextResponse } from "next/server";
+
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleAIFileManager } from "@google/generative-ai/server";
 
 import { uploadToBunnyStream, generateBunnyThumbnailUrl, uploadBunnyThumbnailWithRetry } from "@/lib/bunny-stream";
 import { scrapeVideoUrl, UnifiedVideoScraper } from "@/lib/unified-video-scraper";
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import { GoogleAIFileManager } from "@google/generative-ai/server";
-import path from "path";
 
 // Environment variables validation
 interface RequiredEnvVars {

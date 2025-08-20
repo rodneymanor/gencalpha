@@ -75,10 +75,7 @@ export function PromptComposer({
             }
           }}
           placeholder={placeholder}
-          className={cn(
-            "resize-none border-0 bg-transparent focus-visible:ring-0",
-            footerBanner ? "pb-12" : undefined,
-          )}
+          className={cn("resize-none border-0 bg-transparent focus-visible:ring-0", footerBanner ? "pb-12" : undefined)}
         />
 
         {footerBanner && <div className="absolute right-0 bottom-2 left-0 mx-3">{footerBanner}</div>}
@@ -118,5 +115,3 @@ export function PromptComposer({
 }
 
 export default PromptComposer;
-
-

@@ -39,35 +39,35 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
         <ScriptPanelProvider>
           <ResizableLayoutProvider>
             <SidebarProvider defaultOpen={false}>
-            <AppSidebar
-              variant={sidebarVariant}
-              collapsible={sidebarCollapsible}
-              layoutPreferences={layoutPreferences}
-            />
-            <SidebarInset
-              data-content-layout={contentLayout}
-              className={cn(
-                "data-[content-layout=centered]:!mx-auto data-[content-layout=centered]:max-w-screen-2xl",
-                "max-[113rem]:peer-data-[variant=inset]:!mr-2 min-[101rem]:peer-data-[variant=inset]:peer-data-[state=collapsed]:!mr-auto",
-                "flex h-screen flex-col",
-              )}
-            >
-              <div className="min-h-0 flex-1 overflow-y-auto">
-                <ResizableDashboardWrapper className="h-full">
-                  <div className="relative h-full w-full">
-                    <div className="absolute top-6 right-6 z-10">
-                      <NotificationHeader />
+              <AppSidebar
+                variant={sidebarVariant}
+                collapsible={sidebarCollapsible}
+                layoutPreferences={layoutPreferences}
+              />
+              <SidebarInset
+                data-content-layout={contentLayout}
+                className={cn(
+                  "data-[content-layout=centered]:!mx-auto data-[content-layout=centered]:max-w-screen-2xl",
+                  "max-[113rem]:peer-data-[variant=inset]:!mr-2 min-[101rem]:peer-data-[variant=inset]:peer-data-[state=collapsed]:!mr-auto",
+                  "flex h-screen flex-col",
+                )}
+              >
+                <div className="min-h-0 flex-1 overflow-y-auto">
+                  <ResizableDashboardWrapper className="h-full">
+                    <div className="relative h-full w-full">
+                      <div className="absolute top-6 right-6 z-10">
+                        <NotificationHeader />
+                      </div>
+                      {children}
                     </div>
-                    {children}
-                  </div>
-                </ResizableDashboardWrapper>
-              </div>
-              <FloatingActionButton />
-            </SidebarInset>
-          </SidebarProvider>
-        </ResizableLayoutProvider>
-      </ScriptPanelProvider>
-    </DashboardWrapper>
+                  </ResizableDashboardWrapper>
+                </div>
+                <FloatingActionButton />
+              </SidebarInset>
+            </SidebarProvider>
+          </ResizableLayoutProvider>
+        </ScriptPanelProvider>
+      </DashboardWrapper>
     </ThemeProvider>
   );
 }

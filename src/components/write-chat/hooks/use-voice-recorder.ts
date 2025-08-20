@@ -14,34 +14,37 @@ export function useVoiceRecorder(options: UseVoiceRecorderOptions = {}) {
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
 
-  const processVoiceRecording = useCallback(async (audioBlob: Blob) => {
-    try {
-      const user = firebaseAuth?.currentUser;
-      if (!user || typeof user.getIdToken !== "function") {
-        console.error("Please sign in to use voice transcription");
-        return;
+  const processVoiceRecording = useCallback(
+    async (audioBlob: Blob) => {
+      try {
+        const user = firebaseAuth?.currentUser;
+        if (!user || typeof user.getIdToken !== "function") {
+          console.error("Please sign in to use voice transcription");
+          return;
+        }
+        const token = await user.getIdToken();
+        const arrayBuffer = await audioBlob.arrayBuffer();
+        const base64Audio = Buffer.from(arrayBuffer).toString("base64");
+        const response = await fetch("/api/transcribe/voice", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ audio: base64Audio, format: "wav" }),
+        });
+        const result = await response.json();
+        if (result.success && result.transcription && typeof onTranscription === "function") {
+          onTranscription(String(result.transcription));
+        } else if (!result.success) {
+          console.error("Transcription failed:", result.error);
+        }
+      } catch (error) {
+        console.error("Error processing voice recording:", error);
       }
-      const token = await user.getIdToken();
-      const arrayBuffer = await audioBlob.arrayBuffer();
-      const base64Audio = Buffer.from(arrayBuffer).toString("base64");
-      const response = await fetch("/api/transcribe/voice", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ audio: base64Audio, format: "wav" }),
-      });
-      const result = await response.json();
-      if (result.success && result.transcription && typeof onTranscription === "function") {
-        onTranscription(String(result.transcription));
-      } else if (!result.success) {
-        console.error("Transcription failed:", result.error);
-      }
-    } catch (error) {
-      console.error("Error processing voice recording:", error);
-    }
-  }, [onTranscription]);
+    },
+    [onTranscription],
+  );
 
   const start = useCallback(async () => {
     try {
@@ -83,5 +86,3 @@ export function useVoiceRecorder(options: UseVoiceRecorderOptions = {}) {
 }
 
 export default useVoiceRecorder;
-
-

@@ -11,9 +11,9 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 import { AccountSettings } from "./_components/account-settings";
+import { ApiKeysSettings } from "./_components/api-keys-settings";
 import { BillingSettings } from "./_components/billing-settings";
 import { NotificationsSettings } from "./_components/notifications-settings";
-import { ApiKeysSettings } from "./_components/api-keys-settings";
 
 const settingsTabs = [
   {

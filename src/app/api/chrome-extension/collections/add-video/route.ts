@@ -68,21 +68,24 @@ export async function POST(request: NextRequest) {
     const queueRes = await fetch(buildInternalUrl("/api/video/add-to-queue"), {
       method: "POST",
       headers,
-      body: JSON.stringify({ 
-        videoUrl, 
+      body: JSON.stringify({
+        videoUrl,
         userId,
         collectionId,
-        title: title || "Video from Chrome Extension"
+        title: title || "Video from Chrome Extension",
       }),
     });
 
     if (!queueRes.ok) {
       const queueError = await queueRes.json();
       console.error("❌ [Chrome Add Video] Queue failed:", queueError);
-      return NextResponse.json({ 
-        success: false, 
-        error: `Failed to queue video: ${queueError.error || 'Unknown error'}` 
-      }, { status: queueRes.status });
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Failed to queue video: ${queueError.error || "Unknown error"}`,
+        },
+        { status: queueRes.status },
+      );
     }
 
     const queueData = await queueRes.json();
@@ -95,7 +98,7 @@ export async function POST(request: NextRequest) {
       jobId: queueData.jobId,
       collectionTitle,
       collectionId,
-      videoUrl
+      videoUrl,
     });
   } catch (error) {
     console.error("❌ [Chrome Add Video to Collection] Error:", error);

@@ -4,11 +4,11 @@ import { useState, useEffect, useCallback } from "react";
 
 import { Play } from "lucide-react";
 
+import { VideoAnalyzerSlideout } from "@/app/test-video-analyzer/_components/video-analyzer-slideout";
 import { Button } from "@/components/ui/button";
 import { CardSkeleton, LoadingBoundary, useAsyncOperation, useIsLoading } from "@/components/ui/loading";
-import { VideoGridProcessingPlaceholder } from "@/components/ui/video-grid-processing-placeholder";
 import { UnifiedSlideout, ClaudeArtifactConfig } from "@/components/ui/unified-slideout";
-import { VideoAnalyzerSlideout } from "@/app/test-video-analyzer/_components/video-analyzer-slideout";
+import { VideoGridProcessingPlaceholder } from "@/components/ui/video-grid-processing-placeholder";
 import { VideoGrid as NewVideoGrid, type VideoData } from "@/components/video/video-grid";
 import { useAuth } from "@/contexts/auth-context";
 import { useVideoProcessing } from "@/contexts/video-processing-context";
@@ -52,7 +52,7 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
   const handleNewVideoGridClick = useCallback(
     (videoData: VideoData) => {
       // Find the original Video object by ID to preserve all metadata
-      const originalVideo = state.videos.find(v => v.id === videoData.id);
+      const originalVideo = state.videos.find((v) => v.id === videoData.id);
       if (originalVideo) {
         setSelectedVideo(originalVideo);
       }
@@ -102,7 +102,6 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
   // Only show active jobs (pending, processing) in the grid
   const activeJobs = relevantJobs.filter((job) => job.status === "pending" || job.status === "processing");
 
-
   // Transform Video to VideoAnalyzer format
   const transformToAnalyzerData = useCallback((video: Video) => {
     return {
@@ -115,13 +114,13 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
         hook: "Opening statement to grab attention",
         bridge: "Transition element connecting ideas",
         nugget: "Key value proposition or insight",
-        wta: "Clear call to action"
+        wta: "Clear call to action",
       },
       metadata: {
         author: video.metadata?.author || "Unknown Creator",
         description: video.metadata?.description || "No description available",
         platform: video.platform || "unknown",
-        duration: typeof video.metadata?.duration === 'number' ? video.metadata.duration : 0,
+        duration: typeof video.metadata?.duration === "number" ? video.metadata.duration : 0,
       },
       metrics: {
         likes: video.metrics?.likes || 0,
@@ -138,12 +137,12 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
         scriptStructure: {
           introduction: "Engaging opening to capture attention",
           body: "Main content delivering value",
-          conclusion: "Strong ending with clear next steps"
+          conclusion: "Strong ending with clear next steps",
         },
         visualElements: ["Dynamic visuals", "Text overlays", "Smooth transitions"],
         performanceFactors: ["Strong hook", "Clear messaging", "Engaging visuals"],
-        recommendedImprovements: ["Enhance audio quality", "Add more visual elements", "Improve call-to-action"]
-      }
+        recommendedImprovements: ["Enhance audio quality", "Add more visual elements", "Improve call-to-action"],
+      },
     };
   }, []);
 
@@ -174,7 +173,6 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
   return (
     <>
       <div className="space-y-6">
-
         <LoadingBoundary id="collections-videos" fallback={gridFallback}>
           <div className="space-y-6">
             {/* Processing placeholders first - rendered above the new grid */}

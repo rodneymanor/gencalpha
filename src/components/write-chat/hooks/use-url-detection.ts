@@ -81,5 +81,3 @@ export function useUrlDetection(inputText: string) {
 }
 
 export default useUrlDetection;
-
-

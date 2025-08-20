@@ -1,12 +1,13 @@
 /* Smooth Message Manager - Claude-style chat message handling */
 
 import React from "react";
+
 import { type ChatMessage } from "./types";
 
 export interface MessageAnimationOptions {
   staggerDelay: number;
   animationDuration: number;
-  scrollBehavior: 'smooth' | 'auto';
+  scrollBehavior: "smooth" | "auto";
   enableIntersectionObserver: boolean;
 }
 
@@ -21,15 +22,15 @@ export class SmoothMessageManager {
   private options: MessageAnimationOptions = {
     staggerDelay: 50,
     animationDuration: 300,
-    scrollBehavior: 'smooth',
+    scrollBehavior: "smooth",
     enableIntersectionObserver: true,
   };
 
   constructor(mountedRef: React.MutableRefObject<boolean>, options?: Partial<MessageAnimationOptions>) {
     this.mountedRef = mountedRef;
     this.options = { ...this.options, ...options };
-    
-    if (typeof window !== 'undefined' && this.options.enableIntersectionObserver) {
+
+    if (typeof window !== "undefined" && this.options.enableIntersectionObserver) {
       this.setupIntersectionObserver();
     }
   }
@@ -59,18 +60,18 @@ export class SmoothMessageManager {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
+            entry.target.classList.add("visible");
             // Add staggered animation class
             const index = Array.from(entry.target.parentNode?.children ?? []).indexOf(entry.target);
-            entry.target.setAttribute('style', `animation-delay: ${index * this.options.staggerDelay}ms`);
+            entry.target.setAttribute("style", `animation-delay: ${index * this.options.staggerDelay}ms`);
           }
         });
       },
       {
         root: this.messagesContainer,
         threshold: 0.1,
-        rootMargin: '20px 0px',
-      }
+        rootMargin: "20px 0px",
+      },
     );
   }
 
@@ -102,7 +103,7 @@ export class SmoothMessageManager {
       if (this.scrollTimeout) {
         clearTimeout(this.scrollTimeout);
       }
-      
+
       this.scrollTimeout = setTimeout(() => {
         if (isAtBottom) {
           this.isUserScrolling = false;
@@ -110,11 +111,11 @@ export class SmoothMessageManager {
       }, 150);
     };
 
-    this.messagesContainer.addEventListener('scroll', handleScroll, { passive: true });
+    this.messagesContainer.addEventListener("scroll", handleScroll, { passive: true });
 
     // Store cleanup function
     const cleanup = () => {
-      this.messagesContainer?.removeEventListener('scroll', handleScroll);
+      this.messagesContainer?.removeEventListener("scroll", handleScroll);
     };
 
     // Return cleanup for external use
@@ -128,7 +129,7 @@ export class SmoothMessageManager {
     if (!this.messagesContainer || !this.mountedRef.current) return null;
 
     const messageElement = this.createMessageElement(message);
-    
+
     // Add to container
     this.messagesContainer.appendChild(messageElement);
 
@@ -149,10 +150,10 @@ export class SmoothMessageManager {
    * Create a message DOM element with animation classes
    */
   private createMessageElement(message: ChatMessage): HTMLElement {
-    const messageEl = document.createElement('div');
+    const messageEl = document.createElement("div");
     messageEl.className = `message message-${message.role} fade-in`;
-    messageEl.setAttribute('data-message-id', message.id ?? '');
-    
+    messageEl.setAttribute("data-message-id", message.id ?? "");
+
     // Add animation timing
     messageEl.style.cssText = `
       animation-duration: ${this.options.animationDuration}ms;
@@ -195,7 +196,7 @@ export class SmoothMessageManager {
     if (!this.messagesContainer) return;
 
     // Clear existing messages
-    this.messagesContainer.innerHTML = '';
+    this.messagesContainer.innerHTML = "";
 
     // Add messages with staggered timing
     messages.forEach((message, index) => {
@@ -225,8 +226,8 @@ export class SmoothMessageManager {
   public showTypingIndicator(): HTMLElement | null {
     if (!this.messagesContainer) return null;
 
-    const typingEl = document.createElement('div');
-    typingEl.className = 'typing-indicator message message-assistant';
+    const typingEl = document.createElement("div");
+    typingEl.className = "typing-indicator message message-assistant";
     typingEl.innerHTML = `
       <div class="flex items-center gap-2 text-muted-foreground">
         <div class="flex gap-1">
@@ -250,7 +251,7 @@ export class SmoothMessageManager {
   public hideTypingIndicator() {
     if (!this.messagesContainer) return;
 
-    const typingIndicator = this.messagesContainer.querySelector('.typing-indicator');
+    const typingIndicator = this.messagesContainer.querySelector(".typing-indicator");
     if (typingIndicator) {
       // Fade out animation
       typingIndicator.style.cssText = `
@@ -289,7 +290,7 @@ export class SmoothMessageManager {
 
     const { scrollTop, scrollHeight, clientHeight } = this.messagesContainer;
     const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
-    
+
     return {
       scrollTop,
       scrollHeight,
@@ -305,7 +306,7 @@ export class SmoothMessageManager {
  */
 export function useSmoothMessageManager(
   mountedRef: React.MutableRefObject<boolean>,
-  options?: Partial<MessageAnimationOptions>
+  options?: Partial<MessageAnimationOptions>,
 ) {
   const [manager] = React.useState(() => new SmoothMessageManager(mountedRef, options));
 

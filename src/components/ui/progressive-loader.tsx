@@ -1,13 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { 
+
+import {
   SkeletonPageLayout,
   SkeletonChatPage,
   SkeletonHeader,
   SkeletonSidebar,
   SkeletonMainContent,
-  ThinkingIndicator 
+  ThinkingIndicator
 } from "./skeleton-screens";
 
 // ========================================
@@ -26,7 +27,7 @@ interface ProgressivePageLoaderProps {
 
 /**
  * Progressive Page Loader - Claude's Three-Stage Strategy
- * 
+ *
  * Stage 1 (0-100ms): Show skeleton layout immediately
  * Stage 2 (100-300ms): Show partial content with shell
  * Stage 3 (300ms+): Show complete content
@@ -101,12 +102,12 @@ export function ProgressivePageLoader({
 /**
  * Route-specific progressive loaders
  */
-export function ProgressiveChatLoader({ 
-  children, 
-  duration = 300 
-}: { 
-  children: React.ReactNode; 
-  duration?: number; 
+export function ProgressiveChatLoader({
+  children,
+  duration = 300
+}: {
+  children: React.ReactNode;
+  duration?: number;
 }) {
   return (
     <ProgressivePageLoader type="chat" duration={duration}>
@@ -115,12 +116,12 @@ export function ProgressiveChatLoader({
   );
 }
 
-export function ProgressiveDashboardLoader({ 
-  children, 
-  duration = 300 
-}: { 
-  children: React.ReactNode; 
-  duration?: number; 
+export function ProgressiveDashboardLoader({
+  children,
+  duration = 300
+}: {
+  children: React.ReactNode;
+  duration?: number;
 }) {
   return (
     <ProgressivePageLoader type="dashboard" duration={duration}>
@@ -169,7 +170,7 @@ export function ProgressiveContentLoader({
             ))}
           </div>
         );
-      
+
       case "chat-messages":
         return (
           <div className="space-y-4">
@@ -184,10 +185,10 @@ export function ProgressiveContentLoader({
             ))}
           </div>
         );
-      
+
       case "sidebar":
         return <SkeletonSidebar />;
-      
+
       case "content":
       default:
         return <SkeletonMainContent />;

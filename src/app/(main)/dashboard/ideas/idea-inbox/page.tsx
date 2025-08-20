@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+
 import { useRouter } from "next/navigation";
 
 import { Plus, Filter, X, Star, Calendar, Tag, Type, Globe } from "lucide-react";
-
-import { useIdeaInboxFlag } from "@/hooks/use-feature-flag";
 
 import { IdeaDetailDialog } from "@/app/(main)/dashboard/idea-inbox/_components/idea-detail-dialog";
 import { mapNotesToIdeas } from "@/app/(main)/dashboard/idea-inbox/_components/note-mapper";
@@ -16,6 +15,7 @@ import { CardTransparent } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { SearchField } from "@/components/ui/search-field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useIdeaInboxFlag } from "@/hooks/use-feature-flag";
 import { auth } from "@/lib/firebase";
 import { clientNotesService } from "@/lib/services/client-notes-service";
 

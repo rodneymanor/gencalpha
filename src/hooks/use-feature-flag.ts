@@ -9,7 +9,7 @@ import { useFeatureFlagEnabled } from "posthog-js/react";
  */
 export function useFeatureFlag(flagKey: string): boolean {
   const isEnabled = useFeatureFlagEnabled(flagKey);
-  
+
   // Default to false if PostHog is not initialized or flag is undefined
   return isEnabled ?? false;
 }

@@ -5,42 +5,42 @@ const getClaudeAnimationClasses = (isOpen: boolean, position: string) => {
   const claudeEasing = "cubic-bezier(0.32, 0.72, 0, 1)";
   const baseClasses = "transform transition-transform will-change-transform";
   const duration = isOpen ? "duration-[400ms]" : "duration-[250ms]";
-  
+
   const transforms = {
     right: isOpen ? "translate-x-0" : "translate-x-full",
-    left: isOpen ? "translate-x-0" : "-translate-x-full", 
+    left: isOpen ? "translate-x-0" : "-translate-x-full",
     bottom: isOpen ? "translate-y-0" : "translate-y-full"
   };
-  
+
   const transform = transforms[position as keyof typeof transforms] || "translate-x-0";
-  
+
   return cn(baseClasses, duration, `ease-[${claudeEasing}]`, transform);
 };
 
 // Animation variants following Claude's artifact panel physics
 export const getAnimationClasses = (
-  isOpen: boolean, 
-  position: string, 
+  isOpen: boolean,
+  position: string,
   animationType: string
 ) => {
   if (animationType === "claude") {
     return getClaudeAnimationClasses(isOpen, position);
   }
-  
+
   if (animationType === "overlay") {
     return cn(
       "transform transition-all duration-300 ease-out",
       isOpen ? "translate-x-0" : "translate-x-full"
     );
   }
-  
+
   if (animationType === "takeover") {
     return cn(
       "transform transition-transform duration-300 ease-out",
       isOpen ? "translate-x-0" : "translate-x-full"
     );
   }
-  
+
   return "transform transition-transform duration-300 ease-out";
 };
 
@@ -64,7 +64,7 @@ export const getVariantClasses = (variant?: string) => {
 // Get positioning classes
 export const getPositionClasses = (position?: string) => {
   const base = "fixed z-50";
-  
+
   switch (position) {
     case "right":
       return cn(base, "top-0 bottom-0 right-0");
@@ -80,7 +80,7 @@ export const getPositionClasses = (position?: string) => {
 // Width mappings with responsive behavior following Claude's patterns
 export const widthMap = {
   sm: "w-full md:w-[320px] lg:w-[320px]",  // 320px on desktop, responsive on mobile/tablet
-  md: "w-full md:w-[384px] lg:w-[384px]",  // 384px on desktop, responsive on mobile/tablet  
+  md: "w-full md:w-[384px] lg:w-[384px]",  // 384px on desktop, responsive on mobile/tablet
   lg: "w-full md:w-[70vw] md:max-w-[480px] lg:w-[600px]", // Claude artifact panel width with responsive behavior
   xl: "w-full md:w-[70vw] md:max-w-[600px] lg:w-[800px]", // Extra wide panels with responsive behavior
   full: "w-full"   // Full width on all breakpoints

@@ -1,11 +1,10 @@
 "use client";
 
 import { useCallback, useState, useEffect } from "react";
+
 import { useRouter } from "next/navigation";
 
 import { UserPlus, Check, ChevronsUpDown } from "lucide-react";
-
-import { useCreatorsPageFlag } from "@/hooks/use-feature-flag";
 
 import CreatorVideosGrid, { type VideoData } from "@/app/(main)/dashboard/daily/_components/creator-videos-grid";
 import { Button } from "@/components/ui/button";
@@ -13,6 +12,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { PlatformBadge } from "@/components/ui/platform-badges";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { FloatingVideoPlayer, useFloatingVideo } from "@/components/video/video-slideout-player";
+import { useCreatorsPageFlag } from "@/hooks/use-feature-flag";
 import { transformVideoDataToVideo } from "@/lib/video-player-helpers";
 
 export default function IdeasCreatorsPage() {

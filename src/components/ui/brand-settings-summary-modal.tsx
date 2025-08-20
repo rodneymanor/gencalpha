@@ -12,8 +12,6 @@ import {
   Globe
 } from 'lucide-react'
 
-import { useBrandSettingsFlag } from '@/hooks/use-feature-flag'
-
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -22,6 +20,7 @@ import { ClarityLoader } from "@/components/ui/loading"
 import { OnboardingSelections } from '@/components/ui/onboarding-wizard-modal'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { VisuallyHidden } from '@/components/ui/visually-hidden'
+import { useBrandSettingsFlag } from '@/hooks/use-feature-flag'
 import { ClientOnboardingService } from '@/lib/services/client-onboarding-service'
 
 interface BrandSettingsSummaryModalProps {

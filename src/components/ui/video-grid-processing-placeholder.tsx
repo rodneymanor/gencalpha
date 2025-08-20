@@ -6,8 +6,8 @@ import { Clock, CheckCircle, XCircle, RefreshCw, ExternalLink, Info } from "luci
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ThinkingIndicator } from "@/components/ui/skeleton-screens";
 import { Progress } from "@/components/ui/progress";
+import { ThinkingIndicator } from "@/components/ui/skeleton-screens";
 import {
   Tooltip,
   TooltipContent,

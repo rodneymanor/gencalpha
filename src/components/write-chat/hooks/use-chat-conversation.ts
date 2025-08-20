@@ -2,9 +2,9 @@
 
 import { useCallback, useRef, useState } from "react";
 
-import type { ChatMessage } from "@/components/write-chat/types";
 import { ACK_LOADING, ACK_BEFORE_SLIDE_MS, SLIDE_DURATION_MS } from "@/components/write-chat/constants";
 import { createConversation, saveMessage, chatbotReply } from "@/components/write-chat/services/chat-service";
+import type { ChatMessage } from "@/components/write-chat/types";
 import { delay } from "@/components/write-chat/utils";
 
 export function useChatConversation(options: {
@@ -18,14 +18,17 @@ export function useChatConversation(options: {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const mountedRef = useRef(true);
 
-  const ensureConversation = useCallback(async (persona: string) => {
-    let convId = conversationId;
-    if (!convId) {
-      convId = await createConversation(persona, initialPrompt ?? undefined);
-      if (convId) setConversationId(convId);
-    }
-    return convId;
-  }, [conversationId, initialPrompt]);
+  const ensureConversation = useCallback(
+    async (persona: string) => {
+      let convId = conversationId;
+      if (!convId) {
+        convId = await createConversation(persona, initialPrompt ?? undefined);
+        if (convId) setConversationId(convId);
+      }
+      return convId;
+    },
+    [conversationId, initialPrompt],
+  );
 
   const appendUserWithAck = useCallback((text: string) => {
     const userMessageId = crypto.randomUUID();
@@ -40,43 +43,50 @@ export function useChatConversation(options: {
     return { userMessageId, ackLoadingId };
   }, []);
 
-  const replaceAckWithAssistant = useCallback(async (assistantText: string, ackLoadingId: string) => {
-    await delay(ACK_BEFORE_SLIDE_MS);
-    await delay(SLIDE_DURATION_MS);
-    setMessages((prev): ChatMessage[] => {
-      const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== ACK_LOADING);
-      return [...filtered, { id: crypto.randomUUID(), role: "assistant", content: assistantText }];
-    });
-    onAssistantAnswerAppended?.();
-  }, [onAssistantAnswerAppended]);
-
-  const sendChatbot = useCallback(async (args: {
-    text: string;
-    persona: string | null;
-  }) => {
-    const { text, persona } = args;
-    const { ackLoadingId } = appendUserWithAck(text);
-    try {
-      const reply = await chatbotReply(text, persona, messages.map((m) => ({ role: m.role, content: m.content })));
-      await replaceAckWithAssistant(reply, ackLoadingId);
-      const convId = conversationId;
-      if (convId) await saveMessage(convId, "assistant", reply);
-    } catch (err: unknown) {
+  const replaceAckWithAssistant = useCallback(
+    async (assistantText: string, ackLoadingId: string) => {
       await delay(ACK_BEFORE_SLIDE_MS);
       await delay(SLIDE_DURATION_MS);
       setMessages((prev): ChatMessage[] => {
         const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== ACK_LOADING);
-        return [
-          ...filtered,
-          {
-            id: crypto.randomUUID(),
-            role: "assistant",
-            content: `Error: ${typeof err === "object" && err && "message" in err ? String((err as { message?: unknown }).message) : "Failed to get response"}`,
-          },
-        ];
+        return [...filtered, { id: crypto.randomUUID(), role: "assistant", content: assistantText }];
       });
-    }
-  }, [appendUserWithAck, messages, replaceAckWithAssistant, conversationId]);
+      onAssistantAnswerAppended?.();
+    },
+    [onAssistantAnswerAppended],
+  );
+
+  const sendChatbot = useCallback(
+    async (args: { text: string; persona: string | null }) => {
+      const { text, persona } = args;
+      const { ackLoadingId } = appendUserWithAck(text);
+      try {
+        const reply = await chatbotReply(
+          text,
+          persona,
+          messages.map((m) => ({ role: m.role, content: m.content })),
+        );
+        await replaceAckWithAssistant(reply, ackLoadingId);
+        const convId = conversationId;
+        if (convId) await saveMessage(convId, "assistant", reply);
+      } catch (err: unknown) {
+        await delay(ACK_BEFORE_SLIDE_MS);
+        await delay(SLIDE_DURATION_MS);
+        setMessages((prev): ChatMessage[] => {
+          const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== ACK_LOADING);
+          return [
+            ...filtered,
+            {
+              id: crypto.randomUUID(),
+              role: "assistant",
+              content: `Error: ${typeof err === "object" && err && "message" in err ? String((err as { message?: unknown }).message) : "Failed to get response"}`,
+            },
+          ];
+        });
+      }
+    },
+    [appendUserWithAck, messages, replaceAckWithAssistant, conversationId],
+  );
 
   return {
     messages,
@@ -92,5 +102,3 @@ export function useChatConversation(options: {
 }
 
 export default useChatConversation;
-
-

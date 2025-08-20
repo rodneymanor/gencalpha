@@ -2,8 +2,7 @@
  * Script Panel Component Exports
  */
 
-export { ScriptPanel as default } from "./script-panel";
-export { ScriptPanel } from "./script-panel";
+export { ScriptPanel, ScriptPanel as default } from "./script-panel";
 
 // Re-export types for convenience
 export type {
@@ -12,7 +11,7 @@ export type {
   ScriptComponentType,
   ScriptPanelProps,
   ScriptMetrics,
-  ScriptTabConfig
+  ScriptTabConfig,
 } from "@/types/script-panel";
 
 // Re-export hooks

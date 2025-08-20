@@ -5,13 +5,13 @@ import { UserProfileService } from "@/lib/user-profile-service";
 
 async function authenticateRequest(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
-  
+
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return NextResponse.json({ error: "Unauthorized - No token provided" }, { status: 401 });
   }
 
   const token = authHeader.substring(7);
-  
+
   try {
     return await authenticateWithFirebaseToken(token);
   } catch (error) {
@@ -38,9 +38,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ keywords });
   } catch (error) {
     console.error("❌ [API] Error searching keywords:", error);
-    return NextResponse.json(
-      { error: "Failed to search keywords" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to search keywords" }, { status: 500 });
   }
 }

@@ -21,17 +21,14 @@ export class UserProfileService {
   /**
    * Update user profile with keywords, personal description, and main topics
    */
-  static async updateUserProfile(
-    userId: string,
-    profileData: Partial<ExtendedUserProfile>
-  ): Promise<void> {
+  static async updateUserProfile(userId: string, profileData: Partial<ExtendedUserProfile>): Promise<void> {
     try {
       if (!db) {
         throw new Error("Firebase is not initialized");
       }
 
       const userRef = doc(db, this.USERS_PATH, userId);
-      
+
       // Validate keywords minimum requirement
       if (profileData.keywords && profileData.keywords.length < 3) {
         throw new Error("At least 3 keywords are required");
@@ -64,7 +61,7 @@ export class UserProfileService {
       }
 
       const data = userDoc.data();
-      
+
       return {
         keywords: data.keywords ?? [],
         personalDescription: data.personalDescription ?? "",
@@ -119,9 +116,7 @@ export class UserProfileService {
     }
 
     const filtered = mockKeywords
-      .filter(keyword => 
-        keyword.toLowerCase().includes(query.toLowerCase())
-      )
+      .filter((keyword) => keyword.toLowerCase().includes(query.toLowerCase()))
       .slice(0, 8)
       .map((keyword, index) => ({
         id: `keyword_${index}_${Date.now()}`,

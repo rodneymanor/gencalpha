@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAuth } from "@/contexts/auth-context";
-import { auth } from "@/lib/firebase";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+
 import { Copy, Eye, EyeOff, Trash2, AlertTriangle, CheckCircle, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/auth-context";
+import { auth } from "@/lib/firebase";
 
 interface ApiKeyStatus {
   keyId: string;
@@ -43,7 +45,7 @@ export function ApiKeysSettings() {
 
   const fetchKeyStatus = async () => {
     console.log("fetchKeyStatus called, user:", !!user);
-    
+
     if (!user || !auth.currentUser) {
       console.log("No user available, stopping load");
       setLoading(false);
@@ -54,7 +56,7 @@ export function ApiKeysSettings() {
       console.log("Getting Firebase ID token...");
       const token = await auth.currentUser.getIdToken();
       console.log("Got token, making API call to /api/keys");
-      
+
       const response = await fetch("/api/keys", {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -62,7 +64,7 @@ export function ApiKeysSettings() {
       });
 
       console.log("API response status:", response.status);
-      
+
       if (response.ok) {
         const data = await response.json();
         console.log("API key status data:", data);
@@ -161,7 +163,7 @@ export function ApiKeysSettings() {
   }, [user]);
 
   if (loading) {
-    return <div className="space-y-4 text-center py-8">Loading API key status...</div>;
+    return <div className="space-y-4 py-8 text-center">Loading API key status...</div>;
   }
 
   return (
@@ -176,7 +178,7 @@ export function ApiKeysSettings() {
               <strong>Important:</strong> This key will only be shown once. Please copy it now and store it securely.
             </div>
             <div className="flex items-center space-x-2">
-              <code className="flex-1 p-2 bg-white border rounded text-sm font-mono">
+              <code className="flex-1 rounded border bg-white p-2 font-mono text-sm">
                 {showKey ? newApiKey : "••••••••••••••••••••••••••••••••••••••••"}
               </code>
               <Button variant="outline" size="sm" onClick={() => setShowKey(!showKey)}>
@@ -199,35 +201,33 @@ export function ApiKeysSettings() {
             size="sm"
             onClick={() => window.open("https://chrome.google.com/webstore", "_blank")}
           >
-            <ExternalLink className="h-4 w-4 mr-2" />
+            <ExternalLink className="mr-2 h-4 w-4" />
             Get Extension
           </Button>
         </div>
 
         {keyStatus?.hasActiveKey ? (
-          <div className="space-y-4 p-4 border rounded-lg">
+          <div className="space-y-4 rounded-lg border p-4">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <div className="flex items-center space-x-2">
                   <Badge variant="default" className="bg-green-100 text-green-800">
-                    <CheckCircle className="h-3 w-3 mr-1" />
+                    <CheckCircle className="mr-1 h-3 w-3" />
                     Active
                   </Badge>
-                  <span className="text-sm font-mono text-muted-foreground">
-                    Key ID: {keyStatus.activeKey?.keyId}
-                  </span>
+                  <span className="text-muted-foreground font-mono text-sm">Key ID: {keyStatus.activeKey?.keyId}</span>
                 </div>
-                <div className="text-sm text-muted-foreground">
+                <div className="text-muted-foreground text-sm">
                   Created: {new Date(keyStatus.activeKey?.createdAt || "").toLocaleDateString()}
                 </div>
                 {keyStatus.activeKey?.lastUsed && (
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-muted-foreground text-sm">
                     Last used: {new Date(keyStatus.activeKey.lastUsed).toLocaleDateString()}
                   </div>
                 )}
               </div>
               <Button variant="destructive" size="sm" onClick={revokeApiKey} disabled={revoking}>
-                <Trash2 className="h-4 w-4 mr-2" />
+                <Trash2 className="mr-2 h-4 w-4" />
                 {revoking ? "Revoking..." : "Revoke"}
               </Button>
             </div>
@@ -253,7 +253,7 @@ export function ApiKeysSettings() {
             )}
           </div>
         ) : (
-          <div className="text-center py-8 border rounded-lg">
+          <div className="rounded-lg border py-8 text-center">
             <div className="space-y-4">
               <div className="text-muted-foreground">No active API key found</div>
               <Button onClick={generateApiKey} disabled={generating}>
@@ -268,7 +268,7 @@ export function ApiKeysSettings() {
       {keyStatus && (
         <div className="space-y-2">
           <h4 className="font-medium">Rate Limits</h4>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm p-4 bg-muted/50 rounded-lg">
+          <div className="bg-muted/50 grid grid-cols-1 gap-4 rounded-lg p-4 text-sm md:grid-cols-3">
             <div>
               <div className="font-medium">Rate Limit</div>
               <div className="text-muted-foreground">{keyStatus.limits.requestsPerMinute} requests/minute</div>
@@ -290,7 +290,7 @@ export function ApiKeysSettings() {
         <h4 className="font-medium">Chrome Extension Setup</h4>
         <div className="space-y-3 text-sm">
           <div className="flex space-x-3">
-            <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-medium">
+            <div className="bg-primary text-primary-foreground flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-medium">
               1
             </div>
             <div>
@@ -299,7 +299,7 @@ export function ApiKeysSettings() {
             </div>
           </div>
           <div className="flex space-x-3">
-            <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-medium">
+            <div className="bg-primary text-primary-foreground flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-medium">
               2
             </div>
             <div>
@@ -310,18 +310,16 @@ export function ApiKeysSettings() {
             </div>
           </div>
           <div className="flex space-x-3">
-            <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-medium">
+            <div className="bg-primary text-primary-foreground flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-medium">
               3
             </div>
             <div>
               <div className="font-medium">Configure API Key</div>
-              <div className="text-muted-foreground">
-                Paste your API key and set the base URL to your GenC instance
-              </div>
+              <div className="text-muted-foreground">Paste your API key and set the base URL to your GenC instance</div>
             </div>
           </div>
           <div className="flex space-x-3">
-            <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-medium">
+            <div className="bg-primary text-primary-foreground flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-medium">
               4
             </div>
             <div>

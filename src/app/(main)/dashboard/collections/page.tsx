@@ -4,15 +4,15 @@ import { useState, useEffect, useCallback } from "react";
 
 import { Plus, Bookmark } from "lucide-react";
 
+import { VideoAnalyzerSlideout } from "@/app/test-video-analyzer/_components/video-analyzer-slideout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CardSkeleton } from "@/components/ui/loading";
 import { CollectionCombobox } from "@/components/ui/collection-combobox";
 import { EditableText } from "@/components/ui/edit-button";
-import { VideoInsightsWrapper } from "@/components/video-insights";
+import { CardSkeleton } from "@/components/ui/loading";
 import { UnifiedSlideout, ClaudeArtifactConfig } from "@/components/ui/unified-slideout";
-import { VideoAnalyzerSlideout } from "@/app/test-video-analyzer/_components/video-analyzer-slideout";
 import { VideoGrid as NewVideoGrid, type VideoData } from "@/components/video/video-grid";
+import { VideoInsightsWrapper } from "@/components/video-insights";
 import { useAuth } from "@/contexts/auth-context";
 import { VideoInsightsProvider } from "@/contexts/video-insights-context";
 import { VideoProcessingProvider } from "@/contexts/video-processing-context";
@@ -31,26 +31,26 @@ const useCollectionEditing = (
   selectedCollectionId: string,
   selectedCollection: Collection | null,
   canWrite: boolean,
-  dispatch: (action: { type: string; payload: any }) => void
+  dispatch: (action: { type: string; payload: any }) => void,
 ) => {
   const handleEditTitle = useCallback(async () => {
     if (!user?.uid || !selectedCollection || !canWrite || selectedCollectionId === "all-videos") return;
-    
+
     const newTitle = prompt("Edit collection title:", selectedCollection.title);
     if (newTitle && newTitle !== selectedCollection.title) {
       try {
         await CollectionsService.updateCollection(user.uid, selectedCollectionId, {
           title: newTitle,
-          updatedAt: new Date().toISOString()
+          updatedAt: new Date().toISOString(),
         });
-        
+
         // Update local state
         dispatch({
           type: "UPDATE_COLLECTION",
           payload: {
             id: selectedCollectionId,
-            updates: { title: newTitle, updatedAt: new Date().toISOString() }
-          }
+            updates: { title: newTitle, updatedAt: new Date().toISOString() },
+          },
         });
       } catch (error) {
         console.error("Failed to update collection title:", error);
@@ -61,22 +61,22 @@ const useCollectionEditing = (
 
   const handleEditDescription = useCallback(async () => {
     if (!user?.uid || !selectedCollection || !canWrite || selectedCollectionId === "all-videos") return;
-    
+
     const newDescription = prompt("Edit collection description:", selectedCollection.description || "");
     if (newDescription !== null && newDescription !== selectedCollection.description) {
       try {
         await CollectionsService.updateCollection(user.uid, selectedCollectionId, {
           description: newDescription,
-          updatedAt: new Date().toISOString()
+          updatedAt: new Date().toISOString(),
         });
-        
+
         // Update local state
         dispatch({
           type: "UPDATE_COLLECTION",
           payload: {
             id: selectedCollectionId,
-            updates: { description: newDescription, updatedAt: new Date().toISOString() }
-          }
+            updates: { description: newDescription, updatedAt: new Date().toISOString() },
+          },
         });
       } catch (error) {
         console.error("Failed to update collection description:", error);
@@ -142,7 +142,7 @@ function CollectionsHeader({
   canWrite,
   handleEditTitle,
   handleEditDescription,
-  setIsAddVideoDialogOpen
+  setIsAddVideoDialogOpen,
 }: {
   selectedCollectionId: string;
   selectedCollection: Collection | null;
@@ -162,12 +162,10 @@ function CollectionsHeader({
             editButtonSize="md"
             showEditButton={canWrite && selectedCollection !== null}
           >
-            <h1 className="text-3xl font-bold tracking-tight">
-              {selectedCollection?.title ?? "Collection"}
-            </h1>
+            <h1 className="text-3xl font-bold tracking-tight">{selectedCollection?.title ?? "Collection"}</h1>
           </EditableText>
         )}
-        
+
         {selectedCollectionId === "all-videos" ? (
           <p className="text-muted-foreground mt-1">All your video content in one place</p>
         ) : (
@@ -207,7 +205,7 @@ function SavedCollectionsTabContent() {
     try {
       const result = await RBACClientService.getCollectionVideos(user.uid);
       // Filter for videos marked as favorite
-      const favoriteVideos = result.videos.filter(video => video.favorite === true);
+      const favoriteVideos = result.videos.filter((video) => video.favorite === true);
       setSavedVideos(favoriteVideos);
     } catch (error) {
       console.error("Failed to load saved videos:", error);
@@ -221,7 +219,6 @@ function SavedCollectionsTabContent() {
       loadSavedVideos();
     }
   }, [user?.uid, loadSavedVideos]);
-
 
   // Transform Video to VideoData for the new grid component
   const transformVideoToVideoData = useCallback((video: Video): VideoData => {
@@ -241,7 +238,7 @@ function SavedCollectionsTabContent() {
   const handleNewVideoGridClick = useCallback(
     (videoData: VideoData) => {
       // Find the original Video object by ID to preserve all metadata
-      const originalVideo = savedVideos.find(v => v.id === videoData.id);
+      const originalVideo = savedVideos.find((v) => v.id === videoData.id);
       if (originalVideo) {
         setSelectedVideo(originalVideo);
       }
@@ -261,13 +258,13 @@ function SavedCollectionsTabContent() {
         hook: "Opening statement to grab attention",
         bridge: "Transition element connecting ideas",
         nugget: "Key value proposition or insight",
-        wta: "Clear call to action"
+        wta: "Clear call to action",
       },
       metadata: {
         author: video.metadata?.author || "Unknown Creator",
         description: video.metadata?.description || "No description available",
         platform: video.platform || "unknown",
-        duration: typeof video.metadata?.duration === 'number' ? video.metadata.duration : 0,
+        duration: typeof video.metadata?.duration === "number" ? video.metadata.duration : 0,
       },
       metrics: {
         likes: video.metrics?.likes || 0,
@@ -284,15 +281,14 @@ function SavedCollectionsTabContent() {
         scriptStructure: {
           introduction: "Engaging opening to capture attention",
           body: "Main content delivering value",
-          conclusion: "Strong ending with clear next steps"
+          conclusion: "Strong ending with clear next steps",
         },
         visualElements: ["Dynamic visuals", "Text overlays", "Smooth transitions"],
         performanceFactors: ["Strong hook", "Clear messaging", "Engaging visuals"],
-        recommendedImprovements: ["Enhance audio quality", "Add more visual elements", "Improve call-to-action"]
-      }
+        recommendedImprovements: ["Enhance audio quality", "Add more visual elements", "Improve call-to-action"],
+      },
     };
   }, []);
-
 
   return (
     <>
@@ -304,7 +300,6 @@ function SavedCollectionsTabContent() {
               <p className="text-muted-foreground mt-1 text-sm">Videos you&apos;ve saved for later</p>
             </CardHeader>
             <CardContent>
-
               {isLoading ? (
                 <div className="@container">
                   <div className="grid grid-cols-1 gap-6 @sm:grid-cols-2 @lg:grid-cols-3 @xl:grid-cols-4">
@@ -325,9 +320,7 @@ function SavedCollectionsTabContent() {
                 <div className="py-12 text-center">
                   <Bookmark className="text-muted-foreground mx-auto mb-4 h-16 w-16 opacity-50" />
                   <h3 className="mb-2 text-lg font-semibold">No saved videos</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Videos you favorite will appear here for quick access.
-                  </p>
+                  <p className="text-muted-foreground mb-4">Videos you favorite will appear here for quick access.</p>
                 </div>
               )}
             </CardContent>
@@ -371,7 +364,7 @@ function CollectionsContent() {
     selectedCollectionId,
     selectedCollection ?? null,
     canWrite,
-    dispatch
+    dispatch,
   );
 
   return (

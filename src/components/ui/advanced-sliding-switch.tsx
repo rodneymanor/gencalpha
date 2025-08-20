@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+
 import { motion } from "framer-motion";
 
 // Types for the sliding switch
@@ -21,7 +22,7 @@ interface AdvancedSlidingSwitchProps {
 
 // Tooltip components (simplified for demo)
 const Tooltip = ({ children }) => <div className="relative inline-block">{children}</div>;
-const TooltipTrigger = ({ children, asChild, ...props }) => 
+const TooltipTrigger = ({ children, asChild, ...props }) =>
   asChild ? React.cloneElement(children, props) : <div {...props}>{children}</div>;
 const TooltipContent = ({ children, side, sideOffset }) => (
   <div className="absolute z-50 bg-popover text-popover-foreground rounded-md px-2 py-1 text-xs shadow-lg opacity-0 hover:opacity-100 transition-opacity -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap pointer-events-none">
@@ -78,7 +79,7 @@ export const AdvancedSlidingSwitch: React.FC<AdvancedSlidingSwitchProps> = ({
   };
 
   return (
-    <div 
+    <div
       className={`relative inline-flex h-8 items-center justify-center overflow-hidden rounded-[10px] border border-black/[0.06] bg-[#F8F8F7] p-1 shadow-[0_0.125rem_0.5rem_rgba(0,0,0,0.025),0_0_0_0.5px_rgba(0,0,0,0.04)] ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
       style={{ width: `${containerWidth}px` }}
     >
@@ -135,7 +136,7 @@ export const AdvancedSlidingSwitch: React.FC<AdvancedSlidingSwitchProps> = ({
 // Demo Component
 export default function SwitchDemo() {
   const [selectedMode, setSelectedMode] = useState<ModeType>("web-search");
-  
+
   const switchOptions: SwitchOption[] = [
     {
       value: "ghost-write",
@@ -158,7 +159,7 @@ export default function SwitchDemo() {
     <div className="flex min-h-screen items-center justify-center bg-[#F8F8F7]">
       <div className="flex flex-col items-center gap-8">
         <h2 className="text-2xl font-medium text-[#34322D]">Fixed Sliding Switch</h2>
-        
+
         <AdvancedSlidingSwitch
           options={switchOptions}
           onChange={(index, option) => {
@@ -167,7 +168,7 @@ export default function SwitchDemo() {
           }}
           defaultValue={1}
         />
-        
+
         <p className="text-sm text-[#858481]">
           Selected mode: <span className="font-medium text-[#34322D]">{selectedMode}</span>
         </p>
@@ -175,7 +176,7 @@ export default function SwitchDemo() {
         {/* Test with different numbers of options */}
         <div className="mt-8 flex flex-col gap-4">
           <h3 className="text-lg font-medium text-[#34322D]">Different Configurations</h3>
-          
+
           <div className="flex items-center gap-4">
             <span className="text-sm text-[#858481]">2 options:</span>
             <AdvancedSlidingSwitch
@@ -183,7 +184,7 @@ export default function SwitchDemo() {
               onChange={(index, option) => console.log("2-option switch:", option.value)}
             />
           </div>
-          
+
           <div className="flex items-center gap-4">
             <span className="text-sm text-[#858481]">Disabled:</span>
             <AdvancedSlidingSwitch

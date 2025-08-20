@@ -11,7 +11,7 @@ export async function createConversation(persona: string, initialPrompt?: string
   });
   if (!res.ok) return null;
   const json = (await res.json()) as { success: boolean; conversationId?: string };
-  return json.success ? json.conversationId ?? null : null;
+  return json.success ? (json.conversationId ?? null) : null;
 }
 
 export async function saveMessage(conversationId: string, role: "user" | "assistant", content: string) {
@@ -41,5 +41,3 @@ export async function chatbotReply(
   const data = (await response.json()) as { response?: string };
   return data.response ?? "I'm sorry, I didn't receive a proper response.";
 }
-
-

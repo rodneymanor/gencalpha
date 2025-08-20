@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+
 import { cn } from "@/lib/utils";
 
 // ========================================
@@ -9,10 +10,10 @@ import { cn } from "@/lib/utils";
 // ========================================
 
 // Base skeleton element with shimmer animation
-export function SkeletonElement({ 
+export function SkeletonElement({
   className,
   children,
-  ...props 
+  ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
@@ -31,21 +32,21 @@ export function SkeletonElement({
 export function SkeletonAvatar({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
   const sizeClasses = {
     sm: "w-6 h-6",
-    md: "w-8 h-8", 
+    md: "w-8 h-8",
     lg: "w-12 h-12"
   };
-  
+
   return (
-    <SkeletonElement 
+    <SkeletonElement
       className={cn("rounded-full", sizeClasses[size])}
     />
   );
 }
 
-export function SkeletonText({ 
+export function SkeletonText({
   lines = 1,
-  className 
-}: { 
+  className
+}: {
   lines?: number;
   className?: string;
 }) {
@@ -64,10 +65,10 @@ export function SkeletonText({
   );
 }
 
-export function SkeletonButton({ 
+export function SkeletonButton({
   variant = "default",
-  size = "md" 
-}: { 
+  size = "md"
+}: {
   variant?: "default" | "outline" | "ghost";
   size?: "sm" | "md" | "lg";
 }) {
@@ -76,9 +77,9 @@ export function SkeletonButton({
     md: "h-9 px-4",
     lg: "h-10 px-6"
   };
-  
+
   return (
-    <SkeletonElement 
+    <SkeletonElement
       className={cn("rounded-md", sizeClasses[size])}
     />
   );
@@ -88,10 +89,10 @@ export function SkeletonButton({
 // MESSAGE SKELETONS - Chat interface
 // ========================================
 
-export function SkeletonMessage({ 
+export function SkeletonMessage({
   role = "assistant",
-  lines = 2 
-}: { 
+  lines = 2
+}: {
   role?: "user" | "assistant";
   lines?: number;
 }) {
@@ -104,7 +105,7 @@ export function SkeletonMessage({
       </div>
     );
   }
-  
+
   return (
     <div className="flex gap-3">
       <SkeletonAvatar size="md" />
@@ -119,7 +120,7 @@ export function SkeletonChatList({ count = 3 }: { count?: number }) {
   return (
     <div className="space-y-6">
       {Array.from({ length: count }).map((_, i) => (
-        <SkeletonMessage 
+        <SkeletonMessage
           key={i}
           role={i % 3 === 0 ? "user" : "assistant"}
           lines={Math.floor(Math.random() * 3) + 1}
@@ -133,10 +134,10 @@ export function SkeletonChatList({ count = 3 }: { count?: number }) {
 // THINKING INDICATOR - AI Processing
 // ========================================
 
-export function ThinkingIndicator({ 
+export function ThinkingIndicator({
   message = "Thinking",
-  className 
-}: { 
+  className
+}: {
   message?: string;
   className?: string;
 }) {
@@ -182,7 +183,7 @@ export function SkeletonSidebar() {
             <SkeletonElement className="flex-1 h-4 rounded" />
           </div>
         ))}
-        
+
         <div className="pt-4 border-t border-border-subtle">
           {/* Secondary navigation */}
           {Array.from({ length: 3 }).map((_, i) => (
@@ -206,7 +207,7 @@ export function SkeletonMainContent() {
           <SkeletonElement className="h-8 w-48 rounded" />
           <SkeletonElement className="h-4 w-96 rounded" />
         </div>
-        
+
         {/* Content cards */}
         {Array.from({ length: 3 }).map((_, i) => (
           <SkeletonCard key={i} />
@@ -227,13 +228,13 @@ export function SkeletonCard() {
             <SkeletonElement className="h-4 w-1/2 rounded" />
           </div>
         </div>
-        
+
         <div className="space-y-2">
           <SkeletonElement className="h-4 w-full rounded" />
           <SkeletonElement className="h-4 w-5/6 rounded" />
           <SkeletonElement className="h-4 w-4/5 rounded" />
         </div>
-        
+
         <div className="flex gap-2 pt-2">
           <SkeletonButton size="sm" />
           <SkeletonButton size="sm" />
@@ -252,17 +253,17 @@ export function SkeletonVideoCard() {
     <div className="rounded-lg border border-border-subtle bg-card overflow-hidden">
       {/* Video thumbnail */}
       <SkeletonElement className="w-full aspect-video" />
-      
+
       <div className="p-4 space-y-3">
         {/* Title */}
         <SkeletonElement className="h-5 w-full rounded" />
-        
+
         {/* Creator info */}
         <div className="flex items-center gap-2">
           <SkeletonAvatar size="sm" />
           <SkeletonElement className="h-4 w-24 rounded" />
         </div>
-        
+
         {/* Metadata */}
         <div className="flex gap-2">
           <SkeletonElement className="h-3 w-16 rounded" />
@@ -309,7 +310,7 @@ export function SkeletonChatPage() {
           <div className="p-4 space-y-4">
             {/* Search */}
             <SkeletonElement className="h-9 w-full rounded-md" />
-            
+
             {/* Conversations */}
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="p-3 space-y-2">
@@ -319,7 +320,7 @@ export function SkeletonChatPage() {
             ))}
           </div>
         </div>
-        
+
         {/* Chat content */}
         <div className="flex-1 flex flex-col">
           <div className="flex-1 p-6">
@@ -327,7 +328,7 @@ export function SkeletonChatPage() {
               <SkeletonChatList count={4} />
             </div>
           </div>
-          
+
           {/* Input area */}
           <div className="border-t border-border-subtle p-4">
             <div className="max-w-3xl mx-auto">
@@ -344,17 +345,17 @@ export function SkeletonChatPage() {
 // PROGRESSIVE LOADER
 // ========================================
 
-export function ProgressiveLoader({ 
+export function ProgressiveLoader({
   stage = "skeleton",
-  children 
-}: { 
+  children
+}: {
   stage?: "skeleton" | "partial" | "complete";
   children?: React.ReactNode;
 }) {
   if (stage === "skeleton") {
     return <SkeletonPageLayout />;
   }
-  
+
   if (stage === "partial") {
     return (
       <div className="animate-in fade-in duration-200">
@@ -370,6 +371,6 @@ export function ProgressiveLoader({
       </div>
     );
   }
-  
+
   return <>{children}</>;
 }

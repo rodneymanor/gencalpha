@@ -9,7 +9,8 @@ const meta: Meta<typeof UserProfileSlideoutStory> = {
     layout: "fullscreen",
     docs: {
       description: {
-        component: "A slideout panel for user profile settings including keyword search, personal description, and main topics.",
+        component:
+          "A slideout panel for user profile settings including keyword search, personal description, and main topics.",
       },
     },
   },
@@ -18,16 +19,16 @@ const meta: Meta<typeof UserProfileSlideoutStory> = {
   },
   decorators: [
     (Story) => (
-      <div className="h-screen w-screen bg-background">
+      <div className="bg-background h-screen w-screen">
         <div className="flex h-full">
           {/* Mock main content */}
-          <div className="flex-1 bg-card p-8">
-            <h1 className="text-2xl font-bold text-foreground mb-4">Main Content Area</h1>
+          <div className="bg-card flex-1 p-8">
+            <h1 className="text-foreground mb-4 text-2xl font-bold">Main Content Area</h1>
             <p className="text-muted-foreground">
               This is the main content area. The slideout panel appears on the right side.
             </p>
           </div>
-          
+
           {/* Slideout panel */}
           <div className="bg-background border-border w-[400px] max-w-[90vw] border-l shadow-[var(--shadow-soft-drop)]">
             <Story />

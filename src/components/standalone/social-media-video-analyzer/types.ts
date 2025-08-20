@@ -76,4 +76,3 @@ export interface SocialMediaVideoAnalyzerProps {
   onExportProfile?: (analysis: AnalysisData) => void;
   onUseStyleForRescript?: (analysis: AnalysisData) => void;
 }
-

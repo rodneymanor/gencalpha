@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
+import {
   SkeletonPageLayout,
   SkeletonChatPage,
   SkeletonVideoGrid,
@@ -12,7 +13,7 @@ import {
   ProgressivePageLoader,
   DataProgressiveLoader,
   ProgressiveContentLoader,
-  useProgressiveLoading
+  useProgressiveLoading,
 } from "@/components/ui/loading";
 
 export default function LoadingDemoPage() {
@@ -24,25 +25,25 @@ export default function LoadingDemoPage() {
       id: "page-skeleton",
       title: "Page Skeleton",
       description: "Full page skeleton layout with header, sidebar, and content",
-      component: <SkeletonPageLayout />
+      component: <SkeletonPageLayout />,
     },
     {
-      id: "chat-skeleton", 
+      id: "chat-skeleton",
       title: "Chat Skeleton",
       description: "Chat interface skeleton with sidebar and message area",
-      component: <SkeletonChatPage />
+      component: <SkeletonChatPage />,
     },
     {
       id: "video-grid",
       title: "Video Grid Skeleton",
       description: "Video grid loading with aspect ratio preserved",
-      component: <SkeletonVideoGrid count={6} />
+      component: <SkeletonVideoGrid count={6} />,
     },
     {
       id: "chat-messages",
-      title: "Chat Messages Skeleton", 
+      title: "Chat Messages Skeleton",
       description: "Individual chat messages with avatars and text",
-      component: <SkeletonChatList count={4} />
+      component: <SkeletonChatList count={4} />,
     },
     {
       id: "thinking",
@@ -54,15 +55,15 @@ export default function LoadingDemoPage() {
           <ThinkingIndicator message="Generating response" />
           <ThinkingIndicator message="" />
         </div>
-      )
-    }
+      ),
+    },
   ];
 
   const SimulatedContent = () => (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Content Loaded!</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {[1, 2, 3, 4].map(i => (
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        {[1, 2, 3, 4].map((i) => (
           <Card key={i}>
             <CardHeader>
               <CardTitle>Card {i}</CardTitle>
@@ -77,8 +78,8 @@ export default function LoadingDemoPage() {
   );
 
   return (
-    <div className="container mx-auto p-8 space-y-8">
-      <div className="text-center space-y-4">
+    <div className="container mx-auto space-y-8 p-8">
+      <div className="space-y-4 text-center">
         <h1 className="text-4xl font-bold">Claude-Style Loading System</h1>
         <p className="text-muted-foreground text-lg">
           Demonstrate skeleton screens and progressive loading - no spinners allowed!
@@ -91,16 +92,16 @@ export default function LoadingDemoPage() {
           <CardTitle>Skeleton Screen Demos</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {demos.map(demo => (
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+            {demos.map((demo) => (
               <Button
                 key={demo.id}
                 variant={activeDemo === demo.id ? "default" : "outline"}
                 onClick={() => setActiveDemo(activeDemo === demo.id ? null : demo.id)}
-                className="justify-start text-left h-auto p-3 flex-col items-start"
+                className="h-auto flex-col items-start justify-start p-3 text-left"
               >
                 <span className="font-medium">{demo.title}</span>
-                <span className="text-xs text-muted-foreground">{demo.description}</span>
+                <span className="text-muted-foreground text-xs">{demo.description}</span>
               </Button>
             ))}
           </div>
@@ -114,37 +115,23 @@ export default function LoadingDemoPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-4">
-            <Button 
-              onClick={startLoading}
-              disabled={isLoading}
-            >
+            <Button onClick={startLoading} disabled={isLoading}>
               Start Progressive Load
             </Button>
-            <Button 
-              onClick={finishLoading}
-              variant="outline"
-              disabled={!isLoading}
-            >
+            <Button onClick={finishLoading} variant="outline" disabled={!isLoading}>
               Finish Loading
             </Button>
-            <Button 
-              onClick={reset}
-              variant="ghost"
-            >
+            <Button onClick={reset} variant="ghost">
               Reset
             </Button>
           </div>
-          
-          <div className="text-sm text-muted-foreground">
+
+          <div className="text-muted-foreground text-sm">
             Current stage: <strong>{stage}</strong>
           </div>
 
-          <div className="border rounded-lg p-4 min-h-[200px]">
-            <ProgressiveContentLoader
-              isLoading={isLoading}
-              type="content"
-              skeletonCount={4}
-            >
+          <div className="min-h-[200px] rounded-lg border p-4">
+            <ProgressiveContentLoader isLoading={isLoading} type="content" skeletonCount={4}>
               <SimulatedContent />
             </ProgressiveContentLoader>
           </div>
@@ -158,7 +145,7 @@ export default function LoadingDemoPage() {
         </CardHeader>
         <CardContent>
           <DataProgressiveLoader
-            data={activeDemo ? demos.find(d => d.id === activeDemo) : null}
+            data={activeDemo ? demos.find((d) => d.id === activeDemo) : null}
             isLoading={false}
             skeleton={
               <div className="space-y-4">
@@ -171,9 +158,7 @@ export default function LoadingDemoPage() {
               <div className="space-y-4">
                 <h3 className="text-xl font-semibold">{demo.title}</h3>
                 <p className="text-muted-foreground">{demo.description}</p>
-                <div className="border rounded-lg p-4 bg-muted/20">
-                  {demo.component}
-                </div>
+                <div className="bg-muted/20 rounded-lg border p-4">{demo.component}</div>
               </div>
             )}
           </DataProgressiveLoader>
@@ -189,10 +174,10 @@ export default function LoadingDemoPage() {
           <p className="text-muted-foreground mb-4">
             This would typically wrap your entire page component for route transitions.
           </p>
-          <div className="border rounded-lg overflow-hidden" style={{ height: "400px" }}>
+          <div className="overflow-hidden rounded-lg border" style={{ height: "400px" }}>
             <ProgressivePageLoader type="page" duration={2000}>
               <div className="p-8 text-center">
-                <h2 className="text-2xl font-bold mb-4">Page Fully Loaded!</h2>
+                <h2 className="mb-4 text-2xl font-bold">Page Fully Loaded!</h2>
                 <p>This content appeared after the progressive loading sequence.</p>
               </div>
             </ProgressivePageLoader>
@@ -206,9 +191,9 @@ export default function LoadingDemoPage() {
           <CardTitle>Loading System Guidelines</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid gap-6 md:grid-cols-2">
             <div>
-              <h4 className="text-lg font-semibold text-green-600 mb-2">✅ Do This</h4>
+              <h4 className="mb-2 text-lg font-semibold text-green-600">✅ Do This</h4>
               <ul className="space-y-2 text-sm">
                 <li>• Use skeleton screens for layout loading</li>
                 <li>• Show thinking dots for AI processing</li>
@@ -219,7 +204,7 @@ export default function LoadingDemoPage() {
               </ul>
             </div>
             <div>
-              <h4 className="text-lg font-semibold text-red-600 mb-2">❌ Don't Do This</h4>
+              <h4 className="mb-2 text-lg font-semibold text-red-600">❌ Don't Do This</h4>
               <ul className="space-y-2 text-sm">
                 <li>• Don't use spinners or loading wheels</li>
                 <li>• Don't show generic "Loading..." text</li>

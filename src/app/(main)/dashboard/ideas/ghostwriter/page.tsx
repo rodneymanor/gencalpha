@@ -1,11 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+
 import { useRouter } from "next/navigation";
 
 import { RefreshCw, Bookmark } from "lucide-react";
-
-import { useGhostWriterFlag } from "@/hooks/use-feature-flag";
 
 import { GhostCard } from "@/app/(main)/dashboard/ai-ghostwriter/_components/ghost-card";
 import { generateGhostWritingCards } from "@/app/(main)/dashboard/ai-ghostwriter/_components/ghost-card-generator";
@@ -13,6 +12,7 @@ import type { GhostWritingCard } from "@/app/(main)/dashboard/ai-ghostwriter/_co
 import { Button } from "@/components/ui/button";
 import { CustomTabs, CustomTabsContent } from "@/components/ui/custom-tabs";
 import { ClarityLoader } from "@/components/ui/loading";
+import { useGhostWriterFlag } from "@/hooks/use-feature-flag";
 
 // Simple toast replacement
 const useToast = () => ({

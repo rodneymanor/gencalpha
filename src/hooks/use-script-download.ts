@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+
 import { ScriptData, UseScriptDownloadReturn } from "@/types/script-panel";
 
 /**
@@ -26,22 +27,24 @@ export function useScriptDownload(): UseScriptDownloadReturn {
           `Total Words: ${scriptData.metrics.totalWords}`,
           `Estimated Duration: ${Math.ceil(scriptData.metrics.totalDuration)}s`,
           "",
-          "=" .repeat(50),
+          "=".repeat(50),
           "FULL SCRIPT",
-          "=" .repeat(50),
+          "=".repeat(50),
           "",
           scriptData.fullScript,
           "",
-          "=" .repeat(50),
+          "=".repeat(50),
           "SCRIPT COMPONENTS",
-          "=" .repeat(50),
+          "=".repeat(50),
           "",
-          ...scriptData.components.map(component => [
-            `${component.label.toUpperCase()}:`,
-            component.content,
-            `(${component.wordCount || 0} words, ~${component.estimatedDuration || 0}s)`,
-            ""
-          ]).flat()
+          ...scriptData.components
+            .map((component) => [
+              `${component.label.toUpperCase()}:`,
+              component.content,
+              `(${component.wordCount ?? 0} words, ~${component.estimatedDuration ?? 0}s)`,
+              "",
+            ])
+            .flat(),
         ].join("\n");
 
         fileName = `${sanitizeFileName(scriptData.title)}-script.txt`;
@@ -57,15 +60,15 @@ export function useScriptDownload(): UseScriptDownloadReturn {
       const blob = new Blob([content], { type: mimeType });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
-      
+
       link.href = url;
       link.download = fileName;
       link.style.display = "none";
-      
+
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Failed to download script:", error);
@@ -76,7 +79,7 @@ export function useScriptDownload(): UseScriptDownloadReturn {
 
   return {
     downloadScript,
-    isDownloading
+    isDownloading,
   };
 }
 

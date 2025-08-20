@@ -108,7 +108,10 @@ export class UnifiedVideoScraper {
     // Instagram patterns
     if (
       lowerUrl.includes("instagram.com") &&
-      (lowerUrl.includes("/reel") || lowerUrl.includes("/reels/") || lowerUrl.includes("/p/") || lowerUrl.includes("/tv/"))
+      (lowerUrl.includes("/reel") ||
+        lowerUrl.includes("/reels/") ||
+        lowerUrl.includes("/p/") ||
+        lowerUrl.includes("/tv/"))
     ) {
       return "instagram";
     }

@@ -1,14 +1,4 @@
-import { 
-  Play, 
-  FileText, 
-  Settings, 
-  MessageSquare, 
-  Video, 
-  Users, 
-  Code,
-  Grid3X3,
-  Layers
-} from "lucide-react";
+import { Play, Settings, Users, Code, Grid3X3, Layers } from "lucide-react";
 
 export interface SlideoutType {
   id: string;
@@ -33,7 +23,7 @@ export const slideoutTypes: SlideoutType[] = [
     width: "Configurable",
     backdrop: "Yes",
     responsive: "Full responsive",
-    patterns: ["Multi-tab", "Feature flags", "Contextual menus", "Event-driven"]
+    patterns: ["Multi-tab", "Feature flags", "Contextual menus", "Event-driven"],
   },
   {
     id: "floating" as const,
@@ -44,7 +34,7 @@ export const slideoutTypes: SlideoutType[] = [
     width: "420px / sticky",
     backdrop: "None",
     responsive: "Fixed + sticky modes",
-    patterns: ["Fixed positioning", "Sticky variant", "Video integration"]
+    patterns: ["Fixed positioning", "Sticky variant", "Video integration"],
   },
   {
     id: "unified" as const,
@@ -55,7 +45,7 @@ export const slideoutTypes: SlideoutType[] = [
     width: "Configurable",
     backdrop: "Configurable",
     responsive: "Full responsive",
-    patterns: ["Unified API", "Configuration-driven", "Multiple animation types", "Preset system"]
+    patterns: ["Unified API", "Configuration-driven", "Multiple animation types", "Preset system"],
   },
   {
     id: "claudeArtifact" as const,
@@ -66,7 +56,7 @@ export const slideoutTypes: SlideoutType[] = [
     width: "600px fixed",
     backdrop: "None (contextual)",
     responsive: "Content-adjusting",
-    patterns: ["Contextual layers", "Content adjustment", "Non-modal", "Custom easing"]
+    patterns: ["Contextual layers", "Content adjustment", "Non-modal", "Custom easing"],
   },
   {
     id: "modalOverlay" as const,
@@ -77,7 +67,7 @@ export const slideoutTypes: SlideoutType[] = [
     width: "600px fixed",
     backdrop: "Yes (modal)",
     responsive: "Overlay all screens",
-    patterns: ["Modal behavior", "Backdrop click", "Body scroll lock", "Interrupting"]
+    patterns: ["Modal behavior", "Backdrop click", "Body scroll lock", "Interrupting"],
   },
   {
     id: "compact" as const,
@@ -88,6 +78,6 @@ export const slideoutTypes: SlideoutType[] = [
     width: "320px fixed",
     backdrop: "None",
     responsive: "Content-adjusting",
-    patterns: ["Minimal header", "Narrow width", "Tool palettes", "Navigation"]
-  }
+    patterns: ["Minimal header", "Narrow width", "Tool palettes", "Navigation"],
+  },
 ];

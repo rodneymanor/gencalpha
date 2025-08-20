@@ -4,8 +4,8 @@ import React from 'react';
 
 import { Hexagon, Zap } from 'lucide-react';
 
-import { useBrandSettingsFlag } from '@/hooks/use-feature-flag';
 import { NotificationDropdown } from '@/components/ui/notification-dropdown';
+import { useBrandSettingsFlag } from '@/hooks/use-feature-flag';
 
 interface NotificationHeaderProps {
   creditsCount?: number;
@@ -35,7 +35,7 @@ export const NotificationHeader: React.FC<NotificationHeaderProps> = ({
       window.dispatchEvent(new CustomEvent("profile:open"));
     }
   };
-  
+
   return (
     <div className="flex items-center gap-2">
       {/* Notification Dropdown */}

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+
 import { Play } from "lucide-react";
 
 export interface VideoData {
@@ -80,7 +81,7 @@ export function VideoCard({ video, onClick }: VideoCardProps) {
 
   const getPlatformBadge = () => {
     if (!video.platform) return null;
-    
+
     const badgeStyles = {
       instagram: "bg-muted text-foreground",
       tiktok: "bg-black text-white",
@@ -96,7 +97,7 @@ export function VideoCard({ video, onClick }: VideoCardProps) {
 
   return (
     <div
-      className="bg-card cursor-pointer overflow-hidden rounded-[var(--radius-card)] shadow-[var(--shadow-soft-drop)] transition-all duration-200 group"
+      className="bg-card group cursor-pointer overflow-hidden rounded-[var(--radius-card)] shadow-[var(--shadow-soft-drop)] transition-all duration-200"
       onClick={() => onClick?.(video)}
     >
       <div className="relative aspect-[9/16] overflow-hidden bg-black">
@@ -107,18 +108,18 @@ export function VideoCard({ video, onClick }: VideoCardProps) {
           className="object-cover transition-all duration-200 group-hover:scale-105"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
-        
+
         {/* Hover overlay with darkening effect */}
         <div className="absolute inset-0 bg-black/0 transition-all duration-200 group-hover:bg-black/10" />
-        
+
         {/* Play icon overlay */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-80">
-          <Play className="h-12 w-12 text-white fill-white" />
+          <Play className="h-12 w-12 fill-white text-white" />
         </div>
-        
+
         {/* Platform badge */}
         {getPlatformBadge()}
-        
+
         {/* Views badge */}
         {video.views && (
           <div className="absolute bottom-2 left-2 flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-white">
@@ -126,9 +127,8 @@ export function VideoCard({ video, onClick }: VideoCardProps) {
             {formatNumber(video.views)}
           </div>
         )}
-        
       </div>
-      
+
       <div className="flex items-center gap-3 p-4">
         <div className="bg-muted rounded-pill flex h-8 w-8 flex-shrink-0 items-center justify-center">
           <span className="text-foreground text-xs font-medium">{video.creator.slice(0, 2).toUpperCase()}</span>

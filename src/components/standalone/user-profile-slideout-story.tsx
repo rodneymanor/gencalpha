@@ -28,14 +28,14 @@ interface UserProfileSlideoutStoryProps {
   };
 }
 
-export function UserProfileSlideoutStory({ 
-  onClose, 
+export function UserProfileSlideoutStory({
+  onClose,
   mockUser,
   initialData = {
     keywords: [],
     personalDescription: "",
     mainTopics: "",
-  }
+  },
 }: UserProfileSlideoutStoryProps) {
   const [keywords, setKeywords] = useState<Keyword[]>([]);
   const [personalDescription, setPersonalDescription] = useState("");
@@ -50,7 +50,7 @@ export function UserProfileSlideoutStory({
     if (!mockUser) throw new Error("User not authenticated");
     const token = await mockUser.getIdToken();
     return {
-      "Authorization": `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     };
   }, [mockUser]);
@@ -63,19 +63,19 @@ export function UserProfileSlideoutStory({
           setIsLoading(false);
           return;
         }
-        
+
         const headers = await getAuthHeaders();
         const response = await fetch("/api/user/profile", { headers });
         if (response.ok) {
           const data = await response.json();
           const profile = data.profile;
-          
+
           if (profile) {
             setKeywords(
               profile.keywords?.map((keyword: string, index: number) => ({
                 id: `existing_${index}`,
                 label: keyword,
-              })) ?? []
+              })) ?? [],
             );
             setPersonalDescription(profile.personalDescription ?? "");
             setMainTopics(profile.mainTopics ?? "");
@@ -86,7 +86,7 @@ export function UserProfileSlideoutStory({
             initialData.keywords.map((keyword, index) => ({
               id: `initial_${index}`,
               label: keyword,
-            }))
+            })),
           );
           setPersonalDescription(initialData.personalDescription);
           setMainTopics(initialData.mainTopics);
@@ -98,7 +98,7 @@ export function UserProfileSlideoutStory({
           initialData.keywords.map((keyword, index) => ({
             id: `fallback_${index}`,
             label: keyword,
-          }))
+          })),
         );
         setPersonalDescription(initialData.personalDescription);
         setMainTopics(initialData.mainTopics);
@@ -125,7 +125,7 @@ export function UserProfileSlideoutStory({
           setIsSearching(false);
           return;
         }
-        
+
         // Mock keyword search results for Storybook
         const mockKeywords = [
           "content creation",
@@ -145,7 +145,7 @@ export function UserProfileSlideoutStory({
         ];
 
         const filtered = mockKeywords
-          .filter(keyword => keyword.toLowerCase().includes(keywordSearch.toLowerCase()))
+          .filter((keyword) => keyword.toLowerCase().includes(keywordSearch.toLowerCase()))
           .slice(0, 6)
           .map((keyword, index) => ({
             id: `keyword_${index}_${Date.now()}`,
@@ -165,8 +165,8 @@ export function UserProfileSlideoutStory({
   }, [keywordSearch, mockUser, getAuthHeaders]);
 
   const addKeyword = (keyword: Keyword) => {
-    if (!keywords.find(k => k.id === keyword.id) && keywords.length < 10) {
-      setKeywords(prev => [...prev, keyword]);
+    if (!keywords.find((k) => k.id === keyword.id) && keywords.length < 10) {
+      setKeywords((prev) => [...prev, keyword]);
       setKeywordSearch("");
       setSearchResults([]);
     }
@@ -174,7 +174,7 @@ export function UserProfileSlideoutStory({
 
   const removeKeyword = (keywordId: string) => {
     if (keywords.length > 3) {
-      setKeywords(prev => prev.filter(k => k.id !== keywordId));
+      setKeywords((prev) => prev.filter((k) => k.id !== keywordId));
     }
   };
 
@@ -184,13 +184,13 @@ export function UserProfileSlideoutStory({
         console.error("❌ User not authenticated");
         return;
       }
-      
+
       const profileData = {
-        keywords: keywords.map(k => k.label),
+        keywords: keywords.map((k) => k.label),
         personalDescription,
         mainTopics,
       };
-      
+
       const headers = await getAuthHeaders();
       const response = await fetch("/api/user/profile", {
         method: "PUT",
@@ -209,7 +209,7 @@ export function UserProfileSlideoutStory({
       console.error("❌ Error saving profile:", error);
       // For Storybook, just log and close
       console.log("📝 Would save profile data:", {
-        keywords: keywords.map(k => k.label),
+        keywords: keywords.map((k) => k.label),
         personalDescription,
         mainTopics,
       });
@@ -221,13 +221,8 @@ export function UserProfileSlideoutStory({
     <div className="flex h-full flex-col">
       {/* Header */}
       <div className="bg-card border-border flex items-center justify-between border-b px-6 py-4">
-        <h2 className="text-lg font-semibold text-foreground">Profile Settings</h2>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="rounded-[var(--radius-button)]"
-          onClick={onClose}
-        >
+        <h2 className="text-foreground text-lg font-semibold">Profile Settings</h2>
+        <Button variant="ghost" size="icon" className="rounded-[var(--radius-button)]" onClick={onClose}>
           <X className="h-4 w-4" />
         </Button>
       </div>
@@ -235,110 +230,110 @@ export function UserProfileSlideoutStory({
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-6 py-6">
         {isLoading ? (
-          <div className="flex items-center justify-center h-32">
+          <div className="flex h-32 items-center justify-center">
             <div className="text-muted-foreground">Loading profile...</div>
           </div>
         ) : (
           <div className="space-y-8">
-          {/* Keywords Section */}
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="keywords" className="text-sm font-medium text-foreground">
-                Search Keywords
-              </Label>
-              <p className="text-sm text-muted-foreground mt-1">
-                Add keywords to personalize your content recommendations (minimum 3, maximum 10)
-              </p>
-            </div>
-
-            {/* Keyword Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                id="keywords"
-                type="text"
-                placeholder="Search for keywords..."
-                value={keywordSearch}
-                onChange={(e) => setKeywordSearch(e.target.value)}
-                className="pl-10"
-              />
-              
-              {/* Search Results Dropdown */}
-              {(searchResults.length > 0 || isSearching) && (
-                <div className="bg-card border-border absolute top-full mt-1 w-full rounded-[var(--radius-card)] border shadow-[var(--shadow-soft-drop)] z-10">
-                  {isSearching ? (
-                    <div className="px-3 py-2 text-sm text-muted-foreground">Searching...</div>
-                  ) : (
-                    <div className="max-h-40 overflow-y-auto">
-                      {searchResults.map((result) => (
-                        <button
-                          key={result.id}
-                          onClick={() => addKeyword(result)}
-                          className="hover:bg-accent w-full px-3 py-2 text-left text-sm transition-colors"
-                          disabled={keywords.find(k => k.id === result.id) !== undefined}
-                        >
-                          {result.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Selected Keywords */}
-            <div className="space-y-2">
-              <div className="flex flex-wrap gap-2">
-                {keywords.map((keyword) => (
-                  <div
-                    key={keyword.id}
-                    className="bg-secondary/20 text-secondary-foreground flex items-center gap-2 rounded-[var(--radius-pill)] px-3 py-1 text-sm"
-                  >
-                    <span>{keyword.label}</span>
-                    <button
-                      onClick={() => removeKeyword(keyword.id)}
-                      className="text-muted-foreground hover:text-foreground transition-colors"
-                      disabled={keywords.length <= 3}
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                ))}
+            {/* Keywords Section */}
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="keywords" className="text-foreground text-sm font-medium">
+                  Search Keywords
+                </Label>
+                <p className="text-muted-foreground mt-1 text-sm">
+                  Add keywords to personalize your content recommendations (minimum 3, maximum 10)
+                </p>
               </div>
-              <p className="text-xs text-muted-foreground">
-                {keywords.length}/10 keywords selected (minimum 3 required)
-              </p>
+
+              {/* Keyword Search */}
+              <div className="relative">
+                <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                <Input
+                  id="keywords"
+                  type="text"
+                  placeholder="Search for keywords..."
+                  value={keywordSearch}
+                  onChange={(e) => setKeywordSearch(e.target.value)}
+                  className="pl-10"
+                />
+
+                {/* Search Results Dropdown */}
+                {(searchResults.length > 0 || isSearching) && (
+                  <div className="bg-card border-border absolute top-full z-10 mt-1 w-full rounded-[var(--radius-card)] border shadow-[var(--shadow-soft-drop)]">
+                    {isSearching ? (
+                      <div className="text-muted-foreground px-3 py-2 text-sm">Searching...</div>
+                    ) : (
+                      <div className="max-h-40 overflow-y-auto">
+                        {searchResults.map((result) => (
+                          <button
+                            key={result.id}
+                            onClick={() => addKeyword(result)}
+                            className="hover:bg-accent w-full px-3 py-2 text-left text-sm transition-colors"
+                            disabled={keywords.find((k) => k.id === result.id) !== undefined}
+                          >
+                            {result.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Selected Keywords */}
+              <div className="space-y-2">
+                <div className="flex flex-wrap gap-2">
+                  {keywords.map((keyword) => (
+                    <div
+                      key={keyword.id}
+                      className="bg-secondary/20 text-secondary-foreground flex items-center gap-2 rounded-[var(--radius-pill)] px-3 py-1 text-sm"
+                    >
+                      <span>{keyword.label}</span>
+                      <button
+                        onClick={() => removeKeyword(keyword.id)}
+                        className="text-muted-foreground hover:text-foreground transition-colors"
+                        disabled={keywords.length <= 3}
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-muted-foreground text-xs">
+                  {keywords.length}/10 keywords selected (minimum 3 required)
+                </p>
+              </div>
+            </div>
+
+            {/* Personal Description */}
+            <div className="space-y-2">
+              <Label htmlFor="description" className="text-foreground text-sm font-medium">
+                Personal Description
+              </Label>
+              <Textarea
+                id="description"
+                placeholder="Tell us about yourself, your interests, and what kind of content you create..."
+                value={personalDescription}
+                onChange={(e) => setPersonalDescription(e.target.value)}
+                className="min-h-[120px] resize-none"
+              />
+            </div>
+
+            {/* Main Topics */}
+            <div className="space-y-2">
+              <Label htmlFor="topics" className="text-foreground text-sm font-medium">
+                Main Topics
+              </Label>
+              <Input
+                id="topics"
+                type="text"
+                placeholder="e.g., Technology, Lifestyle, Education, Entertainment"
+                value={mainTopics}
+                onChange={(e) => setMainTopics(e.target.value)}
+              />
             </div>
           </div>
-
-          {/* Personal Description */}
-          <div className="space-y-2">
-            <Label htmlFor="description" className="text-sm font-medium text-foreground">
-              Personal Description
-            </Label>
-            <Textarea
-              id="description"
-              placeholder="Tell us about yourself, your interests, and what kind of content you create..."
-              value={personalDescription}
-              onChange={(e) => setPersonalDescription(e.target.value)}
-              className="min-h-[120px] resize-none"
-            />
-          </div>
-
-          {/* Main Topics */}
-          <div className="space-y-2">
-            <Label htmlFor="topics" className="text-sm font-medium text-foreground">
-              Main Topics
-            </Label>
-            <Input
-              id="topics"
-              type="text"
-              placeholder="e.g., Technology, Lifestyle, Education, Entertainment"
-              value={mainTopics}
-              onChange={(e) => setMainTopics(e.target.value)}
-            />
-          </div>
-        </div>
         )}
       </div>
 

@@ -62,7 +62,7 @@ export function useDynamicSidebarItems(): NavGroup[] {
 
   // Build Ideas section items based on feature flags
   const ideasSectionItems = [];
-  
+
   if (isCreatorsPageEnabled) {
     ideasSectionItems.push({
       title: "Creators",
@@ -70,7 +70,7 @@ export function useDynamicSidebarItems(): NavGroup[] {
       icon: Users,
     });
   }
-  
+
   if (isIdeaInboxEnabled) {
     ideasSectionItems.push({
       title: "Idea inbox",
@@ -78,7 +78,7 @@ export function useDynamicSidebarItems(): NavGroup[] {
       icon: Inbox,
     });
   }
-  
+
   if (isGhostWriterEnabled) {
     ideasSectionItems.push({
       title: "Ghostwriter",

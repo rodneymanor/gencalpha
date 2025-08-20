@@ -9,7 +9,7 @@ export function PlaybookCards() {
   const isCreatorsPageEnabled = useCreatorsPageFlag();
   const isGhostWriterEnabled = useGhostWriterFlag();
   const isIdeaInboxEnabled = useIdeaInboxFlag();
-  
+
   const handleCardClick = (cardType: "ideas" | "ghostwriter" | "creators") => {
     // Trigger slideout to open with the specific view
     const event = new CustomEvent("playbook:open-slideout", {
@@ -45,18 +45,18 @@ export function PlaybookCards() {
   };
 
   // Build cards array based on feature flags
-  let cards = [...baseCards];
-  
+  const cards = [...baseCards];
+
   // Add idea inbox card if enabled
   if (isIdeaInboxEnabled) {
     cards.push(ideaInboxCard);
   }
-  
+
   // Add ghost writer card if enabled
   if (isGhostWriterEnabled) {
     cards.push(ghostWriterCard);
   }
-  
+
   // Add creators card if enabled
   if (isCreatorsPageEnabled) {
     cards.push(creatorsCard);
@@ -78,7 +78,9 @@ export function PlaybookCards() {
       </div>
 
       {/* Cards Grid - Adapts to number of cards */}
-      <div className={`grid grid-cols-1 gap-6 ${cards.length === 3 ? 'md:grid-cols-3' : cards.length === 2 ? 'md:grid-cols-2' : 'md:grid-cols-1'}`}>
+      <div
+        className={`grid grid-cols-1 gap-6 ${cards.length === 3 ? "md:grid-cols-3" : cards.length === 2 ? "md:grid-cols-2" : "md:grid-cols-1"}`}
+      >
         {cards.map((card) => (
           <CardBorderless
             key={card.view}
