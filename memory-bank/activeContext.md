@@ -16,8 +16,9 @@ _Last Updated: 2025-01-14_
   - Updated `PersonaSelector` component to `AssistantSelector` with all internal references
   - Migrated API routes from `persona` parameter to `assistant` parameter
   - Updated `PERSONA_PROMPTS` to `ASSISTANT_PROMPTS` in backend
-  - Maintained backwards compatibility by supporting legacy `persona` URL parameter
+  - ~~Maintained backwards compatibility by supporting legacy `persona` URL parameter~~ **REMOVED**
   - Updated all user-facing text and variable names from "persona" to "assistant"
+  - **Removed backwards compatibility** to free up "Personas" term for new feature
 
 - Implemented event-driven chat-to-editor architecture:
   - Global event `write:editor-set-content` carries `{ markdown?, blocks? }`.
