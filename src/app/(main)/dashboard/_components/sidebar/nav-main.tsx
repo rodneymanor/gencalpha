@@ -34,6 +34,12 @@ const IsComingSoon = () => (
   <span className="bg-muted text-muted-foreground ml-auto rounded-[var(--radius-button)] px-2 py-1 text-xs">Soon</span>
 );
 
+const SidebarIcon = ({ icon: Icon }: { icon: React.ComponentType<any> }) => (
+  <div className="flex size-6 shrink-0 items-center justify-center">
+    <Icon className="size-5" />
+  </div>
+);
+
 const CustomDailyButton = ({ url }: { url: string }) => {
   const handleClick = () => {
     // Close slideout wrapper by dispatching a global event
@@ -79,7 +85,7 @@ const NavItemExpanded = ({
               isActive={isActive(item.url, item.subItems)}
               tooltip={item.title}
             >
-              {item.icon && <item.icon />}
+              {item.icon && <SidebarIcon icon={item.icon} />}
               <span>{item.title}</span>
               {item.comingSoon && <IsComingSoon />}
               <ChevronRight className="ml-auto transition-transform duration-200 ease-linear group-data-[state=open]/collapsible:rotate-90" />
@@ -95,7 +101,7 @@ const NavItemExpanded = ({
               tooltip={item.title}
             >
               <Link href={item.url} target={item.newTab ? "_blank" : undefined}>
-                {item.icon && <item.icon />}
+                {item.icon && <SidebarIcon icon={item.icon} />}
                 <span>{item.title}</span>
                 {item.comingSoon && <IsComingSoon />}
               </Link>
@@ -109,7 +115,7 @@ const NavItemExpanded = ({
                 <SidebarMenuSubItem key={subItem.title}>
                   <SidebarMenuSubButton aria-disabled={subItem.comingSoon} isActive={isActive(subItem.url)} asChild>
                     <Link href={subItem.url} target={subItem.newTab ? "_blank" : undefined}>
-                      {subItem.icon && <subItem.icon />}
+                      {subItem.icon && <SidebarIcon icon={subItem.icon} />}
                       <span>{subItem.title}</span>
                       {subItem.comingSoon && <IsComingSoon />}
                     </Link>
@@ -140,7 +146,7 @@ const NavItemCollapsed = ({
             tooltip={item.title}
             isActive={isActive(item.url, item.subItems)}
           >
-            {item.icon && <item.icon />}
+            {item.icon && <SidebarIcon icon={item.icon} />}
             <span>{item.title === "Queue" ? "Q" : item.title}</span>
             <ChevronRight />
           </SidebarMenuButton>
@@ -156,7 +162,7 @@ const NavItemCollapsed = ({
                 isActive={isActive(subItem.url)}
               >
                 <Link href={subItem.url} target={subItem.newTab ? "_blank" : undefined}>
-                  {subItem.icon && <subItem.icon className="[&>svg]:text-sidebar-foreground" />}
+                  {subItem.icon && <SidebarIcon icon={subItem.icon} />}
                   <span>{subItem.title}</span>
                   {subItem.comingSoon && <IsComingSoon />}
                 </Link>
@@ -229,7 +235,7 @@ export function NavMain({ items }: NavMainProps) {
                           isActive={isItemActive(item.url)}
                         >
                           <Link href={item.url} target={item.newTab ? "_blank" : undefined}>
-                            {item.icon && <item.icon />}
+                            {item.icon && <SidebarIcon icon={item.icon} />}
                             <span>{item.title === "Queue" ? "Q" : item.title}</span>
                           </Link>
                         </SidebarMenuButton>
