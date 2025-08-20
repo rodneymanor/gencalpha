@@ -35,7 +35,7 @@ const IsComingSoon = () => (
 );
 
 const SidebarIcon = ({ icon: Icon }: { icon: React.ComponentType<any> }) => (
-  <div className="flex size-6 shrink-0 items-center justify-center">
+  <div className="flex size-6 shrink-0 items-center justify-start">
     <Icon className="size-5" />
   </div>
 );
