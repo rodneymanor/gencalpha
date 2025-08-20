@@ -2,14 +2,22 @@
 
 This document tracks the current focus of development, recent changes, and immediate next steps. It is the most frequently updated file in the Memory Bank.
 
-_Last Updated: 2025-08-13_
+_Last Updated: 2025-01-14_
 
 ## 1. Current Focus
 
-- Streamlining the Write Chat experience by routing structured AI outputs (scripts, analysis, hooks) into the slideout BlockNote editor, while keeping conversational text in the chat thread.
+- Completed migration from "Personas" to "Assistants" terminology throughout the application
 - Maintaining strict adherence to the Clarity Design System across new routes and interactions (spacing, radii, rings, shadows).
 
 ## 2. Recent Changes
+
+- **Complete Persona to Assistant Migration:**
+  - Renamed `PersonaType` to `AssistantType` across all TypeScript interfaces
+  - Updated `PersonaSelector` component to `AssistantSelector` with all internal references
+  - Migrated API routes from `persona` parameter to `assistant` parameter
+  - Updated `PERSONA_PROMPTS` to `ASSISTANT_PROMPTS` in backend
+  - Maintained backwards compatibility by supporting legacy `persona` URL parameter
+  - Updated all user-facing text and variable names from "persona" to "assistant"
 
 - Implemented event-driven chat-to-editor architecture:
   - Global event `write:editor-set-content` carries `{ markdown?, blocks? }`.

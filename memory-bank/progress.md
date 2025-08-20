@@ -20,10 +20,15 @@ _Last Updated: 2025-08-13_
   - `api/chrome-extension/idea-inbox/video` (POST)
 - **UI/Navigation:**
   - Added Ideas group to sidebar with routes for Creators, Idea Inbox, and Ghostwriter under `dashboard/ideas/`.
-  - Write Chat: idea mode hides persona buttons, removes focus ring; submit buttons use `ArrowUp` icon and `size-8`.
+  - Write Chat: idea mode hides assistant buttons, removes focus ring; submit buttons use `ArrowUp` icon and `size-8`.
   - New event-driven routing for structured AI results to the slideout BlockNote editor; conversational text remains in chat.
   - Refactor Phase 1: safe extraction of helpers/constants/types for `write-chat` to reduce complexity and duplication.
   - Refactor Phase 2: extracted presentational components for loader, video actions, and emulate input panel.
+- **Assistant System Migration:**
+  - Complete migration from "Personas" to "Assistants" terminology
+  - Updated all TypeScript types, component names, API parameters, and user-facing text
+  - Maintained backwards compatibility with legacy `persona` URL parameter
+  - Five AI assistants available: Scribo, MiniBuddy, StoryBuddy, HookBuddy, and Value Bomb (MVBB)
 
 ## 2. In Progress / Needs Validation
 
