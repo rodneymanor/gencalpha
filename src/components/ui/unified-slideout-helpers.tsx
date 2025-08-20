@@ -86,11 +86,23 @@ export const widthMap = {
   full: "w-full"   // Full width on all breakpoints
 };
 
-// Get width classes with responsive behavior
-export const getWidthClasses = (width?: string) => {
-  if (typeof width === "string" && width in widthMap) {
-    return widthMap[width as keyof typeof widthMap];
+// Non-modal width mappings - for Claude-style contextual layers
+export const nonModalWidthMap = {
+  sm: "w-full sm:w-[320px] md:w-[320px] lg:w-[320px]",    // Responsive but not modal
+  md: "w-full sm:w-[384px] md:w-[384px] lg:w-[384px]",    // Responsive but not modal
+  lg: "w-full sm:w-[480px] md:w-[480px] lg:w-[600px]",    // Claude artifact panel - never full overlay
+  xl: "w-full sm:w-[600px] md:w-[600px] lg:w-[800px]",    // Extra wide panels - never full overlay
+  full: "w-full"   // Full width on all breakpoints
+};
+
+// Get width classes with responsive behavior that considers modal setting
+export const getWidthClasses = (width?: string, modal?: boolean) => {
+  // For non-modal behavior, use different width mapping that avoids full overlay
+  const selectedMap = modal === false ? nonModalWidthMap : widthMap;
+
+  if (typeof width === "string" && width in selectedMap) {
+    return selectedMap[width as keyof typeof selectedMap];
   }
   // Default to lg width with responsive behavior
-  return widthMap.lg;
+  return modal === false ? nonModalWidthMap.lg : widthMap.lg;
 };

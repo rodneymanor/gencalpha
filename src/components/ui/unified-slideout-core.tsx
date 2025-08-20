@@ -75,7 +75,7 @@ const getSlideoutClasses = (isOpen: boolean, config: SlideoutConfig, className?:
   return cn(
     // Base positioning and layout
     getPositionClasses(config.position),
-    getWidthClasses(config.width),
+    getWidthClasses(config.width, config.modal),
 
     // Animation classes
     getAnimationClasses(isOpen, config.position ?? "right", config.animationType ?? "claude"),
