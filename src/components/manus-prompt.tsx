@@ -292,7 +292,7 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
     // Redirect to /write with the initial prompt and assistant
     const params = new URLSearchParams({
       prompt: prompt.trim(),
-      persona: (selectedPersona ?? "MiniBuddy") as string,
+      assistant: (selectedAssistant ?? "MiniBuddy") as string,
     });
     router.push(`/write?${params.toString()}`);
 

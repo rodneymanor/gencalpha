@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 
 import { ChevronDown } from "lucide-react";
 
-import { type PersonaType } from "@/components/chatbot/persona-selector";
+import { type AssistantType } from "@/components/chatbot/persona-selector";
 import { Button } from "@/components/ui/button";
 import { CollectionCombobox } from "@/components/ui/collection-combobox";
 import {
@@ -17,10 +17,10 @@ import ClaudeChat from "@/components/write-chat/claude-chat";
 
 export function WriteClient({
   initialPrompt,
-  initialPersona,
+  initialAssistant,
 }: {
   initialPrompt?: string;
-  initialPersona?: PersonaType;
+  initialAssistant?: AssistantType;
 }) {
   const [isHeroState, setIsHeroState] = useState(true);
   const [chatTitle, setChatTitle] = useState<string>("Untitled Chat");
@@ -86,7 +86,7 @@ export function WriteClient({
 
       <ClaudeChat
         initialPrompt={initialPrompt}
-        initialPersona={initialPersona}
+        initialAssistant={initialAssistant}
         onSend={(msg: string) => {
           if (isHeroState && msg.trim()) setIsHeroState(false);
         }}

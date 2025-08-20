@@ -5,7 +5,7 @@ import { ReactNode } from "react";
 import { Panel, PanelGroup } from "react-resizable-panels";
 
 import { ChatbotPanel } from "@/components/chatbot/chatbot-panel";
-import type { PersonaType } from "@/components/chatbot/persona-selector";
+import type { AssistantType } from "@/components/chatbot/persona-selector";
 import { useResizableLayout } from "@/contexts/resizable-layout-context";
 import { cn } from "@/lib/utils";
 
@@ -28,7 +28,7 @@ export function ResizableDashboardWrapper({ children, className }: ResizableDash
     notesPanelSize,
     chatbotPanelSize,
     chatbotInitialPrompt,
-    chatbotInitialPersona,
+    chatbotInitialAssistant,
   } = state;
 
   // Helper functions to reduce complexity
@@ -132,7 +132,10 @@ export function ResizableDashboardWrapper({ children, className }: ResizableDash
           order={4}
           className="h-full overflow-hidden border-l"
         >
-          <ChatbotPanel initialPrompt={chatbotInitialPrompt} initialPersona={chatbotInitialPersona as PersonaType} />
+          <ChatbotPanel
+            initialPrompt={chatbotInitialPrompt}
+            initialAssistant={chatbotInitialAssistant as AssistantType}
+          />
         </Panel>
       )}
     </PanelGroup>

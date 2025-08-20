@@ -11,7 +11,7 @@ interface ResizableLayoutState {
   chatbotPanelSize: number; // percentage
   mainContentSize: number; // percentage
   chatbotInitialPrompt?: string;
-  chatbotInitialPersona?: string;
+  chatbotInitialAssistant?: string;
 }
 
 interface ResizableLayoutContextType {
@@ -19,7 +19,7 @@ interface ResizableLayoutContextType {
   setState: Dispatch<SetStateAction<ResizableLayoutState>>;
   toggleWritingPanel: () => void;
   toggleNotesPanel: () => void;
-  toggleChatbotPanel: (initialPrompt?: string, initialPersona?: string) => void;
+  toggleChatbotPanel: (initialPrompt?: string, initialAssistant?: string) => void;
   updatePanelSizes: (sizes: number[]) => void;
   resetLayout: () => void;
 }
@@ -57,7 +57,7 @@ export function ResizableLayoutProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const toggleChatbotPanel = (initialPrompt?: string, initialPersona?: string) => {
+  const toggleChatbotPanel = (initialPrompt?: string, initialAssistant?: string) => {
     setState((prev) => {
       const nextShowChatbot = !prev.showChatbotPanel;
       const activePanels = [prev.showWritingPanel, prev.showNotesPanel, nextShowChatbot].filter(Boolean).length;
@@ -67,7 +67,7 @@ export function ResizableLayoutProvider({ children }: { children: ReactNode }) {
         showChatbotPanel: nextShowChatbot,
         mainContentSize: main,
         chatbotInitialPrompt: nextShowChatbot ? initialPrompt : undefined,
-        chatbotInitialPersona: nextShowChatbot ? initialPersona : undefined,
+        chatbotInitialAssistant: nextShowChatbot ? initialAssistant : undefined,
       };
     });
   };

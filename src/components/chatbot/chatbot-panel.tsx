@@ -10,22 +10,22 @@ import { cn } from "@/lib/utils";
 
 import { ChatInput } from "./chat-input";
 import { MessageList, Message } from "./message-list";
-import { PersonaType } from "./persona-selector";
+import { AssistantType } from "./persona-selector";
 
 interface ChatbotPanelProps {
   onClose?: () => void;
   className?: string;
   initialPrompt?: string;
-  initialPersona?: PersonaType;
+  initialAssistant?: AssistantType;
 }
 
 // Generate unique IDs for messages to prevent React key conflicts
 const generateUniqueId = () => `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-export function ChatbotPanel({ onClose, className, initialPrompt, initialPersona }: ChatbotPanelProps) {
+export function ChatbotPanel({ onClose, className, initialPrompt, initialAssistant }: ChatbotPanelProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedPersona] = useState<PersonaType>(initialPersona ?? "MiniBuddy");
+  const [selectedAssistant] = useState<AssistantType>(initialAssistant ?? "MiniBuddy");
 
   const handleSendMessage = useCallback(
     async (content: string) => {
@@ -56,7 +56,7 @@ export function ChatbotPanel({ onClose, className, initialPrompt, initialPersona
           },
           body: JSON.stringify({
             message: content,
-            persona: selectedPersona,
+            assistant: selectedAssistant,
             conversationHistory,
           }),
         });
@@ -78,7 +78,7 @@ export function ChatbotPanel({ onClose, className, initialPrompt, initialPersona
           content: data.response ?? "I'm sorry, I didn't receive a proper response.",
           isUser: false,
           timestamp: new Date(),
-          persona: selectedPersona,
+          assistant: selectedAssistant,
         };
 
         setMessages((prev) => [...prev, botMessage]);
@@ -91,7 +91,7 @@ export function ChatbotPanel({ onClose, className, initialPrompt, initialPersona
           content: "Sorry, I encountered an error while processing your request. Please try again.",
           isUser: false,
           timestamp: new Date(),
-          persona: selectedPersona,
+          assistant: selectedAssistant,
         };
 
         setMessages((prev) => [...prev, errorMessage]);
@@ -99,7 +99,7 @@ export function ChatbotPanel({ onClose, className, initialPrompt, initialPersona
         setIsLoading(false);
       }
     },
-    [selectedPersona, messages, isLoading],
+    [selectedAssistant, messages, isLoading],
   );
 
   // Track if initial prompt has been processed
@@ -151,7 +151,7 @@ export function ChatbotPanel({ onClose, className, initialPrompt, initialPersona
         <ChatInput
           onSubmit={handleSendMessage}
           disabled={isLoading}
-          placeholder={`Ask ${selectedPersona} anything...`}
+          placeholder={`Ask ${selectedAssistant} anything...`}
         />
       </div>
     </div>

@@ -4,7 +4,7 @@ import React, { useRef, useState, useEffect, useCallback } from "react";
 
 //
 
-import { type PersonaType } from "@/components/chatbot/persona-selector";
+import { type AssistantType } from "@/components/chatbot/persona-selector";
 import MinimalSlideoutEditor from "@/components/standalone/minimal-slideout-editor";
 import { Button } from "@/components/ui/button";
 //
@@ -13,10 +13,10 @@ import ClaudeChat from "@/components/write-chat/claude-chat";
 
 export function UnifiedWriteClient({
   initialPrompt,
-  initialPersona,
+  initialAssistant,
 }: {
   initialPrompt?: string;
-  initialPersona?: PersonaType;
+  initialAssistant?: AssistantType;
 }) {
   // State management
   const [isHeroState, setIsHeroState] = useState(true);
@@ -91,7 +91,7 @@ export function UnifiedWriteClient({
         {/* Claude Chat with built-in transitions */}
         <ClaudeChat
           initialPrompt={initialPrompt}
-          initialPersona={initialPersona}
+          initialAssistant={initialAssistant}
           onHeroStateChange={(isHero: boolean) => {
             setIsHeroState(isHero);
           }}

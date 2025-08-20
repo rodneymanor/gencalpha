@@ -7,14 +7,14 @@ import { cn } from "@/lib/utils";
 
 import { LoadingIndicator } from "./loading-indicator";
 import { MessageBubble } from "./message-bubble";
-import { PersonaType } from "./persona-selector";
+import { AssistantType } from "./persona-selector";
 
 export interface Message {
   id: string;
   content: string;
   isUser: boolean;
   timestamp: Date;
-  persona?: PersonaType;
+  assistant?: AssistantType;
 }
 
 interface MessageListProps {
@@ -49,7 +49,7 @@ export function MessageList({ messages, isLoading = false, className }: MessageL
             message={message.content}
             isUser={message.isUser}
             timestamp={message.timestamp}
-            persona={message.persona}
+            persona={message.assistant}
           />
         ))}
 

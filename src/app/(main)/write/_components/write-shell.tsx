@@ -2,17 +2,17 @@
 
 import React from "react";
 
-import { type PersonaType } from "@/components/chatbot/persona-selector";
+import { type AssistantType } from "@/components/chatbot/persona-selector";
 import { UnifiedWriteClient } from "@/components/write-chat/unified-write-client";
 
 export function WriteShell({
   initialPrompt,
-  initialPersona,
+  initialAssistant,
 }: {
   initialPrompt?: string;
-  initialPersona?: PersonaType;
+  initialAssistant?: AssistantType;
 }) {
-  return <UnifiedWriteClient initialPrompt={initialPrompt} initialPersona={initialPersona} />;
+  return <UnifiedWriteClient initialPrompt={initialPrompt} initialAssistant={initialAssistant} />;
 }
 
 export default WriteShell;
