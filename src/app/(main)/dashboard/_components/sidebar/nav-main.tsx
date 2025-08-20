@@ -34,7 +34,7 @@ const IsComingSoon = () => (
   <span className="bg-muted text-muted-foreground ml-auto rounded-[var(--radius-button)] px-2 py-1 text-xs">Soon</span>
 );
 
-const SidebarIcon = ({ icon: Icon }: { icon: React.ComponentType<any> }) => (
+const SidebarIcon = ({ icon: Icon }: { icon: React.ComponentType<React.SVGProps<SVGSVGElement>> }) => (
   <div className="flex size-6 shrink-0 items-center justify-start">
     <Icon className="size-5" />
   </div>
@@ -58,7 +58,7 @@ const CustomDailyButton = ({ url }: { url: string }) => {
       onClick={handleClick}
       className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground data-[active=true]:bg-transparent data-[active=true]:font-normal"
     >
-      <div className="bg-primary hover:bg-primary/90 flex size-6 shrink-0 items-center justify-center rounded-[var(--radius-pill)] shadow-[var(--shadow-soft-drop)] transition-all duration-200 ease-linear">
+      <div className="bg-primary hover:bg-primary/90 -ml-1 flex size-6 shrink-0 items-center justify-center rounded-[var(--radius-pill)] shadow-[var(--shadow-soft-drop)] transition-all duration-200 ease-linear">
         <Plus className="text-primary-foreground size-5" />
       </div>
       <span>New Script</span>
