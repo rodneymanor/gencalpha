@@ -11,10 +11,7 @@ import { Button } from "@/components/ui/button";
 //
 import { UnifiedSlideout, ClaudeArtifactConfig } from "@/components/ui/unified-slideout";
 import ClaudeChat from "@/components/write-chat/claude-chat";
-import { processScriptComponents } from "@/hooks/use-script-analytics";
 import { ScriptData } from "@/types/script-panel";
-
-import { sendScriptToSlideout } from "./utils";
 
 export function UnifiedWriteClient({
   initialPrompt,
@@ -37,68 +34,6 @@ export function UnifiedWriteClient({
   // Animation refs
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  // Test function for script panel integration
-  const testScriptPanel = () => {
-    const sampleScriptData: ScriptData = {
-      id: "test-script-1",
-      title: "Test Video Script",
-      fullScript: `Hook: Did you know that 90% of people make this common mistake when creating content? Here's how to fix it in 30 seconds...
-
-Bridge: I used to struggle with this exact problem too. My content would get views but no engagement. Then I discovered this simple framework that changed everything.
-
-Golden Nugget: The secret is to structure your content using the H-B-G-C framework: Hook to grab attention, Bridge to build relatability, Golden nugget to deliver value, and Call-to-action to guide next steps. This creates a psychological journey that keeps viewers engaged from start to finish.
-
-Call to Action: Try this framework in your next piece of content and let me know how it works! Follow for more tips that actually move the needle.`,
-      components: processScriptComponents([
-        {
-          id: "hook-1",
-          type: "hook",
-          label: "Hook",
-          content:
-            "Did you know that 90% of people make this common mistake when creating content? Here's how to fix it in 30 seconds...",
-          icon: "H",
-        },
-        {
-          id: "bridge-1",
-          type: "bridge",
-          label: "Bridge",
-          content:
-            "I used to struggle with this exact problem too. My content would get views but no engagement. Then I discovered this simple framework that changed everything.",
-          icon: "B",
-        },
-        {
-          id: "nugget-1",
-          type: "nugget",
-          label: "Golden Nugget",
-          content:
-            "The secret is to structure your content using the H-B-G-C framework: Hook to grab attention, Bridge to build relatability, Golden nugget to deliver value, and Call-to-action to guide next steps. This creates a psychological journey that keeps viewers engaged from start to finish.",
-          icon: "G",
-        },
-        {
-          id: "cta-1",
-          type: "cta",
-          label: "Call to Action",
-          content:
-            "Try this framework in your next piece of content and let me know how it works! Follow for more tips that actually move the needle.",
-          icon: "C",
-        },
-      ]),
-      metrics: {
-        totalWords: 142,
-        totalDuration: 28,
-      },
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      tags: ["framework", "content-creation", "engagement"],
-      metadata: {
-        platform: "social-media",
-        genre: "educational",
-        targetAudience: "content-creators",
-      },
-    };
-
-    sendScriptToSlideout(sampleScriptData, "Generated Script");
-  };
 
   //
 
@@ -177,16 +112,6 @@ Call to Action: Try this framework in your next piece of content and let me know
     <div className="slideout-layout-container">
       {/* Main Content Area - Flexbox approach */}
       <main ref={containerRef} className="main-content">
-        {/* Temporary test button for script panel - REMOVE IN PRODUCTION */}
-        <div className="fixed right-4 bottom-4 z-50">
-          <Button
-            onClick={testScriptPanel}
-            className="bg-secondary text-secondary-foreground hover:bg-secondary/90 shadow-lg"
-            size="sm"
-          >
-            Test Script Panel
-          </Button>
-        </div>
 
         {/* Claude Chat with built-in transitions */}
         <ClaudeChat

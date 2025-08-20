@@ -17,13 +17,85 @@ import { FixedChatInput } from "@/components/write-chat/presentation/fixed-chat-
 import { HeroSection } from "@/components/write-chat/presentation/hero-section";
 import { useSmoothMessageManager } from "@/components/write-chat/smooth-message-manager";
 import { type ChatMessage } from "@/components/write-chat/types";
-import { sendToSlideout, delay } from "@/components/write-chat/utils";
+import { sendToSlideout, sendScriptToSlideout, delay } from "@/components/write-chat/utils";
 import { useAuth } from "@/contexts/auth-context";
 import { useIdeaInboxFlag } from "@/hooks/use-feature-flag";
 import { useLightweightUrlDetection } from "@/hooks/use-lightweight-url-detection";
 import { useScriptGeneration } from "@/hooks/use-script-generation";
+import { processScriptComponents } from "@/hooks/use-script-analytics";
 import { buildAuthHeaders } from "@/lib/http/auth-headers";
 import { clientNotesService, type Note } from "@/lib/services/client-notes-service";
+import { ScriptData, ScriptComponent } from "@/types/script-panel";
+
+// Helper function to convert GeneratedScript to ScriptData format
+function convertToScriptData(script: { hook: string; bridge: string; goldenNugget: string; wta: string }, originalIdea: string): ScriptData {
+  // Create full script text
+  const fullScript = `Hook: ${script.hook}
+
+Bridge: ${script.bridge}
+
+Golden Nugget: ${script.goldenNugget}
+
+Call to Action: ${script.wta}`;
+
+  // Create script components
+  const components: ScriptComponent[] = [
+    {
+      id: "hook-generated",
+      type: "hook",
+      label: "Hook",
+      content: script.hook,
+      icon: "H",
+    },
+    {
+      id: "bridge-generated",
+      type: "bridge", 
+      label: "Bridge",
+      content: script.bridge,
+      icon: "B",
+    },
+    {
+      id: "nugget-generated",
+      type: "nugget",
+      label: "Golden Nugget", 
+      content: script.goldenNugget,
+      icon: "G",
+    },
+    {
+      id: "cta-generated",
+      type: "cta",
+      label: "Call to Action",
+      content: script.wta,
+      icon: "C",
+    },
+  ];
+
+  // Process components to add metrics
+  const processedComponents = processScriptComponents(components);
+
+  // Calculate total metrics
+  const totalWords = processedComponents.reduce((sum, comp) => sum + (comp.wordCount || 0), 0);
+  const totalDuration = processedComponents.reduce((sum, comp) => sum + (comp.estimatedDuration || 0), 0);
+
+  return {
+    id: `generated-script-${Date.now()}`,
+    title: "Generated Script",
+    fullScript,
+    components: processedComponents,
+    metrics: {
+      totalWords,
+      totalDuration,
+    },
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    tags: ["generated", "script"],
+    metadata: {
+      originalIdea: originalIdea,
+      platform: "general",
+      genre: "generated",
+    },
+  };
+}
 
 // primitives moved to a separate file to reduce linter max-lines and improve reuse
 type ClaudeChatProps = {
@@ -302,8 +374,8 @@ export function ClaudeChat({
         const res = await generateScript(trimmed, "60");
         await delay(ACK_BEFORE_SLIDE_MS);
         if (res.success && res.script) {
-          const markdown = `# Generated Script\n\n## Hook\n${res.script.hook}\n\n## Bridge\n${res.script.bridge}\n\n## Golden Nugget\n${res.script.goldenNugget}\n\n## Call to Action\n${res.script.wta}`;
-          sendToSlideout(markdown);
+          const scriptData = convertToScriptData(res.script, trimmed);
+          sendScriptToSlideout(scriptData, "Generated Script");
           onAnswerReady?.();
           await delay(SLIDE_DURATION_MS);
           // Remove loader only; do not append structured answer to chat
@@ -352,8 +424,8 @@ export function ClaudeChat({
         const res = await generateScript(idea, "60");
         await delay(ACK_BEFORE_SLIDE_MS);
         if (res.success && res.script) {
-          const markdown = `# Generated Script\n\n## Hook\n${res.script.hook}\n\n## Bridge\n${res.script.bridge}\n\n## Golden Nugget\n${res.script.goldenNugget}\n\n## Call to Action\n${res.script.wta}`;
-          sendToSlideout(markdown);
+          const scriptData = convertToScriptData(res.script, idea);
+          sendScriptToSlideout(scriptData, "Generated Script");
           onAnswerReady?.();
           await delay(SLIDE_DURATION_MS);
           setMessages((prev): ChatMessage[] => prev.filter((m) => m.id !== ackLoadingId && m.content !== ACK_LOADING));
