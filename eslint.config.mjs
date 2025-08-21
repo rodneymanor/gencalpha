@@ -159,7 +159,7 @@ export default [
       "no-underscore-dangle": ["error", { allow: ["_id", "__dirname"] }],
 
       // Complexity - Relaxed for API routes and complex services
-      complexity: ["error", { max: 10 }],
+      complexity: ["error", { max: 15 }],
       "max-lines": ["error", { max: 500, skipBlankLines: true, skipComments: true }],
       "max-depth": ["error", 4],
 

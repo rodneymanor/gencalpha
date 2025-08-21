@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 
 import { Play } from "lucide-react";
 
-import { VideoAnalyzerSlideout } from "@/app/test-video-analyzer/_components/video-analyzer-slideout";
+import { VideoInsightsPanel } from "@/components/video-insights-panel/video-insights-panel";
 import { Button } from "@/components/ui/button";
 import { CardSkeleton, LoadingBoundary, useAsyncOperation, useIsLoading } from "@/components/ui/loading";
 import { UnifiedSlideout, ClaudeArtifactConfig } from "@/components/ui/unified-slideout";
@@ -15,6 +15,8 @@ import { useVideoProcessing } from "@/contexts/video-processing-context";
 import { RBACClientService } from "@/core/auth/rbac-client";
 import { useRBAC } from "@/hooks/use-rbac";
 import { Video, CollectionsService } from "@/lib/collections";
+import { VideoInsights } from "@/types/video-insights";
+import { processScriptComponents } from "@/hooks/use-script-analytics";
 
 import { useCollections } from "./collections-context";
 import { DeleteConfirmDialog } from "./delete-confirm-dialog";
@@ -48,7 +50,7 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
     };
   }, []);
 
-  // Handle click from new VideoGrid component
+  // Handle click/activation from new VideoGrid component (opens panel)
   const handleNewVideoGridClick = useCallback(
     (videoData: VideoData) => {
       // Find the original Video object by ID to preserve all metadata
@@ -58,6 +60,24 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
       }
     },
     [state.videos],
+  );
+
+  // Handle keyboard selection (auto-change video when panel is open)
+  const handleVideoSelection = useCallback(
+    (videoData: VideoData, index: number) => {
+      // Find the original Video object by ID to preserve all metadata
+      const originalVideo = state.videos.find((v) => v.id === videoData.id);
+      
+      // If panel is open (selectedVideo is not null), auto-change the video
+      if (selectedVideo && originalVideo) {
+        setSelectedVideo(originalVideo);
+        console.log("Auto-changed video via keyboard:", videoData.title);
+      } else {
+        // Panel is closed, just log the selection for visual feedback
+        console.log("Video selected via keyboard (panel closed):", videoData.title);
+      }
+    },
+    [state.videos, selectedVideo],
   );
 
   const loadVideosFn = useCallback(async () => {
@@ -102,47 +122,190 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
   // Only show active jobs (pending, processing) in the grid
   const activeJobs = relevantJobs.filter((job) => job.status === "pending" || job.status === "processing");
 
-  // Transform Video to VideoAnalyzer format
-  const transformToAnalyzerData = useCallback((video: Video) => {
+  // Transform Video to VideoInsights format
+  const transformToVideoInsights = useCallback((video: Video): VideoInsights => {
+    const transcript = video.transcript || "No transcript available";
+    
+    // Create script components from transcript if available
+    const scriptComponents = transcript !== "No transcript available" 
+      ? processScriptComponents([
+          {
+            id: `${video.id}-hook`,
+            type: "hook",
+            label: "Hook",
+            content: transcript.split('.')[0] + '.' || "Opening statement to grab attention",
+            icon: "H",
+          },
+          {
+            id: `${video.id}-bridge`, 
+            type: "bridge",
+            label: "Bridge",
+            content: transcript.split('.').slice(1, 3).join('.') || "Transition element connecting ideas",
+            icon: "B",
+          },
+          {
+            id: `${video.id}-nugget`,
+            type: "nugget", 
+            label: "Golden Nugget",
+            content: transcript.split('.').slice(3, 6).join('.') || "Key value proposition or insight",
+            icon: "G",
+          },
+          {
+            id: `${video.id}-cta`,
+            type: "cta",
+            label: "Call to Action", 
+            content: transcript.split('.').slice(-2).join('.') || "Clear call to action",
+            icon: "C",
+          },
+        ])
+      : [];
+
     return {
       id: video.id || "",
-      url: video.originalUrl || "",
-      title: video.title || "Untitled Video",
+      videoUrl: video.iframeUrl || video.directUrl || video.originalUrl || "",
       thumbnailUrl: video.thumbnailUrl || "/api/placeholder/300/400",
-      transcript: video.transcript || "No transcript available",
-      components: {
-        hook: "Opening statement to grab attention",
-        bridge: "Transition element connecting ideas",
-        nugget: "Key value proposition or insight",
-        wta: "Clear call to action",
+      title: video.title || "Untitled Video",
+      scriptData: {
+        id: video.id || "",
+        title: video.title || "Untitled Video",
+        fullScript: transcript,
+        components: scriptComponents,
+        metrics: {
+          totalWords: transcript.split(' ').length,
+          totalDuration: video.metadata?.duration || 30,
+          avgWordsPerSecond: transcript.split(' ').length / (video.metadata?.duration || 30),
+          readabilityScore: 75 + Math.floor(Math.random() * 20), // Mock score 75-95
+          engagementScore: 70 + Math.floor(Math.random() * 25), // Mock score 70-95
+        },
+        createdAt: video.addedAt || new Date().toISOString(),
+        updatedAt: video.addedAt || new Date().toISOString(),
+        tags: video.hashtags || [],
+        metadata: {
+          platform: video.platform || "unknown",
+          genre: "educational", // Default
+          targetAudience: "general",
+        },
       },
       metadata: {
-        author: video.metadata?.author || "Unknown Creator",
-        description: video.metadata?.description || "No description available",
+        title: video.title || "Untitled Video",
+        duration: video.metadata?.duration || 30,
+        resolution: "1080x1920", // Default for mobile videos
+        format: "mp4",
         platform: video.platform || "unknown",
-        duration: typeof video.metadata?.duration === "number" ? video.metadata.duration : 0,
-      },
-      metrics: {
-        likes: video.metrics?.likes || 0,
-        comments: video.metrics?.comments || 0,
-        saves: video.metrics?.saves || 0,
-        shares: video.metrics?.shares || 0,
-      },
-      hashtags: video.hashtags || [],
-      addedAt: video.addedAt || new Date().toISOString(),
-      deepAnalysis: {
-        contentThemes: ["Entertainment", "Educational", "Lifestyle"],
-        targetAudience: "General audience",
-        emotionalTriggers: ["Curiosity", "Excitement", "Inspiration"],
-        scriptStructure: {
-          introduction: "Engaging opening to capture attention",
-          body: "Main content delivering value",
-          conclusion: "Strong ending with clear next steps",
+        viewCount: video.metrics?.views || 0,
+        likeCount: video.metrics?.likes || 0,
+        commentCount: video.metrics?.comments || 0,
+        shareCount: video.metrics?.shares || 0,
+        uploadDate: video.addedAt || new Date().toISOString(),
+        tags: video.hashtags || [],
+        description: video.metadata?.description || "No description available",
+        author: {
+          name: video.metadata?.author || "Unknown Creator",
+          verified: false,
         },
-        visualElements: ["Dynamic visuals", "Text overlays", "Smooth transitions"],
-        performanceFactors: ["Strong hook", "Clear messaging", "Engaging visuals"],
-        recommendedImprovements: ["Enhance audio quality", "Add more visual elements", "Improve call-to-action"],
       },
+      suggestions: {
+        hooks: [
+          {
+            id: `${video.id}-hook-question`,
+            type: "question",
+            content: "What if one simple change could transform your content?",
+            strength: "high",
+            rationale: "Questions create curiosity gaps that viewers want filled",
+            estimatedEngagement: 85,
+          },
+          {
+            id: `${video.id}-hook-statistic`,
+            type: "statistic", 
+            content: "89% of successful videos use this opening pattern",
+            strength: "medium",
+            rationale: "Statistics provide credibility and authority",
+            estimatedEngagement: 78,
+          },
+        ],
+        content: [
+          {
+            id: `${video.id}-improve-hook`,
+            type: "improvement",
+            target: "opening",
+            suggestion: "Add a visual pattern interrupt in the first 2 seconds",
+            impact: "high",
+            effort: "medium",
+          },
+          {
+            id: `${video.id}-add-testimonial`,
+            type: "addition",
+            target: "middle", 
+            suggestion: "Include social proof or success story",
+            impact: "medium",
+            effort: "low",
+          },
+        ],
+      },
+      analysis: {
+        readability: {
+          score: 75 + Math.floor(Math.random() * 20),
+          grade: "8th Grade",
+          complexity: "medium",
+          sentenceLength: {
+            average: 12,
+            longest: 25,
+            shortest: 3,
+          },
+          wordComplexity: {
+            simple: transcript.split(' ').length * 0.8,
+            complex: transcript.split(' ').length * 0.2,
+            percentage: 80,
+          },
+          recommendations: [
+            "Use shorter sentences for better flow",
+            "Include more emotional language",
+            "Add visual cues to support text",
+          ],
+        },
+        engagement: {
+          hookStrength: 70 + Math.floor(Math.random() * 25),
+          paceVariation: 65 + Math.floor(Math.random() * 30),
+          emotionalTone: {
+            positive: 70,
+            negative: 5,
+            neutral: 25,
+          },
+          callToActionStrength: 75 + Math.floor(Math.random() * 20),
+          retentionPotential: 70 + Math.floor(Math.random() * 25),
+          predictedDropoffPoints: [
+            {
+              timestamp: 8.5,
+              reason: "Transition needs improvement",
+              confidence: 0.72,
+            },
+          ],
+        },
+        seo: {
+          keywordDensity: [
+            { word: "content", count: 5, density: 3.2 },
+            { word: "video", count: 4, density: 2.8 },
+            { word: "tips", count: 3, density: 2.1 },
+          ],
+          titleOptimization: {
+            score: 80,
+            suggestions: [
+              "Add power words for emotional impact",
+              "Include target year for relevance",
+            ],
+          },
+          descriptionOptimization: {
+            score: 75,
+            suggestions: [
+              "Add relevant hashtags",
+              "Include clear call-to-action",
+            ],
+          },
+          hashtagSuggestions: video.hashtags?.slice(0, 6) || ["viral", "content", "tips"],
+        },
+      },
+      createdAt: video.addedAt || new Date().toISOString(),
+      updatedAt: video.addedAt || new Date().toISOString(),
     };
   }, []);
 
@@ -201,6 +364,8 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
                 videos={state.videos.map(transformVideoToVideoData)}
                 columns={4}
                 onVideoClick={handleNewVideoGridClick}
+                onVideoSelect={handleVideoSelection}
+                enableKeyboardNavigation={true}
               />
             )}
           </div>
@@ -247,10 +412,36 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
         <UnifiedSlideout
           isOpen={!!selectedVideo}
           onClose={() => setSelectedVideo(null)}
-          title={selectedVideo.title || "Video Analysis"}
-          config={ClaudeArtifactConfig}
+          config={{
+            ...ClaudeArtifactConfig,
+            showHeader: false, // Let VideoInsightsPanel handle its own header
+            showCloseButton: true, // VideoInsightsPanel has its own close button
+            adjustsContent: true, // Ensure content adjustment works
+            backdrop: false,
+            modal: false,
+            animationType: "claude",
+            position: "right",
+            width: "lg",
+          }}
         >
-          <VideoAnalyzerSlideout video={transformToAnalyzerData(selectedVideo)} />
+          <VideoInsightsPanel
+            videoInsights={transformToVideoInsights(selectedVideo)}
+            onCopy={(content: string, componentType?: string) => {
+              console.log(`Copied ${componentType ?? "content"}:`, content);
+            }}
+            onDownload={(videoInsights: VideoInsights) => {
+              console.log("Downloaded video insights:", videoInsights.title);
+            }}
+            onVideoPlay={() => {
+              console.log("Video started playing");
+            }}
+            onVideoPause={() => {
+              console.log("Video paused");
+            }}
+            onClose={() => setSelectedVideo(null)}
+            showDownload={true}
+            showMetrics={true}
+          />
         </UnifiedSlideout>
       )}
     </>

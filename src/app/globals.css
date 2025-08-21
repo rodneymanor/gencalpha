@@ -879,3 +879,49 @@
     background: var(--muted);
   }
 }
+
+/* Video Grid Slideout Adjustments - Reduce columns instead of shrinking cards */
+/* When slideout is open, reduce the number of grid columns to maintain card sizes */
+
+/* Desktop: lg+ breakpoints with slideout adjustments */
+@media (min-width: 1024px) {
+  /* 4-column grid becomes 3-column when slideout is open */
+  .slideout-open .lg\:grid-cols-4 {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+  
+  /* 5-column grid becomes 3-column when slideout is open */
+  .slideout-open .lg\:grid-cols-5 {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+  
+  /* 6-column grid becomes 4-column when slideout is open */
+  .slideout-open .lg\:grid-cols-6 {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
+
+/* Container query adjustments for @container-based grids */
+/* Note: Using specific selectors since container queries interact with .slideout-open */
+.slideout-open .\@xl\:grid-cols-4 {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+.slideout-open .\@lg\:grid-cols-3 {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.slideout-open .\@sm\:grid-cols-2 {
+  grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+}
+
+/* Tablet adjustments - reduce columns further for smaller available space */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .slideout-open .md\:grid-cols-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  
+  .slideout-open .md\:grid-cols-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}

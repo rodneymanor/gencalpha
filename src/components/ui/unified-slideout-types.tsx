@@ -104,7 +104,8 @@ export const useContentAdjustment = (isOpen: boolean, width: string, adjustsCont
     // Smart content element finder - tries multiple strategies
     const findMainContent = () => {
       // Strategy 1: Look for explicit main content selectors
-      const explicitMain = document.querySelector('main.main-content') ??
+      const explicitMain = document.querySelector('#collections-main-content') ??
+                          document.querySelector('main.main-content') ??
                           document.querySelector('[data-slot="sidebar-inset"]') ??
                           document.querySelector('main');
 

@@ -1,8 +1,11 @@
 "use client";
 
 import Image from "next/image";
+import React from "react";
 
 import { Play } from "lucide-react";
+
+import { useGridKeyboardNavigation } from "@/hooks/use-grid-keyboard-navigation";
 
 export interface VideoData {
   id: string;
@@ -38,6 +41,9 @@ export type GridItemData = VideoData | CollectionData | CreatorData;
 export interface VideoCardProps {
   video: VideoData;
   onClick?: (video: VideoData) => void;
+  tabIndex?: number;
+  onMouseEnter?: () => void;
+  onFocus?: () => void;
 }
 
 export interface CollectionCardProps {
@@ -54,7 +60,9 @@ export interface VideoGridProps {
   videos: VideoData[];
   columns?: 1 | 2 | 3 | 4 | 5 | 6;
   onVideoClick?: (video: VideoData) => void;
+  onVideoSelect?: (video: VideoData, index: number) => void;
   className?: string;
+  enableKeyboardNavigation?: boolean;
 }
 
 export interface CollectionGridProps {
@@ -71,7 +79,8 @@ export interface CreatorGridProps {
   className?: string;
 }
 
-export function VideoCard({ video, onClick }: VideoCardProps) {
+export const VideoCard = React.forwardRef<HTMLDivElement, VideoCardProps>(
+  ({ video, onClick, tabIndex = -1, onMouseEnter, onFocus }, ref) => {
   const formatNumber = (num?: number): string => {
     if (!num) return "0";
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
@@ -97,8 +106,14 @@ export function VideoCard({ video, onClick }: VideoCardProps) {
 
   return (
     <div
-      className="bg-card group cursor-pointer overflow-hidden rounded-[var(--radius-card)] shadow-[var(--shadow-soft-drop)] transition-all duration-200"
+      ref={ref}
+      className="bg-card group cursor-pointer overflow-hidden rounded-[var(--radius-card)] shadow-[var(--shadow-soft-drop)] transition-all duration-200 focus-within:ring-2 focus-within:ring-primary-300 focus-within:ring-offset-2 focus-within:ring-offset-neutral-50 focus:outline-none"
       onClick={() => onClick?.(video)}
+      tabIndex={tabIndex}
+      onMouseEnter={onMouseEnter}
+      onFocus={onFocus}
+      role="button"
+      aria-label={`Play video: ${video.title || video.creator}`}
     >
       <div className="relative aspect-[9/16] overflow-hidden bg-black">
         <Image
@@ -142,7 +157,9 @@ export function VideoCard({ video, onClick }: VideoCardProps) {
       </div>
     </div>
   );
-}
+});
+
+VideoCard.displayName = "VideoCard";
 
 export function CollectionCard({ collection, onClick }: CollectionCardProps) {
   return (
@@ -232,12 +249,46 @@ const getGridClass = (columns: 1 | 2 | 3 | 4 | 5 | 6) => {
   }
 };
 
-export function VideoGrid({ videos, columns = 3, onVideoClick, className }: VideoGridProps) {
+export function VideoGrid({ 
+  videos, 
+  columns = 3, 
+  onVideoClick, 
+  onVideoSelect,
+  className,
+  enableKeyboardNavigation = true 
+}: VideoGridProps) {
+  const {
+    gridRef,
+    focusedIndex,
+    getItemProps,
+    gridProps,
+  } = useGridKeyboardNavigation({
+    items: videos,
+    columns,
+    onItemSelect: onVideoSelect,
+    onItemActivate: onVideoClick,
+    disabled: !enableKeyboardNavigation,
+  });
+
   return (
-    <div className={`grid gap-6 ${getGridClass(columns)} ${className ?? ""}`}>
-      {videos.map((video) => (
-        <VideoCard key={video.id} video={video} onClick={onVideoClick} />
-      ))}
+    <div 
+      {...gridProps}
+      className={`grid gap-6 ${getGridClass(columns)} ${className ?? ""}`}
+    >
+      {videos.map((video, index) => {
+        const itemProps = getItemProps(index);
+        return (
+          <VideoCard 
+            key={video.id} 
+            video={video} 
+            onClick={onVideoClick}
+            tabIndex={itemProps.tabIndex}
+            onMouseEnter={itemProps.onMouseEnter}
+            onFocus={itemProps.onFocus}
+            ref={itemProps.ref}
+          />
+        );
+      })}
     </div>
   );
 }
