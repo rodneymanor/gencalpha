@@ -32,26 +32,29 @@ export async function GET(request: NextRequest): Promise<NextResponse<ListConver
       return NextResponse.json({ success: false, error: "Database unavailable" }, { status: 500 });
     }
 
-    // Fetch only saved conversations (not untitled ones)
+    // Fetch conversations - filtering in memory to avoid index requirement
     const snapshot = await adminDb
       .collection("chat_conversations")
       .where("userId", "==", authResult.user.uid)
-      .where("status", "==", "saved")
       .orderBy("lastMessageAt", "desc")
-      .limit(50)
+      .limit(100)
       .get();
 
-    const conversations = snapshot.docs.map((doc) => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        title: data.title ?? "Untitled Chat",
-        status: data.status as "untitled" | "saved",
-        lastMessageAt: data.lastMessageAt,
-        messagesCount: data.messagesCount ?? 0,
-        createdAt: data.createdAt,
-      };
-    });
+    // Filter for saved conversations in memory and limit to 50
+    const conversations = snapshot.docs
+      .map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          title: data.title ?? "Untitled Chat",
+          status: data.status as "untitled" | "saved",
+          lastMessageAt: data.lastMessageAt,
+          messagesCount: data.messagesCount ?? 0,
+          createdAt: data.createdAt,
+        };
+      })
+      .filter((conv) => conv.status === "saved")
+      .slice(0, 50);
 
     return NextResponse.json({ success: true, conversations });
   } catch (error) {

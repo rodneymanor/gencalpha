@@ -368,6 +368,28 @@ export function ClaudeChat({
   const { isRecording, toggle: toggleRecording } = useVoiceRecorder({ onTranscription: setInputValue });
   const [showListening, setShowListening] = useState(true);
 
+  // Helper function to generate title after script generation
+  const generateTitleForScript = async (userInput: string, scriptHook: string) => {
+    if (!conversationId || !isFirstResponse || conversationTitle) return;
+
+    const scriptResponse = `Generated a script with Hook: ${scriptHook.substring(0, 50)}...`;
+    const messagesForTitle = [
+      { role: "user" as const, content: userInput },
+      { role: "assistant" as const, content: scriptResponse },
+    ];
+
+    try {
+      const generatedTitle = await generateTitle(conversationId, messagesForTitle);
+      if (generatedTitle) {
+        setConversationTitle(generatedTitle);
+        setIsFirstResponse(false);
+        console.log("✅ [ClaudeChat] Generated title for script:", generatedTitle);
+      }
+    } catch (error) {
+      console.warn("Failed to generate title:", error);
+    }
+  };
+
   // Enhanced smooth scrolling with message manager
   useEffect(() => {
     if (messagesContainerRef.current) {
@@ -632,6 +654,10 @@ export function ClaudeChat({
           const scriptData = convertToScriptData(res.script, trimmed);
           sendScriptToSlideout(scriptData, "Generated Script");
           onAnswerReady?.();
+
+          // Generate title for the conversation after successful script generation
+          await generateTitleForScript(trimmed, res.script.hook);
+
           await delay(SLIDE_DURATION_MS);
           // Remove loader only; do not append structured answer to chat
           setMessages((prev): ChatMessage[] => prev.filter((m) => m.content !== ACK_LOADING));
@@ -682,6 +708,10 @@ export function ClaudeChat({
           const scriptData = convertToScriptData(res.script, idea);
           sendScriptToSlideout(scriptData, "Generated Script");
           onAnswerReady?.();
+
+          // Generate title for the conversation after successful script generation
+          await generateTitleForScript(trimmed, res.script.hook);
+
           await delay(SLIDE_DURATION_MS);
           setMessages((prev): ChatMessage[] => prev.filter((m) => m.content !== ACK_LOADING));
           return;
