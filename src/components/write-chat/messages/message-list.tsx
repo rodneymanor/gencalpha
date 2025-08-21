@@ -39,7 +39,7 @@ function MessageListComponent(props: MessageListProps) {
                 <>
                   <div aria-hidden className="h-8 w-8" />
                   <div className="col-start-2">
-                    <div className="bg-accent/10 text-foreground hover:bg-accent/15 interactive-element inline-flex max-w-[min(85%,_60ch)] items-center gap-2 rounded-[var(--radius-input)] px-4 py-3 shadow-[var(--shadow-input)] transition-all duration-200 hover:shadow-[var(--shadow-soft-drop)]">
+                    <div className="text-foreground interactive-element inline-flex max-w-[min(85%,_60ch)] items-center gap-2 rounded-[var(--radius-input)] bg-neutral-100 px-4 py-3 shadow-[var(--shadow-input)] transition-all duration-200 hover:bg-neutral-200 hover:shadow-[var(--shadow-soft-drop)]">
                       <div className="bg-accent/20 text-foreground flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold">
                         {(resolvedName?.[0] ?? "U").toUpperCase()}
                       </div>
