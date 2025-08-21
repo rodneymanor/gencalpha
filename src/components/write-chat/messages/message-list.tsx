@@ -45,9 +45,9 @@ function MessageListComponent(props: MessageListProps) {
                   <div aria-hidden className="h-8 w-8" />
                   <div className="col-start-2">
                     {/* User message bubble: neutral-300 background with hover progression */}
-                    <div className="text-foreground interactive-element inline-flex max-w-[min(85%,_60ch)] items-center gap-2 rounded-[var(--radius-input)] bg-neutral-300 px-4 py-3 shadow-[var(--shadow-input)] transition-all duration-200 hover:bg-neutral-400 hover:shadow-[var(--shadow-soft-drop)]">
-                      {/* User avatar with first letter of resolved name */}
-                      <div className="bg-accent/20 text-foreground flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold">
+                    <div className="text-foreground interactive-element inline-flex max-w-[min(85%,_60ch)] items-center gap-2 rounded-[var(--radius-card)] bg-neutral-300 px-4 py-3 shadow-[var(--shadow-input)] transition-all duration-200 hover:bg-neutral-400 hover:shadow-[var(--shadow-soft-drop)]">
+                      {/* User avatar with first letter of resolved name - high contrast dark background with light text */}
+                      <div className="bg-primary text-primary-foreground flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold">
                         {(resolvedName?.[0] ?? "U").toUpperCase()}
                       </div>
                       {/* User message content with preserved whitespace */}

@@ -64,90 +64,92 @@ export const themes: Theme[] = [
     name: "default",
     label: "Default",
     light: {
-      background: "#F8F8F7",
-      foreground: "#34322D",
-      card: "#FFFFFF",
-      cardForeground: "#34322D",
-      popover: "#FFFFFF",
-      popoverForeground: "#34322D",
-      primary: "#1A1A19",
+      // Using generated numbered variants for systematic relationships
+      background: "#F5F5F5", // neutral-100
+      foreground: "#1A1A1A", // neutral-900
+      card: "#FAFAFA", // neutral-50
+      cardForeground: "#1A1A1A", // neutral-900
+      popover: "#FAFAFA", // neutral-50
+      popoverForeground: "#1A1A1A", // neutral-900
+      primary: "#1A1A19", // primary-500
       primaryForeground: "#FFFFFF",
       secondary: "transparent",
-      secondaryForeground: "#34322D",
-      brand: "#FACC15",
-      brandForeground: "#1A1A19",
-      muted: "#F8F8F7",
-      mutedForeground: "#858481",
-      accent: "rgba(55,53,47,0.06)",
-      accentForeground: "#5E5E5B",
-      destructive: "#EF4444",
+      secondaryForeground: "#1A1A1A", // neutral-900
+      brand: "#FACC15", // brand-500
+      brandForeground: "#322801", // brand-900
+      muted: "#F5F5F5", // neutral-100
+      mutedForeground: "#737373", // neutral-500
+      accent: "#E8E8E8", // neutral-200
+      accentForeground: "#525252", // neutral-600
+      destructive: "#EF4444", // destructive-500
       destructiveForeground: "#FFFFFF",
-      border: "rgba(0,0,0,0.06)",
-      input: "rgba(0,0,0,0.06)",
-      ring: "#1d293f",
-      borderSubtle: "rgba(0,0,0,0.04)",
-      borderHover: "rgba(0,0,0,0.12)",
-      borderFocus: "rgba(29, 41, 63, 0.3)",
-      backgroundElevated: "rgba(255, 255, 255, 0.5)",
-      backgroundOverlay: "rgba(248, 248, 247, 0.8)",
-      backgroundHover: "rgba(0, 0, 0, 0.02)",
-      contentBg: "#EDEDEC",
-      chart1: "#1d293f",
-      chart2: "#5E5E5B",
-      chart3: "#858481",
-      chart4: "#34322D",
-      chart5: "#1A1A19",
-      sidebar: "#F8F8F7",
-      sidebarForeground: "#34322D",
-      sidebarPrimary: "#1A1A19",
+      border: "#E8E8E8", // neutral-200
+      input: "#E8E8E8", // neutral-200
+      ring: "#1A1A19", // primary-500
+      borderSubtle: "#F5F5F5", // neutral-100
+      borderHover: "#D6D6D6", // neutral-300
+      borderFocus: "#A3A3A3", // neutral-400
+      backgroundElevated: "#FFFFFF",
+      backgroundOverlay: "rgba(250, 250, 250, 0.8)",
+      backgroundHover: "#FAFAFA", // neutral-50
+      contentBg: "#F5F5F5", // neutral-100
+      chart1: "#1A1A19", // primary-500
+      chart2: "#525252", // neutral-600
+      chart3: "#737373", // neutral-500
+      chart4: "#A3A3A3", // neutral-400
+      chart5: "#D6D6D6", // neutral-300
+      sidebar: "#F5F5F5", // neutral-100
+      sidebarForeground: "#1A1A1A", // neutral-900
+      sidebarPrimary: "#1A1A19", // primary-500
       sidebarPrimaryForeground: "#FFFFFF",
-      sidebarAccent: "rgba(55,53,47,0.06)",
-      sidebarAccentForeground: "#5E5E5B",
-      sidebarBorder: "rgba(0,0,0,0.06)",
-      sidebarRing: "#1d293f",
+      sidebarAccent: "#E8E8E8", // neutral-200
+      sidebarAccentForeground: "#525252", // neutral-600
+      sidebarBorder: "#E8E8E8", // neutral-200
+      sidebarRing: "#1A1A19", // primary-500
     },
     dark: {
-      background: "#1A1A19",
-      foreground: "#EAEAE9",
-      card: "#262625",
-      cardForeground: "#EAEAE9",
-      popover: "#262625",
-      popoverForeground: "#EAEAE9",
-      primary: "#FFFFFF",
-      primaryForeground: "#1A1A19",
-      secondary: "rgba(255,255,255,0.1)",
-      secondaryForeground: "#EAEAE9",
-      brand: "#FACC15",
-      brandForeground: "#1A1A19",
-      muted: "#1A1A19",
-      mutedForeground: "#858481",
-      accent: "rgba(255,255,255,0.1)",
-      accentForeground: "#EAEAE9",
-      destructive: "#EF4444",
+      // Using generated numbered variants for systematic relationships
+      background: "#1A1A1A", // neutral-900
+      foreground: "#F5F5F5", // neutral-100
+      card: "#262626", // neutral-800
+      cardForeground: "#F5F5F5", // neutral-100
+      popover: "#262626", // neutral-800
+      popoverForeground: "#F5F5F5", // neutral-100
+      primary: "#E6E6E5", // primary-100 (inverted for dark)
+      primaryForeground: "#1A1A19", // primary-500
+      secondary: "#404040", // neutral-700
+      secondaryForeground: "#F5F5F5", // neutral-100
+      brand: "#FACC15", // brand-500
+      brandForeground: "#322801", // brand-900
+      muted: "#262626", // neutral-800
+      mutedForeground: "#A3A3A3", // neutral-400
+      accent: "#404040", // neutral-700
+      accentForeground: "#F5F5F5", // neutral-100
+      destructive: "#EF4444", // destructive-500
       destructiveForeground: "#FFFFFF",
-      border: "rgba(255,255,255,0.1)",
-      input: "rgba(255,255,255,0.1)",
-      ring: "#262625",
-      borderSubtle: "rgba(255,255,255,0.06)",
-      borderHover: "rgba(255,255,255,0.15)",
-      borderFocus: "rgba(38, 38, 37, 0.4)",
-      backgroundElevated: "rgba(38, 38, 37, 0.5)",
-      backgroundOverlay: "rgba(26, 26, 25, 0.8)",
-      backgroundHover: "rgba(255, 255, 255, 0.02)",
-      contentBg: "#262625",
-      chart1: "#FFFFFF",
-      chart2: "#858481",
-      chart3: "#EAEAE9",
-      chart4: "#34322D",
-      chart5: "#1A1A19",
-      sidebar: "#1A1A19",
-      sidebarForeground: "#EAEAE9",
-      sidebarPrimary: "#FFFFFF",
-      sidebarPrimaryForeground: "#1A1A19",
-      sidebarAccent: "rgba(255,255,255,0.1)",
-      sidebarAccentForeground: "#EAEAE9",
-      sidebarBorder: "rgba(255,255,255,0.1)",
-      sidebarRing: "#262625",
+      border: "#404040", // neutral-700
+      input: "#404040", // neutral-700
+      ring: "#E6E6E5", // primary-100
+      borderSubtle: "#262626", // neutral-800
+      borderHover: "#525252", // neutral-600
+      borderFocus: "#737373", // neutral-500
+      backgroundElevated: "#404040", // neutral-700
+      backgroundOverlay: "rgba(26, 26, 26, 0.8)",
+      backgroundHover: "#262626", // neutral-800
+      contentBg: "#262626", // neutral-800
+      chart1: "#F5F5F5", // neutral-100
+      chart2: "#A3A3A3", // neutral-400
+      chart3: "#737373", // neutral-500
+      chart4: "#525252", // neutral-600
+      chart5: "#404040", // neutral-700
+      sidebar: "#1A1A1A", // neutral-900
+      sidebarForeground: "#F5F5F5", // neutral-100
+      sidebarPrimary: "#E6E6E5", // primary-100
+      sidebarPrimaryForeground: "#1A1A19", // primary-500
+      sidebarAccent: "#404040", // neutral-700
+      sidebarAccentForeground: "#F5F5F5", // neutral-100
+      sidebarBorder: "#404040", // neutral-700
+      sidebarRing: "#E6E6E5", // primary-100
     },
   },
   {
