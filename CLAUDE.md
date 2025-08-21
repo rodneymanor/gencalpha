@@ -78,6 +78,12 @@ You are the expert enforcer of the "Clarity" Design System for a Next.js script 
 - **Components:** Prioritize existing template → Shadcn UI → Custom
 - **Icons:** lucide-react only
 - **Client directives:** Include `use client` when needed
+- **Comments:** Always add meaningful comments explaining:
+  - Component structure and layout decisions
+  - Complex styling choices (especially design token usage)
+  - Business logic and conditional rendering
+  - Animation and interaction behaviors
+  - Non-obvious prop usage or data transformations
 
 ## API Architecture (Microservices)
 
