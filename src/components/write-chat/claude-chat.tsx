@@ -7,7 +7,11 @@ import { useEffect, useRef, useState, useCallback } from "react";
 //
 // icons moved to presentational components
 
+import { Plus } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { ChatLibraryModal } from "@/components/write-chat/chat-library-modal";
 import { ACK_BEFORE_SLIDE_MS, SLIDE_DURATION_MS, ACK_LOADING } from "@/components/write-chat/constants";
 import { useInlineVideoActions } from "@/components/write-chat/hooks/use-inline-video-actions";
 import { useVoiceRecorder } from "@/components/write-chat/hooks/use-voice-recorder";
@@ -15,6 +19,11 @@ import { MessageList } from "@/components/write-chat/messages/message-list";
 import { type AssistantType } from "@/components/write-chat/persona-selector";
 import { FixedChatInput } from "@/components/write-chat/presentation/fixed-chat-input";
 import { HeroSection } from "@/components/write-chat/presentation/hero-section";
+import {
+  generateTitle,
+  saveMessage as saveMessageToDb,
+  loadConversation,
+} from "@/components/write-chat/services/chat-service";
 import { useSmoothMessageManager } from "@/components/write-chat/smooth-message-manager";
 import { type ChatMessage } from "@/components/write-chat/types";
 import { sendScriptToSlideout, delay } from "@/components/write-chat/utils";
@@ -167,6 +176,8 @@ type ClaudeChatProps = {
   onHeroStateChange?: (isHero: boolean) => void;
   initialPrompt?: string;
   initialAssistant?: AssistantType;
+  showChatLibrary?: boolean;
+  conversationIdToLoad?: string | null;
 };
 
 export function ClaudeChat({
@@ -177,6 +188,8 @@ export function ClaudeChat({
   onHeroStateChange,
   initialPrompt,
   initialAssistant,
+  showChatLibrary = true,
+  conversationIdToLoad,
 }: ClaudeChatProps) {
   // Chat renders conversational text; structured results (scripts, analysis, hooks) are sent to the
   // BlockNote slideout via a global event. The slideout listens for `write:editor-set-content` and
@@ -189,6 +202,8 @@ export function ClaudeChat({
   // Processing UI is represented via ACK_LOADING messages
   const [selectedAssistant, setSelectedAssistant] = useState<AssistantType | null>(initialAssistant ?? null);
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [conversationTitle, setConversationTitle] = useState<string | null>(null);
+  const [isFirstResponse, setIsFirstResponse] = useState(true);
   const [ideas, setIdeas] = useState<Note[]>([]);
   const [ideasOpen, setIdeasOpen] = useState(false);
   const [isIdeaMode, setIsIdeaMode] = useState(false);
@@ -224,6 +239,78 @@ export function ClaudeChat({
     setMessages,
     onAnswerReady,
   });
+
+  // Add transition state for FLIP animation
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // Handle hero to chat expansion with transform
+  const handleHeroExpansion = useCallback(() => {
+    if (!isHeroState || isTransitioning) return;
+    setIsTransitioning(true);
+    setIsHeroState(false);
+    setTimeout(() => {
+      setIsTransitioning(false);
+    }, 400); // Match CSS transition duration
+  }, [isHeroState, isTransitioning]);
+
+  // Handle starting a new chat
+  const handleNewChat = useCallback(() => {
+    // Reset all state
+    setConversationId(null);
+    setConversationTitle(null);
+    setIsFirstResponse(true);
+    setMessages([]);
+    setInputValue("");
+    setSelectedAssistant(null);
+
+    // Return to hero state
+    setIsHeroState(true);
+    setIsTransitioning(false);
+
+    console.log("✅ [ClaudeChat] Started new chat");
+  }, []);
+
+  // Handle loading a saved conversation
+  const handleLoadChat = useCallback(
+    (conversation: {
+      id: string;
+      title: string | null;
+      messages: Array<{ role: "user" | "assistant"; content: string }>;
+      persona: string | null;
+    }) => {
+      // Set conversation state
+      setConversationId(conversation.id);
+      setConversationTitle(conversation.title);
+      setIsFirstResponse(false); // Already has messages, so not first response
+
+      // Set assistant if available
+      if (conversation.persona) {
+        setSelectedAssistant(conversation.persona as AssistantType);
+      }
+
+      // Load messages into chat
+      const chatMessages: ChatMessage[] = conversation.messages.map((msg) => ({
+        id: crypto.randomUUID(),
+        role: msg.role,
+        content: msg.content,
+      }));
+      setMessages(chatMessages);
+
+      // Exit hero state if in it
+      if (isHeroState) {
+        handleHeroExpansion();
+      }
+
+      console.log(
+        "✅ [ClaudeChat] Loaded conversation:",
+        conversation.id,
+        "with",
+        conversation.messages.length,
+        "messages",
+      );
+    },
+    [isHeroState, handleHeroExpansion],
+  );
 
   // Handler to bridge video action selector to inline video actions
   const handleVideoAction = useCallback(
@@ -314,6 +401,31 @@ export function ClaudeChat({
     if (initialPrompt) setInputValue(initialPrompt);
     setSelectedAssistant(initialAssistant ?? null);
   }, [initialPrompt, initialAssistant]);
+
+  // Load conversation if ID provided
+  useEffect(() => {
+    if (conversationIdToLoad) {
+      const loadChat = async () => {
+        try {
+          const conversation = await loadConversation(conversationIdToLoad);
+          if (conversation) {
+            handleLoadChat({
+              id: conversation.id,
+              title: conversation.title,
+              messages: conversation.messages.map((m) => ({
+                role: m.role,
+                content: m.content,
+              })),
+              persona: conversation.persona,
+            });
+          }
+        } catch (error) {
+          console.error("Failed to load conversation:", error);
+        }
+      };
+      loadChat();
+    }
+  }, [conversationIdToLoad, handleLoadChat]);
 
   // Notify parent when hero state changes
   useEffect(() => {
@@ -463,14 +575,13 @@ export function ClaudeChat({
     } else {
       // Regular flow for non-video content
       const ackMessageId = crypto.randomUUID();
-      const ackLoadingId = crypto.randomUUID();
       const ackText = createAcknowledgementFor(trimmed);
       setMessages((prev) => [
         ...prev,
         { id: userMessageId, role: "user", content: trimmed },
         { id: ackMessageId, role: "assistant", content: ackText },
         // 2.1) Small loading indicator placeholder shown during analysis phase
-        { id: ackLoadingId, role: "assistant", content: ACK_LOADING },
+        { id: crypto.randomUUID(), role: "assistant", content: ACK_LOADING },
       ]);
     }
     setInputValue("");
@@ -504,11 +615,7 @@ export function ClaudeChat({
           console.warn("⚠️ [ClaudeChat] No conversation id available; skipping message persistence");
           return;
         }
-        await fetch(`/api/chat/conversations/${convId}/messages`, {
-          method: "POST",
-          headers,
-          body: JSON.stringify({ role: "user", content: trimmed }),
-        });
+        await saveMessageToDb(convId, "user", trimmed);
       } catch (e) {
         console.warn("⚠️ [ClaudeChat] Failed to persist user message:", e);
       }
@@ -576,7 +683,7 @@ export function ClaudeChat({
           sendScriptToSlideout(scriptData, "Generated Script");
           onAnswerReady?.();
           await delay(SLIDE_DURATION_MS);
-          setMessages((prev): ChatMessage[] => prev.filter((m) => m.id !== ackLoadingId && m.content !== ACK_LOADING));
+          setMessages((prev): ChatMessage[] => prev.filter((m) => m.content !== ACK_LOADING));
           return;
         }
         await delay(SLIDE_DURATION_MS);
@@ -634,29 +741,40 @@ export function ClaudeChat({
       await delay(ACK_BEFORE_SLIDE_MS);
       await delay(SLIDE_DURATION_MS);
       setMessages((prev): ChatMessage[] => {
-        const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== ACK_LOADING);
+        const filtered = prev.filter((m) => m.content !== ACK_LOADING);
         const next: ChatMessage[] = [
           ...filtered,
           { id: crypto.randomUUID(), role: "assistant", content: assistantText },
         ];
         return next;
       });
-      // Persist assistant message (best-effort)
+      // Persist assistant message and generate title on first response
       (async () => {
         try {
-          const headers = await buildAuthHeaders();
           const convId = conversationId;
           if (!convId) {
             console.warn("⚠️ [ClaudeChat] No conversation id available; skipping assistant message persistence");
             return;
           }
-          await fetch(`/api/chat/conversations/${convId}/messages`, {
-            method: "POST",
-            headers,
-            body: JSON.stringify({ role: "assistant", content: assistantText }),
-          });
+
+          // Save assistant message
+          await saveMessageToDb(convId, "assistant", assistantText);
+
+          // Generate title on first AI response
+          if (isFirstResponse && !conversationTitle) {
+            const messagesForTitle = [
+              { role: "user" as const, content: trimmed },
+              { role: "assistant" as const, content: assistantText },
+            ];
+            const generatedTitle = await generateTitle(convId, messagesForTitle);
+            if (generatedTitle) {
+              setConversationTitle(generatedTitle);
+              setIsFirstResponse(false);
+              console.log("✅ [ClaudeChat] Generated title:", generatedTitle);
+            }
+          }
         } catch (e) {
-          console.warn("⚠️ [ClaudeChat] Failed to persist assistant message:", e);
+          console.warn("⚠️ [ClaudeChat] Failed to persist assistant message or generate title:", e);
         }
       })();
     } catch (err: unknown) {
@@ -664,7 +782,7 @@ export function ClaudeChat({
       await delay(ACK_BEFORE_SLIDE_MS);
       await delay(SLIDE_DURATION_MS);
       setMessages((prev): ChatMessage[] => {
-        const filtered = prev.filter((m) => m.id !== ackLoadingId && m.content !== ACK_LOADING);
+        const filtered = prev.filter((m) => m.content !== ACK_LOADING);
         return [
           ...filtered,
           {
@@ -678,19 +796,6 @@ export function ClaudeChat({
   };
 
   // Helpers for inline actions are imported
-
-  // Add transition state for FLIP animation
-  const [isTransitioning, setIsTransitioning] = useState(false);
-
-  // Handle hero to chat expansion with transform
-  const handleHeroExpansion = useCallback(() => {
-    if (!isHeroState || isTransitioning) return;
-    setIsTransitioning(true);
-    setIsHeroState(false);
-    setTimeout(() => {
-      setIsTransitioning(false);
-    }, 400); // Match CSS transition duration
-  }, [isHeroState, isTransitioning]);
 
   return (
     <div
@@ -728,6 +833,28 @@ export function ClaudeChat({
       {/* Chat Messages Area - always rendered but positioned */}
       <div className="chat-messages-area">
         <div className="messages-container relative flex h-screen flex-col transition-all duration-300">
+          {/* Chat Header - shown when not in hero state */}
+          {!isHeroState && (
+            <div className="flex items-center justify-between border-b border-neutral-200 bg-neutral-50 px-4 py-3">
+              <div className="flex flex-col">
+                <h2 className="text-sm font-medium text-neutral-900">{conversationTitle ?? "New Chat"}</h2>
+                {conversationTitle && <p className="text-xs text-neutral-600">{messages.length} messages</p>}
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={handleNewChat}
+                  variant="ghost"
+                  size="sm"
+                  className="rounded-[var(--radius-button)]"
+                  title="Start new chat"
+                >
+                  <Plus className="mr-1 h-4 w-4" />
+                  New Chat
+                </Button>
+                {showChatLibrary && <ChatLibraryModal onLoadChat={handleLoadChat} />}
+              </div>
+            </div>
+          )}
           {/* Messages Area with bottom padding for sticky input */}
           <ScrollArea className="messages-list flex-1 px-4 pb-24" ref={messagesContainerRef}>
             <MessageList

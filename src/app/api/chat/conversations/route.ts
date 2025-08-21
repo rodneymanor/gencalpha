@@ -14,6 +14,18 @@ interface CreateConversationResponse {
   error?: string;
 }
 
+interface ConversationDocument {
+  userId: string;
+  persona: string | null;
+  initialPrompt: string | null;
+  title: string | null;
+  status: "untitled" | "saved";
+  createdAt: string;
+  updatedAt: string;
+  lastMessageAt: string;
+  messagesCount: number;
+}
+
 export async function POST(request: NextRequest): Promise<NextResponse<CreateConversationResponse>> {
   try {
     const authResult = await authenticateApiKey(request);
@@ -33,15 +45,19 @@ export async function POST(request: NextRequest): Promise<NextResponse<CreateCon
     const body: CreateConversationBody = await request.json();
     const now = new Date().toISOString();
 
-    const docRef = await adminDb.collection("chat_conversations").add({
+    const conversationData: ConversationDocument = {
       userId: authResult.user.uid,
       persona: body.persona ?? null,
       initialPrompt: body.initialPrompt ?? null,
+      title: null, // Initially untitled
+      status: "untitled", // Starts as untitled
       createdAt: now,
       updatedAt: now,
       lastMessageAt: now,
       messagesCount: 0,
-    });
+    };
+
+    const docRef = await adminDb.collection("chat_conversations").add(conversationData);
 
     return NextResponse.json({ success: true, conversationId: docRef.id });
   } catch (error) {

@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+import { useSearchParams } from "next/navigation";
 
 import { Lightbulb, Wand2, Users } from "lucide-react";
 
@@ -17,8 +19,20 @@ import { WritingWorkspaceSlideout } from "./components/writing-workspace-slideou
 type ActiveFeature = "chat" | "ideas" | "ghostwriter" | "creators" | null;
 
 export default function WritingTest2Page() {
+  const searchParams = useSearchParams();
+  const chatId = searchParams.get("chatId");
   const [activeFeature, setActiveFeature] = useState<ActiveFeature>(null);
   const [isChatActive, setIsChatActive] = useState(false);
+  const [conversationIdToLoad, setConversationIdToLoad] = useState<string | null>(null);
+
+  // Set conversation ID when URL param changes
+  useEffect(() => {
+    if (chatId) {
+      setConversationIdToLoad(chatId);
+      // Clear after component reads it
+      setTimeout(() => setConversationIdToLoad(null), 100);
+    }
+  }, [chatId]);
 
   const handleFeatureSelect = (feature: ActiveFeature) => {
     setActiveFeature(feature);
@@ -53,7 +67,11 @@ export default function WritingTest2Page() {
 
         {/* Main Chat Interface */}
         <div className="flex-1 overflow-hidden">
-          <ClaudeChat onChatStateChange={handleChatStateChange} className="h-full" />
+          <ClaudeChat
+            onChatStateChange={handleChatStateChange}
+            className="h-full"
+            conversationIdToLoad={conversationIdToLoad}
+          />
         </div>
 
         {/* Mobile Features - only show when chat is not active */}
