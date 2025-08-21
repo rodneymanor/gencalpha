@@ -111,8 +111,8 @@ export function AssistantSelector({
           className={cn(
             "gap-1.5 rounded-full !bg-transparent px-4 py-1 text-xs font-medium transition-all",
             selectedAssistant === key
-              ? "border-primary text-primary hover:bg-primary/5"
-              : "border-border hover:bg-accent hover:text-accent-foreground",
+              ? "border-primary-500 text-primary-700 bg-primary-50 hover:bg-primary-100"
+              : "border-neutral-200 text-neutral-600 hover:bg-neutral-100 hover:text-neutral-800",
           )}
           title={tooltip}
         >

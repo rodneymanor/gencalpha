@@ -7,12 +7,12 @@ function Card({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card"
       className={cn(
-        "bg-card text-card-foreground",
+        "bg-neutral-50 text-neutral-900",
         "flex flex-col gap-4 p-4", // Reduced gap and padding
         "rounded-xl", // Modern radius
-        "border-[0.5px] border-border", // Thinner border
+        "border-[0.5px] border-neutral-200", // Thinner border
         "transition-all duration-300 ease-out", // Smoother transition
-        "hover:shadow-lg hover:border-[--border-subtle]", // Enhanced hover state
+        "hover:shadow-lg hover:border-neutral-300", // Enhanced hover state
         className
       )}
       {...props}
@@ -25,12 +25,12 @@ function CardElevated({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card"
       className={cn(
-        "bg-card text-card-foreground",
+        "bg-neutral-50 text-neutral-900",
         "flex flex-col gap-4 p-4", // Reduced gap and padding
         "rounded-xl", // Modern radius
-        "border-[0.5px] border-[--border-subtle]", // Subtle border
+        "border-[0.5px] border-neutral-200", // Subtle border
         "shadow-sm transition-all duration-300 ease-out", // Default elevation with smoother transition
-        "hover:shadow-lg hover:-translate-y-0.5 hover:border-[--border-transparent]", // Enhanced hover with lift and border fade
+        "hover:shadow-lg hover:-translate-y-0.5 hover:border-neutral-100", // Enhanced hover with lift and border fade
         className
       )}
       {...props}
@@ -43,12 +43,12 @@ function CardInteractive({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card"
       className={cn(
-        "bg-card text-card-foreground",
+        "bg-neutral-50 text-neutral-900",
         "flex flex-col gap-4 p-4", // Reduced gap and padding
         "rounded-xl", // Modern radius
-        "border-[0.5px] border-border cursor-pointer", // Thinner border with cursor
+        "border-[0.5px] border-neutral-200 cursor-pointer", // Thinner border with cursor
         "transition-all duration-300 ease-out", // Smoother transition
-        "hover:-translate-y-0.5 hover:shadow-lg hover:border-ring", // Enhanced hover with lift
+        "hover:-translate-y-0.5 hover:shadow-lg hover:border-primary-300", // Enhanced hover with lift
         "active:scale-[0.98] active:translate-y-0", // Click feedback
         className
       )}
@@ -62,12 +62,12 @@ function CardBorderless({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card"
       className={cn(
-        "bg-card text-card-foreground",
+        "bg-neutral-50 text-neutral-900",
         "flex flex-col gap-4 p-4",
         "rounded-xl", // Changed from rounded-[var(--radius-card)]
-        "border-[0.5px] border-[--border-subtle]", // Thinner, subtler border
+        "border-[0.5px] border-neutral-200", // Thinner, subtler border
         "transition-all duration-300 ease-out",
-        "hover:shadow-lg hover:border-[--border-transparent]", // Border disappears on hover
+        "hover:shadow-lg hover:border-neutral-100", // Border disappears on hover
         "active:scale-[0.98]", // Add click feedback
         className
       )}
@@ -82,20 +82,20 @@ function CardTransparent({ className, ...props }: React.ComponentProps<"div">) {
       data-slot="card"
       className={cn(
         // Base styling
-        "border-[0.5px] border-[var(--border-visible)]", // High visibility border
+        "border-[0.5px] border-neutral-300", // High visibility border
         "text-base font-medium", // font-large equivalent
         "flex cursor-pointer",
         "overflow-x-hidden text-ellipsis whitespace-nowrap",
         "rounded-xl",
         // Background gradients using design system colors
-        "bg-gradient-to-b from-[--background-elevated] to-[--background-elevated]/30",
+        "bg-gradient-to-b from-neutral-100 to-neutral-100/30",
         // Padding
         "py-4 pl-5 pr-4",
         // Transitions and interactions
         "transition-all ease-in-out duration-300",
         "hover:shadow-sm active:scale-[0.98]",
         // Hover states using design system colors
-        "hover:from-card hover:to-card/80 hover:border-[var(--border-hover)]",
+        "hover:from-neutral-200 hover:to-neutral-200/80 hover:border-neutral-400",
         className
       )}
       {...props}
@@ -130,7 +130,7 @@ function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-description"
-      className={cn("text-muted-foreground text-sm", className)}
+      className={cn("text-neutral-600 text-sm", className)}
       {...props}
     />
   )

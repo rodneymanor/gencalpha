@@ -11,15 +11,15 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default:
-          "border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90",
+          "border-transparent bg-primary-600 text-primary-50 [a&]:hover:bg-primary-700",
         secondary:
-          "border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90",
+          "border-transparent bg-neutral-200 text-neutral-800 [a&]:hover:bg-neutral-300",
         destructive:
-          "border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+          "border-transparent bg-destructive-500 text-white [a&]:hover:bg-destructive-600 focus-visible:ring-destructive-200 dark:focus-visible:ring-destructive-300 dark:bg-destructive-600",
         outline:
-          "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+          "text-neutral-900 border-neutral-300 [a&]:hover:bg-neutral-100 [a&]:hover:text-neutral-900",
         success:
-          "border-transparent bg-green-500 text-white [a&]:hover:bg-green-600 focus-visible:ring-green-500/20 dark:focus-visible:ring-green-500/40",
+          "border-transparent bg-success-500 text-white [a&]:hover:bg-success-600 focus-visible:ring-success-200 dark:focus-visible:ring-success-300",
         instagram:
           "border-transparent bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 text-white [a&]:hover:from-purple-600 [a&]:hover:via-pink-600 [a&]:hover:to-orange-500 focus-visible:ring-purple-500/20 dark:focus-visible:ring-purple-500/40",
       },

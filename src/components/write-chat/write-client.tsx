@@ -82,7 +82,7 @@ export function WriteClient({
             >
               <div className="flex min-w-0 flex-1 items-center gap-2">
                 <SidebarTrigger className="md:hidden" />
-                <div className="hover:bg-accent/50 inline-flex items-center rounded-[var(--radius-button)] px-1">
+                <div className="inline-flex items-center rounded-[var(--radius-button)] px-1 hover:bg-neutral-100">
                   <input
                     ref={titleInputRef}
                     value={chatTitle}
@@ -95,13 +95,17 @@ export function WriteClient({
                     }}
                     onClick={handleTitleClick}
                     placeholder="Untitled Chat"
-                    className="text-foreground placeholder:text-muted-foreground max-w-sm truncate bg-transparent px-1 py-1 text-base font-semibold tracking-tight outline-none"
+                    className="max-w-sm truncate bg-transparent px-1 py-1 text-base font-semibold tracking-tight text-neutral-900 outline-none placeholder:text-neutral-500"
                     style={{ minWidth: "120px", maxWidth: "300px" }}
                   />
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="hover:bg-accent/50 rounded-[var(--radius-button)]">
-                        <ChevronDown className="text-muted-foreground h-4 w-4" />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="rounded-[var(--radius-button)] hover:bg-neutral-100"
+                      >
+                        <ChevronDown className="h-4 w-4 text-neutral-600" />
                         <span className="sr-only">Chat options</span>
                       </Button>
                     </DropdownMenuTrigger>

@@ -207,7 +207,7 @@ export function ThemeSwitcher() {
             <Button
               onClick={applyCustomTheme}
               size="sm"
-              className="bg-accent/10 text-foreground hover:bg-accent/15 w-full rounded-[var(--radius-button)] text-xs transition-all duration-200"
+              className="w-full rounded-[var(--radius-button)] bg-neutral-100 text-xs text-neutral-800 transition-all duration-200 hover:bg-neutral-200"
             >
               Apply Custom Theme
             </Button>
@@ -218,9 +218,9 @@ export function ThemeSwitcher() {
 
         <DropdownMenuItem onClick={toggleDarkMode} className="flex items-center justify-between">
           <span>Dark Mode</span>
-          <div className={`h-4 w-8 rounded-full transition-colors ${isDark ? "bg-primary" : "bg-muted"}`}>
+          <div className={`h-4 w-8 rounded-full transition-colors ${isDark ? "bg-primary-600" : "bg-neutral-300"}`}>
             <div
-              className={`mt-0.5 h-3 w-3 rounded-full bg-white transition-transform ${isDark ? "translate-x-4" : "translate-x-0.5"}`}
+              className={`mt-0.5 h-3 w-3 rounded-full transition-transform ${isDark ? "translate-x-4 bg-neutral-50" : "translate-x-0.5 bg-neutral-50"}`}
             />
           </div>
         </DropdownMenuItem>
