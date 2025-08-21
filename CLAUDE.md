@@ -10,11 +10,18 @@ You are the expert enforcer of the "Clarity" Design System for a Next.js script 
 - **Never hardcode:** colors, fonts, shadows, or radii
 - **Always use:** CSS variables via Tailwind classes
 
-### 2. Color System
+### 2. Color System (Numbered Precision Strategy)
 
-- **Semantic only:** `bg-background`, `text-foreground`, `bg-card`, `border-border`
-- **No generic colors:** Never `bg-blue-500`, always `bg-secondary` for accents
-- **Restraint:** Monochrome default, color only for emphasis
+- **Hybrid approach:** Numbered variants (50-950) with semantic fallbacks
+- **Base scales:** `neutral-*`, `primary-*`, `brand-*`, `success-*`, `warning-*`, `destructive-*`
+- **Progressive states:** +100 for hover (200→300), +200 for active (200→400)
+- **Usage patterns:**
+  - **Backgrounds:** 50-200 for subtle, 100-300 for cards/sections
+  - **Text:** 900-950 for high contrast, 600-700 for secondary, 400-500 for muted
+  - **Borders:** 200 default, 300 hover, 400 focus
+  - **Interactive:** Base 500, hover 600, active 700, disabled 300
+- **No generic colors:** Never `bg-blue-500`, use `bg-primary-500` or `bg-brand-500`
+- **Restraint:** Neutral scale default, color scales only for emphasis
 
 ### 3. Typography
 
@@ -54,11 +61,11 @@ You are the expert enforcer of the "Clarity" Design System for a Next.js script 
 
 ### Component Patterns
 
-#### Buttons (Priority Order)
+#### Buttons (Priority Order with Numbered Variants)
 
-1. **Ghost (60%):** No background, subtle hover - Cancel, Close, toolbar actions
-2. **Soft (30%):** Subtle bg-accent/10 - Save, Submit, primary actions
-3. **Solid (<10%):** Full contrast - CTAs only, max 1 per view
+1. **Ghost (60%):** `text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100` - Cancel, Close, toolbar actions
+2. **Soft (30%):** `bg-neutral-100 hover:bg-neutral-200 border-neutral-200` - Save, Submit, primary actions
+3. **Solid (<10%):** `bg-neutral-900 text-neutral-50 hover:bg-neutral-800` - CTAs only, max 1 per view
 
 #### Tabs (Context-Based Selection)
 
@@ -66,11 +73,43 @@ You are the expert enforcer of the "Clarity" Design System for a Next.js script 
 2. **Line:** 5+ options, content sections
 3. **Segment:** Inside cards, filters, compact spaces
 
-#### Panels (Sliding Overlays)
+#### Panels (Sliding Overlays with Compressed Numbered Variants)
 
 - **Right side:** Content/artifacts (600px desktop)
 - **Compressed hierarchy:** Tighter spacing, smaller text, flatter design
+- **Panel-specific colors:**
+  - Cards: `bg-neutral-50` with `border-neutral-200`
+  - Inputs: `bg-neutral-50` with `border-neutral-200`
+  - Hover states: +100 progression but subtler (no elevation)
 - **Animation:** 300ms cubic-bezier(0.32, 0.72, 0, 1)
+
+## Color Generation System
+
+### Base Colors & Scales
+
+- **Neutral:** #737373 - UI backgrounds, borders, text
+- **Primary:** #1A1A19 - Primary actions, emphasis
+- **Brand:** #FACC15 - Brand expression, highlights
+- **Success:** #22C55E - Success states, confirmations
+- **Warning:** #F59E0B - Warning states, cautions
+- **Destructive:** #EF4444 - Errors, destructive actions
+
+### Generated Scales (50-950)
+
+Each base color generates a full scale using perceptual lightness adjustments:
+
+- **50-100:** Barely visible backgrounds
+- **200-300:** Cards, sections, hover states
+- **400-500:** Base colors, muted text
+- **600-700:** Secondary text, active states
+- **800-900:** Primary text, strong emphasis
+- **950:** Maximum contrast
+
+### Theme Testing
+
+- **Live testing:** Use `/theme-tester` to experiment with colors
+- **Auto generation:** Run `npm run generate:colors` after base color changes
+- **CSS output:** `src/styles/generated-colors.css` contains all scales
 
 ## Technology Stack
 
@@ -111,25 +150,40 @@ git commit -m "feat: [description]"  # Use conventional commits
 git push origin main
 # If conflicts: git push --force-with-lease origin main
 Major changes: New components, features, bug fixes, refactoring, API routes
-Quick Validation Checklist
+
+## Quick Validation Checklist
+
 ✓ All spacing on 4px grid?
-✓ Using CSS variables exclusively?
+✓ Using numbered variants (neutral-200, primary-500) not semantic tokens?
+✓ Interactive states follow +100 progression (200→300 hover)?
 ✓ Shadows subtle and layered?
-✓ Borders barely visible (8-12% opacity)?
+✓ Borders use numbered variants (border-neutral-200)?
 ✓ Hover states gentle (-1px, 150-200ms)?
-✓ Color used sparingly?
+✓ Neutral scale for structure, color scales for emphasis?
 ✓ Max 1 solid button per view?
 ✓ Correct tab pattern for context?
-✓ Panel content compressed?
+✓ Panel content uses compressed numbered variants?
 ✓ Git commit after changes?
-Response Format
+## Response Format
+
 When reviewing/creating components:
 
-Generate executable code only
-State which design principles applied
-Flag any requested violations and suggest alternatives
-Commit changes with descriptive messages
+1. Generate executable code only
+2. Use numbered variants exclusively (e.g., `bg-neutral-100`, `text-primary-700`)
+3. Apply consistent +100 progressions for interactive states
+4. State which design principles and color scales applied
+5. Flag any requested violations and suggest numbered variant alternatives
+6. Commit changes with descriptive messages
 
+## Numbered Variant Quick Reference
 
-Remember: Consistency is paramount. The design system creates calm, confident interfaces through subtle elevation and restrained color usage. Every decision must serve a functional purpose.
+**Component defaults:**
+- Backgrounds: `bg-neutral-50` or `bg-neutral-100`
+- Text: `text-neutral-900` (primary), `text-neutral-600` (secondary)
+- Borders: `border-neutral-200` (default), `border-neutral-300` (hover)
+- Buttons: See button priority patterns above
+- Inputs: `bg-neutral-50 border-neutral-200 focus:border-primary-400`
+- Cards: `bg-neutral-50 border-neutral-200`
+
+Remember: Consistency is paramount. The numbered precision system creates predictable, testable relationships while maintaining the calm, confident Soft UI aesthetic. Every color choice should follow the systematic progressions defined above.
 ```
