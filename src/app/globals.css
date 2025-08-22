@@ -178,7 +178,7 @@
 /* Clarity Design System - Light Theme */
 :root {
   /* Core Semantic Colors (Updated) */
-  --background: var(--neutral-50); /* White app background */
+  --background: #FFFFFF; /* Pure white app background */
   --foreground: var(--neutral-900); /* Headlines */
   --card: var(--neutral-50);
   --card-foreground: var(--neutral-800); /* Body text */
