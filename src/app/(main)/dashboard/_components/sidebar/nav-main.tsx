@@ -46,22 +46,22 @@ const CustomDailyButton = ({ url }: { url: string }) => {
     if (typeof window !== "undefined") {
       window.dispatchEvent(new CustomEvent("write:close-slideout"));
     }
-
-    // Force a page reload to ensure fresh state
-    window.location.href = `${url}?new=${Date.now()}`;
   };
 
   return (
     <SidebarMenuButton
+      asChild
       isActive={false}
       tooltip="New Script"
       onClick={handleClick}
       className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground data-[active=true]:bg-transparent data-[active=true]:font-normal"
     >
-      <div className="bg-primary hover:bg-primary/90 -ml-1 flex size-6 shrink-0 items-center justify-center rounded-[var(--radius-pill)] shadow-[var(--shadow-soft-drop)] transition-all duration-200 ease-linear">
-        <Plus className="text-primary-foreground size-5" />
-      </div>
-      <span>New Script</span>
+      <Link href={url}>
+        <div className="bg-primary hover:bg-primary/90 -ml-1 flex size-6 shrink-0 items-center justify-center rounded-[var(--radius-pill)] shadow-[var(--shadow-soft-drop)] transition-all duration-200 ease-linear">
+          <Plus className="text-primary-foreground size-5" />
+        </div>
+        <span>New Script</span>
+      </Link>
     </SidebarMenuButton>
   );
 };
