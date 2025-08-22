@@ -67,7 +67,7 @@ const CustomDailyButton = ({ url }: { url: string }) => {
         <div className="bg-special-500 hover:bg-special-600 -ml-1 flex size-6 shrink-0 items-center justify-center rounded-[var(--radius-pill)] shadow-[var(--shadow-soft-drop)] transition-all duration-200 ease-linear">
           <Plus className="text-neutral-50 size-5" />
         </div>
-        <span>New Script</span>
+        <span className="font-bold text-special-500">New Script</span>
       </Link>
     </SidebarMenuButton>
   );
