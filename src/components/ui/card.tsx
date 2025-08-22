@@ -9,7 +9,7 @@ function Card({ className, ...props }: React.ComponentProps<"div">) {
       className={cn(
         "bg-neutral-50 text-neutral-900",
         "flex flex-col gap-4 p-4", // Reduced gap and padding
-        "rounded-xl", // Modern radius
+        "rounded-[var(--radius-card)]", // Theme-appropriate radius
         "border-[0.5px] border-neutral-200", // Thinner border
         "transition-all duration-300 ease-out", // Smoother transition
         "hover:shadow-lg hover:border-neutral-300", // Enhanced hover state
@@ -27,7 +27,7 @@ function CardElevated({ className, ...props }: React.ComponentProps<"div">) {
       className={cn(
         "bg-neutral-50 text-neutral-900",
         "flex flex-col gap-4 p-4", // Reduced gap and padding
-        "rounded-xl", // Modern radius
+        "rounded-[var(--radius-card)]", // Theme-appropriate radius
         "border-[0.5px] border-neutral-200", // Subtle border
         "shadow-sm transition-all duration-300 ease-out", // Default elevation with smoother transition
         "hover:shadow-lg hover:-translate-y-0.5 hover:border-neutral-100", // Enhanced hover with lift and border fade
@@ -45,7 +45,7 @@ function CardInteractive({ className, ...props }: React.ComponentProps<"div">) {
       className={cn(
         "bg-neutral-50 text-neutral-900",
         "flex flex-col gap-4 p-4", // Reduced gap and padding
-        "rounded-xl", // Modern radius
+        "rounded-[var(--radius-card)]", // Theme-appropriate radius
         "border-[0.5px] border-neutral-200 cursor-pointer", // Thinner border with cursor
         "transition-all duration-300 ease-out", // Smoother transition
         "hover:-translate-y-0.5 hover:shadow-lg hover:border-primary-300", // Enhanced hover with lift
@@ -64,7 +64,7 @@ function CardBorderless({ className, ...props }: React.ComponentProps<"div">) {
       className={cn(
         "bg-neutral-50 text-neutral-900",
         "flex flex-col gap-4 p-4",
-        "rounded-xl", // Changed from rounded-[var(--radius-card)]
+        "rounded-[var(--radius-card)]", // Theme-appropriate radius
         "border-[0.5px] border-neutral-200", // Thinner, subtler border
         "transition-all duration-300 ease-out",
         "hover:shadow-lg hover:border-neutral-100", // Border disappears on hover

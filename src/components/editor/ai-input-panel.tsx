@@ -1,6 +1,6 @@
-import { InlineLoader } from "@/components/ui/loading";
-
 ("use client");
+
+import { InlineLoader } from "@/components/ui/loading";
 
 import { useState, useRef, useEffect } from "react";
 

@@ -78,10 +78,10 @@ export function InlineLoader({ action = "fetch", size = "sm", className }: { act
   return <ShadcnLoader size={size === "sm" ? "inline" : "sm"} className={className} />;
 }
 
-export function SectionLoader({ action = "fetch", message: _, className }: { action?: string; message?: string; className?: string }) {
+export function SectionLoader({ action = "fetch", message: _message, className }: { action?: string; message?: string; className?: string }) {
   // For section loading, use appropriate skeleton based on action type
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { SkeletonMainContent, SkeletonVideoGrid, SkeletonChatList, CardSkeleton } = require("@/components/ui/skeleton-screens");
+  const { SkeletonMainContent, SkeletonVideoGrid, CardSkeleton } = require("@/components/ui/skeleton-screens");
   
   // Choose skeleton based on action type
   if (action === "fetch" || action === "search") {
@@ -93,7 +93,7 @@ export function SectionLoader({ action = "fetch", message: _, className }: { act
   }
 }
 
-export function PageLoader(_props: { message?: string }) {
+export function PageLoader(__props: { message?: string }) {
   // For backwards compatibility - redirect to skeleton screens
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { SkeletonPageLayout } = require("@/components/ui/skeleton-screens");
