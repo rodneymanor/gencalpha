@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 
 import { useSearchParams, useRouter } from "next/navigation";
 
-import { Settings, User, CreditCard, Bell, Key } from "lucide-react";
+import { Settings, User, CreditCard, Bell, Key, Building2 } from "lucide-react";
 
+import { BrandSettings } from "@/components/settings/brand-settings";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,12 @@ const settingsTabs = [
     label: "Account",
     icon: User,
     component: AccountSettings,
+  },
+  {
+    id: "brand",
+    label: "Brand",
+    icon: Building2,
+    component: BrandSettings,
   },
   {
     id: "billing",

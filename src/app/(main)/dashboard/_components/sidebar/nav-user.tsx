@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-import { EllipsisVertical, CircleUser, CreditCard, MessageSquareDot, LogOut } from "lucide-react";
+import { EllipsisVertical, CircleUser, CreditCard, MessageSquareDot, LogOut, Building2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -85,6 +85,12 @@ export function NavUser() {
                 <Link href="/dashboard/settings?tab=account" className="flex items-center gap-2">
                   <CircleUser />
                   Account
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard/settings?tab=brand" className="flex items-center gap-2">
+                  <Building2 />
+                  Brand
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
