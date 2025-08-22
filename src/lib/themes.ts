@@ -369,7 +369,7 @@ export const themes: Theme[] = [
       chart3: "#737373",
       chart4: "#A3A3A3",
       chart5: "#D4D4D4",
-      sidebar: "#F8F8F8",
+      sidebar: "#FFFFFF",
       sidebarForeground: "#19283A", // Body text
       sidebarPrimary: "#823EFC", // Special buttons (purple)
       sidebarPrimaryForeground: "#FFFFFF", // Button text
