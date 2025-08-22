@@ -130,6 +130,8 @@ export function setCachedData(key: string, data: any) {
 }
 
 export class RSSFeedParser {
+  private itemCounter = 0
+
   // Calculate relevance score based on keywords
   calculateRelevanceScore(item: any, category: Category): number {
     const keywords = CATEGORY_KEYWORDS[category] || []
@@ -231,7 +233,7 @@ export class RSSFeedParser {
           }
           
           items.push({
-            id: `${category}-${Buffer.from(link + title + pubDate).toString('base64').substring(0, 12)}`,
+            id: `${category}-${Date.now()}-${++this.itemCounter}-${Buffer.from(link).toString('base64').substring(0, 8)}`,
             title,
             description,
             link,
