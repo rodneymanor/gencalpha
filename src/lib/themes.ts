@@ -75,7 +75,7 @@ export const themes: Theme[] = [
       primaryForeground: "#FFFFFF",
       secondary: "transparent",
       secondaryForeground: "#1A1A1A", // neutral-900
-      brand: "#FACC15", // brand-500
+      brand: "#F0F209", // Updated accent color
       brandForeground: "#322801", // brand-900
       muted: "#F5F5F5", // neutral-100
       mutedForeground: "#737373", // neutral-500
@@ -119,7 +119,7 @@ export const themes: Theme[] = [
       primaryForeground: "#1A1A19", // primary-500
       secondary: "#404040", // neutral-700
       secondaryForeground: "#F5F5F5", // neutral-100
-      brand: "#FACC15", // brand-500
+      brand: "#F0F209", // Updated accent color
       brandForeground: "#322801", // brand-900
       muted: "#262626", // neutral-800
       mutedForeground: "#A3A3A3", // neutral-400
@@ -166,7 +166,7 @@ export const themes: Theme[] = [
       primaryForeground: "#ffffff",
       secondary: "#f3f4f6",
       secondaryForeground: "#374151",
-      brand: "#10b981",
+      brand: "#F0F209", // Updated accent color
       brandForeground: "#ffffff",
       muted: "#fafbfc",
       mutedForeground: "#6b7280",
@@ -209,7 +209,7 @@ export const themes: Theme[] = [
       primaryForeground: "#0f1114",
       secondary: "#374151",
       secondaryForeground: "#e5e7eb",
-      brand: "#10b981",
+      brand: "#F0F209", // Updated accent color
       brandForeground: "#ffffff",
       muted: "#1f2937",
       mutedForeground: "#9ca3af",
@@ -256,7 +256,7 @@ export const themes: Theme[] = [
       primaryForeground: "#FFFFFF",
       secondary: "#B46A4B",
       secondaryForeground: "#FFFFFF",
-      brand: "#FACC15",
+      brand: "#F0F209", // Updated accent color
       brandForeground: "#1A1A19",
       muted: "#F8F8F7",
       mutedForeground: "#858481",
@@ -299,7 +299,7 @@ export const themes: Theme[] = [
       primaryForeground: "#1A1A19",
       secondary: "#B46A4B",
       secondaryForeground: "#FFFFFF",
-      brand: "#FACC15",
+      brand: "#F0F209", // Updated accent color
       brandForeground: "#1A1A19",
       muted: "#1A1A19",
       mutedForeground: "#858481",
