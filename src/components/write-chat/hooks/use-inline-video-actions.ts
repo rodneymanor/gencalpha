@@ -3,51 +3,16 @@
 import { useCallback, useState } from "react";
 
 import { startAckWithLoader, finishAndRemoveLoader } from "@/components/write-chat/ack-helpers";
-import { generateHooks, generateIdeas, transcribeVideo } from "@/components/write-chat/services/video-service";
 import { sendToSlideout, sendScriptToSlideout } from "@/components/write-chat/utils";
-import { processScriptComponents } from "@/hooks/use-script-analytics";
-import { scrapeVideoUrl } from "@/lib/unified-video-scraper";
-import { ScriptData, ScriptComponent } from "@/types/script-panel";
+import { 
+  transcribeVideoUrl, 
+  generateVideoIdeas, 
+  generateVideoHooks 
+} from "@/lib/video-actions";
 
 export type InlineVideoAction = "transcribe" | "ideas" | "hooks";
 
-// Helper function to convert transcript to ScriptData format
-function convertTranscriptToScriptData(transcript: string, url: string): ScriptData {
-  // Create a simple script component from the transcript
-  const transcriptComponent: ScriptComponent = {
-    id: "transcript-full",
-    type: "transcript",
-    label: "Full Transcript",
-    content: transcript,
-    icon: "T",
-  };
-
-  // Process the component to add metrics
-  const processedComponents = processScriptComponents([transcriptComponent]);
-
-  // Calculate total metrics
-  const totalWords = processedComponents.reduce((sum, comp) => sum + (comp.wordCount ?? 0), 0);
-  const totalDuration = processedComponents.reduce((sum, comp) => sum + (comp.estimatedDuration ?? 0), 0);
-
-  return {
-    id: `transcript-${Date.now()}`,
-    title: "Video Transcript",
-    fullScript: transcript,
-    components: processedComponents,
-    metrics: {
-      totalWords,
-      totalDuration,
-    },
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    tags: ["transcript", "video"],
-    metadata: {
-      originalUrl: url,
-      platform: "video",
-      genre: "transcript",
-    },
-  };
-}
+// Helper function removed - now handled by transcription orchestrator
 
 export function useInlineVideoActions(options: {
   setMessages: React.Dispatch<React.SetStateAction<Array<{ id: string; role: "user" | "assistant"; content: string }>>>;
@@ -62,19 +27,17 @@ export function useInlineVideoActions(options: {
       setActiveAction("transcribe");
       startAckWithLoader(setMessages, "I'll transcribe this video for you.");
       try {
-        // Use unified video scraper to get the CDN URL first
-        const scraperResult = await scrapeVideoUrl(videoPanel.url);
+        // Use the transcription orchestrator for complete workflow
+        const result = await transcribeVideoUrl(videoPanel.url);
 
-        if (!scraperResult.videoUrl) {
-          throw new Error("Unable to extract video URL from social media link");
+        if (!result.success || !result.data) {
+          throw new Error(result.error || "Transcription failed");
         }
 
-        // Now transcribe using the CDN URL
-        const transcript = await transcribeVideo({ url: scraperResult.videoUrl, platform: scraperResult.platform });
-
-        // Convert transcript to script data format and send to script panel slideout
-        const scriptData = convertTranscriptToScriptData(transcript, videoPanel.url);
-        sendScriptToSlideout(scriptData, "Video Transcript");
+        // Send script data to script panel slideout
+        if (result.data.scriptData) {
+          sendScriptToSlideout(result.data.scriptData, "Video Transcript");
+        }
 
         finishAndRemoveLoader(setMessages);
         onAnswerReady?.();
@@ -98,18 +61,15 @@ export function useInlineVideoActions(options: {
       setActiveAction("ideas");
       startAckWithLoader(setMessages, "I'll help you create 10 content ideas.");
       try {
-        // Use unified video scraper to get the CDN URL first
-        const scraperResult = await scrapeVideoUrl(videoPanel.url);
+        // Use the ideas orchestrator for complete workflow
+        const result = await generateVideoIdeas(videoPanel.url);
 
-        if (!scraperResult.videoUrl) {
-          throw new Error("Unable to extract video URL from social media link");
+        if (!result.success || !result.data) {
+          throw new Error(result.error || "Ideas generation failed");
         }
 
-        // Now transcribe using the CDN URL
-        const transcript = await transcribeVideo({ url: scraperResult.videoUrl, platform: scraperResult.platform });
-        const ideas = await generateIdeas({ transcript, url: videoPanel.url });
-        const markdown = `# Content Ideas\n\n${ideas}`;
-        sendToSlideout(markdown);
+        // Send ideas to slideout
+        sendToSlideout(result.data.markdown);
         finishAndRemoveLoader(setMessages);
         onAnswerReady?.();
       } catch (error) {
@@ -132,19 +92,15 @@ export function useInlineVideoActions(options: {
       setActiveAction("hooks");
       startAckWithLoader(setMessages, "I'll help you write hooks.");
       try {
-        // Use unified video scraper to get the CDN URL first
-        const scraperResult = await scrapeVideoUrl(videoPanel.url);
+        // Use the hooks orchestrator for complete workflow
+        const result = await generateVideoHooks(videoPanel.url);
 
-        if (!scraperResult.videoUrl) {
-          throw new Error("Unable to extract video URL from social media link");
+        if (!result.success || !result.data) {
+          throw new Error(result.error || "Hooks generation failed");
         }
 
-        // Now transcribe using the CDN URL
-        const transcript = await transcribeVideo({ url: scraperResult.videoUrl, platform: scraperResult.platform });
-        const hooksResp = await generateHooks({ transcript });
-        const list = hooksResp.hooks.map((h, i) => `${i + 1}. ${h.text} — ${h.rating}/100 (${h.focus})`).join("\n");
-        const markdown = `# Hooks\n\n${list}\n\n**Top Hook:** ${hooksResp.topHook.text} (${hooksResp.topHook.rating}/100)`;
-        sendToSlideout(markdown);
+        // Send hooks to slideout
+        sendToSlideout(result.data.markdown);
         finishAndRemoveLoader(setMessages);
         onAnswerReady?.();
       } catch (error) {
