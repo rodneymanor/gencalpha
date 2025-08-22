@@ -930,19 +930,6 @@ export function ClaudeChat({
                 <h2 className="text-sm font-medium text-neutral-900">{conversationTitle ?? "New Chat"}</h2>
                 {conversationTitle && <p className="text-xs text-neutral-600">{messages.length} messages</p>}
               </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  onClick={handleNewChat}
-                  variant="ghost"
-                  size="sm"
-                  className="rounded-[var(--radius-button)]"
-                  title="Start new chat"
-                >
-                  <Plus className="mr-1 h-4 w-4" />
-                  New Chat
-                </Button>
-                {showChatLibrary && <ChatLibraryModal onLoadChat={handleLoadChat} />}
-              </div>
             </div>
           )}
           {/* Messages Area with bottom padding for sticky input */}
