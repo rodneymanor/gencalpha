@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Settings, Send, Zap, Loader2 } from "lucide-react"
+import { Settings, ArrowUp, Zap, Loader2 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { buildAuthHeaders } from "@/lib/http/auth-headers"
 import type { Category, TrendingTopic } from "@/lib/rss-service"
@@ -206,7 +206,7 @@ export default function ChatInput({
             className="h-10 w-10 rounded-[var(--radius-button)] bg-neutral-700 text-neutral-50 hover:bg-neutral-800 disabled:bg-neutral-300 transition-all duration-150" 
             disabled={disabled || !value.trim()}
           >
-            <Send className="h-4 w-4" />
+            <ArrowUp className="h-4 w-4" />
           </Button>
         </div>
       </div>
