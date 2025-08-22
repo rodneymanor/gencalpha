@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Settings, Send, Zap, Loader2 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
+import { buildAuthHeaders } from "@/lib/http/auth-headers"
 import type { Category, TrendingTopic } from "@/lib/rss-service"
 
 interface ChatInputProps {
@@ -49,7 +50,10 @@ export default function ChatInput({
 
   const loadUserBrandSettings = async () => {
     try {
-      const response = await fetch('/api/user/brand-settings')
+      const headers = await buildAuthHeaders()
+      const response = await fetch('/api/user/brand-settings', {
+        headers
+      })
       if (response.ok) {
         const data = await response.json()
         if (data.success && data.settings?.selectedCategories) {
@@ -71,7 +75,10 @@ export default function ChatInput({
     
     try {
       // Use the consolidated user trending endpoint for better performance
-      const response = await fetch('/api/rss/user-trending?limit=8')
+      const headers = await buildAuthHeaders()
+      const response = await fetch('/api/rss/user-trending?limit=8', {
+        headers
+      })
       
       if (response.ok) {
         const data = await response.json()

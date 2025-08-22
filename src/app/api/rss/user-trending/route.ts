@@ -1,22 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { buildAuthHeaders } from '@/lib/http/auth-headers'
-import { adminDb } from '@/lib/firebase-admin'
+import { getAuth } from 'firebase-admin/auth'
+import { adminDb, isAdminInitialized } from '@/lib/firebase-admin'
 import { rssParser, type Category, type TrendingTopic } from '@/lib/rss-service'
 
 export async function GET(request: NextRequest) {
   try {
-    const headers = await buildAuthHeaders()
-    const userId = headers['x-user-id']
-
-    if (!userId) {
+    // Extract Firebase ID token from Authorization header
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader?.startsWith('Bearer ')) {
       return NextResponse.json({
         success: false,
-        error: 'Authentication required'
+        error: 'Authorization header required'
       }, { status: 401 })
     }
 
+    const idToken = authHeader.substring(7)
+
+    if (!isAdminInitialized) {
+      return NextResponse.json({
+        success: false,
+        error: 'Firebase Admin SDK not configured'
+      }, { status: 500 })
+    }
+
+    // Verify Firebase ID token
+    const auth = getAuth()
+    let decodedToken
+    try {
+      decodedToken = await auth.verifyIdToken(idToken)
+    } catch (error) {
+      console.error('Token verification failed:', error)
+      return NextResponse.json({
+        success: false,
+        error: 'Invalid Firebase token'
+      }, { status: 401 })
+    }
+
+    const userId = decodedToken.uid
+
     const { searchParams } = new URL(request.url)
-    const limit = parseInt(searchParams.get('limit') || '8')
+    const limit = parseInt(searchParams.get('limit') ?? '8')
 
     // Get user brand settings to determine their preferred categories
     let userCategories: Category[] = []
@@ -25,7 +48,7 @@ export async function GET(request: NextRequest) {
       const settingsDoc = await adminDb.collection('userBrandSettings').doc(userId).get()
       if (settingsDoc.exists) {
         const settings = settingsDoc.data()
-        userCategories = settings?.selectedCategories || []
+        userCategories = settings?.selectedCategories ?? []
       }
     } catch (error) {
       console.error('Error fetching user brand settings:', error)

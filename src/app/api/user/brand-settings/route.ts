@@ -1,18 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { buildAuthHeaders } from '@/lib/http/auth-headers'
-import { adminDb } from '@/lib/firebase-admin'
+import { getAuth } from 'firebase-admin/auth'
+import { adminDb, isAdminInitialized } from '@/lib/firebase-admin'
 
 export async function GET(request: NextRequest) {
   try {
-    const headers = await buildAuthHeaders()
-    const userId = headers['x-user-id']
-
-    if (!userId) {
+    // Extract Firebase ID token from Authorization header
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader?.startsWith('Bearer ')) {
       return NextResponse.json({
         success: false,
-        error: 'Authentication required'
+        error: 'Authorization header required'
       }, { status: 401 })
     }
+
+    const idToken = authHeader.substring(7)
+
+    if (!isAdminInitialized) {
+      return NextResponse.json({
+        success: false,
+        error: 'Firebase Admin SDK not configured'
+      }, { status: 500 })
+    }
+
+    // Verify Firebase ID token
+    const auth = getAuth()
+    let decodedToken
+    try {
+      decodedToken = await auth.verifyIdToken(idToken)
+    } catch (error) {
+      console.error('Token verification failed:', error)
+      return NextResponse.json({
+        success: false,
+        error: 'Invalid Firebase token'
+      }, { status: 401 })
+    }
+
+    const userId = decodedToken.uid
 
     // Get user brand settings from Firestore
     const settingsDoc = await adminDb.collection('userBrandSettings').doc(userId).get()
@@ -31,9 +54,9 @@ export async function GET(request: NextRequest) {
       success: true,
       settings: {
         userId,
-        selectedCategories: settings?.selectedCategories || [],
-        customKeywords: settings?.customKeywords || [],
-        updatedAt: settings?.updatedAt || new Date().toISOString()
+        selectedCategories: settings?.selectedCategories ?? [],
+        customKeywords: settings?.customKeywords ?? [],
+        updatedAt: settings?.updatedAt ?? new Date().toISOString()
       }
     })
   } catch (error) {
@@ -47,15 +70,38 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const headers = await buildAuthHeaders()
-    const userId = headers['x-user-id']
-
-    if (!userId) {
+    // Extract Firebase ID token from Authorization header
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader?.startsWith('Bearer ')) {
       return NextResponse.json({
         success: false,
-        error: 'Authentication required'
+        error: 'Authorization header required'
       }, { status: 401 })
     }
+
+    const idToken = authHeader.substring(7)
+
+    if (!isAdminInitialized) {
+      return NextResponse.json({
+        success: false,
+        error: 'Firebase Admin SDK not configured'
+      }, { status: 500 })
+    }
+
+    // Verify Firebase ID token
+    const auth = getAuth()
+    let decodedToken
+    try {
+      decodedToken = await auth.verifyIdToken(idToken)
+    } catch (error) {
+      console.error('Token verification failed:', error)
+      return NextResponse.json({
+        success: false,
+        error: 'Invalid Firebase token'
+      }, { status: 401 })
+    }
+
+    const userId = decodedToken.uid
 
     const body = await request.json()
     const { selectedCategories, customKeywords } = body
@@ -71,7 +117,7 @@ export async function POST(request: NextRequest) {
     const settings = {
       userId,
       selectedCategories,
-      customKeywords: customKeywords || [],
+      customKeywords: customKeywords ?? [],
       updatedAt: new Date().toISOString()
     }
 
