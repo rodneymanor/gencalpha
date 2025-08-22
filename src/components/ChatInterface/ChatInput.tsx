@@ -1,6 +1,5 @@
 "use client"
 
-import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -197,7 +196,7 @@ export default function ChatInput({
           <Button 
             type="submit" 
             size="icon" 
-            className="h-10 w-10 rounded-[var(--radius-button)] bg-neutral-900 text-neutral-50 hover:bg-neutral-800 disabled:bg-neutral-300 transition-all duration-150" 
+            className="h-10 w-10 rounded-[var(--radius-button)] bg-neutral-700 text-neutral-50 hover:bg-neutral-800 disabled:bg-neutral-300 transition-all duration-150" 
             disabled={disabled || !value.trim()}
           >
             <Send className="h-4 w-4" />

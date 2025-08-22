@@ -94,13 +94,13 @@ export function ScriptEditor({
   return (
     <div className={cn("overflow-hidden rounded-lg border", className)}>
       {/* Toolbar */}
-      <div className="flex items-center gap-2 border-b bg-gray-50 px-3 py-2 text-sm">
+      <div className="flex items-center gap-2 border-b bg-neutral-100 px-3 py-2 text-sm">
         <span className="font-medium text-gray-700">Script Editor</span>
         <div className="ml-auto flex items-center gap-1">
           <button
             type="button"
             onClick={() => insertFormatting("**", "**", "bold text")}
-            className="rounded border bg-white px-2 py-1 text-xs transition-colors hover:bg-gray-50"
+            className="rounded border bg-neutral-50 px-2 py-1 text-xs transition-colors hover:bg-neutral-200"
             title="Bold (Ctrl+B)"
           >
             B
@@ -108,7 +108,7 @@ export function ScriptEditor({
           <button
             type="button"
             onClick={() => insertFormatting("*", "*", "italic text")}
-            className="rounded border bg-white px-2 py-1 text-xs italic transition-colors hover:bg-gray-50"
+            className="rounded border bg-neutral-50 px-2 py-1 text-xs italic transition-colors hover:bg-neutral-200"
             title="Italic (Ctrl+I)"
           >
             I
@@ -116,7 +116,7 @@ export function ScriptEditor({
           <button
             type="button"
             onClick={insertLineBreak}
-            className="rounded border bg-white px-2 py-1 text-xs transition-colors hover:bg-gray-50"
+            className="rounded border bg-neutral-50 px-2 py-1 text-xs transition-colors hover:bg-neutral-200"
             title="Line Break (Ctrl+Enter)"
           >
             ¶
@@ -136,7 +136,7 @@ export function ScriptEditor({
           onBlur={() => setIsFocused(false)}
           placeholder={placeholder}
           className={cn(
-            "w-full resize-none border-0 bg-white p-4 font-mono text-sm leading-relaxed outline-none",
+            "w-full resize-none border-0 bg-neutral-50 p-4 font-mono text-sm leading-relaxed outline-none",
             "placeholder:font-sans placeholder:text-gray-400",
             isFocused && "ring-2 ring-blue-500 ring-inset",
           )}

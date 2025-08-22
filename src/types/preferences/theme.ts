@@ -20,7 +20,7 @@ export const THEME_PRESET_OPTIONS = [
     label: "Default",
     value: "default",
     primary: {
-      light: "#1A1A19",
+      light: "var(--neutral-700)",
       dark: "#FFFFFF",
     },
   },

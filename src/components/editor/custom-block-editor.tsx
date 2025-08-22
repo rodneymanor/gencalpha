@@ -204,7 +204,7 @@ export function CustomBlockEditor({ value, onChange }: CustomBlockEditorProps) {
 
       <div
         ref={containerRef}
-        className="min-h-[300px] rounded-md border bg-white p-3 transition-all focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500"
+        className="min-h-[300px] rounded-md border bg-neutral-50 p-3 transition-all focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500"
         style={{
           fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
           fontSize: "14px",
