@@ -78,14 +78,19 @@ export function InlineLoader({ action = "fetch", size = "sm", className }: { act
   return <ShadcnLoader size={size === "sm" ? "inline" : "sm"} className={className} />;
 }
 
-export function SectionLoader({ action = "fetch", message, className }: { action?: string; message?: string; className?: string }) {
-  // eslint-disable-next-line security/detect-object-injection
-  const cfg = Object.prototype.hasOwnProperty.call(loadingConfigs, action) ? loadingConfigs[action] : loadingConfigs.fetch;
-  return (
-    <div role="status" aria-busy className={cn("flex w-full items-center justify-center p-6", className)}>
-      <ShadcnLoader size="md" message={message ?? cfg.defaultMessage ?? "Loading..."} />
-    </div>
-  );
+export function SectionLoader({ action = "fetch", message: _, className }: { action?: string; message?: string; className?: string }) {
+  // For section loading, use appropriate skeleton based on action type
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { SkeletonMainContent, SkeletonVideoGrid, SkeletonChatList, CardSkeleton } = require("@/components/ui/skeleton-screens");
+  
+  // Choose skeleton based on action type
+  if (action === "fetch" || action === "search") {
+    return <SkeletonMainContent className={className} />;
+  } else if (action === "upload" || action === "generate") {
+    return <SkeletonVideoGrid count={3} className={className} />;
+  } else {
+    return <CardSkeleton />;
+  }
 }
 
 export function PageLoader(_props: { message?: string }) {

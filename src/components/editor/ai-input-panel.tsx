@@ -1,4 +1,4 @@
-import { ClarityLoader } from "@/components/ui/loading";
+import { InlineLoader } from "@/components/ui/loading";
 
 ("use client");
 
@@ -348,9 +348,8 @@ export function AIInputPanel({
           {/* Loading Indicator */}
           {isLoading && (
             <div className="border-border border-b p-3">
-              <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                <ClarityLoader size="inline" />
-                Processing...
+              <div className="text-muted-foreground flex items-center justify-center p-2">
+                <InlineLoader size="sm" />
               </div>
             </div>
           )}

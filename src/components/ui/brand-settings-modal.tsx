@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 
 import { CheckCircle2, PencilLine, Save, X } from "lucide-react";
 
+import { SkeletonMainContent } from "@/components/ui/skeleton-screens";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -109,7 +111,9 @@ export function BrandSettingsModal({ open, onOpenChange }: BrandSettingsModalPro
         </div>
 
         {!selections ? (
-          <div className="p-6">Loading...</div>
+          <div className="p-6">
+            <SkeletonMainContent />
+          </div>
         ) : (
           <ScrollArea className="h-[70vh] px-6 pb-6">
             {/* Content Types Section */}

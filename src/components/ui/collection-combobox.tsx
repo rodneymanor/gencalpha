@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 
 import { ChevronsUpDown, FolderOpen } from "lucide-react";
 
+import { InlineLoader } from "@/components/ui/loading";
+
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -97,7 +99,14 @@ export function CollectionCombobox({
         >
           <span className="flex items-center gap-2 truncate">
             <FolderOpen className="h-4 w-4 shrink-0" />
-            {loading ? "Loading..." : selectedOption?.title ?? placeholder}
+            {loading ? (
+              <>
+                <InlineLoader size="sm" />
+                <span className="ml-1">Loading...</span>
+              </>
+            ) : (
+              selectedOption?.title ?? placeholder
+            )}
           </span>
           <ChevronsUpDown className="h-4 w-4 shrink-0" />
         </Button>

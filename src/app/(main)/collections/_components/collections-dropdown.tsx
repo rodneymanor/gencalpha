@@ -4,6 +4,8 @@ import { useState } from "react";
 
 import { ChevronDown, FolderOpen } from "lucide-react";
 
+import { InlineLoader } from "@/components/ui/loading";
+
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -44,8 +46,7 @@ export function CollectionsDropdown({
   if (loading) {
     return (
       <Button variant="outline" className="flex items-center gap-2" disabled>
-        <FolderOpen className="h-4 w-4" />
-        Loading...
+        <InlineLoader size="sm" />
         <ChevronDown className="h-4 w-4" />
       </Button>
     );

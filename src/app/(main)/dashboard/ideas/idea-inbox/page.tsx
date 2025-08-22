@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 
 import { Plus, Filter, X, Star, Calendar, Tag, Type, Globe } from "lucide-react";
 
+import { CardSkeleton } from "@/components/ui/loading";
+
 import { IdeaDetailDialog } from "@/app/(main)/dashboard/idea-inbox/_components/idea-detail-dialog";
 import { mapNotesToIdeas } from "@/app/(main)/dashboard/idea-inbox/_components/note-mapper";
 import type { Idea, DatabaseNote } from "@/app/(main)/dashboard/idea-inbox/_components/types";
@@ -244,7 +246,7 @@ export default function IdeasIdeaInboxPage() {
             <div className="space-y-1">
               <h1 className="text-foreground text-lg font-semibold sm:text-xl md:text-2xl">Your idea inbox</h1>
               <p className="text-muted-foreground text-sm">
-                {isLoading ? "Loading..." : `${filteredIdeas.length} note${filteredIdeas.length !== 1 ? "s" : ""}`}
+                {isLoading ? "Loading ideas..." : `${filteredIdeas.length} note${filteredIdeas.length !== 1 ? "s" : ""}`}
               </p>
             </div>
             <div className="flex w-full gap-2 sm:w-auto">
@@ -489,11 +491,10 @@ export default function IdeasIdeaInboxPage() {
         {/* Mobile-optimized notes list */}
         <div className="space-y-3 sm:space-y-4">
           {isLoading ? (
-            <div className="flex items-center justify-center py-16">
-              <div className="space-y-2 text-center">
-                <div className="text-muted-foreground text-base">Loading your notes...</div>
-                <div className="border-primary mx-auto h-6 w-6 animate-spin rounded-full border-2 border-t-transparent"></div>
-              </div>
+            <div className="space-y-4">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <CardSkeleton key={i} />
+              ))}
             </div>
           ) : filteredIdeas.length === 0 ? (
             <div className="space-y-4 py-16 text-center">

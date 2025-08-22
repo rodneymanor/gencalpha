@@ -4,6 +4,8 @@ import { useEffect, useState, useCallback } from "react";
 
 import { Filter, X, Star, Lightbulb, Edit3, MoreHorizontal } from "lucide-react";
 
+import { CardSkeleton } from "@/components/ui/loading";
+
 import { IdeaDetailDialog } from "@/app/(main)/dashboard/idea-inbox/_components/idea-detail-dialog";
 import { mapNotesToIdeas } from "@/app/(main)/dashboard/idea-inbox/_components/note-mapper";
 import type { Idea, DatabaseNote } from "@/app/(main)/dashboard/idea-inbox/_components/types";
@@ -252,7 +254,7 @@ export function IdeasView({ refreshTrigger }: IdeasViewProps = {}) {
               <h1 className="text-foreground text-lg font-semibold sm:text-xl md:text-2xl">Ideas</h1>
               <p className="text-muted-foreground text-sm sm:text-base">
                 {isLoading
-                  ? "Loading..."
+                  ? "Loading ideas..."
                   : `${filteredIdeas.length} note${filteredIdeas.length !== 1 ? "s" : ""} found`}
               </p>
             </div>
@@ -465,11 +467,10 @@ export function IdeasView({ refreshTrigger }: IdeasViewProps = {}) {
       <div className="flex-1 overflow-y-auto">
         <div className="space-y-2 p-3">
           {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="space-y-2 text-center">
-                <div className="text-muted-foreground text-sm">Loading ideas...</div>
-                <div className="border-primary mx-auto h-4 w-4 animate-spin rounded-full border-2 border-t-transparent"></div>
-              </div>
+            <div className="space-y-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <CardSkeleton key={i} />
+              ))}
             </div>
           ) : filteredIdeas.length === 0 ? (
             <div className="space-y-2 py-8 text-center">

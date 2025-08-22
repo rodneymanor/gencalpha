@@ -5,6 +5,8 @@ import React from "react";
 // Let's try the most minimal BlockNote approach
 import { BlockNoteEditor, BlockNoteSchema, defaultBlockSpecs } from "@blocknote/core";
 
+import { InlineLoader } from "@/components/ui/loading";
+
 interface MinimalEditorProps {
   value: string;
   onChange: (value: string) => void;
@@ -193,7 +195,9 @@ export function MinimalEditor({ value, onChange }: MinimalEditorProps) {
         {isReady ? (
           <span className="ml-2 text-xs text-green-600">✓ Ready</span>
         ) : (
-          <span className="ml-2 text-xs text-gray-500">Loading...</span>
+          <span className="ml-2 text-xs text-gray-500 flex items-center gap-1">
+            <InlineLoader size="sm" /> Initializing...
+          </span>
         )}
       </div>
       <div
