@@ -75,7 +75,7 @@ export const themes: Theme[] = [
       primaryForeground: "#FFFFFF",
       secondary: "transparent",
       secondaryForeground: "#1A1A1A", // neutral-900
-      brand: "#F0F209", // Updated accent color
+      brand: "#FACC15", // brand-500
       brandForeground: "#322801", // brand-900
       muted: "#F5F5F5", // neutral-100
       mutedForeground: "#737373", // neutral-500
@@ -119,7 +119,7 @@ export const themes: Theme[] = [
       primaryForeground: "#1A1A19", // primary-500
       secondary: "#404040", // neutral-700
       secondaryForeground: "#F5F5F5", // neutral-100
-      brand: "#F0F209", // Updated accent color
+      brand: "#FACC15",
       brandForeground: "#322801", // brand-900
       muted: "#262626", // neutral-800
       mutedForeground: "#A3A3A3", // neutral-400
@@ -166,7 +166,7 @@ export const themes: Theme[] = [
       primaryForeground: "#ffffff",
       secondary: "#f3f4f6",
       secondaryForeground: "#374151",
-      brand: "#F0F209", // Updated accent color
+      brand: "#10b981",
       brandForeground: "#ffffff",
       muted: "#fafbfc",
       mutedForeground: "#6b7280",
@@ -209,7 +209,7 @@ export const themes: Theme[] = [
       primaryForeground: "#0f1114",
       secondary: "#374151",
       secondaryForeground: "#e5e7eb",
-      brand: "#F0F209", // Updated accent color
+      brand: "#10b981",
       brandForeground: "#ffffff",
       muted: "#1f2937",
       mutedForeground: "#9ca3af",
@@ -256,7 +256,7 @@ export const themes: Theme[] = [
       primaryForeground: "#FFFFFF",
       secondary: "#B46A4B",
       secondaryForeground: "#FFFFFF",
-      brand: "#F0F209", // Updated accent color
+      brand: "#FACC15",
       brandForeground: "#1A1A19",
       muted: "#F8F8F7",
       mutedForeground: "#858481",
@@ -299,7 +299,7 @@ export const themes: Theme[] = [
       primaryForeground: "#1A1A19",
       secondary: "#B46A4B",
       secondaryForeground: "#FFFFFF",
-      brand: "#F0F209", // Updated accent color
+      brand: "#FACC15",
       brandForeground: "#1A1A19",
       muted: "#1A1A19",
       mutedForeground: "#858481",
@@ -330,6 +330,96 @@ export const themes: Theme[] = [
       sidebarAccentForeground: "#EAEAE9",
       sidebarBorder: "rgba(255,255,255,0.1)",
       sidebarRing: "#C8D5C8",
+    },
+  },
+  {
+    name: "custom",
+    label: "Custom",
+    light: {
+      background: "#FFFFFF", // Pure white app background
+      foreground: "#191B1F", // Headlines
+      card: "#FFFFFF",
+      cardForeground: "#19283A", // Body text
+      popover: "#FFFFFF",
+      popoverForeground: "#19283A", // Body text
+      primary: "#313131", // Submit buttons
+      primaryForeground: "#FFFFFF", // Button text
+      secondary: "transparent",
+      secondaryForeground: "#19283A", // Body text
+      brand: "#F0F209", // Yellow accent color
+      brandForeground: "#191B1F", // Headlines
+      muted: "#F8F8F8",
+      mutedForeground: "#737373",
+      accent: "#EEEEEE", // Hover for sidebar
+      accentForeground: "#19283A", // Body text
+      destructive: "#EF4444",
+      destructiveForeground: "#FFFFFF",
+      border: "#E5E5E5",
+      input: "#F8F8F8",
+      ring: "#313131", // Submit buttons
+      borderSubtle: "#F5F5F5",
+      borderHover: "#D4D4D4",
+      borderFocus: "#A3A3A3",
+      backgroundElevated: "#FFFFFF",
+      backgroundOverlay: "rgba(255, 255, 255, 0.9)",
+      backgroundHover: "#FAFAFA",
+      contentBg: "#F8F8F8",
+      chart1: "#313131",
+      chart2: "#19283A",
+      chart3: "#737373",
+      chart4: "#A3A3A3",
+      chart5: "#D4D4D4",
+      sidebar: "#F8F8F8",
+      sidebarForeground: "#19283A", // Body text
+      sidebarPrimary: "#823EFC", // Special buttons (purple)
+      sidebarPrimaryForeground: "#FFFFFF", // Button text
+      sidebarAccent: "#EEEEEE", // Hover for sidebar
+      sidebarAccentForeground: "#19283A", // Body text
+      sidebarBorder: "#D4D4D4",
+      sidebarRing: "#823EFC", // Special buttons
+    },
+    dark: {
+      background: "#0A0A0A",
+      foreground: "#EEEEEE",
+      card: "#171717",
+      cardForeground: "#EEEEEE",
+      popover: "#171717",
+      popoverForeground: "#EEEEEE",
+      primary: "#525252", // Lighter submit buttons for dark
+      primaryForeground: "#FFFFFF",
+      secondary: "#262626",
+      secondaryForeground: "#EEEEEE",
+      brand: "#F0F209", // Yellow accent color (same)
+      brandForeground: "#0A0A0A",
+      muted: "#171717",
+      mutedForeground: "#737373",
+      accent: "#262626",
+      accentForeground: "#EEEEEE",
+      destructive: "#EF4444",
+      destructiveForeground: "#FFFFFF",
+      border: "#404040",
+      input: "#262626",
+      ring: "#525252",
+      borderSubtle: "#171717",
+      borderHover: "#525252",
+      borderFocus: "#737373",
+      backgroundElevated: "#262626",
+      backgroundOverlay: "rgba(10, 10, 10, 0.9)",
+      backgroundHover: "#171717",
+      contentBg: "#171717",
+      chart1: "#EEEEEE",
+      chart2: "#A3A3A3",
+      chart3: "#737373",
+      chart4: "#525252",
+      chart5: "#404040",
+      sidebar: "#0A0A0A",
+      sidebarForeground: "#EEEEEE",
+      sidebarPrimary: "#9B70FF", // Lighter purple for dark mode
+      sidebarPrimaryForeground: "#0A0A0A",
+      sidebarAccent: "#262626",
+      sidebarAccentForeground: "#EEEEEE",
+      sidebarBorder: "#404040",
+      sidebarRing: "#9B70FF",
     },
   },
 ];
