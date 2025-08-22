@@ -6,6 +6,7 @@ import { startAckWithLoader, finishAndRemoveLoader } from "@/components/write-ch
 import { generateHooks, generateIdeas, transcribeVideo } from "@/components/write-chat/services/video-service";
 import { sendToSlideout, sendScriptToSlideout } from "@/components/write-chat/utils";
 import { processScriptComponents } from "@/hooks/use-script-analytics";
+import { scrapeVideoUrl } from "@/lib/unified-video-scraper";
 import { ScriptData, ScriptComponent } from "@/types/script-panel";
 
 export type InlineVideoAction = "transcribe" | "ideas" | "hooks";
@@ -61,9 +62,15 @@ export function useInlineVideoActions(options: {
       setActiveAction("transcribe");
       startAckWithLoader(setMessages, "I'll transcribe this video for you.");
       try {
-        // For video action selector flow, skip ensureResolved and use the original URL directly
-        // This avoids triggering the unified video scraper unnecessarily
-        const transcript = await transcribeVideo({ url: videoPanel.url, platform: videoPanel.platform });
+        // Use unified video scraper to get the CDN URL first
+        const scraperResult = await scrapeVideoUrl(videoPanel.url);
+
+        if (!scraperResult.videoUrl) {
+          throw new Error("Unable to extract video URL from social media link");
+        }
+
+        // Now transcribe using the CDN URL
+        const transcript = await transcribeVideo({ url: scraperResult.videoUrl, platform: scraperResult.platform });
 
         // Convert transcript to script data format and send to script panel slideout
         const scriptData = convertTranscriptToScriptData(transcript, videoPanel.url);
@@ -91,8 +98,15 @@ export function useInlineVideoActions(options: {
       setActiveAction("ideas");
       startAckWithLoader(setMessages, "I'll help you create 10 content ideas.");
       try {
-        // For video action selector flow, skip ensureResolved and use the original URL directly
-        const transcript = await transcribeVideo({ url: videoPanel.url, platform: videoPanel.platform });
+        // Use unified video scraper to get the CDN URL first
+        const scraperResult = await scrapeVideoUrl(videoPanel.url);
+
+        if (!scraperResult.videoUrl) {
+          throw new Error("Unable to extract video URL from social media link");
+        }
+
+        // Now transcribe using the CDN URL
+        const transcript = await transcribeVideo({ url: scraperResult.videoUrl, platform: scraperResult.platform });
         const ideas = await generateIdeas({ transcript, url: videoPanel.url });
         const markdown = `# Content Ideas\n\n${ideas}`;
         sendToSlideout(markdown);
@@ -118,8 +132,15 @@ export function useInlineVideoActions(options: {
       setActiveAction("hooks");
       startAckWithLoader(setMessages, "I'll help you write hooks.");
       try {
-        // For video action selector flow, skip ensureResolved and use the original URL directly
-        const transcript = await transcribeVideo({ url: videoPanel.url, platform: videoPanel.platform });
+        // Use unified video scraper to get the CDN URL first
+        const scraperResult = await scrapeVideoUrl(videoPanel.url);
+
+        if (!scraperResult.videoUrl) {
+          throw new Error("Unable to extract video URL from social media link");
+        }
+
+        // Now transcribe using the CDN URL
+        const transcript = await transcribeVideo({ url: scraperResult.videoUrl, platform: scraperResult.platform });
         const hooksResp = await generateHooks({ transcript });
         const list = hooksResp.hooks.map((h, i) => `${i + 1}. ${h.text} — ${h.rating}/100 (${h.focus})`).join("\n");
         const markdown = `# Hooks\n\n${list}\n\n**Top Hook:** ${hooksResp.topHook.text} (${hooksResp.topHook.rating}/100)`;
