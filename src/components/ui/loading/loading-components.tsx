@@ -22,68 +22,82 @@ const loadingConfigs: Record<string, { icon: IconComponent; defaultMessage?: str
   generate: { icon: Loader2, defaultMessage: "Working..." },
 };
 
-type ClarityLoaderSize = "lg" | "md" | "sm" | "inline";
+type ShadcnLoaderSize = "lg" | "md" | "sm" | "inline";
 
-export function ClarityLoader({
+// Shadcn-style loader using Loader2 icon with consistent sizing
+export function ShadcnLoader({
   size = "md",
   message,
-  inverted = false,
   className,
 }: {
-  size?: ClarityLoaderSize;
+  size?: ShadcnLoaderSize;
   message?: string;
-  inverted?: boolean;
   className?: string;
 }) {
+  const sizeClasses = {
+    lg: "h-8 w-8",
+    md: "h-6 w-6",
+    sm: "h-4 w-4",
+    inline: "h-3 w-3",
+  };
+
+  const containerClasses = {
+    lg: "gap-3",
+    md: "gap-2",
+    sm: "gap-2",
+    inline: "gap-1",
+  };
+
   return (
     <div
       role="status"
       aria-busy
       className={cn(
-        "clarity-loader",
-        size === "lg" && "clarity-size-lg",
-        size === "md" && "clarity-size-md",
-        size === "sm" && "clarity-size-sm",
-        size === "inline" && "clarity-size-inline",
-        inverted && "clarity-inverted",
+        "flex items-center justify-center",
+        // eslint-disable-next-line security/detect-object-injection
+        containerClasses[size],
         className,
       )}
     >
-      <div className="clarity-ring" />
-      <div className="clarity-ring clarity-ring-2" />
-      <div className="clarity-orb-core" />
-      <div className="clarity-dot dot-1" />
-      <div className="clarity-dot dot-2" />
-      <div className="clarity-dot dot-3" />
-      {message ? <div className="clarity-loading-text">{message}</div> : null}
+      <Loader2 className={cn("animate-spin text-primary-600",
+        // eslint-disable-next-line security/detect-object-injection
+        sizeClasses[size])} />
+      {message && size !== "inline" && (
+        <span className="text-sm font-medium text-neutral-600">{message}</span>
+      )}
     </div>
   );
 }
+
+// Legacy alias for backwards compatibility
+export const ClarityLoader = ShadcnLoader;
 
 export function InlineLoader({ action = "fetch", size = "sm", className }: { action?: string; size?: "sm" | "md"; className?: string }) {
   // action kept for API compatibility; message is not shown in inline
   void action;
-  return <ClarityLoader size={size === "sm" ? "inline" : "sm"} className={className} />;
+  return <ShadcnLoader size={size === "sm" ? "inline" : "sm"} className={className} />;
 }
 
 export function SectionLoader({ action = "fetch", message, className }: { action?: string; message?: string; className?: string }) {
+  // eslint-disable-next-line security/detect-object-injection
   const cfg = Object.prototype.hasOwnProperty.call(loadingConfigs, action) ? loadingConfigs[action] : loadingConfigs.fetch;
   return (
     <div role="status" aria-busy className={cn("flex w-full items-center justify-center p-6", className)}>
-      <ClarityLoader size="md" message={message ?? cfg.defaultMessage ?? "Loading..."} />
+      <ShadcnLoader size="md" message={message ?? cfg.defaultMessage ?? "Loading..."} />
     </div>
   );
 }
 
-export function PageLoader({ message }: { message?: string }) {
+export function PageLoader(_props: { message?: string }) {
   // For backwards compatibility - redirect to skeleton screens
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { SkeletonPageLayout } = require("@/components/ui/skeleton-screens");
   return <SkeletonPageLayout />;
 }
 
 export function CardSkeleton() {
   return (
-    <div className="rounded-[var(--radius-card)] border border-border bg-card p-4 shadow-[var(--shadow-soft-drop)]">
+    <div className="rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-50 p-4 shadow-[var(--shadow-soft-drop)]">
       <div className="space-y-3">
         <Skeleton className="h-5 w-3/4 rounded-[var(--radius-button)]" />
         <Skeleton className="h-4 w-1/2 rounded-[var(--radius-button)]" />
@@ -99,21 +113,22 @@ export function CardSkeleton() {
 }
 
 export function ProgressLoader({ action = "upload", message, progress = 0, className }: { action?: string; message?: string; progress?: number; className?: string }) {
+  // eslint-disable-next-line security/detect-object-injection
   const cfg = Object.prototype.hasOwnProperty.call(loadingConfigs, action) ? loadingConfigs[action] : loadingConfigs.upload;
   const Icon = cfg.icon;
   const safeProgress = Math.max(0, Math.min(100, Math.round(progress)));
   return (
     <div role="status" aria-busy className={cn("flex w-full items-center justify-center p-6", className)}>
-      <div className="w-full max-w-md rounded-[var(--radius-card)] border border-border bg-card p-4 shadow-[var(--shadow-soft-drop)]">
+      <div className="w-full max-w-md rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-50 p-4 shadow-[var(--shadow-soft-drop)]">
         <div className="flex items-center gap-3">
-          <Icon className={cn("h-5 w-5 text-foreground", cfg.animation)} />
+          <Icon className="h-5 w-5 animate-spin text-primary-600" />
           <div className="flex-1">
             <div className="flex items-center justify-between">
-              <span className="font-sans text-sm text-muted-foreground">{message ?? cfg.defaultMessage ?? "Processing..."}</span>
-              <span className="font-sans text-xs text-muted-foreground">{safeProgress}%</span>
+              <span className="font-sans text-sm text-neutral-700">{message ?? cfg.defaultMessage ?? "Processing..."}</span>
+              <span className="font-sans text-xs text-neutral-500">{safeProgress}%</span>
             </div>
-            <div className="mt-2 h-2 w-full rounded-pill bg-accent">
-              <div className="h-2 rounded-pill bg-primary" style={{ width: `${safeProgress}%` }} />
+            <div className="mt-2 h-2 w-full rounded-pill bg-neutral-200">
+              <div className="h-2 rounded-pill bg-primary-500 transition-all duration-300 ease-out" style={{ width: `${safeProgress}%` }} />
             </div>
           </div>
         </div>
@@ -125,7 +140,7 @@ export function ProgressLoader({ action = "upload", message, progress = 0, class
 export function StreamLoader({ message = "Streaming...", className }: { message?: string; className?: string }) {
   return (
     <div role="status" aria-live="polite" className={cn("flex items-center justify-center", className)}>
-      <ClarityLoader size="sm" message={message} />
+      <ShadcnLoader size="sm" message={message} />
     </div>
   );
 }

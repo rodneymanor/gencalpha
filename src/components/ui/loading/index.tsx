@@ -11,6 +11,7 @@ export {
   StreamLoader,
   LoadingBoundary,
   ClarityLoader,
+  ShadcnLoader,
 } from "./loading-components";
 
 // Export new skeleton screens

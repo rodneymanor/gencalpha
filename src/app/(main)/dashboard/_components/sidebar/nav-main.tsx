@@ -49,10 +49,10 @@ const CustomDailyButton = ({ url }: { url: string }) => {
       window.dispatchEvent(new CustomEvent("write:close-slideout"));
     }
 
-    // If already on /write, reload the page to reset state
-    if (path === url) {
+    // If already on /write (with or without query params), navigate to clean /write
+    if (path.startsWith(url)) {
       e.preventDefault();
-      window.location.reload();
+      window.location.href = url; // Navigate to clean /write URL
     }
   };
 

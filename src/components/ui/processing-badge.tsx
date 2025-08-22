@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import { Clock, CheckCircle, AlertCircle } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { ClarityLoader } from "@/components/ui/loading";
+import { InlineLoader } from "@/components/ui/loading";
 import type { VideoProcessingJob } from "@/lib/simple-video-queue";
 import { cn } from "@/lib/utils";
 
@@ -40,7 +40,7 @@ export function ProcessingBadge({ jobs, className }: ProcessingBadgeProps) {
 
   if (stats.processing > 0) {
     variant = "default";
-    icon = <ClarityLoader size="inline" />;
+    icon = <InlineLoader size="sm" />;
     text = `${stats.processing} processing`;
   } else if (stats.recentFailed > 0) {
     variant = "destructive";
@@ -75,14 +75,25 @@ interface ProcessingTooltipProps {
 }
 
 export function ProcessingTooltip({ jobs, children }: ProcessingTooltipProps) {
-  const activeJobs = jobs.filter(job =>
-    job.status === "pending" ||
-    job.status === "processing" ||
-    (job.status === "completed" && job.completedAt &&
-     new Date().getTime() - new Date(job.completedAt).getTime() < 5 * 60 * 1000) || // Show completed for 5 minutes
-    (job.status === "failed" && job.completedAt &&
-     new Date().getTime() - new Date(job.completedAt).getTime() < 10 * 60 * 1000) // Show failed for 10 minutes
-  );
+  const activeJobs = jobs.filter(job => {
+    const fiveMinutesAgo = 5 * 60 * 1000;
+    const tenMinutesAgo = 10 * 60 * 1000;
+    const now = new Date().getTime();
+
+    if (job.status === "pending" || job.status === "processing") {
+      return true;
+    }
+
+    if (job.status === "completed" && job.completedAt) {
+      return now - new Date(job.completedAt).getTime() < fiveMinutesAgo;
+    }
+
+    if (job.status === "failed" && job.completedAt) {
+      return now - new Date(job.completedAt).getTime() < tenMinutesAgo;
+    }
+
+    return false;
+  });
 
   if (activeJobs.length === 0) {
     return <>{children}</>;
@@ -118,7 +129,7 @@ export function ProcessingTooltip({ jobs, children }: ProcessingTooltipProps) {
                       <span className="text-red-600 font-medium">
                         {job.error?.includes("Instagram post") ?
                           "Instagram post URLs not supported yet" :
-                          job.error || job.message}
+                          job.error ?? job.message}
                       </span>
                     ) : (
                       `${job.message} (${job.progress}%)`

@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { Play } from "lucide-react";
 
-import { ClarityLoader } from "@/components/ui/loading";
+import { ShadcnLoader } from "@/components/ui/loading";
 import { Video } from "@/lib/collections";
 import { cn } from "@/lib/utils";
 
@@ -33,7 +33,7 @@ export function VideoPlayer({
 
   // Determine the best video URL to use
   const getVideoUrl = () => {
-    return video.iframeUrl || video.directUrl || video.originalUrl;
+    return video.iframeUrl ?? video.directUrl ?? video.originalUrl;
   };
 
   const handleIframeLoad = () => {
@@ -68,7 +68,7 @@ export function VideoPlayer({
       <div className={cn("relative h-full w-full", className)}>
         {isLoading && (
           <div className="bg-muted absolute inset-0 z-10 flex items-center justify-center">
-            <ClarityLoader size="sm" />
+            <ShadcnLoader size="sm" />
           </div>
         )}
 
@@ -108,7 +108,7 @@ export function VideoPlayer({
 
       {isLoading && !showPlayButton && (
         <div className="bg-muted absolute inset-0 z-10 flex items-center justify-center">
-          <ClarityLoader size="sm" />
+          <ShadcnLoader size="sm" />
         </div>
       )}
 
