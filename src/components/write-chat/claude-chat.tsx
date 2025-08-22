@@ -412,6 +412,34 @@ export function ClaudeChat({
     }
   };
 
+  // Helper function to add and persist script indicator message
+  const addScriptIndicatorMessage = async (conversationId: string | null) => {
+    const scriptIndicatorMessage =
+      "✨ Generated a script with Hook, Bridge, Golden Nugget, and Call to Action. The script has been opened in the editor panel for you to review and edit.";
+
+    // Add message to UI
+    setMessages((prev): ChatMessage[] => {
+      const filtered = prev.filter((m) => m.content !== ACK_LOADING);
+      return [
+        ...filtered,
+        {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: scriptIndicatorMessage,
+        },
+      ];
+    });
+
+    // Persist to database
+    if (conversationId) {
+      try {
+        await saveMessageToDb(conversationId, "assistant", scriptIndicatorMessage);
+      } catch (e) {
+        console.warn("⚠️ [ClaudeChat] Failed to persist script indicator message:", e);
+      }
+    }
+  };
+
   // Enhanced smooth scrolling with message manager
   useEffect(() => {
     if (messagesContainerRef.current) {
@@ -692,8 +720,7 @@ export function ClaudeChat({
           await generateTitleForScript(trimmed, res.script.hook, ensuredConvId ?? undefined);
 
           await delay(SLIDE_DURATION_MS);
-          // Remove loader only; do not append structured answer to chat
-          setMessages((prev): ChatMessage[] => prev.filter((m) => m.content !== ACK_LOADING));
+          await addScriptIndicatorMessage(ensuredConvId);
         } else {
           // Keep error in chat; do not open slideout
           await delay(SLIDE_DURATION_MS);
@@ -746,7 +773,7 @@ export function ClaudeChat({
           await generateTitleForScript(trimmed, res.script.hook, ensuredConvId ?? undefined);
 
           await delay(SLIDE_DURATION_MS);
-          setMessages((prev): ChatMessage[] => prev.filter((m) => m.content !== ACK_LOADING));
+          await addScriptIndicatorMessage(ensuredConvId);
           return;
         }
         await delay(SLIDE_DURATION_MS);
