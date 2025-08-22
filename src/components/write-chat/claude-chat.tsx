@@ -7,11 +7,8 @@ import { useEffect, useRef, useState, useCallback } from "react";
 //
 // icons moved to presentational components
 
-import { Plus } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ChatLibraryModal } from "@/components/write-chat/chat-library-modal";
 import { ACK_BEFORE_SLIDE_MS, SLIDE_DURATION_MS, ACK_LOADING } from "@/components/write-chat/constants";
 import { useInlineVideoActions } from "@/components/write-chat/hooks/use-inline-video-actions";
 import { useVoiceRecorder } from "@/components/write-chat/hooks/use-voice-recorder";
@@ -177,7 +174,6 @@ type ClaudeChatProps = {
   onHeroStateChange?: (isHero: boolean) => void;
   initialPrompt?: string;
   initialAssistant?: AssistantType;
-  showChatLibrary?: boolean;
   conversationIdToLoad?: string | null;
 };
 
@@ -189,7 +185,6 @@ export function ClaudeChat({
   onHeroStateChange,
   initialPrompt,
   initialAssistant,
-  showChatLibrary = true,
   conversationIdToLoad,
 }: ClaudeChatProps) {
   // Chat renders conversational text; structured results (scripts, analysis, hooks) are sent to the
@@ -254,22 +249,6 @@ export function ClaudeChat({
     }, 400); // Match CSS transition duration
   }, [isHeroState, isTransitioning]);
 
-  // Handle starting a new chat
-  const handleNewChat = useCallback(() => {
-    // Reset all state
-    setConversationId(null);
-    setConversationTitle(null);
-    setIsFirstResponse(true);
-    setMessages([]);
-    setInputValue("");
-    setSelectedAssistant(null);
-
-    // Return to hero state
-    setIsHeroState(true);
-    setIsTransitioning(false);
-
-    console.log("✅ [ClaudeChat] Started new chat");
-  }, []);
 
   // Handle loading a saved conversation
   const handleLoadChat = useCallback(
