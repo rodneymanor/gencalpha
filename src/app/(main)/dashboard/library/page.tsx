@@ -50,7 +50,7 @@ export default function LibraryPage() {
         .map((conv) => ({
           id: conv.id,
           title: conv.title ?? "Untitled Chat",
-          href: `/dashboard/writing-test-2?chatId=${conv.id}`, // Link to chat page with conversation ID
+          href: `/write?chatId=${conv.id}`, // Link to chat page with conversation ID
           lastMessageLabel: formatDistanceToNow(new Date(conv.lastMessageAt), { addSuffix: true }),
         })),
     [conversations, query],
@@ -86,7 +86,7 @@ export default function LibraryPage() {
   };
 
   const handleNewChat = () => {
-    router.push("/dashboard/writing-test-2");
+    router.push("/write");
   };
 
   return (

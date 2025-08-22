@@ -9,10 +9,16 @@ export default async function WritePage({
   const params = await searchParams;
   const initialPrompt = typeof params.prompt === "string" ? params.prompt : undefined;
   const initialAssistant = typeof params.assistant === "string" ? (params.assistant as AssistantType) : undefined;
+  const chatId = typeof params.chatId === "string" ? params.chatId : undefined;
   const remountKey = typeof params.new === "string" ? params.new : undefined;
   return (
     <div className="font-sans">
-      <UnifiedWriteClient key={remountKey} initialPrompt={initialPrompt} initialAssistant={initialAssistant} />
+      <UnifiedWriteClient
+        key={remountKey}
+        initialPrompt={initialPrompt}
+        initialAssistant={initialAssistant}
+        conversationIdToLoad={chatId}
+      />
     </div>
   );
 }

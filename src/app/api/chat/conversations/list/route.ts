@@ -36,7 +36,6 @@ export async function GET(request: NextRequest): Promise<NextResponse<ListConver
     const snapshot = await adminDb
       .collection("chat_conversations")
       .where("userId", "==", authResult.user.uid)
-      .orderBy("lastMessageAt", "desc")
       .limit(100)
       .get();
 
@@ -54,6 +53,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<ListConver
         };
       })
       .filter((conv) => conv.status === "saved")
+      .sort((a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime())
       .slice(0, 50);
 
     return NextResponse.json({ success: true, conversations });

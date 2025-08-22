@@ -21,6 +21,7 @@ import { FixedChatInput } from "@/components/write-chat/presentation/fixed-chat-
 import { HeroSection } from "@/components/write-chat/presentation/hero-section";
 import {
   generateTitle,
+  createConversation,
   saveMessage as saveMessageToDb,
   loadConversation,
 } from "@/components/write-chat/services/chat-service";
@@ -368,9 +369,30 @@ export function ClaudeChat({
   const { isRecording, toggle: toggleRecording } = useVoiceRecorder({ onTranscription: setInputValue });
   const [showListening, setShowListening] = useState(true);
 
+  // Ensure a conversation exists and persist the user's message before proceeding
+  const ensureConversationAndSaveUserMessage = async (userInput: string): Promise<string | null> => {
+    try {
+      let convIdLocal = conversationId;
+      if (!convIdLocal) {
+        const createdId = await createConversation(selectedAssistant ?? "MiniBuddy", initialPrompt ?? undefined);
+        if (createdId) {
+          convIdLocal = createdId;
+          setConversationId(createdId);
+        }
+      }
+      if (!convIdLocal) return null;
+      await saveMessageToDb(convIdLocal, "user", userInput);
+      return convIdLocal;
+    } catch (error) {
+      console.warn("⚠️ [ClaudeChat] Failed to ensure conversation or save user message:", error);
+      return null;
+    }
+  };
+
   // Helper function to generate title after script generation
-  const generateTitleForScript = async (userInput: string, scriptHook: string) => {
-    if (!conversationId || !isFirstResponse || conversationTitle) return;
+  const generateTitleForScript = async (userInput: string, scriptHook: string, convIdOverride?: string) => {
+    const convIdLocal = convIdOverride ?? conversationId;
+    if (!convIdLocal || !isFirstResponse || conversationTitle) return;
 
     const scriptResponse = `Generated a script with Hook: ${scriptHook.substring(0, 50)}...`;
     const messagesForTitle = [
@@ -379,7 +401,7 @@ export function ClaudeChat({
     ];
 
     try {
-      const generatedTitle = await generateTitle(conversationId, messagesForTitle);
+      const generatedTitle = await generateTitle(convIdLocal, messagesForTitle);
       if (generatedTitle) {
         setConversationTitle(generatedTitle);
         setIsFirstResponse(false);
@@ -614,40 +636,51 @@ export function ClaudeChat({
     if (isVideoUrlSubmission) {
       return;
     }
-    // Persist user message
-    (async () => {
-      try {
-        const headers = await buildAuthHeaders();
-        let convId: string | null = conversationId;
-        if (!convId) {
-          const res = await fetch("/api/chat/conversations", {
-            method: "POST",
-            headers,
-            body: JSON.stringify({ assistant: selectedAssistant ?? "MiniBuddy", initialPrompt: initialPrompt ?? null }),
-          });
-          if (res.ok) {
-            const json = (await res.json()) as { success: boolean; conversationId?: string };
-            if (json.success && json.conversationId) {
-              convId = json.conversationId;
-              setConversationId(json.conversationId);
+    // Determine if this input will trigger the script flow
+    const lower = trimmed.toLowerCase();
+    const isScriptCommand = lower.startsWith("/script ") || lower.includes("generate script");
+    const shouldUseScriptFlow = !selectedAssistant || isScriptCommand;
+
+    // Persist user message only for non-script flows; script flows handle it synchronously
+    if (!shouldUseScriptFlow) {
+      (async () => {
+        try {
+          const headers = await buildAuthHeaders();
+          let convId: string | null = conversationId;
+          if (!convId) {
+            const res = await fetch("/api/chat/conversations", {
+              method: "POST",
+              headers,
+              body: JSON.stringify({
+                assistant: selectedAssistant ?? "MiniBuddy",
+                initialPrompt: initialPrompt ?? null,
+              }),
+            });
+            if (res.ok) {
+              const json = (await res.json()) as { success: boolean; conversationId?: string };
+              if (json.success && json.conversationId) {
+                convId = json.conversationId;
+                setConversationId(json.conversationId);
+              }
             }
           }
+          if (!convId) {
+            console.warn("⚠️ [ClaudeChat] No conversation id available; skipping message persistence");
+            return;
+          }
+          await saveMessageToDb(convId, "user", trimmed);
+        } catch (e) {
+          console.warn("⚠️ [ClaudeChat] Failed to persist user message:", e);
         }
-        if (!convId) {
-          console.warn("⚠️ [ClaudeChat] No conversation id available; skipping message persistence");
-          return;
-        }
-        await saveMessageToDb(convId, "user", trimmed);
-      } catch (e) {
-        console.warn("⚠️ [ClaudeChat] Failed to persist user message:", e);
-      }
-    })();
+      })();
+    }
 
     // Helper: route structured content to slideout BlockNote editor
 
     // If no assistant selected, treat the input as a script idea and run Speed Write
     if (!selectedAssistant) {
       try {
+        const ensuredConvId = await ensureConversationAndSaveUserMessage(trimmed);
         const res = await generateScript(trimmed, "60");
         await delay(ACK_BEFORE_SLIDE_MS);
         if (res.success && res.script) {
@@ -656,7 +689,7 @@ export function ClaudeChat({
           onAnswerReady?.();
 
           // Generate title for the conversation after successful script generation
-          await generateTitleForScript(trimmed, res.script.hook);
+          await generateTitleForScript(trimmed, res.script.hook, ensuredConvId ?? undefined);
 
           await delay(SLIDE_DURATION_MS);
           // Remove loader only; do not append structured answer to chat
@@ -697,11 +730,11 @@ export function ClaudeChat({
     }
 
     // Script command detection
-    const lower = trimmed.toLowerCase();
-    if (lower.startsWith("/script ") || lower.includes("generate script")) {
+    if (isScriptCommand) {
       const idea = trimmed.replace(/^\s*\/script\s+/i, "").replace(/^(generate script\s*:?)\s*/i, "");
 
       try {
+        const ensuredConvId = await ensureConversationAndSaveUserMessage(trimmed);
         const res = await generateScript(idea, "60");
         await delay(ACK_BEFORE_SLIDE_MS);
         if (res.success && res.script) {
@@ -710,7 +743,7 @@ export function ClaudeChat({
           onAnswerReady?.();
 
           // Generate title for the conversation after successful script generation
-          await generateTitleForScript(trimmed, res.script.hook);
+          await generateTitleForScript(trimmed, res.script.hook, ensuredConvId ?? undefined);
 
           await delay(SLIDE_DURATION_MS);
           setMessages((prev): ChatMessage[] => prev.filter((m) => m.content !== ACK_LOADING));

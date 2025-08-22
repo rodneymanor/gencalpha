@@ -16,9 +16,11 @@ import { ScriptData } from "@/types/script-panel";
 export function UnifiedWriteClient({
   initialPrompt,
   initialAssistant,
+  conversationIdToLoad,
 }: {
   initialPrompt?: string;
   initialAssistant?: AssistantType;
+  conversationIdToLoad?: string;
 }) {
   // State management
   const [_isHeroState, setIsHeroState] = useState(true);
@@ -115,6 +117,7 @@ export function UnifiedWriteClient({
         <ClaudeChat
           initialPrompt={initialPrompt}
           initialAssistant={initialAssistant}
+          conversationIdToLoad={conversationIdToLoad}
           onHeroStateChange={(isHero: boolean) => {
             setIsHeroState(isHero);
           }}
