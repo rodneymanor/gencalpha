@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { useRouter } from "next/navigation";
 
-import { PanelLeft } from "lucide-react";
+import { PanelLeft, Pin } from "lucide-react";
 
 import { ThemeSwitcher as ColorThemeSwitcher } from "@/components/theme/theme-switcher";
 import {
@@ -43,13 +43,18 @@ function SidebarLogo({ isPinned, onPinToggle }: { isPinned: boolean; onPinToggle
   return (
     <div className="flex h-12 w-full items-center justify-between px-2">
       {isCollapsed && !isMobile ? (
-        // Show "G" when collapsed on desktop only
-        <span
-          className="text-foreground hover:text-primary cursor-pointer text-2xl font-bold transition-colors duration-200 ease-linear"
-          onClick={handleLogoClick}
-        >
-          G
-        </span>
+        // Show pin icon when collapsed on desktop - indicates clickable to pin sidebar
+        <div className="flex w-full items-center justify-center">
+          <div
+            className="hover:bg-accent hover:text-accent-foreground flex cursor-pointer items-center justify-center rounded-[var(--radius-button)] p-2 transition-all duration-200 ease-linear"
+            onClick={onPinToggle}
+            title="Pin sidebar open"
+          >
+            <Pin
+              className={`h-4 w-4 transition-colors duration-200 ease-linear ${isPinned ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+            />
+          </div>
+        </div>
       ) : (
         <>
           {/* Logo on the left */}
