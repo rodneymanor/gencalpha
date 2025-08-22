@@ -231,7 +231,7 @@ export class RSSFeedParser {
           }
           
           items.push({
-            id: Buffer.from(link).toString('base64').substring(0, 10),
+            id: `${category}-${Buffer.from(link + title + pubDate).toString('base64').substring(0, 12)}`,
             title,
             description,
             link,
