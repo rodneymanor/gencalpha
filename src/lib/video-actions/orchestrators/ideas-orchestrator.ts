@@ -4,7 +4,6 @@
  */
 
 import { validateVideoUrlOrThrow } from "../validators";
-import { scrapeVideoUrl } from "@/lib/unified-video-scraper";
 import { transcribeVideo, generateIdeas } from "@/components/write-chat/services/video-service";
 import {
   VideoActionInput,
@@ -59,7 +58,7 @@ export class IdeasOrchestrator {
         console.log("🔍 [IDEAS_ORCHESTRATOR] Scraping video URL...");
       }
       
-      const scraperResult = await scrapeVideoUrl(input.url);
+      const scraperResult = await this.scrapeVideoViaApi(input.url);
       
       if (!scraperResult.videoUrl) {
         throw new Error("Unable to extract video URL from social media link");
@@ -145,12 +144,45 @@ export class IdeasOrchestrator {
         error: errorDetails.message,
         metadata: {
           originalUrl: input.url,
-          platform: input.platform || "unknown",
+          platform: input.platform ?? "unknown",
           processedAt: new Date(),
           duration,
         },
       };
     }
+  }
+
+  /**
+   * Scrape video URL via server-side API endpoint
+   */
+  private async scrapeVideoViaApi(url: string): Promise<{
+    videoUrl: string;
+    platform: string;
+    metadata?: any;
+  }> {
+    const response = await fetch("/api/internal/video/resolve", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ url }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Video resolve API failed: ${response.status} ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.message || result.error || "Video resolve failed");
+    }
+
+    return {
+      videoUrl: result.videoUrl,
+      platform: result.platform,
+      metadata: result.metadata,
+    };
   }
 
   /**

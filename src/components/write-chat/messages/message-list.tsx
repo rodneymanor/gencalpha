@@ -12,10 +12,7 @@ type MessageListProps = {
   resolvedName?: string | null;
   videoPanel: { url: string; platform: "instagram" | "tiktok" } | null;
   activeAction: string | null;
-  onTranscribe: () => void;
-  onIdeas: () => void;
-  onHooks: () => void;
-  onVideoAction?: (action: "transcribe" | "ideas" | "hooks") => void;
+  onVideoAction: (action: "transcribe" | "ideas" | "hooks") => void;
   messagesEndRef: React.RefObject<HTMLDivElement>;
   isProcessingVideoAction?: boolean;
 };
@@ -68,7 +65,7 @@ function MessageListComponent(props: MessageListProps) {
                       // Show video action selector for video processing
                       <div className="my-4">
                         <VideoActionSelector
-                          onAction={onVideoAction ?? (() => {})}
+                          onAction={onVideoAction}
                           disabled={activeAction !== null || isProcessingVideoAction}
                         />
                       </div>

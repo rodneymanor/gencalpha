@@ -1,20 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { authenticateApiKey } from "@/lib/api-key-auth";
 import { scrapeVideoUrl, UnifiedVideoScraper } from "@/lib/unified-video-scraper";
 
+/**
+ * Internal video resolve endpoint for client-side video actions
+ * No authentication required - used internally by video action orchestrators
+ */
 export async function POST(request: NextRequest) {
   try {
-    // Check for internal API secret first
-    const internalSecret = request.headers.get("x-internal-secret");
-    const isInternalRequest = internalSecret && internalSecret === process.env.INTERNAL_API_SECRET;
-    
-    // Skip auth for internal requests, otherwise require API key auth
-    if (!isInternalRequest) {
-      const authResult = await authenticateApiKey(request);
-      if (authResult instanceof NextResponse) return authResult;
-    }
-
     const { url } = await request.json();
     if (!url) {
       return NextResponse.json({ success: false, error: "url is required" });
@@ -25,13 +18,25 @@ export async function POST(request: NextRequest) {
 
     // Friendly early exit when RapidAPI key is missing for Instagram
     if (platform === "instagram" && !process.env.RAPIDAPI_KEY) {
-      console.warn("⚠️ [VIDEO_RESOLVE] Missing RAPIDAPI_KEY for Instagram resolve");
+      console.warn("⚠️ [INTERNAL_VIDEO_RESOLVE] Missing RAPIDAPI_KEY for Instagram resolve");
       return NextResponse.json({
         success: false,
         platform,
         error: "rapidapi_key_missing",
         message:
           "Instagram resolve is temporarily unavailable on the server. Please add RAPIDAPI_KEY or try TikTok URLs.",
+      });
+    }
+
+    // Friendly early exit when RapidAPI key is missing for TikTok
+    if (platform === "tiktok" && !process.env.RAPIDAPI_KEY) {
+      console.warn("⚠️ [INTERNAL_VIDEO_RESOLVE] Missing RAPIDAPI_KEY for TikTok resolve");
+      return NextResponse.json({
+        success: false,
+        platform,
+        error: "rapidapi_key_missing",
+        message:
+          "TikTok resolve is temporarily unavailable on the server. Please add RAPIDAPI_KEY.",
       });
     }
 
@@ -47,17 +52,17 @@ export async function POST(request: NextRequest) {
       });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      console.error("❌ [VIDEO_RESOLVE] scrape error:", msg);
+      console.error("❌ [INTERNAL_VIDEO_RESOLVE] scrape error:", msg);
 
       // Normalize RapidAPI 401s and similar auth errors into friendly client-safe responses
-      const isRapid401 = /Instagram RapidAPI failed:\s*401|Invalid API key/i.test(msg);
+      const isRapid401 = /RapidAPI.*failed:\s*401|Invalid API key/i.test(msg);
       if (isRapid401) {
         return NextResponse.json({
           success: false,
           platform,
           error: "rapidapi_auth",
           message:
-            "Instagram service is unavailable due to server credentials. We're on it — meanwhile you can paste a direct video URL if you have one.",
+            "Video service is unavailable due to server credentials. We're on it — meanwhile you can paste a direct video URL if you have one.",
         });
       }
 
@@ -69,7 +74,7 @@ export async function POST(request: NextRequest) {
       });
     }
   } catch (error) {
-    console.error("❌ [VIDEO_RESOLVE] Error:", error);
+    console.error("❌ [INTERNAL_VIDEO_RESOLVE] Error:", error);
     // Always return 200 to avoid client fetch throwing; indicate failure via success=false
     return NextResponse.json({ success: false, error: "Failed to resolve video" });
   }

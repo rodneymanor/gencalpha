@@ -19,19 +19,17 @@ export function useInlineVideoActions(options: {
   onAnswerReady?: () => void;
 }) {
   const { setMessages, onAnswerReady } = options;
-  const [activeAction, setActiveAction] = useState<InlineVideoAction | null>(null);
 
   const handleTranscribe = useCallback(
     async (videoPanel: { url: string; platform: "instagram" | "tiktok" } | null) => {
       if (!videoPanel) return;
-      setActiveAction("transcribe");
       startAckWithLoader(setMessages, "I'll transcribe this video for you.");
       try {
         // Use the transcription orchestrator for complete workflow
         const result = await transcribeVideoUrl(videoPanel.url);
 
         if (!result.success || !result.data) {
-          throw new Error(result.error || "Transcription failed");
+          throw new Error(result.error ?? "Transcription failed");
         }
 
         // Send script data to script panel slideout
@@ -49,7 +47,7 @@ export function useInlineVideoActions(options: {
           { id: crypto.randomUUID(), role: "assistant", content: `Error: ${errorMessage}` },
         ]);
       } finally {
-        setActiveAction(null);
+        // Action completion is now handled by the parent state machine
       }
     },
     [onAnswerReady, setMessages],
@@ -58,14 +56,14 @@ export function useInlineVideoActions(options: {
   const handleIdeas = useCallback(
     async (videoPanel: { url: string; platform: "instagram" | "tiktok" } | null) => {
       if (!videoPanel) return;
-      setActiveAction("ideas");
+      // Action state is now handled by the parent state machine
       startAckWithLoader(setMessages, "I'll help you create 10 content ideas.");
       try {
         // Use the ideas orchestrator for complete workflow
         const result = await generateVideoIdeas(videoPanel.url);
 
         if (!result.success || !result.data) {
-          throw new Error(result.error || "Ideas generation failed");
+          throw new Error(result.error ?? "Ideas generation failed");
         }
 
         // Send ideas to slideout
@@ -80,7 +78,7 @@ export function useInlineVideoActions(options: {
           { id: crypto.randomUUID(), role: "assistant", content: `Error: ${errorMessage}` },
         ]);
       } finally {
-        setActiveAction(null);
+        // Action completion is now handled by the parent state machine
       }
     },
     [onAnswerReady, setMessages],
@@ -89,14 +87,14 @@ export function useInlineVideoActions(options: {
   const handleHooks = useCallback(
     async (videoPanel: { url: string; platform: "instagram" | "tiktok" } | null) => {
       if (!videoPanel) return;
-      setActiveAction("hooks");
+      // Action state is now handled by the parent state machine
       startAckWithLoader(setMessages, "I'll help you write hooks.");
       try {
         // Use the hooks orchestrator for complete workflow
         const result = await generateVideoHooks(videoPanel.url);
 
         if (!result.success || !result.data) {
-          throw new Error(result.error || "Hooks generation failed");
+          throw new Error(result.error ?? "Hooks generation failed");
         }
 
         // Send hooks to slideout
@@ -111,14 +109,13 @@ export function useInlineVideoActions(options: {
           { id: crypto.randomUUID(), role: "assistant", content: `Error: ${errorMessage}` },
         ]);
       } finally {
-        setActiveAction(null);
+        // Action completion is now handled by the parent state machine
       }
     },
     [onAnswerReady, setMessages],
   );
 
   return {
-    activeAction,
     handleTranscribe,
     handleIdeas,
     handleHooks,

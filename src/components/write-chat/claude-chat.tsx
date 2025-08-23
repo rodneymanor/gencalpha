@@ -11,6 +11,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ACK_BEFORE_SLIDE_MS, SLIDE_DURATION_MS, ACK_LOADING } from "@/components/write-chat/constants";
 import { useInlineVideoActions } from "@/components/write-chat/hooks/use-inline-video-actions";
+import { useVideoActionState, type VideoAction } from "@/components/write-chat/hooks/use-video-action-state";
 import { useVoiceRecorder } from "@/components/write-chat/hooks/use-voice-recorder";
 import { MessageList } from "@/components/write-chat/messages/message-list";
 import { type AssistantType } from "@/components/write-chat/persona-selector";
@@ -207,7 +208,8 @@ export function ClaudeChat({
   const [pendingVideoUrl, setPendingVideoUrl] = useState<{ url: string; platform: "instagram" | "tiktok" } | null>(
     null,
   );
-  const [isProcessingVideoAction, setIsProcessingVideoAction] = useState(false);
+  // Replace old state management with atomic video action state
+  const videoActionState = useVideoActionState();
   const mountedRef = useRef(true);
   // URL detection & validation
   const { detection, isProcessing: isUrlProcessing } = useLightweightUrlDetection(inputValue);
@@ -231,7 +233,7 @@ export function ClaudeChat({
     enableIntersectionObserver: true,
   });
 
-  const { activeAction, handleTranscribe, handleIdeas, handleHooks } = useInlineVideoActions({
+  const { handleTranscribe, handleIdeas, handleHooks } = useInlineVideoActions({
     setMessages,
     onAnswerReady,
   });
@@ -292,13 +294,20 @@ export function ClaudeChat({
     [isHeroState, handleHeroExpansion],
   );
 
-  // Handler to bridge video action selector to inline video actions
+  // Handler to bridge video action selector to inline video actions with atomic state management
   const handleVideoAction = useCallback(
-    (action: "transcribe" | "ideas" | "hooks") => {
-      if (!pendingVideoUrl || isProcessingVideoAction) return;
+    (action: VideoAction) => {
+      if (!pendingVideoUrl) return;
 
-      // Set processing flag to prevent duplicate calls
-      setIsProcessingVideoAction(true);
+      // Try to request the action using atomic state management
+      const requestId = videoActionState.actions.requestAction(action);
+      if (!requestId) {
+        // Request was rejected (debounced or already processing)
+        return;
+      }
+
+      // Start processing the action
+      videoActionState.actions.startProcessing(action);
 
       // Remove the video-actions message and replace with selected action processing
       setMessages((prev) => {
@@ -326,22 +335,29 @@ export function ClaudeChat({
       // Clear the pending video URL since we're processing it now
       setPendingVideoUrl(null);
 
-      switch (action) {
-        case "transcribe":
-          handleTranscribe(videoPanel);
-          break;
-        case "ideas":
-          handleIdeas(videoPanel);
-          break;
-        case "hooks":
-          handleHooks(videoPanel);
-          break;
-      }
+      // Execute the action and handle completion
+      const executeAction = async () => {
+        try {
+          switch (action) {
+            case "transcribe":
+              await handleTranscribe(videoPanel);
+              break;
+            case "ideas":
+              await handleIdeas(videoPanel);
+              break;
+            case "hooks":
+              await handleHooks(videoPanel);
+              break;
+          }
+        } finally {
+          // Always complete the action, even if it fails
+          videoActionState.actions.completeAction();
+        }
+      };
 
-      // Reset processing flag after a short delay to allow for action completion
-      setTimeout(() => setIsProcessingVideoAction(false), 1000);
+      executeAction();
     },
-    [pendingVideoUrl, isProcessingVideoAction, handleTranscribe, handleIdeas, handleHooks, setMessages],
+    [pendingVideoUrl, videoActionState.actions, handleTranscribe, handleIdeas, handleHooks, setMessages],
   );
 
   // Voice recording
@@ -917,13 +933,10 @@ export function ClaudeChat({
               messages={messages}
               resolvedName={resolvedName ?? null}
               videoPanel={null}
-              activeAction={activeAction}
-              onTranscribe={() => handleTranscribe(null)}
-              onIdeas={() => handleIdeas(null)}
-              onHooks={() => handleHooks(null)}
+              activeAction={videoActionState.state.activeAction}
               onVideoAction={handleVideoAction}
               messagesEndRef={messagesEndRef}
-              isProcessingVideoAction={isProcessingVideoAction}
+              isProcessingVideoAction={videoActionState.isProcessing}
             />
           </ScrollArea>
 
