@@ -297,16 +297,23 @@ export function ClaudeChat({
   // Handler to bridge video action selector to inline video actions with atomic state management
   const handleVideoAction = useCallback(
     (action: VideoAction) => {
-      if (!pendingVideoUrl) return;
+      console.log("🎯 [handleVideoAction] Called with action:", action);
+      if (!pendingVideoUrl) {
+        console.log("❌ [handleVideoAction] No pending video URL");
+        return;
+      }
 
       // Try to request the action using atomic state management
       const requestId = videoActionState.actions.requestAction(action);
+      console.log("📝 [handleVideoAction] Request ID:", requestId);
       if (!requestId) {
         // Request was rejected (debounced or already processing)
+        console.log("🚫 [handleVideoAction] Request rejected by state machine");
         return;
       }
 
       // Start processing the action
+      console.log("▶️ [handleVideoAction] Starting processing for action:", action);
       videoActionState.actions.startProcessing(action);
 
       // Remove the video-actions message and replace with selected action processing
@@ -337,10 +344,13 @@ export function ClaudeChat({
 
       // Execute the action and handle completion
       const executeAction = async () => {
+        console.log("🚀 [executeAction] Starting execution for:", action);
         try {
           switch (action) {
             case "transcribe":
+              console.log("📝 [executeAction] Calling handleTranscribe");
               await handleTranscribe(videoPanel);
+              console.log("✅ [executeAction] handleTranscribe completed");
               break;
             case "ideas":
               await handleIdeas(videoPanel);
@@ -349,12 +359,16 @@ export function ClaudeChat({
               await handleHooks(videoPanel);
               break;
           }
+        } catch (error) {
+          console.error("❌ [executeAction] Error:", error);
         } finally {
           // Always complete the action, even if it fails
+          console.log("🏁 [executeAction] Completing action in state machine");
           videoActionState.actions.completeAction();
         }
       };
 
+      // Execute asynchronously but don't block
       executeAction();
     },
     [pendingVideoUrl, videoActionState.actions, handleTranscribe, handleIdeas, handleHooks, setMessages],

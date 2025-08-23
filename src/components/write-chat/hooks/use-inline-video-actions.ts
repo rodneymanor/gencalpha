@@ -23,7 +23,7 @@ export function useInlineVideoActions(options: {
   const handleTranscribe = useCallback(
     async (videoPanel: { url: string; platform: "instagram" | "tiktok" } | null) => {
       if (!videoPanel) return;
-      startAckWithLoader(setMessages, "I'll transcribe this video for you.");
+      // Message handling is now done by the parent component
       try {
         // Use the transcription orchestrator for complete workflow
         const result = await transcribeVideoUrl(videoPanel.url);
@@ -56,8 +56,7 @@ export function useInlineVideoActions(options: {
   const handleIdeas = useCallback(
     async (videoPanel: { url: string; platform: "instagram" | "tiktok" } | null) => {
       if (!videoPanel) return;
-      // Action state is now handled by the parent state machine
-      startAckWithLoader(setMessages, "I'll help you create 10 content ideas.");
+      // Message and state handling is now done by the parent component
       try {
         // Use the ideas orchestrator for complete workflow
         const result = await generateVideoIdeas(videoPanel.url);
@@ -87,8 +86,7 @@ export function useInlineVideoActions(options: {
   const handleHooks = useCallback(
     async (videoPanel: { url: string; platform: "instagram" | "tiktok" } | null) => {
       if (!videoPanel) return;
-      // Action state is now handled by the parent state machine
-      startAckWithLoader(setMessages, "I'll help you write hooks.");
+      // Message and state handling is now done by the parent component
       try {
         // Use the hooks orchestrator for complete workflow
         const result = await generateVideoHooks(videoPanel.url);

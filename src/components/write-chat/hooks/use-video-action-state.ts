@@ -20,24 +20,29 @@ const DEBOUNCE_TIME = 500; // 500ms debounce
 
 function videoActionReducer(state: VideoActionState, event: VideoActionEvent): VideoActionState {
   const now = Date.now();
+  console.log("🔄 [VideoActionReducer]", event.type, "Current state:", state.status);
   
   switch (event.type) {
     case "REQUEST_ACTION":
       // Prevent duplicate requests
       if (state.status === "processing") {
+        console.log("🚫 [VideoActionReducer] Blocked: already processing");
         return state; // Ignore request while processing
       }
       
       // Check debounce window
       if (state.status === "debouncing" && (now - state.lastActionTime) < DEBOUNCE_TIME) {
+        console.log("🚫 [VideoActionReducer] Blocked: within debounce window");
         return state; // Ignore request within debounce window
       }
       
       // Same request ID check (idempotency)
       if (state.requestId === event.requestId && state.status !== "idle") {
+        console.log("🚫 [VideoActionReducer] Blocked: duplicate request ID");
         return state; // Ignore duplicate request ID
       }
       
+      console.log("✅ [VideoActionReducer] Accepting request for:", event.action);
       return {
         ...state,
         status: "debouncing",
@@ -57,6 +62,7 @@ function videoActionReducer(state: VideoActionState, event: VideoActionEvent): V
       return state;
       
     case "COMPLETE_ACTION":
+      console.log("✅ [VideoActionReducer] Completing action");
       return {
         status: "idle",
         activeAction: null,
