@@ -11,15 +11,17 @@ import { useSimpleScript } from "@/contexts/simple-script-context";
 import { cn } from "@/lib/utils";
 
 import { SimpleScriptPanel } from "./simple-script-panel";
+import { EnhancedScriptPanel } from "./enhanced-script-panel";
 
 interface SimpleScriptEditorProps {
   initialValue?: string;
   onSave?: (content: string) => void;
   className?: string;
+  useInteractiveMode?: boolean;
 }
 
-export function SimpleScriptEditor({ initialValue = "", onSave, className }: SimpleScriptEditorProps) {
-  const { isPanelOpen, openPanel, editorContent, setEditorContent, scriptComponents } = useSimpleScript();
+export function SimpleScriptEditor({ initialValue = "", onSave, className, useInteractiveMode = true }: SimpleScriptEditorProps) {
+  const { isPanelOpen, openPanel, closePanel, editorContent, setEditorContent, scriptComponents, currentSessionId } = useSimpleScript();
 
   // Initialize editor content properly in useEffect
   useEffect(() => {
@@ -84,7 +86,16 @@ export function SimpleScriptEditor({ initialValue = "", onSave, className }: Sim
         </div>
       </div>
 
-      <SimpleScriptPanel />
+      {useInteractiveMode ? (
+        <EnhancedScriptPanel 
+          isOpen={isPanelOpen}
+          onClose={closePanel}
+          onScriptUpdate={setEditorContent}
+          sessionId={currentSessionId || undefined}
+        />
+      ) : (
+        <SimpleScriptPanel />
+      )}
     </div>
   );
 }

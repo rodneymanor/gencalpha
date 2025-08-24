@@ -7,17 +7,18 @@ import { useScriptDownload } from "@/hooks/use-script-download";
 import { cn } from "@/lib/utils";
 import { ScriptPanelProps, ScriptTabConfig, ScriptData } from "@/types/script-panel";
 
-import { ScriptPanelHeader, ScriptPanelTabs, FullScriptView, ComponentsView } from "./script-panel-components";
+import { ScriptPanelHeader, ScriptPanelTabs, FullScriptView, ComponentsView, HooksView } from "./script-panel-components";
 
 /**
  * ScriptPanel - A comprehensive script display component with tabs,
  * copy functionality, and metrics display following Clarity Design System
  */
 // Helper function to get tab configuration
-function getTabConfiguration(componentsLength: number): ScriptTabConfig[] {
+function getTabConfiguration(componentsLength: number, hooksLength: number): ScriptTabConfig[] {
   return [
     { key: "full", label: "Full Script", enabled: true },
     { key: "components", label: "Components", enabled: componentsLength > 0 },
+    { key: "hooks", label: "Hooks", enabled: hooksLength > 0 },
   ];
 }
 
@@ -32,16 +33,16 @@ export function ScriptPanel({
   showMetrics = true,
   customActions,
 }: ScriptPanelProps) {
-  const [activeTab, setActiveTab] = useState<"full" | "components">("full");
+  const [activeTab, setActiveTab] = useState<"full" | "components" | "hooks">("full");
   const { copyText, copyStatus } = useScriptCopy();
   const { downloadScript, isDownloading } = useScriptDownload();
 
-  const tabs = getTabConfiguration(scriptData.components.length);
+  const tabs = getTabConfiguration(scriptData.components.length, scriptData.hooks?.length || 0);
 
   const handleCopy = async (content: string, componentType?: string) => {
     const success = await copyText(content);
     if (success && onCopy) {
-      onCopy(content, componentType);
+      onCopy(content, componentType as any);
     }
   };
 
@@ -76,7 +77,7 @@ export function ScriptPanel({
         onClose={onClose}
       />
 
-      <ScriptPanelTabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
+      <ScriptPanelTabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab as any} />
 
       <ScriptPanelContent
         activeTab={activeTab}
@@ -114,6 +115,8 @@ function ScriptPanelContent({ activeTab, scriptData, showMetrics, onCopy, copySt
       )}
 
       {activeTab === "components" && <ComponentsView components={scriptData.components} onCopy={onCopy} />}
+      
+      {activeTab === "hooks" && <HooksView hooks={scriptData.hooks || []} onCopy={onCopy} />}
     </div>
   );
 }

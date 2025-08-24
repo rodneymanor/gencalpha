@@ -3,6 +3,8 @@
 import { createContext, useContext, useState, ReactNode, useCallback, useMemo } from "react";
 
 import { ClientScriptService, type ScriptGenerationRequest } from "@/lib/services/client-script-service";
+import { useConversationStore } from "@/lib/script-generation/conversation-store";
+import type { ScriptIteration } from "@/lib/script-generation/conversation-types";
 
 export interface ScriptComponent {
   id: string;
@@ -23,12 +25,14 @@ interface SimpleScriptContextType {
   isGenerating: boolean;
   generationProgress: string;
   scriptComponents: ScriptComponent[];
+  currentSessionId: string | null;
 
   openPanel: () => void;
   closePanel: () => void;
   setEditorContent: (content: string) => void;
   insertContentToEditor: (content: string) => void;
   generateScriptFromIdea: (request: ScriptGenerationRequest) => Promise<void>;
+  startInteractiveSession: (idea: string, initialScript?: ScriptIteration) => string;
 }
 
 const SimpleScriptContext = createContext<SimpleScriptContextType | undefined>(undefined);
@@ -39,6 +43,9 @@ export function SimpleScriptProvider({ children }: { children: ReactNode }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState("");
   const [scriptComponents, setScriptComponents] = useState<ScriptComponent[]>([]);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  
+  const { startNewConversation, updateScript } = useConversationStore();
 
   const openPanel = useCallback(() => setIsPanelOpen(true), []);
   const closePanel = useCallback(() => setIsPanelOpen(false), []);
@@ -46,6 +53,19 @@ export function SimpleScriptProvider({ children }: { children: ReactNode }) {
   const insertContentToEditor = useCallback((content: string) => {
     setEditorContent((prev) => prev + (prev.length > 0 ? "\n\n" : "") + content);
   }, []);
+
+  const startInteractiveSession = useCallback((idea: string, initialScript?: ScriptIteration) => {
+    // Create a new conversation session
+    const sessionId = startNewConversation(idea, initialScript);
+    setCurrentSessionId(sessionId);
+    
+    // If initial script provided, update editor
+    if (initialScript) {
+      setEditorContent(initialScript.content);
+    }
+    
+    return sessionId;
+  }, [startNewConversation]);
 
   const generateScriptFromIdea = useCallback(async (request: ScriptGenerationRequest) => {
     setIsGenerating(true);
@@ -56,8 +76,31 @@ export function SimpleScriptProvider({ children }: { children: ReactNode }) {
 
       if (response.success) {
         const newComponents: ScriptComponent[] = [];
+        let primaryScript: ScriptIteration | undefined;
 
         if (response.optionA) {
+          const wordCount = response.optionA.content.split(/\s+/).length;
+          
+          // Create ScriptIteration for conversation
+          primaryScript = {
+            version: 1,
+            content: response.optionA.content,
+            elements: {
+              hook: response.optionA.hook || '',
+              bridge: response.optionA.bridge || '',
+              goldenNugget: response.optionA.goldenNugget || '',
+              wta: response.optionA.wta || ''
+            },
+            metadata: {
+              tone: response.optionA.approach === 'viral' ? 'energetic' : 
+                    response.optionA.approach === 'educational' ? 'educational' : 'casual',
+              duration: response.optionA.estimatedDuration || '0:00',
+              wordCount,
+              lastModified: new Date(),
+              changeLog: ['Initial script generated']
+            }
+          };
+          
           newComponents.push({
             id: `option-a-${Date.now()}`,
             type: "full-script",
@@ -89,6 +132,12 @@ export function SimpleScriptProvider({ children }: { children: ReactNode }) {
 
         setScriptComponents((prev) => [...prev, ...newComponents]);
         setGenerationProgress("Scripts generated successfully!");
+        
+        // Start interactive session with the primary script
+        if (primaryScript) {
+          const sessionId = startInteractiveSession(request.idea, primaryScript);
+          console.log('Started interactive session:', sessionId);
+        }
       } else {
         throw new Error(response.error ?? "Failed to generate script");
       }
@@ -99,7 +148,7 @@ export function SimpleScriptProvider({ children }: { children: ReactNode }) {
       setIsGenerating(false);
       setTimeout(() => setGenerationProgress(""), 3000);
     }
-  }, []);
+  }, [startInteractiveSession]);
 
   const contextValue = useMemo(
     () => ({
@@ -108,11 +157,13 @@ export function SimpleScriptProvider({ children }: { children: ReactNode }) {
       isGenerating,
       generationProgress,
       scriptComponents,
+      currentSessionId,
       openPanel,
       closePanel,
       setEditorContent,
       insertContentToEditor,
       generateScriptFromIdea,
+      startInteractiveSession,
     }),
     [
       isPanelOpen,
@@ -120,11 +171,13 @@ export function SimpleScriptProvider({ children }: { children: ReactNode }) {
       isGenerating,
       generationProgress,
       scriptComponents,
+      currentSessionId,
       openPanel,
       closePanel,
       setEditorContent,
       insertContentToEditor,
       generateScriptFromIdea,
+      startInteractiveSession,
     ],
   );
 

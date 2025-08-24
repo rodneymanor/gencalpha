@@ -41,6 +41,27 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const limit = parseInt(searchParams.get('limit') ?? '8')
 
+    // First try to get cached user trending data
+    const { getUserTrendingCache } = await import('@/lib/db/rss-cache')
+    const cachedUserData = await getUserTrendingCache(userId)
+    
+    if (cachedUserData && cachedUserData.topics.length > 0) {
+      // Return cached data
+      return NextResponse.json({
+        success: true,
+        topics: cachedUserData.topics.slice(0, limit),
+        categories: cachedUserData.categories,
+        count: Math.min(cachedUserData.topics.length, limit),
+        cached: true,
+        lastUpdated: cachedUserData.lastUpdated,
+        nextUpdate: cachedUserData.nextUpdate,
+        timestamp: new Date().toISOString()
+      })
+    }
+
+    // Fallback to generating fresh data if cache miss
+    console.log(`Cache miss for user ${userId}, generating fresh trending data...`)
+    
     // Get user brand settings to determine their preferred categories
     let userCategories: Category[] = []
     
@@ -59,15 +80,24 @@ export async function GET(request: NextRequest) {
       userCategories = ['ai', 'business']
     }
 
-    // Fetch trending topics from all user's selected categories
+    // Try to get from category cache first
+    const { getCachedRSSData } = await import('@/lib/db/rss-cache')
     const allTopics: TrendingTopic[] = []
     
     for (const category of userCategories) {
-      try {
-        const topics = await rssParser.getTrendingTopics(category, 5)
-        allTopics.push(...topics)
-      } catch (error) {
-        console.error(`Error fetching trending topics for ${category}:`, error)
+      // First try cached data
+      const cachedCategoryData = await getCachedRSSData(category)
+      
+      if (cachedCategoryData && cachedCategoryData.topics.length > 0) {
+        allTopics.push(...cachedCategoryData.topics.slice(0, 5))
+      } else {
+        // Fallback to live fetch
+        try {
+          const topics = await rssParser.getTrendingTopics(category, 5)
+          allTopics.push(...topics)
+        } catch (error) {
+          console.error(`Error fetching trending topics for ${category}:`, error)
+        }
       }
     }
 
@@ -75,12 +105,19 @@ export async function GET(request: NextRequest) {
     const sortedTopics = allTopics
       .sort((a, b) => b.relevanceScore - a.relevanceScore)
       .slice(0, limit)
+    
+    // Cache the results for next time
+    if (sortedTopics.length > 0) {
+      const { storeUserTrendingCache } = await import('@/lib/db/rss-cache')
+      await storeUserTrendingCache(userId, sortedTopics, userCategories)
+    }
 
     return NextResponse.json({
       success: true,
       topics: sortedTopics,
       categories: userCategories,
       count: sortedTopics.length,
+      cached: false,
       timestamp: new Date().toISOString()
     })
   } catch (error) {

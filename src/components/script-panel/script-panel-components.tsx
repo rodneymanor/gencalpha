@@ -11,9 +11,12 @@ import {
   ScriptTabConfig,
   SCRIPT_COMPONENT_ICONS,
   SCRIPT_COMPONENT_LABELS,
+  SCRIPT_HOOK_ICONS,
+  SCRIPT_HOOK_LABELS,
   ScriptData,
   ScriptMetrics,
   ScriptComponent,
+  ScriptHook,
 } from "@/types/script-panel";
 
 /**
@@ -97,7 +100,7 @@ export function ScriptPanelHeader({
 interface ScriptPanelTabsProps {
   tabs: ScriptTabConfig[];
   activeTab: string;
-  onTabChange: (tab: "full" | "components") => void;
+  onTabChange: (tab: "full" | "components" | "hooks") => void;
 }
 
 export function ScriptPanelTabs({ tabs, activeTab, onTabChange }: ScriptPanelTabsProps) {
@@ -108,7 +111,7 @@ export function ScriptPanelTabs({ tabs, activeTab, onTabChange }: ScriptPanelTab
         .map((tab) => (
           <button
             key={tab.key}
-            onClick={() => onTabChange(tab.key as "full" | "components")}
+            onClick={() => onTabChange(tab.key as "full" | "components" | "hooks")}
             className={cn(
               "-mb-px border-b-2 px-4 py-3 text-sm font-medium transition-all duration-200",
               activeTab === tab.key
@@ -245,6 +248,109 @@ export function ComponentsView({ components, onCopy }: ComponentsViewProps) {
               <span className="text-xs">~{component.estimatedDuration ?? 0}s</span>
             </div>
           </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Hooks View Component - Display list of generated hooks
+ */
+interface HooksViewProps {
+  hooks: ScriptHook[];
+  onCopy: (content: string, type?: string) => void;
+}
+
+export function HooksView({ hooks, onCopy }: HooksViewProps) {
+  const [copiedHook, setCopiedHook] = useState<string | null>(null);
+
+  const handleHookCopy = async (content: string, hookId: string, hookType: string) => {
+    setCopiedHook(hookId);
+    await onCopy(content, `hook-${hookType}`);
+    setTimeout(() => setCopiedHook(null), 2000);
+  };
+
+  if (hooks.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 text-center">
+        <div className="flex h-12 w-12 items-center justify-center rounded-[var(--radius-button)] border border-neutral-200 bg-neutral-50 mb-3">
+          <span className="text-lg font-semibold text-neutral-400">H</span>
+        </div>
+        <p className="text-sm text-neutral-600">No hooks generated yet</p>
+        <p className="text-xs text-neutral-500 mt-1">Hooks will appear here once generated</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4 p-6">
+      {/* Hooks Header Info */}
+      <div className="rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-100/50 p-4 mb-6">
+        <h3 className="text-sm font-semibold text-neutral-900 mb-2">Generated Hooks</h3>
+        <p className="text-xs text-neutral-600">
+          {hooks.length} hook{hooks.length !== 1 ? 's' : ''} generated for your script. 
+          Each hook is optimized to capture attention and engagement.
+        </p>
+      </div>
+
+      {/* Hooks List */}
+      {hooks.map((hook) => (
+        <div
+          key={hook.id}
+          className="group relative rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-100/50 p-5 transition-colors duration-200 hover:bg-neutral-100/60"
+        >
+          {/* Hook Header */}
+          <div className="mb-3 flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-button)] border border-neutral-200 bg-neutral-50">
+              <span className="text-sm font-semibold text-neutral-600">
+                {SCRIPT_HOOK_ICONS[hook.type] ?? "H"}
+              </span>
+            </div>
+            <div className="flex-1">
+              <span className="text-xs font-semibold tracking-wide text-neutral-600 uppercase">
+                {hook.label ?? SCRIPT_HOOK_LABELS[hook.type] ?? hook.type}
+              </span>
+              {/* Effectiveness indicator if available */}
+              {hook.effectiveness !== undefined && (
+                <div className="mt-1 flex items-center gap-2">
+                  <div className="h-1.5 w-24 rounded-full bg-neutral-200 overflow-hidden">
+                    <div 
+                      className="h-full bg-success-500 transition-all duration-300"
+                      style={{ width: `${hook.effectiveness}%` }}
+                    />
+                  </div>
+                  <span className="text-xs text-neutral-500">{hook.effectiveness}%</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Copy Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleHookCopy(hook.content, hook.id, hook.type)}
+            className={cn(
+              "absolute top-5 right-5 h-7 px-3 text-xs opacity-0 transition-opacity duration-200 group-hover:opacity-100",
+              copiedHook === hook.id && "bg-success-50 text-success-600 dark:bg-success-950/20 opacity-100",
+            )}
+          >
+            {copiedHook === hook.id ? "Copied" : "Copy"}
+          </Button>
+
+          {/* Hook Content */}
+          <div className="mt-1 text-sm leading-relaxed text-neutral-900 whitespace-pre-wrap">{hook.content}</div>
+
+          {/* Meta Info */}
+          {hook.wordCount && (
+            <div className="mt-3 flex items-center gap-4 border-t border-neutral-200 pt-3">
+              <div className="flex items-center gap-1.5 text-neutral-600">
+                <FileText className="h-3.5 w-3.5" />
+                <span className="text-xs">{hook.wordCount} words</span>
+              </div>
+            </div>
+          )}
         </div>
       ))}
     </div>

@@ -38,11 +38,24 @@ export interface ScriptMetrics {
   engagementScore?: number;
 }
 
+export interface ScriptHook {
+  id: string;
+  type: 'opening' | 'problem' | 'twist' | 'emotional' | 'question' | 'story' | 'custom';
+  label: string;
+  content: string;
+  effectiveness?: number; // 0-100 effectiveness score
+  wordCount?: number;
+  metadata?: {
+    [key: string]: any;
+  };
+}
+
 export interface ScriptData {
   id: string;
   title: string;
   fullScript: string;
   components: ScriptComponent[];
+  hooks?: ScriptHook[]; // Array of generated hooks
   metrics: ScriptMetrics;
   createdAt: Date | string;
   updatedAt: Date | string;
@@ -70,7 +83,7 @@ export interface ScriptPanelProps {
 }
 
 export interface ScriptTabConfig {
-  key: "full" | "components" | "metrics";
+  key: "full" | "components" | "hooks" | "metrics";
   label: string;
   icon?: React.ReactNode;
   enabled: boolean;
@@ -119,4 +132,26 @@ export const SCRIPT_COMPONENT_LABELS: Record<ScriptComponentType, string> = {
   value: "Value Proposition",
   close: "Closing",
   custom: "Custom",
+};
+
+// Hook type icons mapping
+export const SCRIPT_HOOK_ICONS: Record<string, string> = {
+  opening: "O",
+  problem: "P",
+  twist: "T",
+  emotional: "E",
+  question: "Q",
+  story: "S",
+  custom: "?",
+};
+
+// Default hook labels
+export const SCRIPT_HOOK_LABELS: Record<string, string> = {
+  opening: "Opening Hook",
+  problem: "Problem Hook",
+  twist: "Plot Twist",
+  emotional: "Emotional Hook",
+  question: "Question Hook",
+  story: "Story Hook",
+  custom: "Custom Hook",
 };

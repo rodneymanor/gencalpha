@@ -4,10 +4,8 @@ import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Settings, ArrowUp, Zap, Loader2 } from "lucide-react"
-import { useAuth } from "@/contexts/auth-context"
-import { buildAuthHeaders } from "@/lib/http/auth-headers"
-import type { Category, TrendingTopic } from "@/lib/rss-service"
+import { Settings, ArrowUp, Zap, Loader2, Clock, Database } from "lucide-react"
+import { useTrendingTopics } from "@/hooks/use-trending-topics"
 
 interface ChatInputProps {
   value: string
@@ -32,91 +30,31 @@ export default function ChatInput({
   showTrending = true,
   className = ""
 }: ChatInputProps) {
-  const { user } = useAuth()
   const [timeLimit, setTimeLimit] = useState("20s")
   const [showTrendingDropdown, setShowTrendingDropdown] = useState(false)
-  const [trendingTopics, setTrendingTopics] = useState<TrendingTopic[]>([])
-  const [isLoadingTopics, setIsLoadingTopics] = useState(false)
-  const [userCategories, setUserCategories] = useState<Category[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  
+  // Use the optimized trending topics hook
+  const { 
+    topics: trendingTopics, 
+    isLoading: isLoadingTopics,
+    isFromCache,
+    lastUpdated,
+    nextUpdate,
+    loadTopics
+  } = useTrendingTopics({ 
+    autoLoad: false, // Load on demand when dropdown opens
+    limit: 8 
+  })
 
-  // Load user brand settings to determine their preferred categories
+  // Preload topics on component mount for better UX
   useEffect(() => {
-    if (user) {
-      loadUserBrandSettings()
+    if (showTrending) {
+      // Preload topics in the background
+      loadTopics()
     }
-  }, [user])
-
-  const loadUserBrandSettings = async () => {
-    try {
-      const headers = await buildAuthHeaders()
-      const response = await fetch('/api/user/brand-settings', {
-        headers
-      })
-      if (response.ok) {
-        const data = await response.json()
-        if (data.success && data.settings?.selectedCategories) {
-          setUserCategories(data.settings.selectedCategories)
-        }
-      }
-    } catch (error) {
-      console.error('Error loading user brand settings:', error)
-      // Fallback to default categories if user settings fail
-      setUserCategories(['ai', 'business'])
-    }
-  }
-
-  // Load trending topics when dropdown opens
-  const loadTrendingTopics = async () => {
-    if (isLoadingTopics || trendingTopics.length > 0) return
-    
-    setIsLoadingTopics(true)
-    
-    try {
-      // Use the consolidated user trending endpoint for better performance
-      const headers = await buildAuthHeaders()
-      const response = await fetch('/api/rss/user-trending?limit=8', {
-        headers
-      })
-      
-      if (response.ok) {
-        const data = await response.json()
-        if (data.success && data.topics) {
-          setTrendingTopics(data.topics)
-        } else {
-          // Fallback to default topics
-          setTrendingTopics([])
-        }
-      } else {
-        // Fallback if API fails
-        setTrendingTopics([])
-      }
-    } catch (error) {
-      console.error('Error loading trending topics:', error)
-      // Fallback to static content if everything fails
-      setTrendingTopics([
-        {
-          id: '1',
-          title: 'AI-powered productivity tools',
-          description: 'Latest trends in AI productivity',
-          source: 'Default',
-          pubDate: new Date().toISOString(),
-          relevanceScore: 5
-        },
-        {
-          id: '2', 
-          title: 'Remote work best practices',
-          description: 'Effective remote work strategies',
-          source: 'Default',
-          pubDate: new Date().toISOString(),
-          relevanceScore: 4
-        }
-      ])
-    } finally {
-      setIsLoadingTopics(false)
-    }
-  }
+  }, [showTrending])
 
   // Handle clicking outside to close trending dropdown
   useEffect(() => {
@@ -148,7 +86,7 @@ export default function ChatInput({
   const handleInputFocus = () => {
     if (showTrending) {
       setShowTrendingDropdown(true)
-      loadTrendingTopics()
+      // Topics are already preloaded or will load from cache
     }
   }
 
@@ -157,6 +95,23 @@ export default function ChatInput({
     onChange(topic)
     setShowTrendingDropdown(false)
     inputRef.current?.focus()
+  }
+
+  // Helper function to format relative time
+  const getRelativeTime = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diff = date.getTime() - now.getTime()
+    const hours = Math.floor(diff / (1000 * 60 * 60))
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+    
+    if (hours > 0) {
+      return `in ${hours}h ${minutes}m`
+    } else if (minutes > 0) {
+      return `in ${minutes}m`
+    } else {
+      return 'soon'
+    }
   }
 
   return (
@@ -218,8 +173,22 @@ export default function ChatInput({
           className="absolute top-full left-0 right-0 mt-2 bg-neutral-50 border border-neutral-200 rounded-[var(--radius-card)] shadow-[var(--shadow-soft-drop)] z-10 max-h-64 overflow-y-auto"
         >
           <div className="p-2">
-            <div className="text-sm font-medium text-neutral-600 mb-2 px-2">
-              {userCategories.length > 0 ? 'Personalized Suggestions' : 'Trending Topics'}
+            <div className="flex items-center justify-between mb-2 px-2">
+              <div className="text-sm font-medium text-neutral-600">
+                Trending Topics
+              </div>
+              {isFromCache && (
+                <div className="flex items-center gap-1 text-xs text-neutral-500">
+                  <Database className="h-3 w-3" />
+                  <span>Cached</span>
+                  {nextUpdate && (
+                    <>
+                      <Clock className="h-3 w-3 ml-1" />
+                      <span>Updates {getRelativeTime(nextUpdate)}</span>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
             
             {/* Loading state */}

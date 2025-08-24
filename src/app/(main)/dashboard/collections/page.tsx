@@ -193,7 +193,7 @@ function CollectionsHeader({
   );
 }
 
-// Saved videos tab content component
+// Saved videos tab content component with improved responsive design
 function SavedCollectionsTabContent() {
   const [savedVideos, setSavedVideos] = useState<Video[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -428,14 +428,14 @@ function SavedCollectionsTabContent() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <div className="col-span-1 lg:col-span-12">
           <Card>
-            <CardHeader>
-              <CardTitle>Saved Videos</CardTitle>
-              <p className="text-muted-foreground mt-1 text-sm">Videos you&apos;ve saved for later</p>
+            <CardHeader className="pb-4 sm:pb-6">
+              <CardTitle className="text-lg sm:text-xl">Saved Videos</CardTitle>
+              <p className="text-muted-foreground mt-1 text-xs sm:text-sm">Videos you&apos;ve saved for later</p>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3 sm:p-6">
               {isLoading ? (
                 <div className="@container">
-                  <div className="grid grid-cols-1 gap-6 @sm:grid-cols-2 @lg:grid-cols-3 @xl:grid-cols-4">
+                  <div className="grid grid-cols-1 gap-3 @sm:grid-cols-2 @sm:gap-4 @lg:grid-cols-3 @lg:gap-5 @xl:grid-cols-4 @xl:gap-6">
                     {Array.from({ length: 8 }, (_, index) => (
                       <div key={`loading-skeleton-${index}`} className="relative aspect-[9/16]">
                         <CardSkeleton />
@@ -444,18 +444,22 @@ function SavedCollectionsTabContent() {
                   </div>
                 </div>
               ) : savedVideos.length > 0 ? (
-                <NewVideoGrid
-                  videos={savedVideos.map(transformVideoToVideoData)}
-                  columns={4}
-                  onVideoClick={handleNewVideoGridClick}
-                  onVideoSelect={handleVideoSelection}
-                  enableKeyboardNavigation={true}
-                />
+                <div className="@container">
+                  <div className="relative">
+                    <NewVideoGrid
+                      videos={savedVideos.map(transformVideoToVideoData)}
+                      columns={4}
+                      onVideoClick={handleNewVideoGridClick}
+                      onVideoSelect={handleVideoSelection}
+                      enableKeyboardNavigation={true}
+                    />
+                  </div>
+                </div>
               ) : (
-                <div className="py-12 text-center">
-                  <Bookmark className="text-muted-foreground mx-auto mb-4 h-16 w-16 opacity-50" />
-                  <h3 className="mb-2 text-lg font-semibold">No saved videos</h3>
-                  <p className="text-muted-foreground mb-4">Videos you favorite will appear here for quick access.</p>
+                <div className="py-8 sm:py-12 text-center">
+                  <Bookmark className="text-muted-foreground mx-auto mb-3 sm:mb-4 h-12 w-12 sm:h-16 sm:w-16 opacity-50" />
+                  <h3 className="mb-1.5 sm:mb-2 text-base sm:text-lg font-semibold">No saved videos</h3>
+                  <p className="text-muted-foreground mb-3 sm:mb-4 text-xs sm:text-base px-4">Videos you favorite will appear here for quick access.</p>
                 </div>
               )}
             </CardContent>
@@ -469,9 +473,9 @@ function SavedCollectionsTabContent() {
           onClose={() => setSelectedVideo(null)}
           config={{
             ...ClaudeArtifactConfig,
-            showHeader: false, // Let VideoInsightsPanel handle its own header
-            showCloseButton: true, // VideoInsightsPanel has its own close button
-            adjustsContent: true, // Ensure content adjustment works
+            showHeader: false,
+            showCloseButton: true,
+            adjustsContent: true,
             backdrop: false,
             modal: false,
             animationType: "claude",
@@ -479,24 +483,54 @@ function SavedCollectionsTabContent() {
             width: "lg",
           }}
         >
-          <VideoInsightsPanel
-            videoInsights={transformToVideoInsights(selectedVideo)}
-            onCopy={(content: string, componentType?: string) => {
-              console.log(`Copied ${componentType ?? "content"}:`, content);
-            }}
-            onDownload={(videoInsights: VideoInsights) => {
-              console.log("Downloaded video insights:", videoInsights.title);
-            }}
-            onVideoPlay={() => {
-              console.log("Video started playing");
-            }}
-            onVideoPause={() => {
-              console.log("Video paused");
-            }}
-            onClose={() => setSelectedVideo(null)}
-            showDownload={true}
-            showMetrics={true}
-          />
+          {/* Add custom styles to override the video container's min-height and add proper padding */}
+          <div className="h-full overflow-y-auto">
+            <style jsx global>{`
+              /* Override the video container styles */
+              .relative.overflow-hidden[style*="aspect-ratio"] {
+                min-height: unset !important;
+                max-height: calc(100vh - 280px) !important; /* Account for headers and tabs */
+              }
+              
+              /* Add padding to the video container parent */
+              .flex.h-full.items-center.justify-center.bg-neutral-50.p-6 {
+                padding-top: 2rem !important;
+                align-items: flex-start !important;
+              }
+              
+              /* Ensure proper sizing on different screens */
+              @media (max-width: 768px) {
+                .relative.overflow-hidden[style*="aspect-ratio"] {
+                  max-height: calc(100vh - 320px) !important;
+                }
+              }
+              
+              @media (min-width: 1024px) {
+                .relative.overflow-hidden[style*="aspect-ratio"] {
+                  max-height: calc(100vh - 240px) !important;
+                }
+              }
+            `}</style>
+            
+            <VideoInsightsPanel
+              videoInsights={transformToVideoInsights(selectedVideo)}
+              onCopy={(content: string, componentType?: string) => {
+                console.log(`Copied ${componentType ?? "content"}:`, content);
+              }}
+              onDownload={(videoInsights: VideoInsights) => {
+                console.log("Downloaded video insights:", videoInsights.title);
+              }}
+              onVideoPlay={() => {
+                console.log("Video started playing");
+              }}
+              onVideoPause={() => {
+                console.log("Video paused");
+              }}
+              onClose={() => setSelectedVideo(null)}
+              showDownload={true}
+              showMetrics={true}
+            />
+          </div>
         </UnifiedSlideout>
       )}
     </>
@@ -530,7 +564,7 @@ function CollectionsContent() {
 
   return (
     <div className="bg-background min-h-screen" id="collections-main-content">
-      <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-4xl px-3 sm:px-4 py-4 sm:py-6 lg:px-8">
         {/* Header */}
         <CollectionsHeader
           selectedCollectionId={selectedCollectionId}
@@ -543,7 +577,7 @@ function CollectionsContent() {
 
         {/* Collections Tabs */}
         <CollectionsTabs
-          className="mb-6"
+          className="mb-4 sm:mb-6"
           defaultTab={activeTab}
           onTabChange={setActiveTab}
           rightContent={
