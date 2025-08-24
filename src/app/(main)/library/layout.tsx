@@ -21,7 +21,7 @@ import {
   type ContentLayout,
 } from "@/types/preferences/layout";
 
-export default async function CollectionsLayout({ children }: Readonly<{ children: ReactNode }>) {
+export default async function LibraryLayout({ children }: Readonly<{ children: ReactNode }>) {
   const [sidebarVariant, sidebarCollapsible, contentLayout] = await Promise.all([
     getPreference<SidebarVariant>("sidebar_variant", SIDEBAR_VARIANT_VALUES, "sidebar"),
     getPreference<SidebarCollapsible>("sidebar_collapsible", SIDEBAR_COLLAPSIBLE_VALUES, "icon"),
