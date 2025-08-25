@@ -63,9 +63,9 @@ const NotificationItem = ({ notification, onMarkAsRead }: {
 
     // Navigate based on notification type
     if (notification.data?.collectionId) {
-      window.location.href = `/dashboard/collections?id=${notification.data.collectionId}`;
+      window.location.href = `/collections?id=${notification.data.collectionId}`;
     } else if (notification.data?.videoId) {
-      window.location.href = `/dashboard/library?video=${notification.data.videoId}`;
+      window.location.href = `/library?video=${notification.data.videoId}`;
     }
   };
 

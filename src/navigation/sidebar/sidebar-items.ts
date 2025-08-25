@@ -38,12 +38,12 @@ export const sidebarItems: NavGroup[] = [
       },
       {
         title: "Library",
-        url: "/dashboard/library",
+        url: "/library",
         icon: LibraryBig,
       },
       {
         title: "Collections",
-        url: "/dashboard/collections",
+        url: "/collections",
         icon: GalleryVerticalEnd,
         isNew: true,
       },
