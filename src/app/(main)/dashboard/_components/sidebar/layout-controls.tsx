@@ -10,7 +10,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { updateContentLayout } from "@/lib/layout-utils";
 import { updateThemeMode, updateThemePreset } from "@/lib/theme-utils";
 import { setValueToCookie } from "@/server/server-actions";
-import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
+import { usePreferencesStore } from "@/lib/stores/preferences/preferences-provider";
 import type { SidebarVariant, SidebarCollapsible, ContentLayout } from "@/types/preferences/layout";
 import { THEME_PRESET_OPTIONS, type ThemePreset, type ThemeMode } from "@/types/preferences/theme";
 
