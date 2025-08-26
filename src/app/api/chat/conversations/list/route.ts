@@ -39,7 +39,8 @@ export async function GET(request: NextRequest): Promise<NextResponse<ListConver
       .limit(100)
       .get();
 
-    // Filter for saved conversations in memory and limit to 50
+    // Map conversations and sort by most recent, limit to 50
+    // Show ALL conversations, not just saved ones, so video chats appear immediately
     const conversations = snapshot.docs
       .map((doc) => {
         const data = doc.data();
@@ -52,7 +53,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<ListConver
           createdAt: data.createdAt,
         };
       })
-      .filter((conv) => conv.status === "saved")
+      // Show all conversations, including untitled ones (video chats, etc.)
       .sort((a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime())
       .slice(0, 50);
 

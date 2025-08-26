@@ -317,16 +317,16 @@ export function ClaudeChat({
       videoActionState.actions.startProcessing(action);
 
       // Remove the video-actions message and replace with selected action processing
+      const actionText =
+        action === "transcribe"
+          ? "I'll transcribe this video for you."
+          : action === "ideas"
+            ? "I'll create content ideas from this video."
+            : "I'll generate hooks from this video.";
+
       setMessages((prev) => {
         // Filter out the video-actions message and add loading message
         const filtered = prev.filter((m) => m.content !== "<video-actions>");
-        const actionText =
-          action === "transcribe"
-            ? "I'll transcribe this video for you."
-            : action === "ideas"
-              ? "I'll create content ideas from this video."
-              : "I'll generate hooks from this video.";
-
         return [
           ...filtered,
           { id: crypto.randomUUID(), role: "assistant", content: actionText },
@@ -342,25 +342,89 @@ export function ClaudeChat({
       // Clear the pending video URL since we're processing it now
       setPendingVideoUrl(null);
 
-      // Execute the action and handle completion
+      // Execute the action and handle completion with database persistence
       const executeAction = async () => {
         console.log("🚀 [executeAction] Starting execution for:", action);
+        
+        // Ensure conversation exists and save the assistant's action message
+        let convId = conversationId;
+        if (!convId) {
+          try {
+            convId = await createConversation(selectedAssistant ?? "MiniBuddy", initialPrompt ?? undefined);
+            if (convId) {
+              setConversationId(convId);
+              console.log("✅ [executeAction] Created conversation:", convId);
+            }
+          } catch (error) {
+            console.warn("⚠️ [executeAction] Failed to create conversation:", error);
+          }
+        }
+        
+        // Save the assistant's action acknowledgment message
+        if (convId) {
+          try {
+            await saveMessageToDb(convId, "assistant", actionText);
+            console.log("✅ [executeAction] Saved action message to database");
+          } catch (error) {
+            console.warn("⚠️ [executeAction] Failed to save action message:", error);
+          }
+        }
+
         try {
+          let resultContent: string | null = null;
+          
           switch (action) {
             case "transcribe":
               console.log("📝 [executeAction] Calling handleTranscribe");
               await handleTranscribe(videoPanel);
+              resultContent = "✨ Video transcription completed and opened in the editor panel.";
               console.log("✅ [executeAction] handleTranscribe completed");
               break;
             case "ideas":
               await handleIdeas(videoPanel);
+              resultContent = "✨ Content ideas generated and opened in the editor panel.";
               break;
             case "hooks":
               await handleHooks(videoPanel);
+              resultContent = "✨ Video hooks generated and opened in the editor panel.";
               break;
+          }
+          
+          // Save the result message to the database
+          if (convId && resultContent) {
+            try {
+              await saveMessageToDb(convId, "assistant", resultContent);
+              console.log("✅ [executeAction] Saved result message to database");
+              
+              // Generate title if this is the first response
+              if (isFirstResponse && !conversationTitle) {
+                const messagesForTitle = [
+                  { role: "user" as const, content: videoPanel.url },
+                  { role: "assistant" as const, content: resultContent },
+                ];
+                const generatedTitle = await generateTitle(convId, messagesForTitle);
+                if (generatedTitle) {
+                  setConversationTitle(generatedTitle);
+                  setIsFirstResponse(false);
+                  console.log("✅ [executeAction] Generated title:", generatedTitle);
+                }
+              }
+            } catch (error) {
+              console.warn("⚠️ [executeAction] Failed to save result or generate title:", error);
+            }
           }
         } catch (error) {
           console.error("❌ [executeAction] Error:", error);
+          const errorMessage = `Error: ${error instanceof Error ? error.message : "Action failed"}`;
+          
+          // Save error message to database
+          if (convId) {
+            try {
+              await saveMessageToDb(convId, "assistant", errorMessage);
+            } catch (saveError) {
+              console.warn("⚠️ [executeAction] Failed to save error message:", saveError);
+            }
+          }
         } finally {
           // Always complete the action, even if it fails
           console.log("🏁 [executeAction] Completing action in state machine");
@@ -371,7 +435,8 @@ export function ClaudeChat({
       // Execute asynchronously but don't block
       executeAction();
     },
-    [pendingVideoUrl, videoActionState.actions, handleTranscribe, handleIdeas, handleHooks, setMessages],
+    [pendingVideoUrl, videoActionState.actions, handleTranscribe, handleIdeas, handleHooks, setMessages, 
+     conversationId, selectedAssistant, initialPrompt, isFirstResponse, conversationTitle],
   );
 
   // Voice recording
@@ -647,12 +712,53 @@ export function ClaudeChat({
       // For video URLs, add acknowledgment and show action cards instead of processing immediately
       const ackMessageId = crypto.randomUUID();
       const videoActionsId = crypto.randomUUID();
+      const ackMessage = "I found a video! What would you like me to do with it?";
+      
       setMessages((prev) => [
         ...prev,
         { id: userMessageId, role: "user", content: trimmed },
-        { id: ackMessageId, role: "assistant", content: "I found a video! What would you like me to do with it?" },
+        { id: ackMessageId, role: "assistant", content: ackMessage },
         { id: videoActionsId, role: "assistant", content: "<video-actions>" },
       ]);
+      
+      // Save the video URL submission to the database
+      (async () => {
+        try {
+          // Ensure conversation exists
+          let convId = conversationId;
+          if (!convId) {
+            convId = await createConversation(selectedAssistant ?? "MiniBuddy", initialPrompt ?? undefined);
+            if (convId) {
+              setConversationId(convId);
+              console.log("✅ [handleSend] Created conversation for video URL:", convId);
+            }
+          }
+          
+          if (convId) {
+            // Save user message (video URL)
+            await saveMessageToDb(convId, "user", trimmed);
+            // Save assistant acknowledgment
+            await saveMessageToDb(convId, "assistant", ackMessage);
+            console.log("✅ [handleSend] Saved video URL submission to database");
+            
+            // Generate title if this is the first response
+            if (isFirstResponse && !conversationTitle) {
+              const messagesForTitle = [
+                { role: "user" as const, content: trimmed },
+                { role: "assistant" as const, content: ackMessage },
+              ];
+              const generatedTitle = await generateTitle(convId, messagesForTitle);
+              if (generatedTitle) {
+                setConversationTitle(generatedTitle);
+                setIsFirstResponse(false);
+                console.log("✅ [handleSend] Generated title for video URL:", generatedTitle);
+              }
+            }
+          }
+        } catch (error) {
+          console.warn("⚠️ [handleSend] Failed to save video URL submission:", error);
+        }
+      })();
     } else {
       // Regular flow for non-video content
       const ackMessageId = crypto.randomUUID();
