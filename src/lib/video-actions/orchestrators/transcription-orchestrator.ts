@@ -84,8 +84,8 @@ export class TranscriptionOrchestrator {
         console.log("✅ [TRANSCRIPTION_ORCHESTRATOR] Transcription completed successfully");
       }
 
-      // Step 4: Convert to script data format
-      const scriptData = this.convertTranscriptToScriptData(transcript, input.url);
+      // Step 4: Convert to script data format (with optional AI analysis)
+      const scriptData = await this.convertTranscriptToScriptData(transcript, input.url);
 
       const duration = Date.now() - startTime;
 
@@ -185,19 +185,32 @@ export class TranscriptionOrchestrator {
 
   /**
    * Convert transcript to ScriptData format for the script panel
+   * Analyzes the transcript to extract script components
    */
-  private convertTranscriptToScriptData(transcript: string, url: string): ScriptData {
-    // Create a simple script component from the transcript
-    const transcriptComponent: ScriptComponent = {
-      id: "transcript-full",
-      type: "transcript",
-      label: "Full Transcript",
-      content: transcript,
-      icon: "T",
-    };
-
-    // Process the component to add metrics
-    const processedComponents = processScriptComponents([transcriptComponent]);
+  private async convertTranscriptToScriptData(transcript: string, url: string): Promise<ScriptData> {
+    let components: ScriptComponent[];
+    
+    // Try to use AI analysis if enabled and available
+    if (this.config.useAiAnalysis ?? true) {
+      try {
+        components = await this.analyzeTranscriptWithAI(transcript, url);
+        if (this.config.enableLogging) {
+          console.log("✅ [TRANSCRIPTION_ORCHESTRATOR] AI analysis successful");
+        }
+      } catch (error) {
+        if (this.config.enableLogging) {
+          console.warn("⚠️ [TRANSCRIPTION_ORCHESTRATOR] AI analysis failed, falling back to basic extraction:", error);
+        }
+        // Fallback to basic extraction
+        components = this.extractScriptComponents(transcript);
+      }
+    } else {
+      // Use basic extraction
+      components = this.extractScriptComponents(transcript);
+    }
+    
+    // Process all components to add metrics
+    const processedComponents = processScriptComponents(components);
 
     // Calculate total metrics
     const totalWords = processedComponents.reduce((sum, comp) => sum + (comp.wordCount ?? 0), 0);
@@ -205,7 +218,7 @@ export class TranscriptionOrchestrator {
 
     return {
       id: `transcript-${Date.now()}`,
-      title: "Video Transcript",
+      title: "Video Script Analysis",
       fullScript: transcript,
       components: processedComponents,
       metrics: {
@@ -214,13 +227,150 @@ export class TranscriptionOrchestrator {
       },
       createdAt: new Date(),
       updatedAt: new Date(),
-      tags: ["transcript", "video"],
+      tags: ["transcript", "video", "analyzed"],
       metadata: {
         originalUrl: url,
         platform: "video",
         genre: "transcript",
       },
     };
+  }
+
+  /**
+   * Extract script components from transcript text
+   * Attempts to identify hook, bridge, nugget, and CTA sections
+   */
+  private extractScriptComponents(transcript: string): ScriptComponent[] {
+    const components: ScriptComponent[] = [];
+    const sentences = transcript.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    
+    if (sentences.length === 0) {
+      // If no sentences found, return the full transcript as a single component
+      return [{
+        id: "transcript-full",
+        type: "custom",
+        label: "Full Transcript",
+        content: transcript,
+        icon: "T",
+      }];
+    }
+
+    // Determine component distribution based on transcript length
+    const totalSentences = sentences.length;
+    let hookEnd = 1;
+    let bridgeEnd = 2;
+    let nuggetEnd = totalSentences - 1;
+    
+    if (totalSentences >= 4) {
+      // For longer transcripts, use proportional distribution
+      hookEnd = Math.max(1, Math.floor(totalSentences * 0.15)); // First 15% for hook
+      bridgeEnd = hookEnd + Math.max(1, Math.floor(totalSentences * 0.20)); // Next 20% for bridge
+      nuggetEnd = Math.min(totalSentences - 1, bridgeEnd + Math.ceil(totalSentences * 0.50)); // Next 50% for nugget
+      // Last 15% for CTA
+    }
+
+    // Extract Hook (opening that grabs attention)
+    if (sentences.length > 0) {
+      const hookContent = sentences.slice(0, hookEnd).join('. ').trim() + '.';
+      components.push({
+        id: "hook-extracted",
+        type: "hook",
+        label: "Hook (Opening)",
+        content: hookContent,
+        icon: "H",
+        metadata: {
+          extractedFrom: "transcript",
+          sentenceRange: [0, hookEnd],
+        },
+      });
+    }
+
+    // Extract Bridge (transition to main content)
+    if (sentences.length > hookEnd) {
+      const bridgeContent = sentences.slice(hookEnd, bridgeEnd).join('. ').trim() + '.';
+      components.push({
+        id: "bridge-extracted",
+        type: "bridge",
+        label: "Bridge (Context)",
+        content: bridgeContent,
+        icon: "B",
+        metadata: {
+          extractedFrom: "transcript",
+          sentenceRange: [hookEnd, bridgeEnd],
+        },
+      });
+    }
+
+    // Extract Golden Nugget (main value/content)
+    if (sentences.length > bridgeEnd) {
+      const nuggetContent = sentences.slice(bridgeEnd, nuggetEnd).join('. ').trim() + '.';
+      components.push({
+        id: "nugget-extracted",
+        type: "nugget",
+        label: "Golden Nugget (Main Content)",
+        content: nuggetContent,
+        icon: "G",
+        metadata: {
+          extractedFrom: "transcript",
+          sentenceRange: [bridgeEnd, nuggetEnd],
+        },
+      });
+    }
+
+    // Extract Call to Action (closing/next steps)
+    if (sentences.length > nuggetEnd) {
+      const ctaContent = sentences.slice(nuggetEnd).join('. ').trim() + '.';
+      components.push({
+        id: "cta-extracted",
+        type: "cta",
+        label: "Call to Action",
+        content: ctaContent,
+        icon: "C",
+        metadata: {
+          extractedFrom: "transcript",
+          sentenceRange: [nuggetEnd, totalSentences],
+        },
+      });
+    }
+
+    // Also include the full transcript as a separate component for reference
+    components.push({
+      id: "transcript-full",
+      type: "custom",
+      label: "Full Transcript",
+      content: transcript,
+      icon: "T",
+      metadata: {
+        isFullTranscript: true,
+      },
+    });
+
+    return components;
+  }
+
+  /**
+   * Analyze transcript using AI to extract better script components
+   */
+  private async analyzeTranscriptWithAI(transcript: string, url: string): Promise<ScriptComponent[]> {
+    const response = await fetch("/api/video/analyze-transcript", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ transcript, url }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`AI analysis failed: ${response.status}`);
+    }
+
+    const result = await response.json();
+    
+    if (!result.success || !result.components) {
+      throw new Error(result.error || "AI analysis failed");
+    }
+
+    return result.components as ScriptComponent[];
   }
 
   /**

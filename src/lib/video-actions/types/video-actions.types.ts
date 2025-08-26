@@ -72,6 +72,7 @@ export interface VideoActionConfig {
   retryAttempts?: number;
   timeout?: number;
   enableLogging?: boolean;
+  useAiAnalysis?: boolean; // Use AI to analyze transcripts for better component extraction
 }
 
 // Progress tracking interface

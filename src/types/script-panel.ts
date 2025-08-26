@@ -118,6 +118,7 @@ export const SCRIPT_COMPONENT_ICONS: Record<ScriptComponentType, string> = {
   transition: "T",
   value: "V",
   close: "X",
+  transcript: "T",
   custom: "?",
 };
 
@@ -131,6 +132,7 @@ export const SCRIPT_COMPONENT_LABELS: Record<ScriptComponentType, string> = {
   transition: "Transition",
   value: "Value Proposition",
   close: "Closing",
+  transcript: "Transcript",
   custom: "Custom",
 };
 
