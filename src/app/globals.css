@@ -179,26 +179,26 @@
 :root {
   /* Core Semantic Colors (Updated) */
   --background: #FFFFFF; /* Pure white app background */
-  --foreground: var(--neutral-900); /* Headlines */
-  --card: var(--neutral-50);
-  --card-foreground: var(--neutral-800); /* Body text */
-  --popover: var(--neutral-50);
-  --popover-foreground: var(--neutral-800); /* Body text */
-  --primary: var(--neutral-700); /* Submit buttons */
-  --primary-foreground: var(--neutral-50); /* Button text */
+  --foreground: #191B1F; /* Headlines - custom palette */
+  --card: #FFFFFF;
+  --card-foreground: #19283A; /* Body text - custom palette */
+  --popover: #FFFFFF;
+  --popover-foreground: #19283A; /* Body text - custom palette */
+  --primary: #313131; /* Submit buttons - custom palette */
+  --primary-foreground: #FFFFFF; /* Button text */
   --secondary: transparent;
-  --secondary-foreground: var(--neutral-800); /* Body text */
+  --secondary-foreground: #19283A; /* Body text - custom palette */
   --brand: var(--brand-500); /* Your accent color */
   --brand-foreground: var(--neutral-900);
-  --muted: var(--neutral-100);
-  --muted-foreground: var(--neutral-500);
-  --accent: var(--neutral-200); /* Hover for sidebar */
-  --accent-foreground: var(--neutral-800); /* Body text */
+  --muted: #F8F8F8;
+  --muted-foreground: #737373;
+  --accent: #EEEEEE; /* Hover for sidebar - custom palette */
+  --accent-foreground: #19283A; /* Body text - custom palette */
   --destructive: #EF4444;
   --destructive-foreground: #FFFFFF;
-  --border: rgba(0,0,0,0.06);
-  --input: rgba(0,0,0,0.06);
-  --ring: #1d293f;
+  --border: #E5E5E5;
+  --input: #F8F8F8;
+  --ring: #313131; /* Submit buttons - custom palette */
 
   /* ========================================
      HYBRID NUMBERED SCALES (Light Theme)
@@ -317,13 +317,13 @@
   --chart-5: #1A1A19;
 
   /* Sidebar Colors */
-  --sidebar: var(--neutral-100);
-  --sidebar-foreground: var(--neutral-800); /* Body text */
+  --sidebar: #FFFFFF; /* Pure white sidebar - custom palette */
+  --sidebar-foreground: #19283A; /* Body text - custom palette */
   --sidebar-primary: var(--special-500); /* Special buttons in sidebar */
-  --sidebar-primary-foreground: var(--neutral-50); /* Button text */
-  --sidebar-accent: var(--neutral-200); /* Hover for sidebar */
-  --sidebar-accent-foreground: var(--neutral-800); /* Body text */
-  --sidebar-border: var(--neutral-300);
+  --sidebar-primary-foreground: #FFFFFF; /* Button text */
+  --sidebar-accent: #EEEEEE; /* Hover for sidebar - custom palette */
+  --sidebar-accent-foreground: #19283A; /* Body text - custom palette */
+  --sidebar-border: #D4D4D4;
   --sidebar-ring: var(--special-600);
 
   /* Native Font Stacks */
@@ -521,14 +521,14 @@
   --chart-5: #262625;
 
   /* Sidebar Colors */
-  --sidebar: #1A1A19;
-  --sidebar-foreground: #EAEAE9;
-  --sidebar-primary: #FFFFFF;
-  --sidebar-primary-foreground: #1A1A19;
-  --sidebar-accent: rgba(255,255,255,0.1);
-  --sidebar-accent-foreground: #EAEAE9;
-  --sidebar-border: rgba(255,255,255,0.1);
-  --sidebar-ring: #1d293f;
+  --sidebar: #0A0A0A; /* Deep black sidebar - custom palette */
+  --sidebar-foreground: #EEEEEE;
+  --sidebar-primary: #9B70FF; /* Lighter purple for dark mode */
+  --sidebar-primary-foreground: #0A0A0A;
+  --sidebar-accent: #262626; /* Dark accent */
+  --sidebar-accent-foreground: #EEEEEE;
+  --sidebar-border: #404040;
+  --sidebar-ring: #9B70FF;
 
   /* Native Font Stacks */
   --font-sans: -apple-system, "system-ui", "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";

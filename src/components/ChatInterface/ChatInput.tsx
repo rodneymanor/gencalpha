@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Settings, ArrowUp, Zap, Loader2, Clock, Database } from "lucide-react"
 import { useTrendingTopics } from "@/hooks/use-trending-topics"
+import { PersonasDropdown } from "@/components/write-chat/personas-dropdown"
 
 interface ChatInputProps {
   value: string
@@ -16,6 +17,9 @@ interface ChatInputProps {
   showTimeLimit?: boolean
   showSettings?: boolean
   showTrending?: boolean
+  showPersonas?: boolean
+  selectedPersona?: string
+  onPersonaSelect?: (persona: string) => void
   className?: string
 }
 
@@ -28,6 +32,9 @@ export default function ChatInput({
   showTimeLimit = true,
   showSettings = true,
   showTrending = true,
+  showPersonas = true,
+  selectedPersona,
+  onPersonaSelect,
   className = ""
 }: ChatInputProps) {
   const [timeLimit, setTimeLimit] = useState("20s")
@@ -40,7 +47,6 @@ export default function ChatInput({
     topics: trendingTopics, 
     isLoading: isLoadingTopics,
     isFromCache,
-    lastUpdated,
     nextUpdate,
     loadTopics
   } = useTrendingTopics({ 
@@ -48,12 +54,14 @@ export default function ChatInput({
     limit: 8 
   })
 
-  // Preload topics on component mount for better UX
+  // Preload topics on component mount for better UX and auto-focus input
   useEffect(() => {
     if (showTrending) {
       // Preload topics in the background
       loadTopics()
     }
+    // Auto-focus the input field on mount
+    inputRef.current?.focus()
   }, [showTrending])
 
   // Handle clicking outside to close trending dropdown
@@ -117,6 +125,15 @@ export default function ChatInput({
   return (
     <form onSubmit={handleSubmit} className={`relative ${className}`}>
       <div className="flex items-center gap-2 p-2 border border-neutral-200 rounded-[var(--radius-card)] bg-neutral-50 shadow-[var(--shadow-input)] hover:border-neutral-300 transition-all duration-200">
+        {/* Personas dropdown on far left */}
+        {showPersonas && (
+          <PersonasDropdown
+            selectedPersona={selectedPersona}
+            onPersonaSelect={onPersonaSelect}
+            disabled={disabled}
+          />
+        )}
+
         {/* Settings button for chat configuration */}
         {showSettings && (
           <Button 
@@ -137,7 +154,8 @@ export default function ChatInput({
           onFocus={handleInputFocus}
           placeholder={placeholder}
           disabled={disabled}
-          className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-base px-4 text-neutral-900 placeholder:text-neutral-500"
+          className="flex-1 border-0 bg-transparent shadow-none outline-none ring-0 focus:border-0 focus:shadow-none focus:outline-none focus:ring-0 focus-visible:border-0 focus-visible:shadow-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 hover:shadow-none text-base px-4 text-neutral-900 placeholder:text-neutral-500 caret-neutral-900"
+          autoFocus
         />
 
         {/* Time limit selector and submit button */}

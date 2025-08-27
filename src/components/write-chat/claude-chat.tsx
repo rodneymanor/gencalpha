@@ -208,6 +208,7 @@ export function ClaudeChat({
   const [pendingVideoUrl, setPendingVideoUrl] = useState<{ url: string; platform: "instagram" | "tiktok" } | null>(
     null,
   );
+  const [selectedPersona, setSelectedPersona] = useState<string | null>(null);
   // Replace old state management with atomic video action state
   const videoActionState = useVideoActionState();
   const mountedRef = useRef(true);
@@ -1024,6 +1025,8 @@ export function ClaudeChat({
           heroInputRef={heroInputRef}
           selectedAssistant={selectedAssistant}
           setSelectedAssistant={setSelectedAssistant}
+          selectedPersona={selectedPersona ?? undefined}
+          onPersonaSelect={(persona) => setSelectedPersona(persona)}
           isIdeaMode={isIdeaMode}
           setIsIdeaMode={setIsIdeaMode}
           ideaSaveMessage={ideaSaveMessage}
@@ -1066,6 +1069,8 @@ export function ClaudeChat({
             setInputValue={setInputValue}
             onSubmit={() => handleSend(inputValue)}
             textareaRef={textareaRef}
+            selectedPersona={selectedPersona ?? undefined}
+            onPersonaSelect={(persona) => setSelectedPersona(persona)}
           />
         </div>
       </div>

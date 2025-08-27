@@ -11,9 +11,22 @@ export function HeroSection(props: {
   isRecording: boolean;
   showListening: boolean;
   isUrlProcessing: boolean;
+  linkDetection?: any;
+  hasValidVideoUrl?: boolean;
   handleSend: (value: string) => void;
+  heroInputRef?: React.RefObject<HTMLTextAreaElement>;
   selectedAssistant: AssistantType | null;
   setSelectedAssistant: (p: AssistantType | null) => void;
+  selectedPersona?: string;
+  onPersonaSelect?: (persona: string) => void;
+  isIdeaMode?: boolean;
+  setIsIdeaMode?: (v: boolean) => void;
+  ideaSaveMessage?: string | null;
+  ideas?: any[];
+  ideasOpen?: boolean;
+  setIdeasOpen?: (v: boolean) => void;
+  isIdeaInboxEnabled?: boolean;
+  onVoiceClick?: () => void;
 }) {
   const {
     resolvedName,
@@ -26,6 +39,10 @@ export function HeroSection(props: {
     handleSend,
     selectedAssistant,
     setSelectedAssistant,
+    selectedPersona,
+    onPersonaSelect,
+    // We don't need to destructure all the other props since they're not used in this component
+    // but they need to be in the interface for TypeScript compatibility
   } = props;
 
   return (
@@ -50,6 +67,9 @@ export function HeroSection(props: {
             showTimeLimit={false}
             showSettings={false}
             showTrending={true}
+            showPersonas={true}
+            selectedPersona={selectedPersona}
+            onPersonaSelect={onPersonaSelect}
           />
         </div>
 
