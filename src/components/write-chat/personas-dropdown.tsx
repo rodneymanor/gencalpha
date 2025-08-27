@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { User, Brain, Briefcase, Zap, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -52,10 +52,11 @@ export function PersonasDropdown({
   disabled = false,
 }: PersonasDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  // Close dropdown when clicking outside
+  // Close dropdown when clicking outside or scrolling
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -68,13 +69,50 @@ export function PersonasDropdown({
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    const handleScroll = () => {
+      if (isOpen) {
+        calculateDropdownPosition();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      window.addEventListener("scroll", handleScroll, true);
+      window.addEventListener("resize", handleScroll);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("scroll", handleScroll, true);
+      window.removeEventListener("resize", handleScroll);
+    };
+  }, [isOpen, calculateDropdownPosition]);
 
   const handlePersonaSelect = (personaId: string) => {
     onPersonaSelect?.(personaId);
     setIsOpen(false);
+  };
+
+  // Calculate dropdown position to avoid layout shifts
+  const calculateDropdownPosition = useCallback(() => {
+    if (!buttonRef.current) return;
+    
+    const buttonRect = buttonRef.current.getBoundingClientRect();
+    const scrollY = window.scrollY;
+    const scrollX = window.scrollX;
+    
+    setDropdownPosition({
+      top: buttonRect.bottom + scrollY + 8, // 8px gap (mt-2)
+      left: buttonRect.left + scrollX,
+    });
+  }, []);
+
+  // Update position when opening dropdown
+  const toggleDropdown = () => {
+    if (!isOpen) {
+      calculateDropdownPosition();
+    }
+    setIsOpen(!isOpen);
   };
 
   const selectedPersonaData = personas.find((p) => p.id === selectedPersona);
@@ -87,7 +125,7 @@ export function PersonasDropdown({
         type="button"
         variant="ghost"
         size="icon"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={toggleDropdown}
         disabled={disabled}
         className="h-10 w-10 rounded-[var(--radius-button)] flex-shrink-0 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 transition-colors duration-200"
         aria-label="Select persona"
@@ -110,11 +148,15 @@ export function PersonasDropdown({
         </svg>
       </Button>
 
-      {/* Dropdown */}
+      {/* Dropdown Portal - positioned fixed to avoid layout shifts */}
       {isOpen && (
         <div
           ref={dropdownRef}
-          className="absolute top-full left-0 mt-2 w-72 bg-neutral-50 border border-neutral-200 rounded-[var(--radius-card)] shadow-[var(--shadow-soft-drop)] z-50"
+          className="fixed w-72 bg-neutral-50 border border-neutral-200 rounded-[var(--radius-card)] shadow-[var(--shadow-soft-drop)] z-[9999]"
+          style={{
+            top: `${dropdownPosition.top}px`,
+            left: `${dropdownPosition.left}px`,
+          }}
         >
           <div className="p-2">
             <div className="text-sm font-medium text-neutral-600 mb-2 px-2">
