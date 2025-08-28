@@ -48,3 +48,7 @@ export const THEME_PRESET_VALUES = THEME_PRESET_OPTIONS.map((p) => p.value);
 export type ThemePreset = (typeof THEME_PRESET_OPTIONS)[number]["value"];
 
 // --- generated:themePresets:end ---
+
+// Theme mode values
+export const THEME_MODE_VALUES = ["light", "dark"] as const;
+export type ThemeMode = (typeof THEME_MODE_VALUES)[number];

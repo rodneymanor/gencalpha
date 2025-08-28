@@ -23,5 +23,11 @@ export async function getPreference<T extends string>(key: string, allowed: read
   const cookieStore = await cookies();
   const cookie = cookieStore.get(key);
   const value = cookie ? cookie.value.trim() : undefined;
+
+  // Add defensive check for allowed array
+  if (!allowed || !Array.isArray(allowed)) {
+    return fallback;
+  }
+
   return allowed.includes(value as T) ? (value as T) : fallback;
 }
