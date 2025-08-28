@@ -52,7 +52,7 @@ export function HeroSection(props: {
           <h1 className="text-foreground text-4xl leading-10 font-bold tracking-tight">
             {`Hello${resolvedName ? ", " + resolvedName : ""}`}
             <br />
-            <span className="text-muted-foreground text-4xl font-bold">What will you script today?</span>
+            <span className="text-muted-foreground text-4xl font-bold">What will you record today?</span>
           </h1>
         </div>
 

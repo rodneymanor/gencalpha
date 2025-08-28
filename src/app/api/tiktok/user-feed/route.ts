@@ -89,6 +89,48 @@ interface TikTokUserFeedResponse {
   timestamp: string;
 }
 
+// Helper function to select the lowest quality video URL based on data_size
+function getLowestQualityVideoUrl(video: any): { playUrl: string; downloadUrl: string } {
+  const videoOptions = [];
+
+  // Collect all video quality options with their data_size
+  if (video.play_addr?.url_list?.[0] && video.play_addr.data_size) {
+    videoOptions.push({ urls: video.play_addr.url_list, size: video.play_addr.data_size, type: "play_addr" });
+  }
+  if (video.play_addr_h264?.url_list?.[0] && video.play_addr_h264.data_size) {
+    videoOptions.push({
+      urls: video.play_addr_h264.url_list,
+      size: video.play_addr_h264.data_size,
+      type: "play_addr_h264",
+    });
+  }
+  if (video.play_addr_bytevc1?.url_list?.[0] && video.play_addr_bytevc1.data_size) {
+    videoOptions.push({
+      urls: video.play_addr_bytevc1.url_list,
+      size: video.play_addr_bytevc1.data_size,
+      type: "play_addr_bytevc1",
+    });
+  }
+
+  // Find the option with smallest data_size
+  if (videoOptions.length > 0) {
+    const lowestQuality = videoOptions.reduce((min, current) => (current.size < min.size ? current : min));
+
+    console.log(`🔽 Selected lowest quality: ${lowestQuality.size} bytes (${lowestQuality.type})`);
+    return {
+      playUrl: lowestQuality.urls[0],
+      downloadUrl: lowestQuality.urls[0],
+    };
+  }
+
+  // Fallback to original logic
+  console.log("⚠️ No video options with data_size found, using fallback URLs");
+  return {
+    playUrl: video.play_addr?.url_list?.[0] ?? "",
+    downloadUrl: video.download_addr?.url_list?.[0] ?? video.play_addr?.url_list?.[0] ?? "",
+  };
+}
+
 export async function POST(request: NextRequest) {
   console.log("🎵 TikTok User Feed API - Starting request");
 
@@ -202,65 +244,70 @@ export async function POST(request: NextRequest) {
             },
           }
         : undefined,
-      videos: videosData.map((video: any) => ({
-        id: video.aweme_id ?? "",
-        description: video.desc ?? "",
-        createTime: video.create_time ?? 0,
-        duration: video.video?.duration ?? 0,
-        cover: video.video?.cover?.url_list?.[0] ?? video.video?.origin_cover?.url_list?.[0] ?? "",
-        playUrl: video.video?.play_addr?.url_list?.[0] ?? "",
-        downloadUrl: video.video?.download_addr?.url_list?.[0] ?? "",
-        stats: {
-          diggCount: video.statistics?.digg_count ?? 0,
-          shareCount: video.statistics?.share_count ?? 0,
-          commentCount: video.statistics?.comment_count ?? 0,
-          playCount: video.statistics?.play_count ?? 0,
-          collectCount: video.statistics?.collect_count ?? 0,
-        },
-        music: {
-          id: video.music?.id ?? video.music?.id_str ?? "",
-          title: video.music?.title ?? "",
-          author: video.music?.author ?? video.music?.owner_nickname ?? "",
-          playUrl: video.music?.play_url?.url_list?.[0] ?? "",
-          cover: video.music?.cover_large?.url_list?.[0] ?? video.music?.cover_medium?.url_list?.[0] ?? "",
-          original: video.music?.is_original ?? false,
-          duration: video.music?.duration ?? 0,
-        },
-        challenges: (video.cha_list ?? []).map((challenge: any) => ({
-          id: challenge.cid ?? "",
-          title: challenge.cha_name ?? "",
-          description: challenge.desc ?? "",
-          cover: challenge.cover ?? "",
-        })),
-        hashtags: (video.text_extra ?? [])
-          .filter((item: any) => item.hashtag_name)
-          .map((hashtag: any) => ({
-            id: hashtag.hashtag_id ?? "",
-            name: hashtag.hashtag_name ?? "",
-            start: hashtag.start ?? 0,
-            end: hashtag.end ?? 0,
-          })),
-        author: {
-          id: video.author?.uid ?? video.author?.id ?? "",
-          username: video.author?.unique_id ?? video.author?.uniqueId ?? "",
-          nickname: video.author?.nickname ?? "",
-          avatar:
-            video.author?.avatar_larger?.url_list?.[0] ??
-            video.author?.avatar_medium?.url_list?.[0] ??
-            video.author?.avatar_thumb?.url_list?.[0] ??
-            "",
-          verified: video.author?.verification_type === 1,
-          signature: video.author?.signature ?? "",
+      videos: videosData.map((video: any) => {
+        // Get lowest quality URLs for this video
+        const videoUrls = getLowestQualityVideoUrl(video.video);
+
+        return {
+          id: video.aweme_id ?? "",
+          description: video.desc ?? "",
+          createTime: video.create_time ?? 0,
+          duration: video.video?.duration ?? 0,
+          cover: video.video?.cover?.url_list?.[0] ?? video.video?.origin_cover?.url_list?.[0] ?? "",
+          playUrl: videoUrls.playUrl,
+          downloadUrl: videoUrls.downloadUrl,
           stats: {
-            followingCount: video.author?.following_count ?? 0,
-            followerCount: video.author?.follower_count ?? 0,
-            heartCount: video.author?.total_favorited ?? 0,
-            videoCount: video.author?.aweme_count ?? 0,
-            diggCount: video.author?.favoriting_count ?? 0,
-            heart: video.author?.total_favorited ?? 0,
+            diggCount: video.statistics?.digg_count ?? 0,
+            shareCount: video.statistics?.share_count ?? 0,
+            commentCount: video.statistics?.comment_count ?? 0,
+            playCount: video.statistics?.play_count ?? 0,
+            collectCount: video.statistics?.collect_count ?? 0,
           },
-        },
-      })),
+          music: {
+            id: video.music?.id ?? video.music?.id_str ?? "",
+            title: video.music?.title ?? "",
+            author: video.music?.author ?? video.music?.owner_nickname ?? "",
+            playUrl: video.music?.play_url?.url_list?.[0] ?? "",
+            cover: video.music?.cover_large?.url_list?.[0] ?? video.music?.cover_medium?.url_list?.[0] ?? "",
+            original: video.music?.is_original ?? false,
+            duration: video.music?.duration ?? 0,
+          },
+          challenges: (video.cha_list ?? []).map((challenge: any) => ({
+            id: challenge.cid ?? "",
+            title: challenge.cha_name ?? "",
+            description: challenge.desc ?? "",
+            cover: challenge.cover ?? "",
+          })),
+          hashtags: (video.text_extra ?? [])
+            .filter((item: any) => item.hashtag_name)
+            .map((hashtag: any) => ({
+              id: hashtag.hashtag_id ?? "",
+              name: hashtag.hashtag_name ?? "",
+              start: hashtag.start ?? 0,
+              end: hashtag.end ?? 0,
+            })),
+          author: {
+            id: video.author?.uid ?? video.author?.id ?? "",
+            username: video.author?.unique_id ?? video.author?.uniqueId ?? "",
+            nickname: video.author?.nickname ?? "",
+            avatar:
+              video.author?.avatar_larger?.url_list?.[0] ??
+              video.author?.avatar_medium?.url_list?.[0] ??
+              video.author?.avatar_thumb?.url_list?.[0] ??
+              "",
+            verified: video.author?.verification_type === 1,
+            signature: video.author?.signature ?? "",
+            stats: {
+              followingCount: video.author?.following_count ?? 0,
+              followerCount: video.author?.follower_count ?? 0,
+              heartCount: video.author?.total_favorited ?? 0,
+              videoCount: video.author?.aweme_count ?? 0,
+              diggCount: video.author?.favoriting_count ?? 0,
+              heart: video.author?.total_favorited ?? 0,
+            },
+          },
+        };
+      }),
       metadata: {
         totalVideos: videosData.length,
         processedTime: Date.now(),

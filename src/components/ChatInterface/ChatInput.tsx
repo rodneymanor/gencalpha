@@ -27,7 +27,7 @@ export default function ChatInput({
   value,
   onChange,
   onSubmit,
-  placeholder = "How can I help you today?",
+  placeholder = "Write a script about...?",
   disabled = false,
   showTimeLimit = true,
   showSettings = true,
