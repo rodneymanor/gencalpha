@@ -2,7 +2,9 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 
-import { User, Brain, Briefcase, Zap, Heart } from "lucide-react";
+import { useRouter } from "next/navigation";
+
+import { User, Brain, Briefcase, Zap, Heart, Plus, ExternalLink } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
@@ -57,6 +59,7 @@ export function PersonasDropdown({
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const router = useRouter();
 
   // Calculate dropdown position to avoid layout shifts
   const calculateDropdownPosition = useCallback(() => {
@@ -117,7 +120,7 @@ export function PersonasDropdown({
     setIsOpen(!isOpen);
   };
 
-  const selectedPersonaData = personas.find((p) => p.id === selectedPersona);
+  // const selectedPersonaData = personas.find((p) => p.id === selectedPersona);
 
   return (
     <div className={`relative ${className}`}>
@@ -203,6 +206,45 @@ export function PersonasDropdown({
                 </button>
               );
             })}
+
+            {/* Divider */}
+            <div className="my-2 border-t border-neutral-200" />
+
+            {/* View All Personas Link */}
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpen(false);
+                router.push("/personas");
+              }}
+              className="hover:bg-primary-50 hover:border-primary-200 flex w-full items-center gap-3 rounded-[var(--radius-button)] border border-transparent px-3 py-2 text-left transition-colors duration-150"
+            >
+              <div className="text-primary-600 flex-shrink-0">
+                <ExternalLink className="h-4 w-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-primary-700 text-sm font-medium">View Your Personas</div>
+                <div className="mt-0.5 text-xs text-neutral-500">Manage voice profiles from creators</div>
+              </div>
+            </button>
+
+            {/* Create New Persona Link */}
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpen(false);
+                router.push("/test-tiktok-user-feed");
+              }}
+              className="hover:bg-success-50 hover:border-success-200 mt-1 flex w-full items-center gap-3 rounded-[var(--radius-button)] border border-transparent px-3 py-2 text-left transition-colors duration-150"
+            >
+              <div className="text-success-600 flex-shrink-0">
+                <Plus className="h-4 w-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-success-700 text-sm font-medium">Create New Persona</div>
+                <div className="mt-0.5 text-xs text-neutral-500">Analyze a creator&apos;s voice patterns</div>
+              </div>
+            </button>
           </div>
         </div>
       )}

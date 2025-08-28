@@ -44,9 +44,14 @@ export class GeminiService {
         temperature: request.temperature ?? 0.7,
       };
 
+      console.log(
+        `🔧 [Gemini] Config - Model: ${modelName}, MaxTokens: ${generationConfig.maxOutputTokens}, Temp: ${generationConfig.temperature}`,
+      );
+
       // Add JSON response type if requested
       if (request.responseType === "json") {
         generationConfig.responseMimeType = "application/json";
+        console.log(`🔧 [Gemini] Response type set to JSON`);
       }
 
       // Safety settings to allow more content types

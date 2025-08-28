@@ -327,6 +327,24 @@ export async function authenticateApiKey(
       incomingAuth ? `${incomingAuth.substring(0, 20)}...` : "<none>",
     );
 
+    // Development/test bypass for test pages
+    if (process.env.NODE_ENV === "development" && incomingApiKey === "test-internal-secret-123") {
+      console.log("🔓 [Auth] Using test authentication bypass");
+      return {
+        user: {
+          uid: "test-user",
+          email: "test@example.com",
+          role: "user",
+          displayName: "Test User",
+        },
+        rateLimitResult: {
+          allowed: true,
+          requestCount: 0,
+          violationsCount: 0,
+        },
+      };
+    }
+
     // First, try API key authentication
     const apiKey = ApiKeyAuthService.extractApiKey(request);
     if (apiKey) {

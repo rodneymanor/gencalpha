@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { GeminiService } from "@/lib/gemini";
 
 interface AnalyzeRequest {
@@ -11,19 +12,27 @@ export async function POST(request: NextRequest) {
     const { transcripts } = body;
 
     if (!transcripts || !Array.isArray(transcripts) || transcripts.length < 3) {
-      return NextResponse.json(
-        { error: "Need at least 3 transcripts to analyze voice patterns" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Need at least 3 transcripts to analyze voice patterns" }, { status: 400 });
     }
 
-    console.log(`🎙️ Analyzing voice patterns for ${transcripts.length} transcripts`);
+    // Limit to 10 transcripts for efficient processing
+    const scriptsToAnalyze = transcripts.slice(0, 10);
+    if (transcripts.length > 10) {
+      console.log(`⚠️ Limiting analysis to first 10 transcripts (received ${transcripts.length})`);
+    }
 
-    const prompt = `# Advanced Voice Pattern Analysis for Style Cloning
+    console.log(`🎙️ Analyzing voice patterns for ${scriptsToAnalyze.length} transcripts`);
 
-Perform a forensic-level linguistic analysis of these video scripts to extract the creator's unique voice DNA. This analysis will be used to generate NEW scripts on DIFFERENT topics that perfectly mimic the creator's style, patterns, and delivery.
+    const prompt = `# Voice Pattern Analysis: Hook Extraction & Script Formula Generation
 
-CRITICAL: This is not academic analysis. Every pattern you extract must be REUSABLE as a template for generating new content. Think of yourself as reverse-engineering the creator's script-writing formula.
+Analyze these ${scriptsToAnalyze.length} scripts to extract EVERY hook pattern and create a detailed step-by-step formula for generating new scripts in this creator's style.
+
+PRIORITY FOCUS:
+1. Extract ALL hook patterns (first 10 seconds of each script)
+2. Create a DETAILED timestamped formula (10+ steps)
+3. Make everything UNIVERSAL (works for any topic)
+
+KEY REQUIREMENT: Every pattern must work for cooking, fitness, tech, business, or any other topic.
 
 ## Required Analysis Components:
 
@@ -34,25 +43,35 @@ Analyze and extract:
 - **Discourse Markers**: How they transition between ideas (e.g., "Now", "Alright", "So", "Trust me")
 - **Rhetorical Devices**: Repetition patterns, parallel structures, contrasts, metaphors
 
-### 2. HOOK REPLICATION SYSTEM
-Extract EXACT hook formulas that can be reused with new topics:
-- **Hook Templates**: Replace content words with [PLACEHOLDERS] while preserving structure
-  Example: "Did you know that [SURPRISING_FACT] can [UNEXPECTED_OUTCOME]?"
-- **Hook Progression**: Map how they build from hook → context → promise
-  Example: [HOOK] → "But here's the thing..." → [VALUE_PROMISE]
-- **Hook Variations**: List ALL hook types used, ranked by effectiveness
-  - Question hooks: Exact question patterns with [TOPIC] placeholders
-  - Statement hooks: Bold claim templates with [METRIC] and [OUTCOME] slots
-  - Story hooks: "I just [PAST_ACTION] and [SURPRISING_RESULT]" patterns
-- **Hook Length**: Exact word/second count for optimal hooks
-- **Emotional Triggers**: Which emotions they target and HOW (fear→solution, curiosity→reveal)
+### 2. EXTRACT HOOKS FROM ALL ${scriptsToAnalyze.length} SCRIPTS (NON-NEGOTIABLE!)
 
-### 3. CREDENTIALING PATTERNS
-How and when they establish authority:
-- Self-introduction formulas
-- Experience/credential dropping patterns
-- Social proof insertion points and language
-- Client success story structures
+YOU MUST INCLUDE A HOOK FROM EVERY SINGLE SCRIPT. This means:
+- Script 1: Extract the opening hook
+- Script 2: Extract the opening hook
+- Script 3: Extract the opening hook
+- Script 4: Extract the opening hook
+- Script 5: Extract the opening hook
+- Script 6: Extract the opening hook
+- Script 7: Extract the opening hook
+- Script 8: Extract the opening hook
+- Script 9: Extract the opening hook
+- Script 10: Extract the opening hook
+
+For EACH hook, you MUST provide:
+1. scriptNumber: The script number (1, 2, 3, etc.)
+2. originalHook: COPY THE EXACT WORDS from the first 1-2 sentences
+3. universalTemplate: Create a template with [PLACEHOLDERS] that works for ANY topic
+4. type: Classify as problem/question/story/statement/warning/claim
+5. trigger: Identify emotion (curiosity/frustration/fear/excitement/surprise)
+
+MINIMUM REQUIREMENT: Your "allHooksExtracted" array MUST contain at least ${scriptsToAnalyze.length} entries!
+
+### 3. AUTHORITY BUILDING PATTERNS (Universal)
+How they establish credibility without domain specifics:
+- Generic authority statements: "After [TIME_PERIOD] of [DOING_THING]..."
+- Results framing: "I helped [NUMBER] [TYPE_OF_PEOPLE] achieve [OUTCOME]"
+- Social proof timing: When in the script they mention credentials
+- Trust-building phrases that work for any expertise
 
 ### 4. TRANSITIONAL ARCHITECTURE
 Map how they move through content:
@@ -61,12 +80,12 @@ Map how they move through content:
 - Enumeration patterns ("First", "The next tip", "My last point")
 - Parenthetical aside patterns
 
-### 5. PERSUASION FRAMEWORKS
-Extract their argumentation patterns:
-- Problem agitation formulas
-- Solution presentation structures
-- Objection handling language
-- Call-to-action progressions
+### 5. UNIVERSAL PERSUASION FRAMEWORKS
+Extract argumentation patterns that work for any topic:
+- Problem agitation: "Most people [COMMON_MISTAKE] which leads to [BAD_OUTCOME]"
+- Solution reveal: "The answer is actually [SIMPLER/DIFFERENT] than you think"
+- Objection handling: "You might be thinking [OBJECTION] but [COUNTER]"
+- CTA progression: Universal action prompts (try, test, implement, start)
 
 ### 6. MICRO-PATTERNS
 Capture distinctive speech quirks:
@@ -76,12 +95,12 @@ Capture distinctive speech quirks:
 - Specific number usage (round vs specific numbers)
 - Time reference patterns
 
-### 7. NARRATIVE STRUCTURES
-How they tell stories:
-- Personal anecdote formats
-- Client story templates
-- Before/after frameworks
-- Success metric presentations
+### 7. UNIVERSAL NARRATIVE STRUCTURES
+Story patterns that work for any domain:
+- Personal story arc: "I used to [OLD_STATE] until [TURNING_POINT] now [NEW_STATE]"
+- Case study structure: "[SUBJECT] had [PROBLEM], we tried [SOLUTION], result was [OUTCOME]"
+- Transformation framework: "From [STARTING_POINT] to [END_POINT] in [TIMEFRAME]"
+- Results presentation: How they frame any type of success (percentages, timeframes, comparisons)
 
 ### 8. EMOTIONAL CADENCE
 Track emotional progression:
@@ -90,12 +109,12 @@ Track emotional progression:
 - Empathy/relatability phrases
 - Urgency creation patterns
 
-### 9. CONTENT FORMULAS
-Identify recurring content templates:
-- List post structures
-- Comparison frameworks  
-- Myth-busting patterns
-- How-to templates
+### 9. UNIVERSAL CONTENT FORMULAS
+Templates that work regardless of subject matter:
+- List structure: "# [THINGS] that [OUTCOME]" - works for any domain
+- Comparison: "[OPTION_A] vs [OPTION_B]: Which [DOES_WHAT] better?"
+- Myth-busting: "[NUMBER] [MISCONCEPTIONS] about [TOPIC] that [HARM_PROGRESS]"
+- Teaching framework: "How to [ACHIEVE_RESULT] without [COMMON_OBSTACLE]"
 
 ### 10. CLOSING PATTERNS
 How they end videos:
@@ -104,60 +123,90 @@ How they end videos:
 - Follow/engagement requests
 - Value restatement patterns
 
+### 11. MANDATORY STEP-BY-STEP SCRIPT FORMULA (YOU MUST INCLUDE THIS!)
+
+YOU ARE REQUIRED TO CREATE A "detailedScriptFormula" WITH EXACTLY 14 STEPS.
+
+The formula MUST be inside "scriptGenerationRules" → "detailedScriptFormula" and contain:
+
+"detailedScriptFormula": {
+  "step1": "[00:00-00:03] Open with [TYPE] hook using HIGH energy. Say 'If you're [PROBLEM], I'll show you [SOLUTION]'",
+  "step2": "[00:03-00:05] Quick transition. Say 'Listen' or 'Alright' to maintain attention",
+  "step3": "[00:05-00:08] State credibility. Say 'After [TIME] of [EXPERTISE], I discovered...'",
+  "step4": "[00:08-00:10] Promise value. Say 'In the next [TIME], you'll learn [BENEFIT]'",
+  "step5": "[00:10-00:15] First main point. Say 'The first thing is [POINT]'",
+  "step6": "[00:15-00:20] Second main point. Say 'Next, you need to [ACTION]'",
+  "step7": "[00:20-00:25] Third point/story. Say 'My client [ACHIEVED] by [METHOD]'",
+  "step8": "[00:25-00:30] Address objection. Say 'You might think [OBJECTION], but [COUNTER]'",
+  "step9": "[00:30-00:35] Add proof. Say '[NUMBER]% of people who [ACTION] get [RESULT]'",
+  "step10": "[00:35-00:40] Comparison. Say 'Most people [WRONG_WAY], but you should [RIGHT_WAY]'",
+  "step11": "[00:40-00:45] Summary. Say 'Remember: [POINT1], [POINT2], [POINT3]'",
+  "step12": "[00:45-00:50] Urgency. Say 'Only [NUMBER] spots' or 'Limited time'",
+  "step13": "[00:50-00:55] CTA. Say 'Comment [WORD]' or 'Link in bio'",
+  "step14": "[00:55-00:60] Final hook. Say 'Next video, I'll show you [TEASER]'"
+}
+
+THIS IS MANDATORY - YOU MUST INCLUDE ALL 14 STEPS!
+
 ## Output Format Required:
 
-Return a comprehensive JSON with these exact sections:
+Return a VALID, COMPLETE JSON object with these exact sections. 
+IMPORTANT: Use proper JSON formatting - numbers without quotes, strings in quotes, no trailing commas:
 
 {
   "voiceProfile": {
-    "distinctiveness": "1-10 score of how unique their voice is",
-    "complexity": "simple|moderate|complex",
-    "primaryStyle": "educator|entertainer|motivator|authority|friend"
+    "distinctiveness": 8,
+    "complexity": "simple",
+    "primaryStyle": "educator"
   },
   
   "linguisticFingerprint": {
-    "avgSentenceLength": number,
+    "avgSentenceLength": 15,
     "vocabularyTier": {
-      "simple": percentage,
-      "moderate": percentage, 
-      "advanced": percentage
+      "simple": 30,
+      "moderate": 50, 
+      "advanced": 20
     },
     "topUniqueWords": ["words they use unusually often"],
     "avoidedWords": ["words they notably don't use"],
     "grammarQuirks": ["specific patterns like starting sentences with 'So'"]
   },
   
-  "hookReplicationSystem": {
-    "primaryHookType": "question|statement|story|problem|contrast",
-    "hookTemplates": [
-      {
-        "template": "EXACT template with [PLACEHOLDERS] for content",
-        "type": "question|statement|story|problem",
-        "frequency": percentage,
-        "effectiveness": "high|medium|low based on engagement patterns",
-        "emotionalTrigger": "fear|curiosity|frustration|hope|surprise",
-        "realExamples": ["actual examples from scripts"],
-        "newExamples": ["how to use this template with new topics"]
-      }
-    ],
+  "allHooksExtracted": [
+    {
+      "scriptNumber": 1,
+      "originalHook": "Copy the EXACT opening 1-2 sentences from Script 1",
+      "universalTemplate": "Template version with [PLACEHOLDERS]",
+      "type": "problem|question|story|statement|warning|claim",
+      "trigger": "curiosity|frustration|fear|excitement|surprise"
+    },
+    {
+      "scriptNumber": 2,
+      "originalHook": "Copy the EXACT opening 1-2 sentences from Script 2",
+      "universalTemplate": "Template version with [PLACEHOLDERS]",
+      "type": "problem|question|story|statement|warning|claim",
+      "trigger": "curiosity|frustration|fear|excitement|surprise"
+    }
+    // MUST include ALL scripts analyzed
+  ],
     "hookProgression": {
       "structure": "[HOOK_TYPE] → [TRANSITION_PHRASE] → [VALUE_PROMISE]",
-      "avgWordCount": number,
-      "timing": "seconds if applicable",
+      "avgWordCount": 20,
+      "timing": "3 seconds",
       "examples": ["real progressions from scripts"]
     },
     "hookRules": [
-      "Specific rules for creating hooks in their style",
-      "What they ALWAYS do",
-      "What they NEVER do"
+      "Universal rules for hooks (e.g., 'Always start with action verb')",
+      "Structure rules (e.g., 'Never exceed 10 words')",
+      "Energy rules (e.g., 'Always high energy opening')"
     ]
   },
   
   "openingFormulas": [
     {
       "pattern": "[Exact pattern with placeholders]",
-      "frequency": number,
-      "emotionalTrigger": "fear|curiosity|frustration|hope",
+      "frequency": 10,
+      "emotionalTrigger": "curiosity",
       "examples": ["real examples from scripts"]
     }
   ],
@@ -212,95 +261,245 @@ Return a comprehensive JSON with these exact sections:
   
   "scriptGenerationRules": {
     "mustInclude": [
-      "Elements that MUST appear in every script"
+      "Universal elements (e.g., 'Personal connection in first 30 seconds')",
+      "Structural requirements (e.g., 'Three main points')",
+      "Energy patterns (e.g., 'Build to climax at 75% mark')"
     ],
     "neverInclude": [
-      "Things they NEVER say or do"
+      "Universal avoidances (e.g., 'Never use passive voice')",
+      "Style restrictions (e.g., 'Never exceed 3 sentences without break')"
     ],
     "optimalStructure": {
-      "hookSection": "0-10 seconds: [what happens]",
-      "bodySection": "10-40 seconds: [what happens]",
-      "closeSection": "40-60 seconds: [what happens]"
+      "hookSection": "0-10 seconds: [energy level, pace, promise]",
+      "bodySection": "10-40 seconds: [teaching style, example pattern, progression]",
+      "closeSection": "40-60 seconds: [summary style, CTA approach, energy]"
     },
-    "formulaForNewScript": "Step-by-step formula to create a new script in their style"
+    "detailedScriptFormula": {
+      "step1": "[00:00-00:03] Open with [HOOK_TYPE] hook using HIGH energy. Say 'If you're [PROBLEM], I'll show you [SOLUTION]'",
+      "step2": "[00:03-00:05] Quick transition. Say 'Listen' or 'Alright' to maintain attention",
+      "step3": "[00:05-00:08] State credibility fast. Say 'After [TIME] of [EXPERTISE], I discovered...'",
+      "step4": "[00:08-00:10] Promise specific value. Say 'In the next [TIME], you'll learn [BENEFIT]'",
+      "step5": "[00:10-00:15] First main point. Say 'The first thing is [POINT]' with example",
+      "step6": "[00:15-00:20] Second main point. Say 'Next, you need to [ACTION]' with specifics",
+      "step7": "[00:20-00:25] Third main point or client story. Say 'My client [ACHIEVED] by [METHOD]'",
+      "step8": "[00:25-00:30] Address objection. Say 'You might think [OBJECTION], but [COUNTER]'",
+      "step9": "[00:30-00:35] Reinforce with data. Say '[NUMBER]% of people who [ACTION] get [RESULT]'",
+      "step10": "[00:35-00:40] Create comparison. Say 'Most people [WRONG_WAY], but you should [RIGHT_WAY]'",
+      "step11": "[00:40-00:45] Summarize key points. Say 'Remember: [POINT1], [POINT2], [POINT3]'",
+      "step12": "[00:45-00:50] Create urgency. Say 'Only [NUMBER] spots' or 'Limited time'",
+      "step13": "[00:50-00:55] Strong CTA. Say 'Comment [WORD] below' or 'Link in bio'",
+      "step14": "[00:55-00:60] Final hook/tease. Say 'In my next video, I'll show you [NEXT_VALUE]'"
+    },
+    "universalApplicationExample": "To apply to ANY topic: Replace [PROBLEM] with your audience's pain point, [SOLUTION] with your method, [PROOF_TYPE] with your credibility (story/stats/results), [STRUCTURE_TYPE] with list/comparison/journey, etc."
   }
 }
 
-Analyze with forensic precision. Remember: The goal is to create a REUSABLE SYSTEM for generating new scripts that are indistinguishable from the creator's original content. Every pattern must be extractable and applicable to new topics.
+Analyze with forensic precision. Remember: The goal is to create a UNIVERSAL VOICE SYSTEM that can be applied to ANY topic.
 
-IMPORTANT: Return ONLY the JSON object above, no markdown, no code blocks, no additional text.
+VALIDATION TEST: Every template you extract should work equally well for:
+- Teaching someone to cook pasta
+- Explaining cryptocurrency
+- Motivating fitness routines
+- Reviewing a product
+- Sharing business advice
 
-Scripts to analyze (${transcripts.length} total):
-${transcripts.map((t, i) => `---SCRIPT ${i + 1}---\n${t}`).join('\n\n')}`;
+If a pattern only works for the creator's specific domain, it's TOO SPECIFIC. Extract the underlying universal structure instead.
+
+Example:
+❌ TOO SPECIFIC: "This workout will transform your body"
+✅ UNIVERSAL: "This [METHOD] will transform your [DESIRED_OUTCOME]"
+
+CRITICAL REQUIREMENTS - YOUR RESPONSE WILL BE INVALID WITHOUT THESE:
+
+✅ HOOK EXTRACTION REQUIREMENTS:
+- You MUST include ${scriptsToAnalyze.length} hooks in "allHooksExtracted" array
+- Each hook MUST have: scriptNumber, originalHook (exact quote), universalTemplate, type, trigger
+- DO NOT skip any scripts - extract from Script 1, Script 2, Script 3... up to Script ${scriptsToAnalyze.length}
+
+✅ STEP-BY-STEP FORMULA REQUIREMENTS:
+- You MUST include "detailedScriptFormula" inside "scriptGenerationRules"
+- It MUST contain EXACTLY 14 steps (step1 through step14)
+- Each step MUST have: time range, action, template phrase
+- This is NOT OPTIONAL - the formula MUST be included
+
+✅ JSON FORMAT REQUIREMENTS:
+- Return ONLY valid JSON (no markdown, no code blocks)
+- Use numbers not strings for numeric values
+- Ensure complete JSON from opening { to closing }
+
+FINAL CHECK BEFORE RESPONDING:
+□ Does "allHooksExtracted" have at least ${scriptsToAnalyze.length} entries?
+□ Does "scriptGenerationRules" contain "detailedScriptFormula"?
+□ Does "detailedScriptFormula" have all 14 steps?
+□ Is each hook's "originalHook" an exact quote from the transcript?
+
+Scripts to analyze (${scriptsToAnalyze.length} total):
+${scriptsToAnalyze.map((t, i) => `---SCRIPT ${i + 1}---\n${t}`).join("\n\n")}`;
+
+    // Calculate approximate input tokens (rough estimate: 1 token ≈ 4 characters)
+    const totalInputChars = prompt.length;
+    const estimatedInputTokens = Math.ceil(totalInputChars / 4);
+    console.log(`📊 Estimated input size: ${totalInputChars} chars ≈ ${estimatedInputTokens} tokens`);
+    console.log(`📊 Transcripts: ${scriptsToAnalyze.length} scripts, total ${scriptsToAnalyze.join("").length} chars`);
 
     const result = await GeminiService.generateContent({
       prompt,
-      responseType: 'json',
+      responseType: "text", // Text mode for flexibility
       temperature: 0.3,
-      maxTokens: 8192,
-      model: 'gemini-1.5-flash'
+      maxTokens: 16384, // Sufficient for 10 transcripts
+      model: "gemini-1.5-flash",
     });
 
     if (!result.success || !result.content) {
-      console.error('Voice analysis failed:', result.error);
-      return NextResponse.json(
-        { error: result.error || 'Failed to analyze voice patterns' },
-        { status: 500 }
-      );
+      console.error("Voice analysis failed:", result.error);
+      return NextResponse.json({ error: result.error || "Failed to analyze voice patterns" }, { status: 500 });
     }
 
-    // Clean and parse JSON response
+    // Log response details
+    console.log(`📊 Response content length: ${result.content.length} characters`);
+    console.log(`📊 Response appears truncated: ${result.content.length < 1000 ? "YES!" : "No"}`);
+    if (result.content.length < 1000) {
+      console.log("⚠️ Response is suspiciously short - may be truncated by Gemini");
+    }
+
+    // Clean and parse JSON response with improved error handling
     let analysis;
     try {
       let cleanContent = result.content;
-      
+
       // Remove markdown code blocks if present
-      if (cleanContent.includes('```json')) {
+      if (cleanContent.includes("```json")) {
         const jsonMatch = cleanContent.match(/```json\s*([\s\S]*?)\s*```/);
         if (jsonMatch && jsonMatch[1]) {
           cleanContent = jsonMatch[1].trim();
         }
-      } else if (cleanContent.includes('```')) {
+      } else if (cleanContent.includes("```")) {
         const codeMatch = cleanContent.match(/```\s*([\s\S]*?)\s*```/);
         if (codeMatch && codeMatch[1]) {
           cleanContent = codeMatch[1].trim();
         }
       }
-      
+
       // Find JSON object boundaries
-      const startIndex = cleanContent.indexOf('{');
-      const lastIndex = cleanContent.lastIndexOf('}');
-      
+      const startIndex = cleanContent.indexOf("{");
+      const lastIndex = cleanContent.lastIndexOf("}");
+
       if (startIndex !== -1 && lastIndex !== -1 && lastIndex > startIndex) {
         cleanContent = cleanContent.substring(startIndex, lastIndex + 1);
       }
-      
-      analysis = JSON.parse(cleanContent);
-      console.log('✅ Voice analysis completed successfully');
-      
+
+      // Clean up common JSON issues
+      // Remove any trailing commas before closing braces/brackets
+      cleanContent = cleanContent.replace(/,(\s*[}\]])/g, "$1");
+
+      // Remove any control characters that might break JSON
+      cleanContent = cleanContent.replace(/[\x00-\x1F\x7F]/g, "");
+
+      // Fix common percentage/number formatting issues
+      cleanContent = cleanContent.replace(/"(\d+)%"/g, "$1"); // Convert "80%" to 80
+
+      // Try to parse with better error recovery
+      try {
+        analysis = JSON.parse(cleanContent);
+      } catch (firstError) {
+        // If first parse fails, try to fix common issues
+        console.log("⚠️ First parse attempt failed, trying to fix common issues...");
+
+        // Replace single quotes with double quotes (common mistake)
+        cleanContent = cleanContent.replace(/'/g, '"');
+
+        // Ensure all string values are properly quoted
+        cleanContent = cleanContent.replace(/:\s*([^",\[\{\}\]]+?)([,\}\]])/g, ':"$1"$2');
+
+        // Try parsing again
+        analysis = JSON.parse(cleanContent);
+      }
+
+      console.log("✅ Voice analysis completed successfully");
+
+      // Log the generated content structure for debugging
+      console.log("📊 Generated Analysis Structure:");
+      console.log(`  - allHooksExtracted: ${analysis.allHooksExtracted ? analysis.allHooksExtracted.length : 0} hooks`);
+      console.log(`  - hookReplicationSystem: ${analysis.hookReplicationSystem ? "Present" : "Missing"}`);
+      console.log(
+        `  - detailedScriptFormula: ${analysis.scriptGenerationRules?.detailedScriptFormula ? Object.keys(analysis.scriptGenerationRules.detailedScriptFormula).length : 0} steps`);
+
+      // Log the actual content of critical fields
+      if (analysis.allHooksExtracted && analysis.allHooksExtracted.length > 0) {
+        console.log("🎯 Sample Hooks Extracted:");
+        analysis.allHooksExtracted.slice(0, 3).forEach((hook: any, i: number) => {
+          console.log(`  Hook ${i + 1}: "${hook.originalHook?.substring(0, 50)}..."`);
+          console.log(`    Template: "${hook.universalTemplate?.substring(0, 50)}..."`);
+        });
+      } else {
+        console.log("⚠️ WARNING: No hooks in allHooksExtracted array!");
+      }
+
+      if (analysis.scriptGenerationRules?.detailedScriptFormula) {
+        const steps = Object.keys(analysis.scriptGenerationRules.detailedScriptFormula);
+        console.log(`🎬 Script Formula Steps Found: ${steps.join(", ")}`);
+        if (steps.length < 14) {
+          console.log(`⚠️ WARNING: Only ${steps.length} steps found, expected 14!`);
+        }
+      } else {
+        console.log("⚠️ WARNING: No detailedScriptFormula found in scriptGenerationRules!");
+      }
+
+      // Log the raw JSON for debugging if needed
+      if (process.env.NODE_ENV === "development") {
+        console.log("🔍 Full Analysis JSON (first 2000 chars):");
+        console.log(JSON.stringify(analysis, null, 2).substring(0, 2000));
+      }
+
+      // Log sample data
+      if (analysis.allHooksExtracted && analysis.allHooksExtracted.length > 0) {
+        console.log("🎯 First Hook:", JSON.stringify(analysis.allHooksExtracted[0], null, 2));
+        console.log(`🎯 Total Hooks Extracted: ${analysis.allHooksExtracted.length}`);
+      } else {
+        console.warn("⚠️ No hooks found in allHooksExtracted!");
+      }
+
+      if (analysis.scriptGenerationRules?.detailedScriptFormula) {
+        const steps = Object.keys(analysis.scriptGenerationRules.detailedScriptFormula);
+        console.log("📝 Formula Steps Found:", steps);
+        console.log("📝 First Step:", analysis.scriptGenerationRules.detailedScriptFormula.step1);
+      } else {
+        console.warn("⚠️ No detailedScriptFormula found!");
+      }
     } catch (parseError) {
-      console.error('❌ JSON parse error:', parseError);
-      console.error('❌ Raw content (first 1000 chars):', result.content.substring(0, 1000));
-      
+      console.error("❌ JSON parse error:", parseError);
+
+      // Try to extract partial data if possible
+      const partialMatch = result.content.match(/"voiceProfile":\s*{[^}]+}/);
+      const hasPartialData = partialMatch !== null;
+
+      console.error("❌ Raw content length:", result.content.length);
+      console.error("❌ First 500 chars:", result.content.substring(0, 500));
+      console.error("❌ Last 500 chars:", result.content.substring(result.content.length - 500));
+
       return NextResponse.json(
-        { 
-          error: 'Failed to parse analysis results',
-          details: parseError instanceof Error ? parseError.message : 'JSON parsing failed',
-          rawContent: result.content.substring(0, 1000) // First 1000 chars for debugging
+        {
+          error: "Failed to parse analysis results - JSON may be truncated or malformed",
+          details: parseError instanceof Error ? parseError.message : "JSON parsing failed",
+          contentLength: result.content.length,
+          hasPartialData,
+          debugInfo: {
+            firstChars: result.content.substring(0, 500),
+            lastChars: result.content.substring(result.content.length - 500),
+          },
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
-    
-    return NextResponse.json(analysis);
 
+    return NextResponse.json(analysis);
   } catch (error) {
-    console.error('Voice analysis error:', error);
+    console.error("Voice analysis error:", error);
     return NextResponse.json(
-      { 
-        error: error instanceof Error ? error.message : 'Failed to analyze voice patterns' 
+      {
+        error: error instanceof Error ? error.message : "Failed to analyze voice patterns",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
