@@ -273,6 +273,165 @@ export default function TikTokUserFeedTestPage() {
     }
   };
 
+  // Automated workflow: Username → Feed → Transcribe → Analyze
+  const runAutomatedWorkflow = async () => {
+    const rawInput = username.trim();
+    if (!rawInput) {
+      setError("Please enter a username or TikTok URL");
+      return;
+    }
+
+    // Extract clean username from input
+    const cleanUsername = extractUsername(rawInput);
+    if (!cleanUsername) {
+      setError(
+        "Could not extract username from the provided input. Please enter a valid TikTok username or profile URL.",
+      );
+      return;
+    }
+
+    console.log("🚀 Starting automated workflow for:", cleanUsername);
+
+    // Reset all states
+    setLoading(true);
+    setError("");
+    setResponse(null);
+    setTranscriptResults([]);
+    setAnalysisResult(null);
+    setTranscriptError("");
+    setAnalysisError("");
+
+    try {
+      // Step 1: Fetch user feed
+      console.log("📊 Step 1/3: Fetching user feed...");
+      const feedResponse = await fetch("/api/tiktok/user-feed", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: cleanUsername,
+          count: 20,
+        }),
+      });
+
+      const feedData: ApiResponse = await feedResponse.json();
+      setResponse(feedData);
+
+      if (!feedData.success || !feedData.videos || feedData.videos.length === 0) {
+        throw new Error(feedData.error || "No videos found in user feed");
+      }
+
+      console.log(`✅ Found ${feedData.videos.length} videos`);
+
+      // Step 2: Transcribe videos (limit to 10 successful)
+      console.log("🎯 Step 2/3: Transcribing videos (max 10)...");
+      setTranscriptLoading(true);
+      
+      const videoUrls = feedData.videos
+        .map((video) => video.playUrl || video.downloadUrl)
+        .filter(Boolean);
+
+      const transcriptResults: TranscriptResult[] = [];
+      let successfulCount = 0;
+      const maxSuccessful = 10;
+
+      setCurrentProcessing({ current: 0, total: Math.min(videoUrls.length, maxSuccessful) });
+
+      for (let i = 0; i < videoUrls.length && successfulCount < maxSuccessful; i++) {
+        const videoUrl = videoUrls[i];
+        setCurrentProcessing({ current: successfulCount + 1, total: maxSuccessful });
+
+        try {
+          console.log(`📹 Transcribing video ${i + 1}: ${videoUrl.substring(0, 50)}...`);
+          
+          const transcriptResponse = await fetch("/api/video/transcribe-from-url", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ videoUrl }),
+          });
+
+          const transcriptData = await transcriptResponse.json();
+
+          if (transcriptData.success && transcriptData.transcript) {
+            const result: TranscriptResult = {
+              url: videoUrl,
+              transcript: transcriptData.transcript,
+            };
+            transcriptResults.push(result);
+            setTranscriptResults([...transcriptResults]);
+            successfulCount++;
+            console.log(`✅ Transcription ${successfulCount}/${maxSuccessful} complete`);
+          } else {
+            console.warn(`⚠️ Failed to transcribe video ${i + 1}:`, transcriptData.error);
+          }
+        } catch (error) {
+          console.error(`❌ Error transcribing video ${i + 1}:`, error);
+        }
+
+        // Add delay between requests (except after the last one)
+        if (successfulCount < maxSuccessful && i < videoUrls.length - 1) {
+          console.log("⏳ Waiting 2 seconds before next transcription...");
+          await delay(2000);
+        }
+      }
+
+      setTranscriptLoading(false);
+      setCurrentProcessing({ current: 0, total: 0 });
+
+      if (transcriptResults.length < 3) {
+        throw new Error(`Only ${transcriptResults.length} transcriptions succeeded. Need at least 3 for analysis.`);
+      }
+
+      console.log(`✅ Successfully transcribed ${transcriptResults.length} videos`);
+
+      // Step 3: Analyze voice patterns
+      console.log("🧠 Step 3/3: Analyzing voice patterns...");
+      setAnalysisLoading(true);
+
+      const validTranscripts = transcriptResults.map((result) => result.transcript);
+
+      const analysisResponse = await fetch("/api/voice/analyze-patterns", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ transcripts: validTranscripts }),
+      });
+
+      if (!analysisResponse.ok) {
+        const errorData = await analysisResponse.json();
+        throw new Error(errorData.error || "Failed to analyze voice patterns");
+      }
+
+      const analysis = await analysisResponse.json();
+      setAnalysisResult(analysis);
+      setAnalysisLoading(false);
+
+      console.log("✅ Voice analysis complete!");
+      console.log("📊 Analysis summary:", {
+        hooksExtracted: analysis.allHooksExtracted?.length || 0,
+        scriptFormula: analysis.scriptGenerationRules?.detailedScriptFormula ? "Generated" : "Missing",
+      });
+
+      // Auto-show persona form if analysis succeeded
+      if (analysis) {
+        setShowPersonaForm(true);
+      }
+
+    } catch (error) {
+      console.error("❌ Workflow error:", error);
+      setError(error instanceof Error ? error.message : "Workflow failed");
+      setTranscriptLoading(false);
+      setAnalysisLoading(false);
+    } finally {
+      setLoading(false);
+      setCurrentProcessing({ current: 0, total: 0 });
+    }
+  };
+
   // Function to copy URL to clipboard
   const copyToClipboard = async (url: string) => {
     try {
@@ -612,8 +771,8 @@ export default function TikTokUserFeedTestPage() {
       <div className="mx-auto max-w-4xl space-y-6">
         {/* Header */}
         <div className="space-y-2 text-center">
-          <h1 className="text-2xl font-semibold text-neutral-900">TikTok User Feed Test</h1>
-          <p className="text-neutral-600">Test the /api/tiktok/user-feed endpoint to fetch video URLs</p>
+          <h1 className="text-2xl font-semibold text-neutral-900">TikTok Voice Analysis Workflow</h1>
+          <p className="text-neutral-600">Analyze any TikTok creator's voice patterns and create a persona</p>
         </div>
 
         {/* Input Section */}
@@ -630,34 +789,141 @@ export default function TikTokUserFeedTestPage() {
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Enter username, @username, or TikTok profile URL"
                 className="focus:border-primary-400 focus:ring-primary-400 w-full rounded-[var(--radius-button)] border border-neutral-200 bg-neutral-50 px-3 py-2 transition-colors focus:ring-1 focus:outline-none"
-                disabled={loading}
+                disabled={loading || transcriptLoading || analysisLoading}
               />
               <p className="mt-1 text-xs text-neutral-500">
                 Supports: username, @username, https://www.tiktok.com/@username, or profile URLs
               </p>
             </div>
 
-            <button
-              onClick={fetchUserFeed}
-              disabled={loading || !username.trim()}
-              className="flex w-full items-center justify-center gap-2 rounded-[var(--radius-button)] bg-neutral-900 px-4 py-2 text-neutral-50 transition-colors duration-200 hover:bg-neutral-800 disabled:cursor-not-allowed disabled:bg-neutral-300"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Fetching Feed...
-                </>
-              ) : (
-                "Fetch Feed"
-              )}
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={runAutomatedWorkflow}
+                disabled={loading || transcriptLoading || analysisLoading || !username.trim()}
+                className="flex flex-1 items-center justify-center gap-2 rounded-[var(--radius-button)] bg-primary-600 px-4 py-2 text-white transition-colors duration-200 hover:bg-primary-700 disabled:cursor-not-allowed disabled:bg-neutral-300"
+              >
+                {loading || transcriptLoading || analysisLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    {loading && "Fetching Feed..."}
+                    {transcriptLoading && `Transcribing ${currentProcessing.current}/${currentProcessing.total}...`}
+                    {analysisLoading && "Analyzing Patterns..."}
+                  </>
+                ) : (
+                  <>
+                    ⚡ Run Complete Analysis
+                  </>
+                )}
+              </button>
+              
+              <button
+                onClick={fetchUserFeed}
+                disabled={loading || transcriptLoading || analysisLoading || !username.trim()}
+                className="flex items-center justify-center gap-2 rounded-[var(--radius-button)] bg-neutral-100 px-4 py-2 text-neutral-700 transition-colors duration-200 hover:bg-neutral-200 disabled:cursor-not-allowed disabled:bg-neutral-50"
+                title="Fetch feed only (manual process)"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  "Manual Mode"
+                )}
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Workflow Progress Indicator */}
+        {(loading || transcriptLoading || analysisLoading) && (
+          <div className="rounded-[var(--radius-card)] border border-primary-200 bg-primary-50 p-4 shadow-[var(--shadow-soft-drop)]">
+            <h3 className="mb-3 text-sm font-semibold text-primary-900">Workflow Progress</h3>
+            <div className="space-y-2">
+              <div className={`flex items-center gap-3 ${loading ? 'text-primary-700' : response ? 'text-success-600' : 'text-neutral-400'}`}>
+                <div className={`h-6 w-6 rounded-full flex items-center justify-center ${
+                  loading ? 'bg-primary-200 animate-pulse' : response ? 'bg-success-100' : 'bg-neutral-100'
+                }`}>
+                  {response ? '✓' : '1'}
+                </div>
+                <span className="text-sm font-medium">
+                  Fetch User Feed
+                  {loading && ' (in progress...)'}
+                  {response && ` (${response.videos?.length || 0} videos found)`}
+                </span>
+              </div>
+              
+              <div className={`flex items-center gap-3 ${transcriptLoading ? 'text-primary-700' : transcriptResults.length > 0 ? 'text-success-600' : 'text-neutral-400'}`}>
+                <div className={`h-6 w-6 rounded-full flex items-center justify-center ${
+                  transcriptLoading ? 'bg-primary-200 animate-pulse' : transcriptResults.length > 0 ? 'bg-success-100' : 'bg-neutral-100'
+                }`}>
+                  {transcriptResults.length > 0 && !transcriptLoading ? '✓' : '2'}
+                </div>
+                <span className="text-sm font-medium">
+                  Transcribe Videos
+                  {transcriptLoading && ` (${currentProcessing.current}/${currentProcessing.total})`}
+                  {!transcriptLoading && transcriptResults.length > 0 && ` (${transcriptResults.filter(r => !r.error).length} successful)`}
+                </span>
+              </div>
+              
+              <div className={`flex items-center gap-3 ${analysisLoading ? 'text-primary-700' : analysisResult ? 'text-success-600' : 'text-neutral-400'}`}>
+                <div className={`h-6 w-6 rounded-full flex items-center justify-center ${
+                  analysisLoading ? 'bg-primary-200 animate-pulse' : analysisResult ? 'bg-success-100' : 'bg-neutral-100'
+                }`}>
+                  {analysisResult ? '✓' : '3'}
+                </div>
+                <span className="text-sm font-medium">
+                  Analyze Voice Patterns
+                  {analysisLoading && ' (processing...)'}
+                  {analysisResult && ' (complete)'}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Error Display */}
         {error && (
           <div className="bg-destructive-50 border-destructive-200 rounded-[var(--radius-card)] border p-4">
             <p className="text-destructive-700 text-sm">{error}</p>
+          </div>
+        )}
+
+        {/* Success Summary - Show when analysis is complete */}
+        {analysisResult && !loading && !transcriptLoading && !analysisLoading && (
+          <div className="rounded-[var(--radius-card)] border border-success-200 bg-success-50 p-6 shadow-[var(--shadow-soft-drop)]">
+            <div className="flex items-start gap-4">
+              <div className="rounded-full bg-success-100 p-2">
+                <FileText className="h-6 w-6 text-success-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-success-900 mb-2">Voice Analysis Complete!</h3>
+                <div className="space-y-2 text-sm text-success-700">
+                  <p>✓ Analyzed {transcriptResults.filter(r => !r.error).length} video transcripts</p>
+                  <p>✓ Extracted {analysisResult.allHooksExtracted?.length || 0} hook patterns</p>
+                  <p>✓ Generated {analysisResult.scriptGenerationRules?.detailedScriptFormula ? '14-step' : ''} script formula</p>
+                </div>
+                <div className="mt-4 flex gap-3">
+                  <button
+                    onClick={() => {
+                      const element = document.getElementById('persona-form');
+                      element?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="flex items-center gap-2 rounded-[var(--radius-button)] bg-success-600 px-4 py-2 text-white hover:bg-success-700 transition-colors"
+                  >
+                    <UserPlus className="h-4 w-4" />
+                    Create Persona Now
+                  </button>
+                  <button
+                    onClick={() => downloadAnalysis("json")}
+                    className="flex items-center gap-2 rounded-[var(--radius-button)] bg-neutral-100 px-4 py-2 text-neutral-700 hover:bg-neutral-200 transition-colors"
+                  >
+                    <Download className="h-4 w-4" />
+                    Download Analysis
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
@@ -1423,7 +1689,7 @@ This is the third transcript...`}
 
               {/* Persona Creation Form */}
               {showPersonaForm && (
-                <div className="bg-brand-50 border-brand-200 mt-4 rounded-[var(--radius-card)] border p-6">
+                <div id="persona-form" className="bg-brand-50 border-brand-200 mt-4 rounded-[var(--radius-card)] border p-6">
                   <h3 className="mb-4 text-lg font-semibold text-neutral-900">Create New Persona</h3>
 
                   <div className="space-y-4">
