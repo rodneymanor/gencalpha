@@ -19,14 +19,14 @@ import path from "path";
 
 import prettier from "prettier";
 
-const presetDir = path.resolve(__dirname, "../styles/presets");
+const presetDir = path.resolve(__dirname, "../src/styles/presets");
 
 if (!fs.existsSync(presetDir)) {
   console.error(`❌ Preset directory not found at: ${presetDir}`);
   process.exit(1);
 }
 
-const outputPath = path.resolve(__dirname, "../types/preferences/theme.ts");
+const outputPath = path.resolve(__dirname, "../src/types/preferences/theme.ts");
 
 const files = fs.readdirSync(presetDir).filter((file) => file.endsWith(".css"));
 
@@ -68,7 +68,7 @@ const presets = files.map((file) => {
   return { label, value, primary };
 });
 
-const globalStylesPath = path.resolve(__dirname, "../app/globals.css");
+const globalStylesPath = path.resolve(__dirname, "../src/app/globals.css");
 
 let globalContent = "";
 try {
