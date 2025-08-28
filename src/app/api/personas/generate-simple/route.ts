@@ -51,7 +51,15 @@ export async function POST(request: NextRequest) {
             ),
           );
 
-          const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000";
+          // Dynamically determine the base URL
+          let baseUrl: string;
+          if (process.env.VERCEL_URL) {
+            baseUrl = `https://${process.env.VERCEL_URL}`;
+          } else {
+            // Get the actual host from the request headers if available
+            const host = request.headers.get("host") ?? "localhost:3000";
+            baseUrl = `http://${host}`;
+          }
 
           const feedResponse = await fetch(`${baseUrl}/api/tiktok/user-feed`, {
             method: "POST",
@@ -72,6 +80,10 @@ export async function POST(request: NextRequest) {
 
           console.log(`✅ [SIMPLE_PERSONA] Fetched ${feedData.videos.length} videos`);
 
+          // Limit to 5 videos maximum for performance
+          const videosToProcess = feedData.videos.slice(0, 5);
+          console.log(`📊 [SIMPLE_PERSONA] Processing ${videosToProcess.length} videos (limited to 5)`);
+
           // Step 2: Process videos ONE BY ONE with delays
           controller.enqueue(
             encoder.encode(
@@ -80,7 +92,7 @@ export async function POST(request: NextRequest) {
                 step: "transcribing",
                 progress: 30,
                 message: "Processing video content...",
-                totalVideos: feedData.videos.length,
+                totalVideos: videosToProcess.length,
                 videosProcessed: 0,
               }),
             ),
@@ -91,7 +103,7 @@ export async function POST(request: NextRequest) {
           let processedCount = 0;
 
           // Process videos one by one with 2-second delay between each
-          for (const video of feedData.videos) {
+          for (const video of videosToProcess) {
             try {
               // Construct TikTok URL from video data
               const videoId = video.id;
@@ -99,7 +111,7 @@ export async function POST(request: NextRequest) {
               const videoUrl = `https://www.tiktok.com/@${authorUsername}/video/${videoId}`;
 
               console.log(
-                `🎬 [SIMPLE_PERSONA] Processing video ${processedCount + 1}/${feedData.videos.length}: ${videoUrl}`,
+                `🎬 [SIMPLE_PERSONA] Processing video ${processedCount + 1}/${videosToProcess.length}: ${videoUrl}`,
               );
 
               // Add delay before processing (except for first video)
@@ -140,9 +152,9 @@ export async function POST(request: NextRequest) {
                   createSSEResponse({
                     type: "progress",
                     step: "transcribing",
-                    progress: 30 + (processedCount / feedData.videos.length) * 40,
-                    message: `Processing video ${processedCount} of ${feedData.videos.length}...`,
-                    totalVideos: feedData.videos.length,
+                    progress: 30 + (processedCount / videosToProcess.length) * 40,
+                    message: `Processing video ${processedCount} of ${videosToProcess.length}...`,
+                    totalVideos: videosToProcess.length,
                     videosProcessed: processedCount,
                   }),
                 ),
@@ -194,7 +206,7 @@ export async function POST(request: NextRequest) {
             createdAt: new Date().toISOString(),
             metadata: {
               videosAnalyzed: transcriptions.length,
-              totalVideosFound: feedData.videos.length,
+              totalVideosFound: videosToProcess.length,
               analysisDate: new Date().toISOString(),
             },
           };
