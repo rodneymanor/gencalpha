@@ -138,7 +138,8 @@ export function NewPersonaModal({ isOpen, onClose, onPersonaCreated }: NewPerson
         message: `Fetching videos from @${extracted.username}...`,
       });
 
-      const response = await fetch("/api/personas/generate", {
+      // Use simplified endpoint that doesn't require OpenAI
+      const response = await fetch("/api/personas/generate-simple", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -160,11 +161,9 @@ export function NewPersonaModal({ isOpen, onClose, onPersonaCreated }: NewPerson
         throw new Error("Stream not available");
       }
 
-      let reading = true;
-      while (reading) {
+      while (true) {
         const { done, value } = await reader.read();
         if (done) {
-          reading = false;
           break;
         }
 
