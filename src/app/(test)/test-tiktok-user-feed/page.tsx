@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Copy, ExternalLink, Loader2, User, FileText } from 'lucide-react';
+import { Copy, ExternalLink, Loader2, User, FileText, Download, Code } from 'lucide-react';
 
 interface TikTokVideo {
   id: string;
@@ -50,6 +50,96 @@ interface TranscriptResult {
   error?: string;
 }
 
+interface VoiceAnalysis {
+  voiceProfile: {
+    distinctiveness: string;
+    complexity: string;
+    primaryStyle: string;
+  };
+  linguisticFingerprint: {
+    avgSentenceLength: number;
+    vocabularyTier: {
+      simple: number;
+      moderate: number;
+      advanced: number;
+    };
+    topUniqueWords: string[];
+    avoidedWords: string[];
+    grammarQuirks: string[];
+  };
+  hookReplicationSystem?: {
+    primaryHookType: string;
+    hookTemplates: Array<{
+      template: string;
+      type: string;
+      frequency: number;
+      effectiveness: string;
+      emotionalTrigger: string;
+      realExamples: string[];
+      newExamples: string[];
+    }>;
+    hookProgression: {
+      structure: string;
+      avgWordCount: number;
+      timing: string;
+      examples: string[];
+    };
+    hookRules: string[];
+  };
+  openingFormulas: Array<{
+    pattern: string;
+    frequency: number;
+    emotionalTrigger: string;
+    examples: string[];
+  }>;
+  transitionPhrases: {
+    conceptBridges: string[];
+    enumeration: string[];
+    topicPivots: string[];
+    softeners: string[];
+  };
+  rhetoricalDevices: Array<{
+    device: string;
+    pattern: string;
+    examples: string[];
+  }>;
+  microPatterns: {
+    fillers: string[];
+    emphasisWords: string[];
+    numberPatterns: string;
+    timeReferences: string[];
+  };
+  persuasionFramework: {
+    painPoints: string[];
+    solutions: string[];
+    credibility: string[];
+    urgency: string[];
+  };
+  contentTemplates: Array<{
+    type: string;
+    structure: string;
+    avgLength: string;
+    examples: string[];
+  }>;
+  signatureMoves: Array<{
+    move: string;
+    description: string;
+    frequency: string;
+    placement: string;
+    verbatim: string[];
+  }>;
+  scriptGenerationRules?: {
+    mustInclude: string[];
+    neverInclude: string[];
+    optimalStructure: {
+      hookSection: string;
+      bodySection: string;
+      closeSection: string;
+    };
+    formulaForNewScript: string;
+  };
+}
+
 export default function TikTokUserFeedTestPage() {
   const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(false);
@@ -62,6 +152,12 @@ export default function TikTokUserFeedTestPage() {
   const [transcriptResults, setTranscriptResults] = useState<TranscriptResult[]>([]);
   const [transcriptError, setTranscriptError] = useState('');
   const [currentProcessing, setCurrentProcessing] = useState({ current: 0, total: 0 });
+
+  // Voice analysis state
+  const [analysisLoading, setAnalysisLoading] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<VoiceAnalysis | null>(null);
+  const [analysisError, setAnalysisError] = useState('');
+  const [manualTranscripts, setManualTranscripts] = useState('');
 
   // Function to extract username from various TikTok URL formats
   const extractUsername = (input: string): string => {
@@ -160,6 +256,86 @@ export default function TikTokUserFeedTestPage() {
     } catch (err) {
       console.error('Failed to copy URL:', err);
     }
+  };
+
+  const downloadAnalysis = (format: 'json' | 'text') => {
+    if (!analysisResult) return;
+
+    let content: string;
+    let filename: string;
+    let mimeType: string;
+
+    if (format === 'json') {
+      content = JSON.stringify(analysisResult, null, 2);
+      filename = `voice-analysis-${Date.now()}.json`;
+      mimeType = 'application/json';
+    } else {
+      // Format as readable text
+      content = formatAnalysisAsText(analysisResult);
+      filename = `voice-analysis-${Date.now()}.txt`;
+      mimeType = 'text/plain';
+    }
+
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const formatAnalysisAsText = (analysis: VoiceAnalysis): string => {
+    let text = '=== VOICE PATTERN ANALYSIS ===\n\n';
+    
+    // Voice Profile
+    text += '## VOICE PROFILE\n';
+    text += `Distinctiveness: ${analysis.voiceProfile.distinctiveness}/10\n`;
+    text += `Complexity: ${analysis.voiceProfile.complexity}\n`;
+    text += `Primary Style: ${analysis.voiceProfile.primaryStyle}\n\n`;
+
+    // Hook Replication System
+    if (analysis.hookReplicationSystem) {
+      text += '## HOOK REPLICATION SYSTEM\n';
+      text += `Primary Hook Type: ${analysis.hookReplicationSystem.primaryHookType}\n\n`;
+      
+      text += 'Hook Templates:\n';
+      analysis.hookReplicationSystem.hookTemplates.forEach((template, i) => {
+        text += `\n${i + 1}. ${template.type.toUpperCase()} (${template.effectiveness} effectiveness)\n`;
+        text += `   Template: ${template.template}\n`;
+        text += `   Example: ${template.realExamples[0]}\n`;
+      });
+      
+      text += '\nHook Rules:\n';
+      analysis.hookReplicationSystem.hookRules.forEach(rule => {
+        text += `• ${rule}\n`;
+      });
+      text += '\n';
+    }
+
+    // Linguistic Fingerprint
+    text += '## LINGUISTIC FINGERPRINT\n';
+    text += `Average Sentence Length: ${analysis.linguisticFingerprint.avgSentenceLength} words\n`;
+    text += `Vocabulary Distribution: Simple ${analysis.linguisticFingerprint.vocabularyTier.simple}%, Moderate ${analysis.linguisticFingerprint.vocabularyTier.moderate}%, Advanced ${analysis.linguisticFingerprint.vocabularyTier.advanced}%\n`;
+    text += `Top Unique Words: ${analysis.linguisticFingerprint.topUniqueWords.join(', ')}\n\n`;
+
+    // Script Generation Rules
+    if (analysis.scriptGenerationRules) {
+      text += '## SCRIPT GENERATION FORMULA\n';
+      text += '\nMust Include:\n';
+      analysis.scriptGenerationRules.mustInclude.forEach(item => {
+        text += `✓ ${item}\n`;
+      });
+      text += '\nNever Include:\n';
+      analysis.scriptGenerationRules.neverInclude.forEach(item => {
+        text += `✗ ${item}\n`;
+      });
+      text += `\nFormula: ${analysis.scriptGenerationRules.formulaForNewScript}\n`;
+    }
+
+    return text;
   };
 
   // Format number for display (e.g. 1000000 -> 1M)
@@ -262,16 +438,67 @@ export default function TikTokUserFeedTestPage() {
         setTranscriptResults([...results]);
       }
 
-      // Add 5-second delay between requests (except for the last one)
+      // Add 2-second delay between requests (except for the last one)
       if (i < urlsToProcess.length - 1) {
-        console.log(`Waiting 5 seconds before processing next video...`);
-        await delay(5000);
+        console.log(`Waiting 2 seconds before processing next video...`);
+        await delay(2000);
       }
     }
 
     setTranscriptLoading(false);
     setCurrentProcessing({ current: 0, total: 0 });
     console.log(`✅ Completed processing ${urlsToProcess.length} videos`);
+  };
+
+  // Voice analysis function
+  const analyzeVoicePatterns = async () => {
+    let validTranscripts: string[] = [];
+
+    // Use manual transcripts if provided, otherwise use auto-transcribed results
+    if (manualTranscripts.trim()) {
+      validTranscripts = manualTranscripts
+        .split('\n---\n')
+        .map(t => t.trim())
+        .filter(t => t.length > 10); // Filter out very short entries
+    } else {
+      validTranscripts = transcriptResults
+        .filter(result => result.transcript && !result.error)
+        .map(result => result.transcript);
+    }
+
+    if (validTranscripts.length < 3) {
+      setAnalysisError(`Need at least 3 transcripts to analyze voice patterns. ${manualTranscripts.trim() ? 'Separate transcripts with "---" on a new line.' : 'Either paste transcripts manually or fetch them from videos.'}`);
+      return;
+    }
+
+    setAnalysisLoading(true);
+    setAnalysisError('');
+    setAnalysisResult(null);
+
+    try {
+      const response = await fetch('/api/voice/analyze-patterns', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ transcripts: validTranscripts }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to analyze voice patterns');
+      }
+
+      const analysis = await response.json();
+      setAnalysisResult(analysis);
+      console.log('✅ Voice analysis completed:', analysis);
+      
+    } catch (error) {
+      console.error('Voice analysis error:', error);
+      setAnalysisError(error instanceof Error ? error.message : 'Failed to analyze voice patterns');
+    } finally {
+      setAnalysisLoading(false);
+    }
   };
 
   return (
@@ -636,6 +863,357 @@ export default function TikTokUserFeedTestPage() {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+        </div>
+
+        {/* Voice Analysis Section */}
+        <div className="bg-white rounded-[var(--radius-card)] border border-neutral-200 p-6 shadow-[var(--shadow-soft-drop)]">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-neutral-900 flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              Voice Pattern Analysis
+            </h2>
+            <div className="flex gap-2">
+              {analysisResult && (
+                <>
+                  <button
+                    onClick={() => copyToClipboard(JSON.stringify(analysisResult, null, 2))}
+                    className="px-3 py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-[var(--radius-button)] transition-colors flex items-center gap-2"
+                    title="Copy JSON"
+                  >
+                    <Code className="w-4 h-4" />
+                    Copy JSON
+                  </button>
+                  <button
+                    onClick={() => downloadAnalysis('text')}
+                    className="px-3 py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-[var(--radius-button)] transition-colors flex items-center gap-2"
+                    title="Download as Text"
+                  >
+                    <Download className="w-4 h-4" />
+                    Text
+                  </button>
+                  <button
+                    onClick={() => downloadAnalysis('json')}
+                    className="px-3 py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-[var(--radius-button)] transition-colors flex items-center gap-2"
+                    title="Download as JSON"
+                  >
+                    <Download className="w-4 h-4" />
+                    JSON
+                  </button>
+                </>
+              )}
+              <button
+                onClick={analyzeVoicePatterns}
+                disabled={analysisLoading || (!manualTranscripts.trim() && transcriptResults.filter(r => r.transcript && !r.error).length < 3)}
+                className="px-4 py-2 bg-primary-500 text-white rounded-[var(--radius-button)] hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+              >
+                {analysisLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Analyzing...
+                  </>
+                ) : (
+                  'Analyze Voice Patterns'
+                )}
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="manualTranscripts" className="block text-sm font-medium text-neutral-700 mb-2">
+                Manual Transcripts (Optional)
+              </label>
+              <textarea
+                id="manualTranscripts"
+                value={manualTranscripts}
+                onChange={(e) => setManualTranscripts(e.target.value)}
+                placeholder={`Paste your transcripts here, separated by "---" on a new line. For example:
+
+This is the first transcript about something interesting...
+
+---
+
+This is the second transcript with different content...
+
+---
+
+This is the third transcript...`}
+                className="w-full h-48 p-3 border border-neutral-200 rounded-[var(--radius-button)] focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm resize-none"
+              />
+              <p className="text-xs text-neutral-500 mt-1">
+                If provided, these transcripts will be used instead of auto-generated ones. Separate each transcript with "---" on a new line.
+              </p>
+            </div>
+
+            <p className="text-neutral-600">
+              Analyze transcripts to identify voice patterns, hooks, and signature phrases. Requires at least 3 transcripts.
+            </p>
+          </div>
+
+          {analysisError && (
+            <div className="bg-destructive-50 text-destructive-700 p-3 rounded-[var(--radius-button)] border border-destructive-200 mb-4">
+              {analysisError}
+            </div>
+          )}
+
+          {analysisResult && (
+            <div className="space-y-6">
+              {/* Voice Profile */}
+              <div className="bg-neutral-50 rounded-[var(--radius-button)] p-4 border border-neutral-200">
+                <h3 className="font-medium text-neutral-900 mb-3">Voice Profile</h3>
+                <div className="grid grid-cols-3 gap-4 text-sm">
+                  <div>
+                    <div className="text-neutral-600">Distinctiveness</div>
+                    <div className="font-medium">{analysisResult.voiceProfile.distinctiveness}/10</div>
+                  </div>
+                  <div>
+                    <div className="text-neutral-600">Complexity</div>
+                    <div className="font-medium capitalize">{analysisResult.voiceProfile.complexity}</div>
+                  </div>
+                  <div>
+                    <div className="text-neutral-600">Primary Style</div>
+                    <div className="font-medium capitalize">{analysisResult.voiceProfile.primaryStyle}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Linguistic Fingerprint */}
+              <div className="bg-neutral-50 rounded-[var(--radius-button)] p-4 border border-neutral-200">
+                <h3 className="font-medium text-neutral-900 mb-3">Linguistic Fingerprint</h3>
+                <div className="space-y-3">
+                  <div className="grid grid-cols-4 gap-4 text-sm">
+                    <div>
+                      <div className="text-neutral-600">Avg Sentence Length</div>
+                      <div className="font-medium">{analysisResult.linguisticFingerprint.avgSentenceLength} words</div>
+                    </div>
+                    <div>
+                      <div className="text-neutral-600">Simple Vocab</div>
+                      <div className="font-medium">{analysisResult.linguisticFingerprint.vocabularyTier.simple}%</div>
+                    </div>
+                    <div>
+                      <div className="text-neutral-600">Moderate Vocab</div>
+                      <div className="font-medium">{analysisResult.linguisticFingerprint.vocabularyTier.moderate}%</div>
+                    </div>
+                    <div>
+                      <div className="text-neutral-600">Advanced Vocab</div>
+                      <div className="font-medium">{analysisResult.linguisticFingerprint.vocabularyTier.advanced}%</div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-neutral-600 mb-1">Top Unique Words</div>
+                    <div className="text-sm">
+                      {analysisResult.linguisticFingerprint.topUniqueWords.map((word, i) => (
+                        <span key={i} className="inline-block bg-primary-100 text-primary-700 px-2 py-1 rounded mr-2 mb-1">
+                          {word}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  {analysisResult.linguisticFingerprint.grammarQuirks.length > 0 && (
+                    <div>
+                      <div className="text-neutral-600 mb-1">Grammar Quirks</div>
+                      <div className="text-sm space-y-1">
+                        {analysisResult.linguisticFingerprint.grammarQuirks.map((quirk, i) => (
+                          <div key={i} className="text-neutral-700">• {quirk}</div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Hook Replication System */}
+              {analysisResult.hookReplicationSystem && (
+                <div className="bg-primary-50 rounded-[var(--radius-button)] p-4 border border-primary-200">
+                  <h3 className="font-medium text-neutral-900 mb-3">🎯 Hook Replication System</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-neutral-600">Primary Hook Type:</span>
+                      <span className="font-medium capitalize bg-primary-100 px-3 py-1 rounded">
+                        {analysisResult.hookReplicationSystem.primaryHookType}
+                      </span>
+                    </div>
+                    
+                    <div>
+                      <h4 className="text-sm font-medium text-neutral-700 mb-2">Hook Templates (Copy & Reuse)</h4>
+                      <div className="space-y-2">
+                        {analysisResult.hookReplicationSystem.hookTemplates.map((template, i) => (
+                          <div key={i} className="bg-white rounded p-3 border border-neutral-200">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs font-medium text-primary-600">{template.type.toUpperCase()}</span>
+                              <span className="text-xs text-neutral-500">
+                                {template.effectiveness} effectiveness • {template.frequency}% usage
+                              </span>
+                            </div>
+                            <div className="font-mono text-sm bg-neutral-100 p-2 rounded mb-2">
+                              {template.template}
+                            </div>
+                            <div className="text-xs text-neutral-600">
+                              <strong>Real:</strong> {template.realExamples[0]}
+                            </div>
+                            {template.newExamples?.[0] && (
+                              <div className="text-xs text-success-600 mt-1">
+                                <strong>New Topic:</strong> {template.newExamples[0]}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h4 className="text-sm font-medium text-neutral-700 mb-2">Hook Rules</h4>
+                      <ul className="text-sm space-y-1">
+                        {analysisResult.hookReplicationSystem.hookRules.map((rule, i) => (
+                          <li key={i} className="text-neutral-700">• {rule}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Opening Formulas */}
+              <div className="bg-neutral-50 rounded-[var(--radius-button)] p-4 border border-neutral-200">
+                <h3 className="font-medium text-neutral-900 mb-3">Opening Formulas</h3>
+                <div className="space-y-3">
+                  {analysisResult.openingFormulas.map((formula, index) => (
+                    <div key={index} className="bg-white rounded-[var(--radius-button)] p-3 border border-neutral-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="text-sm font-medium capitalize">{formula.emotionalTrigger} Trigger</div>
+                        <div className="text-xs text-neutral-600">{formula.frequency}% frequency</div>
+                      </div>
+                      <div className="text-sm text-neutral-700 mb-2 font-mono bg-neutral-50 p-2 rounded">
+                        {formula.pattern}
+                      </div>
+                      <div className="text-xs text-neutral-600">
+                        <strong>Examples:</strong> {formula.examples.join(' • ')}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Transition Phrases */}
+              <div className="bg-neutral-50 rounded-[var(--radius-button)] p-4 border border-neutral-200">
+                <h3 className="font-medium text-neutral-900 mb-3">Transition Phrases</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <div className="text-neutral-600 mb-2">Concept Bridges</div>
+                    <div className="space-y-1">
+                      {analysisResult.transitionPhrases.conceptBridges.map((phrase, i) => (
+                        <div key={i} className="bg-white px-2 py-1 rounded text-xs">&quot;{phrase}&quot;</div>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-neutral-600 mb-2">Enumeration</div>
+                    <div className="space-y-1">
+                      {analysisResult.transitionPhrases.enumeration.map((phrase, i) => (
+                        <div key={i} className="bg-white px-2 py-1 rounded text-xs">&quot;{phrase}&quot;</div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Micro Patterns */}
+              <div className="bg-neutral-50 rounded-[var(--radius-button)] p-4 border border-neutral-200">
+                <h3 className="font-medium text-neutral-900 mb-3">Micro Patterns</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <div className="text-neutral-600 mb-2">Fillers</div>
+                    <div>{analysisResult.microPatterns.fillers.join(', ')}</div>
+                  </div>
+                  <div>
+                    <div className="text-neutral-600 mb-2">Emphasis Words</div>
+                    <div>{analysisResult.microPatterns.emphasisWords.join(', ')}</div>
+                  </div>
+                  <div>
+                    <div className="text-neutral-600 mb-2">Number Patterns</div>
+                    <div className="capitalize">{analysisResult.microPatterns.numberPatterns}</div>
+                  </div>
+                  <div>
+                    <div className="text-neutral-600 mb-2">Time References</div>
+                    <div>{analysisResult.microPatterns.timeReferences.join(', ')}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Signature Moves */}
+              {analysisResult.signatureMoves.length > 0 && (
+                <div className="bg-neutral-50 rounded-[var(--radius-button)] p-4 border border-neutral-200">
+                  <h3 className="font-medium text-neutral-900 mb-3">Signature Moves</h3>
+                  <div className="space-y-3">
+                    {analysisResult.signatureMoves.map((move, index) => (
+                      <div key={index} className="bg-white rounded-[var(--radius-button)] p-3 border border-neutral-200">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="font-medium text-sm">{move.move}</div>
+                          <div className="text-xs text-neutral-600">{move.frequency} • {move.placement}</div>
+                        </div>
+                        <div className="text-sm text-neutral-700 mb-2">{move.description}</div>
+                        <div className="text-xs text-neutral-600">
+                          <strong>Examples:</strong> {move.verbatim.join(' • ')}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Script Generation Rules */}
+              {analysisResult.scriptGenerationRules && (
+                <div className="bg-success-50 rounded-[var(--radius-button)] p-4 border border-success-200">
+                  <h3 className="font-medium text-neutral-900 mb-3">📝 Script Generation Formula</h3>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="text-sm font-medium text-success-700 mb-2">✅ Must Include</h4>
+                        <ul className="text-xs space-y-1">
+                          {analysisResult.scriptGenerationRules.mustInclude.map((item, i) => (
+                            <li key={i} className="text-neutral-700">• {item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-medium text-destructive-700 mb-2">❌ Never Include</h4>
+                        <ul className="text-xs space-y-1">
+                          {analysisResult.scriptGenerationRules.neverInclude.map((item, i) => (
+                            <li key={i} className="text-neutral-700">• {item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h4 className="text-sm font-medium text-neutral-700 mb-2">Optimal Structure</h4>
+                      <div className="bg-white rounded p-3 space-y-2 text-sm">
+                        <div className="flex">
+                          <span className="font-medium text-primary-600 min-w-[100px]">Hook:</span>
+                          <span className="text-neutral-700">{analysisResult.scriptGenerationRules.optimalStructure.hookSection}</span>
+                        </div>
+                        <div className="flex">
+                          <span className="font-medium text-primary-600 min-w-[100px]">Body:</span>
+                          <span className="text-neutral-700">{analysisResult.scriptGenerationRules.optimalStructure.bodySection}</span>
+                        </div>
+                        <div className="flex">
+                          <span className="font-medium text-primary-600 min-w-[100px]">Close:</span>
+                          <span className="text-neutral-700">{analysisResult.scriptGenerationRules.optimalStructure.closeSection}</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h4 className="text-sm font-medium text-neutral-700 mb-2">Step-by-Step Formula</h4>
+                      <div className="bg-white rounded p-3 text-sm text-neutral-700 font-mono">
+                        {analysisResult.scriptGenerationRules.formulaForNewScript}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

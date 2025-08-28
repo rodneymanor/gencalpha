@@ -89,45 +89,32 @@ interface TikTokUserFeedResponse {
   timestamp: string;
 }
 
-// Helper function to select the lowest quality video URL based on data_size
+// Helper function to select the lowest quality video URL based on bit_rate
 function getLowestQualityVideoUrl(video: any): { playUrl: string; downloadUrl: string } {
-  const videoOptions = [];
-
-  // Collect all video quality options with their data_size
-  if (video.play_addr?.url_list?.[0] && video.play_addr.data_size) {
-    videoOptions.push({ urls: video.play_addr.url_list, size: video.play_addr.data_size, type: "play_addr" });
-  }
-  if (video.play_addr_h264?.url_list?.[0] && video.play_addr_h264.data_size) {
-    videoOptions.push({
-      urls: video.play_addr_h264.url_list,
-      size: video.play_addr_h264.data_size,
-      type: "play_addr_h264",
-    });
-  }
-  if (video.play_addr_bytevc1?.url_list?.[0] && video.play_addr_bytevc1.data_size) {
-    videoOptions.push({
-      urls: video.play_addr_bytevc1.url_list,
-      size: video.play_addr_bytevc1.data_size,
-      type: "play_addr_bytevc1",
-    });
+  const bitRates: any[] = video?.bit_rate ?? [];
+  
+  if (Array.isArray(bitRates) && bitRates.length > 0) {
+    // Sort by bit_rate (ascending) to get lowest quality first
+    const sorted = [...bitRates].sort((a, b) => (a.bit_rate ?? 0) - (b.bit_rate ?? 0));
+    const lowest = sorted[0];
+    const playList: string[] = lowest?.play_addr?.url_list ?? [];
+    
+    if (playList[0]) {
+      console.log(`🔽 Selected lowest quality: ${lowest.bit_rate ?? 'unknown'} bit_rate (${lowest.gear_name ?? 'unknown gear'})`);
+      return {
+        playUrl: playList[0],
+        downloadUrl: playList[0],
+      };
+    }
   }
 
-  // Find the option with smallest data_size
-  if (videoOptions.length > 0) {
-    const lowestQuality = videoOptions.reduce((min, current) => (current.size < min.size ? current : min));
-
-    console.log(`🔽 Selected lowest quality: ${lowestQuality.size} bytes (${lowestQuality.type})`);
-    return {
-      playUrl: lowestQuality.urls[0],
-      downloadUrl: lowestQuality.urls[0],
-    };
-  }
-
-  // Fallback to original logic
-  console.log("⚠️ No video options with data_size found, using fallback URLs");
+  // Fallback to original logic if bit_rate array not available
+  console.log("⚠️ No bit_rate array found, using fallback URLs");
+  const playList: string[] = video?.play_addr?.url_list ?? [];
+  const dlList: string[] = video?.download_addr?.url_list ?? [];
   return {
-    playUrl: video.play_addr?.url_list?.[0] ?? "",
-    downloadUrl: video.download_addr?.url_list?.[0] ?? video.play_addr?.url_list?.[0] ?? "",
+    playUrl: playList[0] ?? dlList[0] ?? "",
+    downloadUrl: dlList[0] ?? playList[0] ?? "",
   };
 }
 
