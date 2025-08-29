@@ -183,6 +183,12 @@ export default function TikTokUserFeedTestPage() {
     username: "",
     tags: "",
   });
+  const [generatedMetadata, setGeneratedMetadata] = useState<{
+    title: string;
+    description: string;
+    suggestedTags: string[];
+  } | null>(null);
+  const [metadataLoading, setMetadataLoading] = useState(false);
 
   // Function to extract username from various TikTok URL formats
   const extractUsername = (input: string): string => {
@@ -303,7 +309,7 @@ export default function TikTokUserFeedTestPage() {
 
     try {
       // Step 1: Fetch user feed
-      console.log("📊 Step 1/3: Fetching user feed...");
+      console.log("📊 Step 1/4: Fetching user feed...");
       const feedResponse = await fetch("/api/tiktok/user-feed", {
         method: "POST",
         headers: {
@@ -325,7 +331,7 @@ export default function TikTokUserFeedTestPage() {
       console.log(`✅ Found ${feedData.videos.length} videos`);
 
       // Step 2: Transcribe videos (limit to 10 successful)
-      console.log("🎯 Step 2/3: Transcribing videos (max 10)...");
+      console.log("🎯 Step 2/4: Transcribing videos (max 10)...");
       setTranscriptLoading(true);
       
       const videoUrls = feedData.videos
@@ -388,7 +394,7 @@ export default function TikTokUserFeedTestPage() {
       console.log(`✅ Successfully transcribed ${transcriptResults.length} videos`);
 
       // Step 3: Analyze voice patterns
-      console.log("🧠 Step 3/3: Analyzing voice patterns...");
+      console.log("🧠 Step 3/4: Analyzing voice patterns...");
       setAnalysisLoading(true);
 
       const validTranscripts = transcriptResults.map((result) => result.transcript);
@@ -415,6 +421,50 @@ export default function TikTokUserFeedTestPage() {
         hooksExtracted: analysis.allHooksExtracted?.length || 0,
         scriptFormula: analysis.scriptGenerationRules?.detailedScriptFormula ? "Generated" : "Missing",
       });
+
+      // Step 4: Generate persona title and description
+      console.log("✨ Step 4/4: Generating persona title and description...");
+      setMetadataLoading(true);
+
+      try {
+        const metadataResponse = await fetch("/api/personas/generate-metadata", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": "test-internal-secret-123", // Use test API key for internal request
+          },
+          body: JSON.stringify({ voiceAnalysis: analysis }),
+        });
+
+        if (metadataResponse.ok) {
+          const metadataData = await metadataResponse.json();
+          if (metadataData.success) {
+            setGeneratedMetadata({
+              title: metadataData.title,
+              description: metadataData.description,
+              suggestedTags: metadataData.suggestedTags,
+            });
+            
+            // Pre-fill persona form with generated data
+            setPersonaForm(prev => ({
+              ...prev,
+              name: metadataData.title,
+              description: metadataData.description,
+              tags: metadataData.suggestedTags.join(", "),
+              username: cleanUsername,
+            }));
+            
+            console.log("✅ Persona metadata generated successfully!");
+            console.log(`  Title: ${metadataData.title}`);
+            console.log(`  Tags: ${metadataData.suggestedTags.join(", ")}`);
+          }
+        }
+      } catch (metadataError) {
+        console.error("⚠️ Failed to generate metadata:", metadataError);
+        // Don't throw - this is optional enhancement
+      } finally {
+        setMetadataLoading(false);
+      }
 
       // Auto-show persona form if analysis succeeded
       if (analysis) {
@@ -836,7 +886,7 @@ export default function TikTokUserFeedTestPage() {
         </div>
 
         {/* Workflow Progress Indicator */}
-        {(loading || transcriptLoading || analysisLoading) && (
+        {(loading || transcriptLoading || analysisLoading || metadataLoading) && (
           <div className="rounded-[var(--radius-card)] border border-primary-200 bg-primary-50 p-4 shadow-[var(--shadow-soft-drop)]">
             <h3 className="mb-3 text-sm font-semibold text-primary-900">Workflow Progress</h3>
             <div className="space-y-2">
@@ -878,6 +928,19 @@ export default function TikTokUserFeedTestPage() {
                   {analysisResult && ' (complete)'}
                 </span>
               </div>
+
+              <div className={`flex items-center gap-3 ${metadataLoading ? 'text-primary-700' : generatedMetadata ? 'text-success-600' : 'text-neutral-400'}`}>
+                <div className={`h-6 w-6 rounded-full flex items-center justify-center ${
+                  metadataLoading ? 'bg-primary-200 animate-pulse' : generatedMetadata ? 'bg-success-100' : 'bg-neutral-100'
+                }`}>
+                  {generatedMetadata ? '✓' : '4'}
+                </div>
+                <span className="text-sm font-medium">
+                  Generate Persona Details
+                  {metadataLoading && ' (generating...)'}
+                  {generatedMetadata && ` ("${generatedMetadata.title}")`}
+                </span>
+              </div>
             </div>
           </div>
         )}
@@ -890,7 +953,7 @@ export default function TikTokUserFeedTestPage() {
         )}
 
         {/* Success Summary - Show when analysis is complete */}
-        {analysisResult && !loading && !transcriptLoading && !analysisLoading && (
+        {analysisResult && !loading && !transcriptLoading && !analysisLoading && !metadataLoading && (
           <div className="rounded-[var(--radius-card)] border border-success-200 bg-success-50 p-6 shadow-[var(--shadow-soft-drop)]">
             <div className="flex items-start gap-4">
               <div className="rounded-full bg-success-100 p-2">
@@ -902,6 +965,9 @@ export default function TikTokUserFeedTestPage() {
                   <p>✓ Analyzed {transcriptResults.filter(r => !r.error).length} video transcripts</p>
                   <p>✓ Extracted {analysisResult.allHooksExtracted?.length || 0} hook patterns</p>
                   <p>✓ Generated {analysisResult.scriptGenerationRules?.detailedScriptFormula ? '14-step' : ''} script formula</p>
+                  {generatedMetadata && (
+                    <p>✓ Created persona: "{generatedMetadata.title}"</p>
+                  )}
                 </div>
                 <div className="mt-4 flex gap-3">
                   <button
@@ -1691,6 +1757,15 @@ This is the third transcript...`}
               {showPersonaForm && (
                 <div id="persona-form" className="bg-brand-50 border-brand-200 mt-4 rounded-[var(--radius-card)] border p-6">
                   <h3 className="mb-4 text-lg font-semibold text-neutral-900">Create New Persona</h3>
+                  
+                  {/* Display generated metadata as suggestion */}
+                  {generatedMetadata && (
+                    <div className="mb-4 rounded-[var(--radius-button)] border border-brand-300 bg-brand-100 p-3">
+                      <p className="text-sm text-brand-800">
+                        <span className="font-medium">AI Suggestion:</span> Form pre-filled with generated persona details
+                      </p>
+                    </div>
+                  )}
 
                   <div className="space-y-4">
                     {/* Name Field */}

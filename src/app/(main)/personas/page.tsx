@@ -64,14 +64,12 @@ export default function PersonasPage() {
   const [filterValue, setFilterValue] = useState("all");
   const [userPersonas, setUserPersonas] = useState<CreatorPersona[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   // Load personas from Firestore
   useEffect(() => {
     const loadPersonas = async () => {
       try {
         setLoading(true);
-        setError(null);
 
         // Fetch personas from API
         const response = await fetch("/api/personas/list", {
@@ -80,38 +78,43 @@ export default function PersonasPage() {
           },
         });
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch personas");
-        }
-
         const data = await response.json();
 
-        // Convert Firestore personas to CreatorPersona format
-        const convertedPersonas: CreatorPersona[] = data.personas.map((p: FirestorePersona) => {
-          // Generate initials from name
-          const initials = p.name
-            .split(" ")
-            .map((word) => word[0])
-            .join("")
-            .toUpperCase()
-            .slice(0, 2);
+        // Handle successful response even if no personas exist
+        if (response.ok && data.success) {
+          // Convert Firestore personas to CreatorPersona format
+          const convertedPersonas: CreatorPersona[] = (data.personas || []).map((p: FirestorePersona) => {
+            // Generate initials from name
+            const initials = p.name
+              .split(" ")
+              .map((word) => word[0])
+              .join("")
+              .toUpperCase()
+              .slice(0, 2);
 
-          return {
-            id: p.id,
-            name: p.name,
-            initials,
-            followers: p.username ? `@${p.username}` : p.platform || "TikTok",
-            lastEdited: p.lastUsedAt
-              ? `Used ${getRelativeTime(p.lastUsedAt)}`
-              : `Created ${getRelativeTime(p.createdAt)}`,
-            avatarVariant: "light" as const,
-          };
-        });
+            return {
+              id: p.id,
+              name: p.name,
+              initials,
+              followers: p.username ? `@${p.username}` : p.platform || "TikTok",
+              lastEdited: p.lastUsedAt
+                ? `Used ${getRelativeTime(p.lastUsedAt)}`
+                : `Created ${getRelativeTime(p.createdAt)}`,
+              avatarVariant: "light" as const,
+            };
+          });
 
-        setUserPersonas(convertedPersonas);
+          setUserPersonas(convertedPersonas);
+        } else {
+          // If API call fails, set empty array instead of showing error
+          // This allows users to still see the UI and create their first persona
+          console.warn("Could not fetch personas, showing empty state:", data.error);
+          setUserPersonas([]);
+        }
       } catch (err) {
+        // Even on network errors, show empty state instead of error
         console.error("Error loading personas:", err);
-        setError(err instanceof Error ? err.message : "Failed to load personas");
+        setUserPersonas([]);
       } finally {
         setLoading(false);
       }
@@ -182,10 +185,6 @@ export default function PersonasPage() {
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
-          </div>
-        ) : error ? (
-          <div className="bg-destructive-50 border-destructive-200 rounded-[var(--radius-card)] border p-6 text-center">
-            <p className="text-destructive-700">{error}</p>
           </div>
         ) : filteredPersonas.length === 0 ? (
           <div className="rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-50 p-12 text-center">

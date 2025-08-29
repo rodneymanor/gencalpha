@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { authenticateApiKey } from "@/lib/api-key-auth";
 import { getAdminDb, isAdminInitialized } from "@/lib/firebase-admin";
+import { authenticateWithFirebaseToken } from "@/lib/firebase-auth-helpers";
 
 interface VoiceAnalysis {
   voiceProfile: {
@@ -83,7 +83,16 @@ export async function POST(request: NextRequest) {
   console.log("📝 [Create Persona API] Request received");
 
   try {
-    const authResult = await authenticateApiKey(request);
+    // Authenticate with Firebase token like other pages
+    const authHeader = request.headers.get("authorization");
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Unauthorized - No token provided" }, { status: 401 });
+    }
+
+    const token = authHeader.substring(7);
+    const authResult = await authenticateWithFirebaseToken(token);
+
     if (authResult instanceof NextResponse) {
       return authResult;
     }
@@ -108,9 +117,9 @@ export async function POST(request: NextRequest) {
     const personaData = {
       userId: authResult.user.uid,
       name: name.trim(),
-      description: description?.trim() || "",
-      platform: platform?.toLowerCase() || "tiktok",
-      username: username?.trim() || "",
+      description: description?.trim() ?? "",
+      platform: platform?.toLowerCase() ?? "tiktok",
+      username: username?.trim() ?? "",
       analysis,
       tags,
       status: "active",
