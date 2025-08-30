@@ -1,6 +1,6 @@
 "use client";
 
-import { Calendar, GalleryVerticalEnd, LibraryBig, Inbox, PenLine, Users, type LucideIcon } from "lucide-react";
+import { Calendar, GalleryVerticalEnd, LibraryBig, Inbox, PenLine, Users, VenetianMask, type LucideIcon } from "lucide-react";
 
 import { useCreatorsPageFlag, useGhostWriterFlag, useIdeaInboxFlag } from "@/hooks/use-feature-flag";
 
@@ -54,6 +54,12 @@ export function useDynamicSidebarItems(): NavGroup[] {
           title: "Collections",
           url: "/collections",
           icon: GalleryVerticalEnd,
+          isNew: true,
+        },
+        {
+          title: "Personas",
+          url: "/personas",
+          icon: VenetianMask,
           isNew: true,
         },
       ],

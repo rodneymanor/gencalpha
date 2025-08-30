@@ -5,9 +5,14 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 import { Plus, Filter, Loader2, User } from "lucide-react";
+import { onAuthStateChanged } from "firebase/auth";
+
+import { auth } from "@/lib/firebase";
 
 import { CreatorPersonaGrid, type CreatorPersona } from "@/components/creator-personas/creator-persona-card";
+import { PersonaDetailsPanel, type PersonaDetails } from "@/components/persona-details-panel";
 import { Button } from "@/components/ui/button";
+import { UnifiedSlideout, ClaudeArtifactConfig } from "@/components/ui/unified-slideout";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -64,6 +69,8 @@ export default function PersonasPage() {
   const [filterValue, setFilterValue] = useState("all");
   const [userPersonas, setUserPersonas] = useState<CreatorPersona[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedPersona, setSelectedPersona] = useState<PersonaDetails | null>(null);
+  const [personasData, setPersonasData] = useState<FirestorePersona[]>([]);
 
   // Load personas from Firestore
   useEffect(() => {
@@ -71,10 +78,20 @@ export default function PersonasPage() {
       try {
         setLoading(true);
 
+        // Get Firebase Auth token
+        if (!auth.currentUser) {
+          console.log("No authenticated user, skipping personas load");
+          setLoading(false);
+          setUserPersonas([]);
+          return;
+        }
+
+        const token = await auth.currentUser.getIdToken();
+
         // Fetch personas from API
         const response = await fetch("/api/personas/list", {
           headers: {
-            "x-api-key": "test-internal-secret-123", // Test key for development
+            Authorization: `Bearer ${token}`,
           },
         });
 
@@ -82,6 +99,9 @@ export default function PersonasPage() {
 
         // Handle successful response even if no personas exist
         if (response.ok && data.success) {
+          // Store the full personas data for the slideout
+          setPersonasData(data.personas || []);
+          
           // Convert Firestore personas to CreatorPersona format
           const convertedPersonas: CreatorPersona[] = (data.personas || []).map((p: FirestorePersona) => {
             // Generate initials from name
@@ -120,13 +140,46 @@ export default function PersonasPage() {
       }
     };
 
-    loadPersonas();
+    // Wait for auth state to be ready
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        loadPersonas();
+      } else {
+        setLoading(false);
+        setUserPersonas([]);
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
   // Handle persona click
   const handlePersonaClick = (personaId: string) => {
     console.log("Clicked persona:", personaId);
-    // TODO: Navigate to persona detail or use persona in script generation
+    // Find the full persona data
+    const persona = personasData.find(p => p.id === personaId);
+    if (persona) {
+      setSelectedPersona({
+        id: persona.id,
+        name: persona.name,
+        description: persona.description,
+        platform: persona.platform,
+        username: persona.username,
+        analysis: persona.analysis,
+        tags: persona.tags,
+        status: persona.status,
+        createdAt: persona.createdAt,
+        updatedAt: persona.updatedAt,
+        usageCount: persona.usageCount,
+        lastUsedAt: persona.lastUsedAt,
+        voiceStyle: persona.voiceStyle,
+        distinctiveness: persona.distinctiveness,
+        complexity: persona.complexity,
+        hasHookSystem: persona.hasHookSystem,
+        hasScriptRules: persona.hasScriptRules,
+        signatureMoveCount: persona.signatureMoveCount,
+      });
+    }
   };
 
   // Handle add new persona - navigate to test page
@@ -153,8 +206,11 @@ export default function PersonasPage() {
 
   return (
     <>
-      {/* Header Section */}
-      <div className="mb-6 flex items-center justify-between">
+      {/* Main content wrapper that will be adjusted when slideout opens */}
+      <div className="min-h-screen transition-all duration-300" id="personas-main-content">
+        <div className="container mx-auto p-6">
+          {/* Header Section */}
+          <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-neutral-900">Your Personas</h1>
           <p className="mt-1 text-neutral-600">Voice profiles created from creator analysis</p>
@@ -209,7 +265,32 @@ export default function PersonasPage() {
             onAddClick={handleAddPersona}
           />
         )}
+        </div>
       </div>
+      </div>
+
+      {/* Persona Details Slideout */}
+      <UnifiedSlideout
+        isOpen={!!selectedPersona}
+        onClose={() => setSelectedPersona(null)}
+        config={{
+          ...ClaudeArtifactConfig,
+          showHeader: false,
+          showCloseButton: false,
+          adjustsContent: true,
+          backdrop: false,
+          modal: false,
+          width: "lg",
+        }}
+      >
+        <PersonaDetailsPanel
+          persona={selectedPersona}
+          onClose={() => setSelectedPersona(null)}
+          onCopy={(content, type) => {
+            console.log(`Copied ${type}:`, content);
+          }}
+        />
+      </UnifiedSlideout>
     </>
   );
 }

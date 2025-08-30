@@ -4,43 +4,10 @@ import { useState, useRef, useEffect, useCallback } from "react";
 
 import { useRouter } from "next/navigation";
 
-import { User, Brain, Briefcase, Zap, Heart, Plus, ExternalLink } from "lucide-react";
+import { User, Plus, ExternalLink } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-
-// Define persona types with icons and descriptions
-const personas = [
-  {
-    id: "professional",
-    name: "Professional",
-    icon: Briefcase,
-    description: "Business-focused, polished tone",
-  },
-  {
-    id: "creative",
-    name: "Creative",
-    icon: Zap,
-    description: "Imaginative, out-of-the-box thinking",
-  },
-  {
-    id: "analytical",
-    name: "Analytical",
-    icon: Brain,
-    description: "Data-driven, logical approach",
-  },
-  {
-    id: "friendly",
-    name: "Friendly",
-    icon: Heart,
-    description: "Warm, conversational tone",
-  },
-  {
-    id: "expert",
-    name: "Expert",
-    icon: User,
-    description: "Authoritative, knowledge-focused",
-  },
-];
+import { personaStorage, type StoredPersona } from "@/lib/services/persona-storage";
 
 interface PersonasDropdownProps {
   selectedPersona?: string;
@@ -57,9 +24,26 @@ export function PersonasDropdown({
 }: PersonasDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+  const [savedPersonas, setSavedPersonas] = useState<StoredPersona[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const router = useRouter();
+
+  // Load saved personas from localStorage
+  useEffect(() => {
+    const loadPersonas = () => {
+      const personas = personaStorage.getAll();
+      setSavedPersonas(personas);
+    };
+
+    loadPersonas();
+    
+    // Reload personas when window gains focus (in case they were updated elsewhere)
+    const handleFocus = () => loadPersonas();
+    window.addEventListener("focus", handleFocus);
+    
+    return () => window.removeEventListener("focus", handleFocus);
+  }, []);
 
   // Calculate dropdown position to avoid layout shifts
   const calculateDropdownPosition = useCallback(() => {
@@ -120,8 +104,6 @@ export function PersonasDropdown({
     setIsOpen(!isOpen);
   };
 
-  // const selectedPersonaData = personas.find((p) => p.id === selectedPersona);
-
   return (
     <div className={`relative ${className}`}>
       {/* Trigger Button */}
@@ -164,48 +146,78 @@ export function PersonasDropdown({
           }}
         >
           <div className="p-2">
-            <div className="mb-2 px-2 text-sm font-medium text-neutral-600">Choose a Persona</div>
+            <div className="mb-2 px-2 text-sm font-medium text-neutral-600">
+              {savedPersonas.length > 0 ? "Choose a Persona" : "No Saved Personas"}
+            </div>
 
-            {personas.map((persona) => {
-              const Icon = persona.icon;
-              const isSelected = selectedPersona === persona.id;
+            {savedPersonas.length > 0 ? (
+              savedPersonas.map((persona) => {
+                const isSelected = selectedPersona === persona.personaId;
 
-              return (
-                <button
-                  key={persona.id}
-                  type="button"
-                  onClick={() => handlePersonaSelect(persona.id)}
-                  className={`flex w-full items-start gap-3 rounded-[var(--radius-button)] px-3 py-2 text-left transition-colors duration-150 ${
-                    isSelected
-                      ? "bg-primary-100 border-primary-200 border"
-                      : "border border-transparent hover:bg-neutral-100"
-                  }`}
-                >
-                  <div className={`mt-0.5 flex-shrink-0 ${isSelected ? "text-primary-600" : "text-neutral-500"}`}>
-                    <Icon className="h-4 w-4" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div
-                      className={`truncate text-sm font-medium ${isSelected ? "text-primary-900" : "text-neutral-900"}`}
-                    >
-                      {persona.name}
-                    </div>
-                    <div className="mt-0.5 text-xs text-neutral-500">{persona.description}</div>
-                  </div>
-                  {isSelected && (
-                    <div className="text-primary-600 flex-shrink-0">
-                      <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
+                return (
+                  <button
+                    key={persona.personaId}
+                    type="button"
+                    onClick={() => handlePersonaSelect(persona.personaId)}
+                    className={`flex w-full items-start gap-3 rounded-[var(--radius-button)] px-3 py-2 text-left transition-colors duration-150 ${
+                      isSelected
+                        ? "bg-primary-100 border-primary-200 border"
+                        : "border border-transparent hover:bg-neutral-100"
+                    }`}
+                  >
+                    {/* Avatar or Initials */}
+                    <div className={`mt-0.5 flex-shrink-0 ${isSelected ? "text-primary-600" : "text-neutral-500"}`}>
+                      {persona.avatar ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img 
+                          src={persona.avatar} 
+                          alt={persona.name}
+                          className="h-8 w-8 rounded-full object-cover"
                         />
-                      </svg>
+                      ) : (
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-200 text-xs font-medium text-neutral-700">
+                          {persona.initials}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </button>
-              );
-            })}
+                    <div className="min-w-0 flex-1">
+                      <div
+                        className={`truncate text-sm font-medium ${isSelected ? "text-primary-900" : "text-neutral-900"}`}
+                      >
+                        {persona.name}
+                      </div>
+                      <div className="mt-0.5 text-xs text-neutral-500">
+                        @{persona.username} • {persona.platform === "tiktok" ? "TikTok" : "Instagram"}
+                      </div>
+                      <div className="mt-0.5 text-xs text-neutral-400">
+                        {persona.followers} followers
+                      </div>
+                    </div>
+                    {isSelected && (
+                      <div className="text-primary-600 flex-shrink-0">
+                        <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </div>
+                    )}
+                  </button>
+                );
+              })
+            ) : (
+              <div className="px-3 py-4 text-center">
+                <User className="mx-auto h-8 w-8 text-neutral-400" />
+                <p className="mt-2 text-sm text-neutral-600">
+                  No personas saved yet
+                </p>
+                <p className="mt-1 text-xs text-neutral-500">
+                  Create your first persona to get started
+                </p>
+              </div>
+            )}
 
             {/* Divider */}
             <div className="my-2 border-t border-neutral-200" />

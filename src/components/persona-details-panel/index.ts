@@ -1,0 +1,1 @@
+export { PersonaDetailsPanel, type PersonaDetails } from "./persona-details-panel";
