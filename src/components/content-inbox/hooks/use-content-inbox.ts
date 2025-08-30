@@ -3,10 +3,26 @@
 // React Query hooks for Content Inbox
 
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
+import { onAuthStateChanged } from "firebase/auth";
+
+import { auth } from "@/lib/firebase";
 
 import { ContentItem, FilterOptions, SortOptions, BulkAction, Platform } from "../types";
 
 const API_BASE = "/api/content-inbox";
+
+// Helper to get current user's auth token
+async function getAuthHeaders() {
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error("User not authenticated");
+  }
+  const token = await user.getIdToken();
+  return {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+}
 
 // Helper to detect platform from URL
 export const detectPlatform = (url: string): Platform => {
@@ -33,7 +49,10 @@ export const useContentItems = (filters: FilterOptions, sort: SortOptions) => {
         sort: JSON.stringify(sort),
       });
 
-      const response = await fetch(`${API_BASE}/items?${params}`);
+      const headers = await getAuthHeaders();
+      const response = await fetch(`${API_BASE}/items?${params}`, {
+        headers,
+      });
       if (!response.ok) throw new Error("Failed to fetch content items");
 
       return response.json();
@@ -53,9 +72,10 @@ export const useAddContent = () => {
     mutationFn: async (data: { url: string; category?: string; tags?: string[] }) => {
       const platform = detectPlatform(data.url);
 
+      const headers = await getAuthHeaders();
       const response = await fetch(`${API_BASE}/items`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ ...data, platform }),
       });
 
@@ -117,9 +137,10 @@ export const useUpdateContent = () => {
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<ContentItem> & { id: string }) => {
+      const headers = await getAuthHeaders();
       const response = await fetch(`${API_BASE}/items/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify(updates),
       });
 
@@ -138,9 +159,10 @@ export const useDeleteContent = () => {
 
   return useMutation({
     mutationFn: async (ids: string[]) => {
+      const headers = await getAuthHeaders();
       const response = await fetch(`${API_BASE}/items`, {
         method: "DELETE",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ ids }),
       });
 
@@ -159,9 +181,10 @@ export const useBulkAction = () => {
 
   return useMutation({
     mutationFn: async ({ ids, action }: { ids: string[]; action: BulkAction }) => {
+      const headers = await getAuthHeaders();
       const response = await fetch(`${API_BASE}/bulk-action`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ ids, action }),
       });
 
@@ -180,9 +203,10 @@ export const useUpdateOrder = () => {
 
   return useMutation({
     mutationFn: async (items: { id: string; order: number }[]) => {
+      const headers = await getAuthHeaders();
       const response = await fetch(`${API_BASE}/update-order`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ items }),
       });
 
@@ -233,7 +257,10 @@ export const useSearchSuggestions = (query: string) => {
     queryFn: async () => {
       if (!query || query.length < 2) return [];
 
-      const response = await fetch(`${API_BASE}/search-suggestions?q=${encodeURIComponent(query)}`);
+      const headers = await getAuthHeaders();
+      const response = await fetch(`${API_BASE}/search-suggestions?q=${encodeURIComponent(query)}`, {
+        headers,
+      });
       if (!response.ok) throw new Error("Failed to fetch suggestions");
 
       return response.json();

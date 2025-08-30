@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { getAuth } from "@/lib/firebase-admin";
-import { db } from "@/lib/firebase-admin";
+import { getAdminDb, isAdminInitialized } from "@/lib/firebase-admin";
+import { authenticateWithFirebaseToken } from "@/lib/firebase-auth-helpers";
 
 // The cleaned up getting started content
 const GETTING_STARTED_CONTENT = {
@@ -46,16 +46,30 @@ Apply AI-powered actions to any content:
 
 export async function GET(request: NextRequest) {
   try {
-    // Authenticate user
-    const auth = await getAuth(request);
-    if (!auth.uid) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Authenticate with Firebase token
+    const authHeader = request.headers.get("authorization");
+    
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Unauthorized - No token provided" }, { status: 401 });
     }
+    
+    const token = authHeader.substring(7);
+    const authResult = await authenticateWithFirebaseToken(token);
+    
+    if (authResult instanceof NextResponse) {
+      return authResult;
+    }
+    
+    if (!isAdminInitialized) {
+      return NextResponse.json({ error: "Firebase Admin not initialized" }, { status: 500 });
+    }
+    
+    const adminDb = getAdminDb();
 
     // Check if user already has content in their inbox
-    const contentSnapshot = await db
+    const contentSnapshot = await adminDb
       .collection("users")
-      .doc(auth.uid)
+      .doc(authResult.user.uid)
       .collection("contentInbox")
       .limit(1)
       .get();
@@ -69,9 +83,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Check if getting started note already exists
-    const gettingStartedSnapshot = await db
+    const gettingStartedSnapshot = await adminDb
       .collection("users")
-      .doc(auth.uid)
+      .doc(authResult.user.uid)
       .collection("contentInbox")
       .where("isSystemContent", "==", true)
       .where("title", "==", GETTING_STARTED_CONTENT.title)
@@ -95,13 +109,13 @@ export async function GET(request: NextRequest) {
         status: "complete",
         text: GETTING_STARTED_CONTENT.content,
       },
-      userId: auth.uid,
+      userId: authResult.user.uid,
       order: 0, // Always show first
     };
 
-    const docRef = await db
+    const docRef = await adminDb
       .collection("users")
-      .doc(auth.uid)
+      .doc(authResult.user.uid)
       .collection("contentInbox")
       .add(contentItem);
 

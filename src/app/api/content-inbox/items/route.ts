@@ -2,17 +2,31 @@
 
 import { NextRequest, NextResponse } from "next/server";
 
-import { getAuth } from "@/lib/firebase-admin";
-import { db } from "@/lib/firebase-admin";
+import { getAdminDb, isAdminInitialized } from "@/lib/firebase-admin";
+import { authenticateWithFirebaseToken } from "@/lib/firebase-auth-helpers";
 
 // GET - Fetch content items with pagination and filters
 export async function GET(request: NextRequest) {
   try {
-    // Authenticate user
-    const auth = await getAuth(request);
-    if (!auth.uid) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Authenticate with Firebase token
+    const authHeader = request.headers.get("authorization");
+    
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Unauthorized - No token provided" }, { status: 401 });
     }
+    
+    const token = authHeader.substring(7);
+    const authResult = await authenticateWithFirebaseToken(token);
+    
+    if (authResult instanceof NextResponse) {
+      return authResult;
+    }
+    
+    if (!isAdminInitialized) {
+      return NextResponse.json({ error: "Firebase Admin not initialized" }, { status: 500 });
+    }
+    
+    const adminDb = getAdminDb();
 
     // Parse query parameters
     const searchParams = request.nextUrl.searchParams;
@@ -22,7 +36,7 @@ export async function GET(request: NextRequest) {
     const sort = JSON.parse(searchParams.get("sort") || '{"field":"savedAt","direction":"desc"}');
 
     // Build query
-    let query = db.collection("users").doc(auth.uid).collection("contentInbox");
+    let query = adminDb.collection("users").doc(authResult.user.uid).collection("contentInbox");
 
     // Apply filters
     if (filters.platforms && filters.platforms.length > 0) {
@@ -43,33 +57,57 @@ export async function GET(request: NextRequest) {
         .where("savedAt", "<=", new Date(filters.dateRange.to));
     }
 
-    // Apply sorting - always show pinned items first
-    if (sort.field !== "custom") {
-      // First order by pinned status, then by the requested field
-      query = query.orderBy("isPinned", "desc");
-    }
-    const sortField = sort.field === "custom" ? "order" : sort.field;
-    query = query.orderBy(sortField, sort.direction);
-
-    // Apply pagination
-    const startAt = page * limit;
-    query = query.limit(limit + 1); // Get one extra to check if there are more
-
-    // Execute query
+    // Simplified query - just get all docs and sort in memory to avoid index requirement
+    // We'll handle sorting and pagination in memory for now
     const snapshot = await query.get();
-    const items = [];
-    let hasMore = false;
+    
+    // Convert to array and add IDs
+    const allItems = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      // Ensure dates are serializable
+      savedAt: doc.data().savedAt?.toDate?.() || doc.data().savedAt,
+      viewedAt: doc.data().viewedAt?.toDate?.() || doc.data().viewedAt,
+      usedAt: doc.data().usedAt?.toDate?.() || doc.data().usedAt,
+    }));
 
-    snapshot.forEach((doc, index) => {
-      if (index < limit) {
-        items.push({
-          id: doc.id,
-          ...doc.data(),
-        });
-      } else {
-        hasMore = true;
+    // Sort in memory
+    allItems.sort((a, b) => {
+      // First, prioritize pinned items
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+      
+      // Then sort by the requested field
+      const sortField = sort.field === "custom" ? "order" : sort.field;
+      const aValue = a[sortField];
+      const bValue = b[sortField];
+      
+      if (aValue === undefined && bValue === undefined) return 0;
+      if (aValue === undefined) return 1;
+      if (bValue === undefined) return -1;
+      
+      // Handle date comparison
+      if (sortField === "savedAt" || sortField === "viewedAt" || sortField === "usedAt") {
+        const aTime = new Date(aValue).getTime();
+        const bTime = new Date(bValue).getTime();
+        return sort.direction === "asc" ? aTime - bTime : bTime - aTime;
       }
+      
+      // Handle numeric comparison
+      if (typeof aValue === "number" && typeof bValue === "number") {
+        return sort.direction === "asc" ? aValue - bValue : bValue - aValue;
+      }
+      
+      // Handle string comparison
+      const comparison = String(aValue).localeCompare(String(bValue));
+      return sort.direction === "asc" ? comparison : -comparison;
     });
+
+    // Apply pagination in memory
+    const startAt = page * limit;
+    const endAt = startAt + limit;
+    const items = allItems.slice(startAt, endAt);
+    const hasMore = allItems.length > endAt;
 
     // Apply text search if needed (client-side for now)
     let filteredItems = items;
@@ -100,11 +138,25 @@ export async function GET(request: NextRequest) {
 // POST - Add new content item
 export async function POST(request: NextRequest) {
   try {
-    // Authenticate user
-    const auth = await getAuth(request);
-    if (!auth.uid) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Authenticate with Firebase token
+    const authHeader = request.headers.get("authorization");
+    
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Unauthorized - No token provided" }, { status: 401 });
     }
+    
+    const token = authHeader.substring(7);
+    const authResult = await authenticateWithFirebaseToken(token);
+    
+    if (authResult instanceof NextResponse) {
+      return authResult;
+    }
+    
+    if (!isAdminInitialized) {
+      return NextResponse.json({ error: "Firebase Admin not initialized" }, { status: 500 });
+    }
+    
+    const adminDb = getAdminDb();
 
     const body = await request.json();
     const { url, platform, category, tags } = body;
@@ -124,15 +176,15 @@ export async function POST(request: NextRequest) {
       transcription: {
         status: "pending",
       },
-      userId: auth.uid,
+      userId: authResult.user.uid,
     };
 
     // Save to database
-    const docRef = await db.collection("users").doc(auth.uid).collection("contentInbox").add(contentItem);
+    const docRef = await adminDb.collection("users").doc(authResult.user.uid).collection("contentInbox").add(contentItem);
 
     // Trigger transcription job (async)
     // This would typically trigger a background job to fetch and transcribe the content
-    triggerTranscription(docRef.id, url, auth.uid);
+    triggerTranscription(docRef.id, url, authResult.user.uid, adminDb);
 
     return NextResponse.json({
       id: docRef.id,
@@ -147,11 +199,25 @@ export async function POST(request: NextRequest) {
 // DELETE - Delete content items
 export async function DELETE(request: NextRequest) {
   try {
-    // Authenticate user
-    const auth = await getAuth(request);
-    if (!auth.uid) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Authenticate with Firebase token
+    const authHeader = request.headers.get("authorization");
+    
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Unauthorized - No token provided" }, { status: 401 });
     }
+    
+    const token = authHeader.substring(7);
+    const authResult = await authenticateWithFirebaseToken(token);
+    
+    if (authResult instanceof NextResponse) {
+      return authResult;
+    }
+    
+    if (!isAdminInitialized) {
+      return NextResponse.json({ error: "Firebase Admin not initialized" }, { status: 500 });
+    }
+    
+    const adminDb = getAdminDb();
 
     const body = await request.json();
     const { ids } = body;
@@ -161,9 +227,9 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Delete items
-    const batch = db.batch();
+    const batch = adminDb.batch();
     for (const id of ids) {
-      const docRef = db.collection("users").doc(auth.uid).collection("contentInbox").doc(id);
+      const docRef = adminDb.collection("users").doc(authResult.user.uid).collection("contentInbox").doc(id);
 
       batch.delete(docRef);
     }
@@ -181,19 +247,19 @@ export async function DELETE(request: NextRequest) {
 }
 
 // Helper function to trigger transcription
-async function triggerTranscription(itemId: string, url: string, userId: string) {
+async function triggerTranscription(itemId: string, url: string, userId: string, adminDb: any) {
   try {
     // This would typically call your transcription service
     // For now, we'll just update the status after a delay
     setTimeout(async () => {
-      await db.collection("users").doc(userId).collection("contentInbox").doc(itemId).update({
+      await adminDb.collection("users").doc(userId).collection("contentInbox").doc(itemId).update({
         "transcription.status": "processing",
         "transcription.progress": 0,
       });
 
       // Simulate processing
       setTimeout(async () => {
-        await db.collection("users").doc(userId).collection("contentInbox").doc(itemId).update({
+        await adminDb.collection("users").doc(userId).collection("contentInbox").doc(itemId).update({
           "transcription.status": "complete",
           "transcription.progress": 100,
           "transcription.text": "This is a sample transcription of the content.",

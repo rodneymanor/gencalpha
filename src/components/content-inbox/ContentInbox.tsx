@@ -104,7 +104,22 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
   useEffect(() => {
     const checkOnboarding = async () => {
       try {
-        const response = await fetch("/api/content-inbox/check-onboarding");
+        // Import auth to get the current user
+        const { auth } = await import("@/lib/firebase");
+        const user = auth.currentUser;
+        
+        if (!user) {
+          console.log("No authenticated user, skipping onboarding check");
+          return;
+        }
+        
+        const token = await user.getIdToken();
+        const response = await fetch("/api/content-inbox/check-onboarding", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        
         if (response.ok) {
           const result = await response.json();
           if (result.gettingStartedAdded && !result.hasContent) {
