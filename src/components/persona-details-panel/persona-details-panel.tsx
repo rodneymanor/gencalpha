@@ -47,7 +47,7 @@ const getTabConfiguration = (persona: PersonaDetails | null) => {
   return [
     { key: "overview" as TabType, label: "Overview", enabled: true },
     { key: "voice" as TabType, label: "Voice Profile", enabled: !!persona.analysis?.voiceProfile },
-    { key: "hooks" as TabType, label: "Hooks", enabled: !!persona.analysis?.hookReplicationSystem },
+    { key: "hooks" as TabType, label: "Hooks", enabled: !!(persona.analysis?.hookReplicationSystem || persona.analysis?.allHooksExtracted) },
     { key: "patterns" as TabType, label: "Patterns", enabled: !!persona.analysis?.linguisticFingerprint },
     { key: "rules" as TabType, label: "Script Rules", enabled: !!persona.analysis?.scriptGenerationRules },
     { key: "usage" as TabType, label: "Usage", enabled: true },
@@ -252,48 +252,101 @@ export function PersonaDetailsPanel({
 
           {/* Hooks Tab */}
           <TabsContent value="hooks" className="mt-0 space-y-6">
-            {persona.analysis?.hookReplicationSystem && (
+            {(persona.analysis?.hookReplicationSystem || persona.analysis?.allHooksExtracted) && (
               <div className="space-y-4">
-                <div className="rounded-lg border border-neutral-200 bg-white p-4">
-                  <h3 className="font-medium text-neutral-900 mb-3">Hook System</h3>
-                  <div className="space-y-3">
-                    <div>
-                      <span className="text-sm text-neutral-600">Primary Hook Type: </span>
-                      <span className="text-sm font-medium text-neutral-900">
-                        {persona.analysis.hookReplicationSystem.primaryHookType}
-                      </span>
-                    </div>
-                    
-                    {persona.analysis.hookReplicationSystem.hookTemplates && (
-                      <div className="space-y-3 mt-4">
-                        <h4 className="text-sm font-medium text-neutral-700">Hook Templates</h4>
-                        {persona.analysis.hookReplicationSystem.hookTemplates.map((template: any, index: number) => (
-                          <div key={index} className="rounded-lg bg-neutral-50 p-3 space-y-2">
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm font-medium text-neutral-900">{template.type}</span>
-                              <span className="text-xs text-neutral-600">
-                                Frequency: {template.frequency}
-                              </span>
-                            </div>
-                            <p className="text-sm text-neutral-700">{template.template}</p>
-                            {template.realExamples && template.realExamples.length > 0 && (
-                              <div className="mt-2">
-                                <p className="text-xs text-neutral-600 mb-1">Examples:</p>
-                                <ul className="space-y-1">
-                                  {template.realExamples.slice(0, 2).map((example: string, idx: number) => (
-                                    <li key={idx} className="text-xs text-neutral-700 italic">
-                                      "{example}"
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
+                {/* All Extracted Hooks */}
+                {persona.analysis.allHooksExtracted && persona.analysis.allHooksExtracted.length > 0 && (
+                  <div className="rounded-lg border border-brand-200 bg-brand-50 p-4">
+                    <h3 className="font-medium text-neutral-900 mb-3">
+                      📌 All Extracted Hooks ({persona.analysis.allHooksExtracted.length} Total)
+                    </h3>
+                    <div className="space-y-2 max-h-96 overflow-y-auto">
+                      {persona.analysis.allHooksExtracted.map((hook: any, i: number) => (
+                        <div key={i} className="rounded border border-neutral-200 bg-white p-3">
+                          <div className="mb-2 flex items-center justify-between">
+                            <span className="text-xs font-bold text-brand-700">Script #{hook.scriptNumber}</span>
+                            <span className="bg-primary-100 text-primary-700 rounded px-2 py-1 text-xs">
+                              {hook.type} • {hook.trigger}
+                            </span>
                           </div>
-                        ))}
-                      </div>
-                    )}
+                          <div className="mb-2 text-sm font-medium text-neutral-900">"{hook.originalHook}"</div>
+                          <div className="text-primary-700 rounded bg-neutral-100 p-2 font-mono text-xs">
+                            Template: {hook.universalTemplate}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {/* Hook Replication System */}
+                {persona.analysis.hookReplicationSystem && (
+                  <div className="rounded-lg border border-neutral-200 bg-white p-4">
+                    <h3 className="font-medium text-neutral-900 mb-3">🎯 Hook Replication System</h3>
+                    <div className="space-y-3">
+                      <div>
+                        <span className="text-sm text-neutral-600">Primary Hook Type: </span>
+                        <span className="text-sm font-medium text-neutral-900">
+                          {persona.analysis.hookReplicationSystem.primaryHookType}
+                        </span>
+                      </div>
+                      
+                      {persona.analysis.hookReplicationSystem.hookTemplates && (
+                        <div className="space-y-3 mt-4">
+                          <h4 className="text-sm font-medium text-neutral-700">Hook Templates (Copy & Reuse)</h4>
+                          {persona.analysis.hookReplicationSystem.hookTemplates.map((template: any, index: number) => (
+                            <div key={index} className="rounded-lg bg-neutral-50 p-3 space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium text-neutral-900 uppercase">{template.type}</span>
+                                <span className="text-xs text-neutral-600">
+                                  {template.effectiveness} effectiveness • {template.frequency}% usage
+                                </span>
+                              </div>
+                              <p className="text-sm text-neutral-700 font-mono">{template.template}</p>
+                              {template.realExamples && template.realExamples.length > 0 && (
+                                <div className="mt-2">
+                                  <p className="text-xs text-neutral-600 mb-1">Real Examples:</p>
+                                  <ul className="space-y-1">
+                                    {template.realExamples.slice(0, 2).map((example: string, idx: number) => (
+                                      <li key={idx} className="text-xs text-neutral-700 italic">
+                                        "{example}"
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              {template.newExamples && template.newExamples.length > 0 && (
+                                <div className="mt-2">
+                                  <p className="text-xs text-success-600 mb-1">New Topic Examples:</p>
+                                  <ul className="space-y-1">
+                                    {template.newExamples.slice(0, 1).map((example: string, idx: number) => (
+                                      <li key={idx} className="text-xs text-success-700 italic">
+                                        "{example}"
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {persona.analysis.hookReplicationSystem.hookRules && (
+                        <div>
+                          <h4 className="text-sm font-medium text-neutral-700 mb-2">Hook Rules</h4>
+                          <ul className="space-y-1">
+                            {persona.analysis.hookReplicationSystem.hookRules.map((rule: string, i: number) => (
+                              <li key={i} className="text-sm text-neutral-700">
+                                • {rule}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </TabsContent>
@@ -381,47 +434,94 @@ export function PersonaDetailsPanel({
             {persona.analysis?.scriptGenerationRules && (
               <div className="space-y-4">
                 <div className="rounded-lg border border-neutral-200 bg-white p-4">
-                  <h3 className="font-medium text-neutral-900 mb-3">Generation Rules</h3>
-                  <div className="space-y-3">
-                    {persona.analysis.scriptGenerationRules.structureRules && (
+                  <h3 className="font-medium text-neutral-900 mb-3">📝 Script Generation Formula</h3>
+                  <div className="space-y-4">
+                    {/* Must Include / Never Include */}
+                    <div className="grid grid-cols-2 gap-4">
+                      {persona.analysis.scriptGenerationRules.mustInclude && (
+                        <div>
+                          <h4 className="text-sm font-medium text-success-700 mb-2">✅ Must Include</h4>
+                          <ul className="space-y-1">
+                            {persona.analysis.scriptGenerationRules.mustInclude.map((rule: string, index: number) => (
+                              <li key={index} className="text-sm text-neutral-700 flex items-start">
+                                <span className="mr-2">•</span>
+                                <span>{rule}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {persona.analysis.scriptGenerationRules.neverInclude && (
+                        <div>
+                          <h4 className="text-sm font-medium text-destructive-700 mb-2">❌ Never Include</h4>
+                          <ul className="space-y-1">
+                            {persona.analysis.scriptGenerationRules.neverInclude.map((rule: string, index: number) => (
+                              <li key={index} className="text-sm text-neutral-700 flex items-start">
+                                <span className="mr-2">•</span>
+                                <span>{rule}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Optimal Structure */}
+                    {persona.analysis.scriptGenerationRules.optimalStructure && (
                       <div>
-                        <h4 className="text-sm font-medium text-neutral-700 mb-2">Structure Rules</h4>
-                        <ul className="space-y-1">
-                          {persona.analysis.scriptGenerationRules.structureRules.map((rule: string, index: number) => (
-                            <li key={index} className="text-sm text-neutral-700 flex items-start">
-                              <span className="mr-2">•</span>
-                              <span>{rule}</span>
-                            </li>
-                          ))}
-                        </ul>
+                        <h4 className="text-sm font-medium text-neutral-700 mb-2">Optimal Structure</h4>
+                        <div className="space-y-2 rounded bg-neutral-50 p-3">
+                          <div className="flex">
+                            <span className="text-sm font-medium text-primary-600 min-w-[80px]">Hook:</span>
+                            <span className="text-sm text-neutral-700">
+                              {persona.analysis.scriptGenerationRules.optimalStructure.hookSection}
+                            </span>
+                          </div>
+                          <div className="flex">
+                            <span className="text-sm font-medium text-primary-600 min-w-[80px]">Body:</span>
+                            <span className="text-sm text-neutral-700">
+                              {persona.analysis.scriptGenerationRules.optimalStructure.bodySection}
+                            </span>
+                          </div>
+                          <div className="flex">
+                            <span className="text-sm font-medium text-primary-600 min-w-[80px]">Close:</span>
+                            <span className="text-sm text-neutral-700">
+                              {persona.analysis.scriptGenerationRules.optimalStructure.closeSection}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     )}
 
-                    {persona.analysis.scriptGenerationRules.contentRules && (
+                    {/* Formula */}
+                    {(persona.analysis.scriptGenerationRules.universalFormula || 
+                      persona.analysis.scriptGenerationRules.formulaForNewScript) && (
                       <div>
-                        <h4 className="text-sm font-medium text-neutral-700 mb-2">Content Rules</h4>
-                        <ul className="space-y-1">
-                          {persona.analysis.scriptGenerationRules.contentRules.map((rule: string, index: number) => (
-                            <li key={index} className="text-sm text-neutral-700 flex items-start">
-                              <span className="mr-2">•</span>
-                              <span>{rule}</span>
-                            </li>
-                          ))}
-                        </ul>
+                        <h4 className="text-sm font-medium text-neutral-700 mb-2">Step-by-Step Formula</h4>
+                        <div className="rounded bg-neutral-50 p-3 font-mono text-sm text-neutral-700 whitespace-pre-wrap">
+                          {persona.analysis.scriptGenerationRules.universalFormula ||
+                           persona.analysis.scriptGenerationRules.formulaForNewScript}
+                        </div>
                       </div>
                     )}
 
-                    {persona.analysis.scriptGenerationRules.styleRules && (
+                    {/* Detailed Script Formula (14 steps) */}
+                    {persona.analysis.scriptGenerationRules.detailedScriptFormula && (
                       <div>
-                        <h4 className="text-sm font-medium text-neutral-700 mb-2">Style Rules</h4>
-                        <ul className="space-y-1">
-                          {persona.analysis.scriptGenerationRules.styleRules.map((rule: string, index: number) => (
-                            <li key={index} className="text-sm text-neutral-700 flex items-start">
-                              <span className="mr-2">•</span>
-                              <span>{rule}</span>
-                            </li>
-                          ))}
-                        </ul>
+                        <h4 className="text-sm font-medium text-neutral-700 mb-2">
+                          🎬 Detailed Script Formula ({Object.keys(persona.analysis.scriptGenerationRules.detailedScriptFormula).length} Steps)
+                        </h4>
+                        <div className="max-h-96 overflow-y-auto space-y-2 rounded bg-white border border-neutral-200 p-3">
+                          {Object.entries(persona.analysis.scriptGenerationRules.detailedScriptFormula).map(
+                            ([step, instruction]) => (
+                              <div key={step} className="border-l-4 border-primary-400 pl-3 py-1">
+                                <div className="text-xs font-bold text-primary-700 uppercase">{step}</div>
+                                <div className="text-sm text-neutral-800">{instruction as string}</div>
+                              </div>
+                            )
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
