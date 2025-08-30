@@ -7,6 +7,7 @@ import { LoadingProvider } from "@/components/ui/loading";
 import { Toaster } from "@/components/ui/sonner";
 import { APP_CONFIG } from "@/config/app-config";
 import { PostHogProvider } from "@/contexts/posthog-provider";
+import { QueryProvider } from "@/contexts/query-client-provider";
 import { PreferencesStoreProvider } from "@/lib/stores/preferences/preferences-provider";
 import { getPreference } from "@/server/server-actions";
 import { THEME_MODE_VALUES, THEME_PRESET_VALUES, type ThemePreset, type ThemeMode } from "@/types/preferences/theme";
@@ -40,12 +41,14 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       </head>
       <body className={`${inter.className} min-h-screen antialiased`}>
         <PostHogProvider>
-          <LoadingProvider>
-            <PreferencesStoreProvider themeMode={themeMode} themePreset={themePreset}>
-              {children}
-              <Toaster />
-            </PreferencesStoreProvider>
-          </LoadingProvider>
+          <QueryProvider>
+            <LoadingProvider>
+              <PreferencesStoreProvider themeMode={themeMode} themePreset={themePreset}>
+                {children}
+                <Toaster />
+              </PreferencesStoreProvider>
+            </LoadingProvider>
+          </QueryProvider>
         </PostHogProvider>
       </body>
     </html>

@@ -8,6 +8,7 @@ import {
   PenLine,
   Users,
   VenetianMask,
+  Archive,
   type LucideIcon,
 } from "lucide-react";
 
@@ -78,6 +79,14 @@ export function useDynamicSidebarItems(): NavGroup[] {
   // Build Ideas section items based on feature flags
   const ideasSectionItems = [];
 
+  // Always include Content Inbox
+  ideasSectionItems.push({
+    title: "Content Inbox",
+    url: "/content-inbox",
+    icon: Archive,
+    isNew: true,
+  });
+
   if (isCreatorsPageEnabled) {
     ideasSectionItems.push({
       title: "Creators",
@@ -102,14 +111,12 @@ export function useDynamicSidebarItems(): NavGroup[] {
     });
   }
 
-  // Only add Ideas section if at least one idea-related feature is enabled
-  if (ideasSectionItems.length > 0) {
-    baseItems.push({
-      id: 2,
-      label: "Ideas",
-      items: ideasSectionItems,
-    });
-  }
+  // Always add Ideas section since Content Inbox is always included
+  baseItems.push({
+    id: 2,
+    label: "Ideas",
+    items: ideasSectionItems,
+  });
 
   return baseItems;
 }

@@ -5,6 +5,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { Plus, Filter, Loader2, User, ChevronUp, Sparkles, AlertCircle } from "lucide-react";
 
+import { SkeletonPersonaGrid, SkeletonPageHeader } from "@/components/ui/skeleton";
+
 import { CreatorPersonaGrid, type CreatorPersona } from "@/components/creator-personas/creator-persona-card";
 import { PersonaDetailsPanel, type PersonaDetails } from "@/components/persona-details-panel";
 import { Button } from "@/components/ui/button";
@@ -298,7 +300,7 @@ export default function PersonasPage() {
 
       if (!createResponse.ok) {
         const errorData = await createResponse.json();
-        throw new Error(errorData.error || "Failed to create persona");
+        throw new Error(errorData.error ?? "Failed to create persona");
       }
 
       await createResponse.json();
@@ -345,10 +347,10 @@ export default function PersonasPage() {
       // Handle successful response even if no personas exist
       if (response.ok && data.success) {
         // Store the full personas data for the slideout
-        setPersonasData(data.personas || []);
+        setPersonasData(data.personas ?? []);
 
         // Convert Firestore personas to CreatorPersona format
-        const convertedPersonas: CreatorPersona[] = (data.personas || []).map((p: FirestorePersona) => {
+        const convertedPersonas: CreatorPersona[] = (data.personas ?? []).map((p: FirestorePersona) => {
           // Generate initials from name
           const initials = p.name
             .split(" ")
@@ -546,9 +548,7 @@ export default function PersonasPage() {
           {/* Content Section */}
           <div className="mt-6">
             {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
-              </div>
+              <SkeletonPersonaGrid count={6} />
             ) : filteredPersonas.length === 0 ? (
               <div className="rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-50 p-12 text-center">
                 <User className="mx-auto mb-4 h-12 w-12 text-neutral-400" />

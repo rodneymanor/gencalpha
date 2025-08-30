@@ -374,22 +374,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Global loading gate - prevent any auth-based navigation until auth is resolved
   if (initializing) {
+    // Show a minimal skeleton that represents the app structure
     return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="mx-auto">
-            <span className="inline-flex">
-              <div className="clarity-loader clarity-size-md" aria-hidden="true">
-                <div className="clarity-ring"></div>
-                <div className="clarity-ring clarity-ring-2"></div>
-                <div className="clarity-orb-core"></div>
-                <div className="clarity-dot dot-1"></div>
-                <div className="clarity-dot dot-2"></div>
-                <div className="clarity-dot dot-3"></div>
-              </div>
-            </span>
+      <div className="flex h-screen">
+        {/* Sidebar skeleton */}
+        <div className="w-64 border-r border-neutral-200 bg-neutral-50 p-4">
+          <div className="space-y-4">
+            <div className="h-10 w-full animate-pulse rounded-[var(--radius-button)] bg-neutral-200" />
+            <div className="space-y-2">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="h-8 w-full animate-pulse rounded-[var(--radius-button)] bg-neutral-200" />
+              ))}
+            </div>
           </div>
-          <p className="mt-4 text-lg">Loading...</p>
+        </div>
+        
+        {/* Main content skeleton */}
+        <div className="flex-1 p-6">
+          <div className="h-8 w-48 animate-pulse rounded-[var(--radius-card)] bg-neutral-200 mb-4" />
+          <div className="h-5 w-64 animate-pulse rounded-[var(--radius-card)] bg-neutral-200 mb-8" />
+          <div className="grid gap-4 grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-32 animate-pulse rounded-[var(--radius-card)] bg-neutral-200" />
+            ))}
+          </div>
         </div>
       </div>
     );

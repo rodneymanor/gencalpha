@@ -30,6 +30,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { SkeletonContentList } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 // Import components
@@ -94,7 +95,7 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
   // Update local items when data changes
   useEffect(() => {
     if (data?.pages) {
-      const allItems = data.pages.flatMap((page) => page.items || []);
+      const allItems = data.pages.flatMap((page) => page.items ?? []);
       setItems(allItems);
     }
   }, [data]);
@@ -289,11 +290,7 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
           )}
 
           {/* Loading state */}
-          {isLoading && (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
-            </div>
-          )}
+          {isLoading && <SkeletonContentList count={viewMode === "grid" ? 8 : 5} />}
 
           {/* Error state */}
           {isError && (
