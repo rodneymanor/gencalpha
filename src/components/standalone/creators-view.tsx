@@ -4,13 +4,14 @@ import { useCallback, useState } from "react";
 
 import { UserPlus, ChevronsUpDown, Check } from "lucide-react";
 
-import CreatorVideosGrid, { type VideoData } from "@/app/(main)/dashboard/daily/_components/creator-videos-grid";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { PlatformBadge } from "@/components/ui/platform-badges";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { FloatingVideoPlayer, useFloatingVideo } from "@/components/video/video-slideout-player";
 import { transformVideoDataToVideo } from "@/lib/video-player-helpers";
+
+import CreatorVideosGrid, { type VideoData } from "@/app/(main)/dashboard/daily/_components/creator-videos-grid";
 
 export function CreatorsView() {
   const { isOpen, currentVideo, openVideo, closeVideo } = useFloatingVideo();

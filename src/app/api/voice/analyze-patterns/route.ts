@@ -422,7 +422,8 @@ ${scriptsToAnalyze.map((t, i) => `---SCRIPT ${i + 1}---\n${t}`).join("\n\n")}`;
       console.log(`  - allHooksExtracted: ${analysis.allHooksExtracted ? analysis.allHooksExtracted.length : 0} hooks`);
       console.log(`  - hookReplicationSystem: ${analysis.hookReplicationSystem ? "Present" : "Missing"}`);
       console.log(
-        `  - detailedScriptFormula: ${analysis.scriptGenerationRules?.detailedScriptFormula ? Object.keys(analysis.scriptGenerationRules.detailedScriptFormula).length : 0} steps`);
+        `  - detailedScriptFormula: ${analysis.scriptGenerationRules?.detailedScriptFormula ? Object.keys(analysis.scriptGenerationRules.detailedScriptFormula).length : 0} steps`,
+      );
 
       // Log the actual content of critical fields
       if (analysis.allHooksExtracted && analysis.allHooksExtracted.length > 0) {

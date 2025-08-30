@@ -2,21 +2,20 @@
 
 import React, { useState, useEffect, useRef } from "react";
 
-import { Plus, Filter, Loader2, User, ChevronDown, ChevronUp, Sparkles, AlertCircle } from "lucide-react";
 import { onAuthStateChanged } from "firebase/auth";
-
-import { auth } from "@/lib/firebase";
+import { Plus, Filter, Loader2, User, ChevronUp, Sparkles, AlertCircle } from "lucide-react";
 
 import { CreatorPersonaGrid, type CreatorPersona } from "@/components/creator-personas/creator-persona-card";
 import { PersonaDetailsPanel, type PersonaDetails } from "@/components/persona-details-panel";
 import { Button } from "@/components/ui/button";
-import { UnifiedSlideout, ClaudeArtifactConfig } from "@/components/ui/unified-slideout";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { UnifiedSlideout, ClaudeArtifactConfig } from "@/components/ui/unified-slideout";
+import { auth } from "@/lib/firebase";
 
 // Interface for persona data from Firestore
 interface FirestorePersona {
@@ -68,7 +67,7 @@ export default function PersonasPage() {
   const [loading, setLoading] = useState(true);
   const [selectedPersona, setSelectedPersona] = useState<PersonaDetails | null>(null);
   const [personasData, setPersonasData] = useState<FirestorePersona[]>([]);
-  
+
   // Persona creation state
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [personaUsername, setPersonaUsername] = useState("");
@@ -100,7 +99,7 @@ export default function PersonasPage() {
   const handlePersonaClick = (personaId: string) => {
     console.log("Clicked persona:", personaId);
     // Find the full persona data
-    const persona = personasData.find(p => p.id === personaId);
+    const persona = personasData.find((p) => p.id === personaId);
     if (persona) {
       setSelectedPersona({
         id: persona.id,
@@ -155,7 +154,7 @@ export default function PersonasPage() {
           return segment.substring(1); // Remove @ prefix
         }
       }
-      
+
       return "";
     } catch {
       // Not a valid URL, treat as plain username
@@ -173,7 +172,9 @@ export default function PersonasPage() {
 
     const cleanUsername = extractUsername(rawInput);
     if (!cleanUsername) {
-      setAnalysisError("Could not extract username from the provided input. Please enter a valid TikTok username or profile URL.");
+      setAnalysisError(
+        "Could not extract username from the provided input. Please enter a valid TikTok username or profile URL.",
+      );
       return;
     }
 
@@ -254,7 +255,7 @@ export default function PersonasPage() {
 
       // Step 4: Create persona with metadata
       setAnalysisProgress({ step: "Creating persona profile", current: 4, total: 4 });
-      
+
       // Generate metadata
       const metadataResponse = await fetch("/api/personas/generate-metadata", {
         method: "POST",
@@ -305,10 +306,9 @@ export default function PersonasPage() {
       // Success! Refresh the personas list
       setShowCreateForm(false);
       setPersonaUsername("");
-      
+
       // Reload personas to show the new one
       await loadPersonas();
-
     } catch (error) {
       console.error("Analysis error:", error);
       setAnalysisError(error instanceof Error ? error.message : "Analysis failed. Please try again.");
@@ -346,7 +346,7 @@ export default function PersonasPage() {
       if (response.ok && data.success) {
         // Store the full personas data for the slideout
         setPersonasData(data.personas || []);
-        
+
         // Convert Firestore personas to CreatorPersona format
         const convertedPersonas: CreatorPersona[] = (data.personas || []).map((p: FirestorePersona) => {
           // Generate initials from name
@@ -361,7 +361,7 @@ export default function PersonasPage() {
             id: p.id,
             name: p.name,
             initials,
-            followers: p.username ? `@${p.username}` : p.platform ?? "TikTok",
+            followers: p.username ? `@${p.username}` : (p.platform ?? "TikTok"),
             lastEdited: p.lastUsedAt
               ? `Used ${getRelativeTime(p.lastUsedAt)}`
               : `Created ${getRelativeTime(p.createdAt)}`,
@@ -409,173 +409,171 @@ export default function PersonasPage() {
         <div className="container mx-auto p-6">
           {/* Header Section */}
           <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-neutral-900">Your Personas</h1>
-          <p className="mt-1 text-neutral-600">Voice profiles created from creator analysis</p>
-        </div>
-        <div className="flex gap-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="gap-2">
-                <Filter className="h-4 w-4" />
-                Filter
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setFilterValue("all")}>All Personas</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilterValue("recent")}>Recently Created</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilterValue("used")}>Recently Used</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Button onClick={handleAddPersona} variant="soft" className="gap-2">
-            {showCreateForm ? (
-              <>
-                <ChevronUp className="h-4 w-4" />
-                Hide Form
-              </>
-            ) : (
-              <>
-                <Plus className="h-4 w-4" />
-                Create New Persona
-              </>
-            )}
-          </Button>
-        </div>
-      </div>
-
-      {/* Slide-down Create Form */}
-      <div
-        ref={formRef}
-        className={`overflow-hidden transition-all duration-500 ease-in-out ${
-          showCreateForm ? "max-h-96 opacity-100 mb-6" : "max-h-0 opacity-0"
-        }`}
-      >
-        <div className="rounded-[var(--radius-card)] border-2 border-primary-200 bg-gradient-to-br from-primary-50 to-brand-50 p-6 shadow-[var(--shadow-soft-drop)]">
-          <div className="mb-4">
-            <h3 className="flex items-center gap-2 text-lg font-semibold text-neutral-900">
-              <Sparkles className="h-5 w-5 text-primary-600" />
-              Create Voice Persona from TikTok
-            </h3>
-            <p className="mt-1 text-sm text-neutral-600">
-              Analyze a creator's voice patterns to generate scripts in their style
-            </p>
-          </div>
-
-          <div className="space-y-4">
             <div>
-              <label htmlFor="persona-username" className="mb-2 block text-sm font-medium text-neutral-700">
-                TikTok Username or Profile URL
-              </label>
-              <input
-                id="persona-username"
-                type="text"
-                value={personaUsername}
-                onChange={(e) => setPersonaUsername(e.target.value)}
-                placeholder="Enter @username or TikTok profile URL"
-                className="w-full rounded-[var(--radius-button)] border border-neutral-200 bg-white px-3 py-2 transition-colors focus:border-primary-400 focus:ring-1 focus:ring-primary-400 focus:outline-none disabled:cursor-not-allowed disabled:bg-neutral-100"
-                disabled={isAnalyzing}
-              />
-              <p className="mt-1 text-xs text-neutral-500">
-                We&apos;ll analyze their recent videos to capture their unique voice and style
-              </p>
+              <h1 className="text-3xl font-bold tracking-tight text-neutral-900">Your Personas</h1>
+              <p className="mt-1 text-neutral-600">Voice profiles created from creator analysis</p>
             </div>
-
-            {/* Progress indicator */}
-            {isAnalyzing && analysisProgress && (
-              <div className="rounded-[var(--radius-button)] border border-primary-200 bg-primary-50 p-4">
-                <div className="mb-2 flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin text-primary-600" />
-                  <span className="text-sm font-medium text-primary-700">
-                    {analysisProgress.step}
-                  </span>
-                </div>
-                <div className="h-2 w-full rounded-full bg-primary-200">
-                  <div
-                    className="h-2 rounded-full bg-primary-600 transition-all duration-500"
-                    style={{ width: `${(analysisProgress.current / analysisProgress.total) * 100}%` }}
-                  />
-                </div>
-                <p className="mt-2 text-xs text-primary-600">
-                  Step {analysisProgress.current} of {analysisProgress.total} • This may take about a minute
-                </p>
-              </div>
-            )}
-
-            {/* Error display */}
-            {analysisError && (
-              <div className="rounded-[var(--radius-button)] border border-destructive-200 bg-destructive-50 p-3">
-                <div className="flex items-start gap-2">
-                  <AlertCircle className="h-4 w-4 text-destructive-600 mt-0.5" />
-                  <p className="text-sm text-destructive-700">{analysisError}</p>
-                </div>
-              </div>
-            )}
-
             <div className="flex gap-3">
-              <button
-                onClick={runCompleteAnalysis}
-                disabled={isAnalyzing || !personaUsername.trim()}
-                className="flex flex-1 items-center justify-center gap-2 rounded-[var(--radius-button)] bg-primary-600 px-4 py-2.5 text-white transition-all duration-200 hover:bg-primary-700 disabled:cursor-not-allowed disabled:bg-neutral-300"
-              >
-                {isAnalyzing ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="gap-2">
+                    <Filter className="h-4 w-4" />
+                    Filter
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setFilterValue("all")}>All Personas</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFilterValue("recent")}>Recently Created</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setFilterValue("used")}>Recently Used</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Button onClick={handleAddPersona} variant="soft" className="gap-2">
+                {showCreateForm ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Analyzing Creator...
+                    <ChevronUp className="h-4 w-4" />
+                    Hide Form
                   </>
                 ) : (
                   <>
-                    <Sparkles className="h-4 w-4" />
-                    Analyze & Create Persona
+                    <Plus className="h-4 w-4" />
+                    Create New Persona
                   </>
                 )}
-              </button>
-              <button
-                onClick={() => {
-                  setShowCreateForm(false);
-                  setPersonaUsername("");
-                  setAnalysisError("");
-                }}
-                disabled={isAnalyzing}
-                className="rounded-[var(--radius-button)] bg-neutral-100 px-4 py-2.5 text-neutral-700 transition-colors hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Cancel
-              </button>
+              </Button>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Content Section */}
-      <div className="mt-6">
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
+          {/* Slide-down Create Form */}
+          <div
+            ref={formRef}
+            className={`overflow-hidden transition-all duration-500 ease-in-out ${
+              showCreateForm ? "mb-6 max-h-96 opacity-100" : "max-h-0 opacity-0"
+            }`}
+          >
+            <div className="border-primary-200 from-primary-50 to-brand-50 rounded-[var(--radius-card)] border-2 bg-gradient-to-br p-6 shadow-[var(--shadow-soft-drop)]">
+              <div className="mb-4">
+                <h3 className="flex items-center gap-2 text-lg font-semibold text-neutral-900">
+                  <Sparkles className="text-primary-600 h-5 w-5" />
+                  Create Voice Persona from TikTok
+                </h3>
+                <p className="mt-1 text-sm text-neutral-600">
+                  Analyze a creator's voice patterns to generate scripts in their style
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="persona-username" className="mb-2 block text-sm font-medium text-neutral-700">
+                    TikTok Username or Profile URL
+                  </label>
+                  <input
+                    id="persona-username"
+                    type="text"
+                    value={personaUsername}
+                    onChange={(e) => setPersonaUsername(e.target.value)}
+                    placeholder="Enter @username or TikTok profile URL"
+                    className="focus:border-primary-400 focus:ring-primary-400 w-full rounded-[var(--radius-button)] border border-neutral-200 bg-white px-3 py-2 transition-colors focus:ring-1 focus:outline-none disabled:cursor-not-allowed disabled:bg-neutral-100"
+                    disabled={isAnalyzing}
+                  />
+                  <p className="mt-1 text-xs text-neutral-500">
+                    We&apos;ll analyze their recent videos to capture their unique voice and style
+                  </p>
+                </div>
+
+                {/* Progress indicator */}
+                {isAnalyzing && analysisProgress && (
+                  <div className="border-primary-200 bg-primary-50 rounded-[var(--radius-button)] border p-4">
+                    <div className="mb-2 flex items-center gap-2">
+                      <Loader2 className="text-primary-600 h-4 w-4 animate-spin" />
+                      <span className="text-primary-700 text-sm font-medium">{analysisProgress.step}</span>
+                    </div>
+                    <div className="bg-primary-200 h-2 w-full rounded-full">
+                      <div
+                        className="bg-primary-600 h-2 rounded-full transition-all duration-500"
+                        style={{ width: `${(analysisProgress.current / analysisProgress.total) * 100}%` }}
+                      />
+                    </div>
+                    <p className="text-primary-600 mt-2 text-xs">
+                      Step {analysisProgress.current} of {analysisProgress.total} • This may take about a minute
+                    </p>
+                  </div>
+                )}
+
+                {/* Error display */}
+                {analysisError && (
+                  <div className="border-destructive-200 bg-destructive-50 rounded-[var(--radius-button)] border p-3">
+                    <div className="flex items-start gap-2">
+                      <AlertCircle className="text-destructive-600 mt-0.5 h-4 w-4" />
+                      <p className="text-destructive-700 text-sm">{analysisError}</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={runCompleteAnalysis}
+                    disabled={isAnalyzing || !personaUsername.trim()}
+                    className="bg-primary-600 hover:bg-primary-700 flex flex-1 items-center justify-center gap-2 rounded-[var(--radius-button)] px-4 py-2.5 text-white transition-all duration-200 disabled:cursor-not-allowed disabled:bg-neutral-300"
+                  >
+                    {isAnalyzing ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Analyzing Creator...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-4 w-4" />
+                        Analyze & Create Persona
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowCreateForm(false);
+                      setPersonaUsername("");
+                      setAnalysisError("");
+                    }}
+                    disabled={isAnalyzing}
+                    className="rounded-[var(--radius-button)] bg-neutral-100 px-4 py-2.5 text-neutral-700 transition-colors hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
-        ) : filteredPersonas.length === 0 ? (
-          <div className="rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-50 p-12 text-center">
-            <User className="mx-auto mb-4 h-12 w-12 text-neutral-400" />
-            <h3 className="mb-2 text-lg font-medium text-neutral-900">
-              {userPersonas.length === 0 ? "No personas yet" : "No personas match your filter"}
-            </h3>
-            <p className="mb-6 text-neutral-600">
-              {userPersonas.length === 0
-                ? "Create your first persona by analyzing a creator's voice patterns"
-                : "Try adjusting your filter settings"}
-            </p>
-            <Button onClick={handleAddPersona} variant="soft" className="gap-2">
-              <Plus className="h-4 w-4" />
-              Create Your First Persona
-            </Button>
+
+          {/* Content Section */}
+          <div className="mt-6">
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
+              </div>
+            ) : filteredPersonas.length === 0 ? (
+              <div className="rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-50 p-12 text-center">
+                <User className="mx-auto mb-4 h-12 w-12 text-neutral-400" />
+                <h3 className="mb-2 text-lg font-medium text-neutral-900">
+                  {userPersonas.length === 0 ? "No personas yet" : "No personas match your filter"}
+                </h3>
+                <p className="mb-6 text-neutral-600">
+                  {userPersonas.length === 0
+                    ? "Create your first persona by analyzing a creator's voice patterns"
+                    : "Try adjusting your filter settings"}
+                </p>
+                <Button onClick={handleAddPersona} variant="soft" className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Create Your First Persona
+                </Button>
+              </div>
+            ) : (
+              <CreatorPersonaGrid
+                personas={filteredPersonas}
+                onPersonaClick={handlePersonaClick}
+                onAddClick={handleAddPersona}
+              />
+            )}
           </div>
-        ) : (
-          <CreatorPersonaGrid
-            personas={filteredPersonas}
-            onPersonaClick={handlePersonaClick}
-            onAddClick={handleAddPersona}
-          />
-        )}
         </div>
-      </div>
       </div>
 
       {/* Persona Details Slideout */}

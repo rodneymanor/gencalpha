@@ -7,7 +7,13 @@ import { useScriptDownload } from "@/hooks/use-script-download";
 import { cn } from "@/lib/utils";
 import { ScriptPanelProps, ScriptTabConfig, ScriptData } from "@/types/script-panel";
 
-import { ScriptPanelHeader, ScriptPanelTabs, FullScriptView, ComponentsView, HooksView } from "./script-panel-components";
+import {
+  ScriptPanelHeader,
+  ScriptPanelTabs,
+  FullScriptView,
+  ComponentsView,
+  HooksView,
+} from "./script-panel-components";
 
 /**
  * ScriptPanel - A comprehensive script display component with tabs,
@@ -115,7 +121,7 @@ function ScriptPanelContent({ activeTab, scriptData, showMetrics, onCopy, copySt
       )}
 
       {activeTab === "components" && <ComponentsView components={scriptData.components} onCopy={onCopy} />}
-      
+
       {activeTab === "hooks" && <HooksView hooks={scriptData.hooks || []} onCopy={onCopy} />}
     </div>
   );

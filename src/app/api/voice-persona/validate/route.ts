@@ -7,12 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { scoreContentAuthenticity } from "@/lib/voice-persona/analyzers/authenticity-scorer";
 import { validateContent } from "@/lib/voice-persona/generators/rules-engine";
-import { 
-  VoiceProfile, 
-  SpeechPatterns, 
-  GenerationParameters,
-  AuthenticityMetrics 
-} from "@/lib/voice-persona/types";
+import { VoiceProfile, SpeechPatterns, GenerationParameters, AuthenticityMetrics } from "@/lib/voice-persona/types";
 
 interface ValidateContentRequest {
   content: string;
@@ -49,13 +44,13 @@ export async function POST(request: NextRequest) {
 
   try {
     const body: ValidateContentRequest = await request.json();
-    const { 
-      content, 
-      voiceProfile, 
-      speechPatterns, 
+    const {
+      content,
+      voiceProfile,
+      speechPatterns,
       generationParameters,
       includeRuleValidation = false,
-      includeDetailedBreakdown = false
+      includeDetailedBreakdown = false,
     } = body;
 
     // Validate required parameters
@@ -76,7 +71,7 @@ export async function POST(request: NextRequest) {
           },
           timestamp: new Date().toISOString(),
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -97,7 +92,7 @@ export async function POST(request: NextRequest) {
           },
           timestamp: new Date().toISOString(),
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -112,7 +107,9 @@ export async function POST(request: NextRequest) {
     if (includeRuleValidation && generationParameters) {
       console.log(`🔒 [VOICE_PERSONA_VALIDATE] Running rule validation`);
       ruleValidation = validateContent(content, voiceProfile, generationParameters, speechPatterns);
-      console.log(`${ruleValidation.valid ? '✅' : '❌'} [VOICE_PERSONA_VALIDATE] Rule validation: ${ruleValidation.violations.length} violations`);
+      console.log(
+        `${ruleValidation.valid ? "✅" : "❌"} [VOICE_PERSONA_VALIDATE] Rule validation: ${ruleValidation.violations.length} violations`,
+      );
     }
 
     // Generate detailed breakdown if requested
@@ -146,11 +143,10 @@ export async function POST(request: NextRequest) {
     console.log(`✅ [VOICE_PERSONA_VALIDATE] Validation completed in ${processingTime}ms`);
 
     return NextResponse.json(response);
-
   } catch (error) {
     const processingTime = Date.now() - startTime;
     console.error("❌ [VOICE_PERSONA_VALIDATE] Validation error:", error);
-    
+
     return NextResponse.json(
       {
         success: false,
@@ -167,7 +163,7 @@ export async function POST(request: NextRequest) {
         },
         timestamp: new Date().toISOString(),
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -177,7 +173,7 @@ export async function POST(request: NextRequest) {
  */
 function generateRecommendations(
   authenticity: AuthenticityMetrics,
-  ruleValidation?: { valid: boolean; violations: string[] }
+  ruleValidation?: { valid: boolean; violations: string[] },
 ): string[] {
   const recommendations: string[] = [];
 
@@ -216,17 +212,17 @@ function generateRecommendations(
   // Rule validation recommendations
   if (ruleValidation && !ruleValidation.valid) {
     recommendations.push(`Rule violations detected: ${ruleValidation.violations.length} issues to address`);
-    
+
     // Specific rule recommendations
-    if (ruleValidation.violations.some(v => v.includes("hook"))) {
+    if (ruleValidation.violations.some((v) => v.includes("hook"))) {
       recommendations.push("Review hook usage to ensure it follows persona patterns");
     }
-    
-    if (ruleValidation.violations.some(v => v.includes("bridge"))) {
+
+    if (ruleValidation.violations.some((v) => v.includes("bridge"))) {
       recommendations.push("Check bridge phrase frequency and placement");
     }
-    
-    if (ruleValidation.violations.some(v => v.includes("signature"))) {
+
+    if (ruleValidation.violations.some((v) => v.includes("signature"))) {
       recommendations.push("Include more signature elements from the persona profile");
     }
   }
@@ -268,7 +264,7 @@ export async function GET() {
     ],
     metrics: [
       "Hook Accuracy (20%) - Matches persona's primary hooks",
-      "Bridge Frequency (20%) - Uses bridges at documented rate", 
+      "Bridge Frequency (20%) - Uses bridges at documented rate",
       "Sentence Patterns (20%) - Follows persona's structure patterns",
       "Vocabulary Match (20%) - Uses persona's signature words",
       "Rhythm Replication (20%) - Maintains energy and pacing",

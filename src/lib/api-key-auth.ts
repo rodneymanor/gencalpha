@@ -39,7 +39,7 @@ export class ApiKeyAuthService {
   /**
    * Validate API key and return user context
    */
-  // eslint-disable-next-line complexity
+
   static async validateApiKey(
     apiKey: string,
   ): Promise<{ user: AuthenticatedUser; rateLimitResult: RateLimitResult } | null> {

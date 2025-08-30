@@ -35,8 +35,7 @@ export async function POST(request: NextRequest) {
         success: false,
         platform,
         error: "rapidapi_key_missing",
-        message:
-          "TikTok resolve is temporarily unavailable on the server. Please add RAPIDAPI_KEY.",
+        message: "TikTok resolve is temporarily unavailable on the server. Please add RAPIDAPI_KEY.",
       });
     }
 

@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -231,7 +230,7 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
   }, [prompt]);
 
   // Handle video processing for supported URLs
-  // eslint-disable-next-line complexity
+
   const handleVideoProcess = async () => {
     if (!urlDetection || !urlDetection.isSupported) return;
 

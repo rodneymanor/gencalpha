@@ -1,11 +1,10 @@
 "use client";
 
 import { useState } from "react";
+
 import { toast } from "sonner";
-import { 
-  CreatorPersonaGrid, 
-  type CreatorPersona 
-} from "@/components/creator-personas/creator-persona-card";
+
+import { CreatorPersonaGrid, type CreatorPersona } from "@/components/creator-personas/creator-persona-card";
 
 // Sample data with different avatar variants
 const samplePersonas: CreatorPersona[] = [
@@ -15,7 +14,7 @@ const samplePersonas: CreatorPersona[] = [
     initials: "MB",
     followers: "247M followers",
     lastEdited: "Last edited 2 hours ago",
-    avatarVariant: "light" // Default light variant as requested
+    avatarVariant: "light", // Default light variant as requested
   },
   {
     id: "mkbhd",
@@ -23,7 +22,7 @@ const samplePersonas: CreatorPersona[] = [
     initials: "MK",
     followers: "19M followers",
     lastEdited: "Last edited 5 hours ago",
-    avatarVariant: "dark"
+    avatarVariant: "dark",
   },
   {
     id: "emma",
@@ -31,7 +30,7 @@ const samplePersonas: CreatorPersona[] = [
     initials: "EC",
     followers: "12M followers",
     lastEdited: "Last edited yesterday",
-    avatarVariant: "outlined"
+    avatarVariant: "outlined",
   },
   {
     id: "casey",
@@ -39,7 +38,7 @@ const samplePersonas: CreatorPersona[] = [
     initials: "CN",
     followers: "12.5M followers",
     lastEdited: "Last edited 3 days ago",
-    avatarVariant: "outlined"
+    avatarVariant: "outlined",
   },
   {
     id: "airrack",
@@ -47,8 +46,8 @@ const samplePersonas: CreatorPersona[] = [
     initials: "AR",
     followers: "14M followers",
     lastEdited: "Last edited 4 days ago",
-    avatarVariant: "light"
-  }
+    avatarVariant: "light",
+  },
 ];
 
 export default function TestCreatorPersonasPage() {
@@ -56,59 +55,53 @@ export default function TestCreatorPersonasPage() {
 
   const handlePersonaClick = (personaId: string) => {
     setSelectedPersona(personaId);
-    const persona = samplePersonas.find(p => p.id === personaId);
+    const persona = samplePersonas.find((p) => p.id === personaId);
     toast.success(`Selected: ${persona?.name}`);
-    
+
     // You can also post a message to parent window if needed
     if (window.parent !== window) {
-      window.parent.postMessage({ 
-        action: 'persona-selected', 
-        personaId: personaId 
-      }, '*');
+      window.parent.postMessage(
+        {
+          action: "persona-selected",
+          personaId: personaId,
+        },
+        "*",
+      );
     }
   };
 
   const handleAddClick = () => {
     toast.info("Add new persona clicked");
-    
+
     // Trigger add flow
     if (window.parent !== window) {
-      window.parent.postMessage({ 
-        action: 'add-persona'
-      }, '*');
+      window.parent.postMessage(
+        {
+          action: "add-persona",
+        },
+        "*",
+      );
     }
   };
 
   return (
     <div className="min-h-screen bg-neutral-50 p-10">
-      <div className="max-w-[900px] mx-auto space-y-8">
+      <div className="mx-auto max-w-[900px] space-y-8">
         {/* Header */}
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-neutral-900">
-            Creator Personas
-          </h1>
+          <h1 className="text-3xl font-bold text-neutral-900">Creator Personas</h1>
           <p className="text-neutral-600">
-            Select a creator persona or add a new one. 
-            {selectedPersona && (
-              <span className="ml-2 text-primary-600">
-                Currently selected: {selectedPersona}
-              </span>
-            )}
+            Select a creator persona or add a new one.
+            {selectedPersona && <span className="text-primary-600 ml-2">Currently selected: {selectedPersona}</span>}
           </p>
         </div>
 
         {/* Grid Component */}
-        <CreatorPersonaGrid
-          personas={samplePersonas}
-          onPersonaClick={handlePersonaClick}
-          onAddClick={handleAddClick}
-        />
+        <CreatorPersonaGrid personas={samplePersonas} onPersonaClick={handlePersonaClick} onAddClick={handleAddClick} />
 
         {/* Dark mode test section */}
-        <div className="mt-16 p-8 bg-neutral-900 rounded-[var(--radius-card)]">
-          <h2 className="text-xl font-semibold text-neutral-50 mb-6">
-            Dark Mode Preview
-          </h2>
+        <div className="mt-16 rounded-[var(--radius-card)] bg-neutral-900 p-8">
+          <h2 className="mb-6 text-xl font-semibold text-neutral-50">Dark Mode Preview</h2>
           <div className="dark">
             <CreatorPersonaGrid
               personas={samplePersonas.slice(0, 3)}

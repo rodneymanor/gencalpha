@@ -4,8 +4,6 @@ import { useState } from "react";
 
 import { ChevronDown, FolderOpen } from "lucide-react";
 
-import { InlineLoader } from "@/components/ui/loading";
-
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -13,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { InlineLoader } from "@/components/ui/loading";
 import type { Collection } from "@/lib/collections";
 
 interface CollectionsDropdownProps {

@@ -7,7 +7,6 @@ import { useEffect, useRef, useState, useCallback } from "react";
 //
 // icons moved to presentational components
 
-
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ACK_BEFORE_SLIDE_MS, SLIDE_DURATION_MS, ACK_LOADING } from "@/components/write-chat/constants";
 import { useInlineVideoActions } from "@/components/write-chat/hooks/use-inline-video-actions";
@@ -252,7 +251,6 @@ export function ClaudeChat({
     }, 400); // Match CSS transition duration
   }, [isHeroState, isTransitioning]);
 
-
   // Handle loading a saved conversation
   const handleLoadChat = useCallback(
     (conversation: {
@@ -346,7 +344,7 @@ export function ClaudeChat({
       // Execute the action and handle completion with database persistence
       const executeAction = async () => {
         console.log("🚀 [executeAction] Starting execution for:", action);
-        
+
         // Ensure conversation exists and save the assistant's action message
         let convId = conversationId;
         if (!convId) {
@@ -360,7 +358,7 @@ export function ClaudeChat({
             console.warn("⚠️ [executeAction] Failed to create conversation:", error);
           }
         }
-        
+
         // Save the assistant's action acknowledgment message
         if (convId) {
           try {
@@ -373,7 +371,7 @@ export function ClaudeChat({
 
         try {
           let resultContent: string | null = null;
-          
+
           switch (action) {
             case "transcribe":
               console.log("📝 [executeAction] Calling handleTranscribe");
@@ -390,13 +388,13 @@ export function ClaudeChat({
               resultContent = "✨ Video hooks generated and opened in the editor panel.";
               break;
           }
-          
+
           // Save the result message to the database
           if (convId && resultContent) {
             try {
               await saveMessageToDb(convId, "assistant", resultContent);
               console.log("✅ [executeAction] Saved result message to database");
-              
+
               // Generate title if this is the first response
               if (isFirstResponse && !conversationTitle) {
                 const messagesForTitle = [
@@ -417,7 +415,7 @@ export function ClaudeChat({
         } catch (error) {
           console.error("❌ [executeAction] Error:", error);
           const errorMessage = `Error: ${error instanceof Error ? error.message : "Action failed"}`;
-          
+
           // Save error message to database
           if (convId) {
             try {
@@ -436,8 +434,19 @@ export function ClaudeChat({
       // Execute asynchronously but don't block
       executeAction();
     },
-    [pendingVideoUrl, videoActionState.actions, handleTranscribe, handleIdeas, handleHooks, setMessages, 
-     conversationId, selectedAssistant, initialPrompt, isFirstResponse, conversationTitle],
+    [
+      pendingVideoUrl,
+      videoActionState.actions,
+      handleTranscribe,
+      handleIdeas,
+      handleHooks,
+      setMessages,
+      conversationId,
+      selectedAssistant,
+      initialPrompt,
+      isFirstResponse,
+      conversationTitle,
+    ],
   );
 
   // Voice recording
@@ -714,14 +723,14 @@ export function ClaudeChat({
       const ackMessageId = crypto.randomUUID();
       const videoActionsId = crypto.randomUUID();
       const ackMessage = "I found a video! What would you like me to do with it?";
-      
+
       setMessages((prev) => [
         ...prev,
         { id: userMessageId, role: "user", content: trimmed },
         { id: ackMessageId, role: "assistant", content: ackMessage },
         { id: videoActionsId, role: "assistant", content: "<video-actions>" },
       ]);
-      
+
       // Save the video URL submission to the database
       (async () => {
         try {
@@ -734,14 +743,14 @@ export function ClaudeChat({
               console.log("✅ [handleSend] Created conversation for video URL:", convId);
             }
           }
-          
+
           if (convId) {
             // Save user message (video URL)
             await saveMessageToDb(convId, "user", trimmed);
             // Save assistant acknowledgment
             await saveMessageToDb(convId, "assistant", ackMessage);
             console.log("✅ [handleSend] Saved video URL submission to database");
-            
+
             // Generate title if this is the first response
             if (isFirstResponse && !conversationTitle) {
               const messagesForTitle = [

@@ -1,17 +1,17 @@
 // Conversation types for interactive script generation
-export type ConversationRole = 'user' | 'assistant' | 'system';
+export type ConversationRole = "user" | "assistant" | "system";
 
-export type ActionType = 
-  | 'generate_initial'
-  | 'refine_hook'
-  | 'change_tone'
-  | 'add_cta'
-  | 'expand_section'
-  | 'shorten_content'
-  | 'generate_variations'
-  | 'apply_voice_persona'
-  | 'adjust_pacing'
-  | 'add_emotional_beat';
+export type ActionType =
+  | "generate_initial"
+  | "refine_hook"
+  | "change_tone"
+  | "add_cta"
+  | "expand_section"
+  | "shorten_content"
+  | "generate_variations"
+  | "apply_voice_persona"
+  | "adjust_pacing"
+  | "add_emotional_beat";
 
 export interface ConversationMessage {
   id: string;
@@ -37,7 +37,7 @@ export interface ScriptIteration {
     wta: string;
   };
   metadata: {
-    tone: 'professional' | 'casual' | 'energetic' | 'educational' | 'viral';
+    tone: "professional" | "casual" | "energetic" | "educational" | "viral";
     duration: string;
     wordCount: number;
     lastModified: Date;
@@ -51,7 +51,7 @@ export interface ConversationContext {
   currentScript: ScriptIteration;
   history: ConversationMessage[];
   preferences: {
-    platform?: 'youtube' | 'tiktok' | 'instagram';
+    platform?: "youtube" | "tiktok" | "instagram";
     targetAudience?: string;
     voicePersona?: string;
     desiredOutcome?: string;

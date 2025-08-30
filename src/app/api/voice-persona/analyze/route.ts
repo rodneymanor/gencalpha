@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
           },
           timestamp: new Date().toISOString(),
         } satisfies AnalyzePersonaResponse,
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
           },
           timestamp: new Date().toISOString(),
         } satisfies AnalyzePersonaResponse,
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -82,20 +82,22 @@ export async function POST(request: NextRequest) {
     };
 
     // Configure analysis if provided
-    const analysisConfig = config ? {
-      maxVideos: config.maxVideos || 25,
-      batchSize: config.batchSize || 5,
-      analysis: {
-        minTranscriptLength: 50,
-        patternSensitivity: config.patternSensitivity || "medium",
-        enableEmotionalAnalysis: config.enableEmotionalAnalysis ?? true,
-      },
-    } : undefined;
+    const analysisConfig = config
+      ? {
+          maxVideos: config.maxVideos || 25,
+          batchSize: config.batchSize || 5,
+          analysis: {
+            minTranscriptLength: 50,
+            patternSensitivity: config.patternSensitivity || "medium",
+            enableEmotionalAnalysis: config.enableEmotionalAnalysis ?? true,
+          },
+        }
+      : undefined;
 
     // Perform voice persona analysis
     const result = await analyzeVoicePersona(userIdentifier, analysisConfig);
 
-    console.log(`${result.success ? '✅' : '❌'} [VOICE_PERSONA_API] Analysis completed`);
+    console.log(`${result.success ? "✅" : "❌"} [VOICE_PERSONA_API] Analysis completed`);
 
     if (result.success) {
       console.log(`📊 [VOICE_PERSONA_API] Persona profile created:`);
@@ -111,10 +113,9 @@ export async function POST(request: NextRequest) {
     };
 
     return NextResponse.json(response);
-
   } catch (error) {
     console.error("❌ [VOICE_PERSONA_API] Analysis error:", error);
-    
+
     return NextResponse.json(
       {
         success: false,
@@ -130,7 +131,7 @@ export async function POST(request: NextRequest) {
         },
         timestamp: new Date().toISOString(),
       } satisfies AnalyzePersonaResponse,
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -140,7 +141,7 @@ export async function GET(request: NextRequest) {
   const handle = searchParams.get("handle");
   const platform = searchParams.get("platform") as "tiktok" | "instagram";
   const maxVideos = parseInt(searchParams.get("maxVideos") ?? "25");
-  const patternSensitivity = searchParams.get("patternSensitivity") as "low" | "medium" | "high" || "medium";
+  const patternSensitivity = (searchParams.get("patternSensitivity") as "low" | "medium" | "high") || "medium";
 
   if (!handle || !platform) {
     return NextResponse.json(
@@ -157,7 +158,7 @@ export async function GET(request: NextRequest) {
         },
         timestamp: new Date().toISOString(),
       } satisfies AnalyzePersonaResponse,
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -165,13 +166,13 @@ export async function GET(request: NextRequest) {
   const mockRequest = new Request(request.url, {
     method: "POST",
     headers: request.headers,
-    body: JSON.stringify({ 
-      handle, 
-      platform, 
-      config: { 
-        maxVideos, 
-        patternSensitivity 
-      } 
+    body: JSON.stringify({
+      handle,
+      platform,
+      config: {
+        maxVideos,
+        patternSensitivity,
+      },
     }),
   });
 

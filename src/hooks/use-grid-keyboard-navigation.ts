@@ -14,7 +14,7 @@ interface GridKeyboardNavigationOptions {
 /**
  * Hook for keyboard navigation in grid layouts following Soft UI accessibility principles.
  * Supports arrow key navigation, Enter key activation, and proper focus management.
- * 
+ *
  * Features:
  * - Dynamic column detection (adapts to CSS grid changes)
  * - Keyboard-only selection (hover only shows focus, doesn't trigger selection)
@@ -35,7 +35,7 @@ export function useGridKeyboardNavigation({
   const gridRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLElement | null)[]>([]);
   const lastDetectedColumns = useRef<number>(columns);
-  
+
   // Scroll detection to prevent accidental video selection during scroll
   const [isScrolling, setIsScrolling] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -43,28 +43,28 @@ export function useGridKeyboardNavigation({
   // Dynamically detect actual column count from computed styles
   const getActualColumnCount = useCallback((): number => {
     if (!gridRef.current) return columns;
-    
+
     try {
       const computedStyle = window.getComputedStyle(gridRef.current);
       const gridTemplateColumns = computedStyle.gridTemplateColumns;
-      
+
       // Count the number of column definitions (e.g., "1fr 1fr 1fr" = 3 columns)
-      if (gridTemplateColumns && gridTemplateColumns !== 'none') {
-        const columnArray = gridTemplateColumns.split(' ').filter(col => col.trim() !== '');
+      if (gridTemplateColumns && gridTemplateColumns !== "none") {
+        const columnArray = gridTemplateColumns.split(" ").filter((col) => col.trim() !== "");
         const actualColumns = columnArray.length;
-        
+
         // Cache the detected columns to avoid repeated logging
         if (actualColumns !== lastDetectedColumns.current) {
           lastDetectedColumns.current = actualColumns;
         }
-        
+
         // Fallback to original columns if detection fails
         return actualColumns > 0 ? actualColumns : columns;
       }
     } catch (error) {
-      console.warn('Failed to detect grid columns:', error);
+      console.warn("Failed to detect grid columns:", error);
     }
-    
+
     return columns;
   }, [columns]);
 
@@ -76,113 +76,125 @@ export function useGridKeyboardNavigation({
   }, [items.length, getActualColumnCount]);
 
   // Focus management - Visual focus only (no selection)
-  const setVisualFocus = useCallback((index: number) => {
-    if (index >= 0 && index < items.length && itemRefs.current[index]) {
-      itemRefs.current[index]?.focus();
-      setFocusedIndex(index);
-      // NO onItemSelect call - this is just visual focus
-    }
-  }, [items.length]);
+  const setVisualFocus = useCallback(
+    (index: number) => {
+      if (index >= 0 && index < items.length && itemRefs.current[index]) {
+        itemRefs.current[index]?.focus();
+        setFocusedIndex(index);
+        // NO onItemSelect call - this is just visual focus
+      }
+    },
+    [items.length],
+  );
 
   // Focus management - Keyboard navigation (with selection)
-  const focusItemWithSelection = useCallback((index: number) => {
-    if (index >= 0 && index < items.length && itemRefs.current[index]) {
-      itemRefs.current[index]?.focus();
-      setFocusedIndex(index);
-      // Only call onItemSelect for keyboard navigation
-      onItemSelect?.(items[index], index);
-    }
-  }, [items, onItemSelect]);
+  const focusItemWithSelection = useCallback(
+    (index: number) => {
+      if (index >= 0 && index < items.length && itemRefs.current[index]) {
+        itemRefs.current[index]?.focus();
+        setFocusedIndex(index);
+        // Only call onItemSelect for keyboard navigation
+        onItemSelect?.(items[index], index);
+      }
+    },
+    [items, onItemSelect],
+  );
 
   // Navigate to specific index with bounds checking (keyboard only)
-  const navigateToIndex = useCallback((newIndex: number) => {
-    if (disabled || items.length === 0) return;
-    
-    // Clamp to valid range
-    const clampedIndex = Math.max(0, Math.min(newIndex, items.length - 1));
-    // Use the selection version for keyboard navigation
-    focusItemWithSelection(clampedIndex);
-  }, [disabled, items.length, focusItemWithSelection]);
+  const navigateToIndex = useCallback(
+    (newIndex: number) => {
+      if (disabled || items.length === 0) return;
+
+      // Clamp to valid range
+      const clampedIndex = Math.max(0, Math.min(newIndex, items.length - 1));
+      // Use the selection version for keyboard navigation
+      focusItemWithSelection(clampedIndex);
+    },
+    [disabled, items.length, focusItemWithSelection],
+  );
 
   // Handle keyboard navigation
-  const handleKeyDown = useCallback((event: KeyboardEvent) => {
-    if (disabled || items.length === 0) return;
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (disabled || items.length === 0) return;
 
-    // Only handle navigation if focus is within the grid
-    if (!gridRef.current?.contains(document.activeElement)) return;
+      // Only handle navigation if focus is within the grid
+      if (!gridRef.current?.contains(document.activeElement)) return;
 
-    // Get current grid dimensions
-    const { columns: actualColumns } = getGridDimensions();
+      // Get current grid dimensions
+      const { columns: actualColumns } = getGridDimensions();
 
-    let newIndex = focusedIndex;
-    let handled = false;
+      let newIndex = focusedIndex;
+      let handled = false;
 
-    switch (event.key) {
-      case "ArrowRight":
-        // Move right, wrap to next row if at end
-        newIndex = focusedIndex < items.length - 1 ? focusedIndex + 1 : focusedIndex;
-        handled = true;
-        break;
-
-      case "ArrowLeft":
-        // Move left, wrap to previous row if at start
-        newIndex = focusedIndex > 0 ? focusedIndex - 1 : focusedIndex;
-        handled = true;
-        break;
-
-      case "ArrowDown":
-        // Move down one row using actual column count
-        newIndex = Math.min(focusedIndex + actualColumns, items.length - 1);
-        handled = true;
-        break;
-
-      case "ArrowUp":
-        // Move up one row using actual column count
-        newIndex = Math.max(focusedIndex - actualColumns, 0);
-        handled = true;
-        break;
-
-      case "Home":
-        // Move to first item
-        newIndex = 0;
-        handled = true;
-        break;
-
-      case "End":
-        // Move to last item
-        newIndex = items.length - 1;
-        handled = true;
-        break;
-
-      case "Enter":
-      case " ":
-        // Activate current item
-        if (focusedIndex >= 0 && focusedIndex < items.length) {
-          event.preventDefault();
-          onItemActivate?.(items[focusedIndex], focusedIndex);
+      switch (event.key) {
+        case "ArrowRight":
+          // Move right, wrap to next row if at end
+          newIndex = focusedIndex < items.length - 1 ? focusedIndex + 1 : focusedIndex;
           handled = true;
-        }
-        break;
-    }
+          break;
 
-    if (handled) {
-      event.preventDefault();
-      setIsKeyboardMode(true);
-      if (newIndex !== focusedIndex) {
-        navigateToIndex(newIndex);
+        case "ArrowLeft":
+          // Move left, wrap to previous row if at start
+          newIndex = focusedIndex > 0 ? focusedIndex - 1 : focusedIndex;
+          handled = true;
+          break;
+
+        case "ArrowDown":
+          // Move down one row using actual column count
+          newIndex = Math.min(focusedIndex + actualColumns, items.length - 1);
+          handled = true;
+          break;
+
+        case "ArrowUp":
+          // Move up one row using actual column count
+          newIndex = Math.max(focusedIndex - actualColumns, 0);
+          handled = true;
+          break;
+
+        case "Home":
+          // Move to first item
+          newIndex = 0;
+          handled = true;
+          break;
+
+        case "End":
+          // Move to last item
+          newIndex = items.length - 1;
+          handled = true;
+          break;
+
+        case "Enter":
+        case " ":
+          // Activate current item
+          if (focusedIndex >= 0 && focusedIndex < items.length) {
+            event.preventDefault();
+            onItemActivate?.(items[focusedIndex], focusedIndex);
+            handled = true;
+          }
+          break;
       }
-    }
-  }, [disabled, items, focusedIndex, getGridDimensions, onItemActivate, navigateToIndex]);
+
+      if (handled) {
+        event.preventDefault();
+        setIsKeyboardMode(true);
+        if (newIndex !== focusedIndex) {
+          navigateToIndex(newIndex);
+        }
+      }
+    },
+    [disabled, items, focusedIndex, getGridDimensions, onItemActivate, navigateToIndex],
+  );
 
   // Handle scroll events to prevent focus changes during scroll (for cleaner UX)
   const handleScroll = useCallback(() => {
     setIsScrolling(true);
-    
+
     // Clear previous timeout
     if (scrollTimeoutRef.current) {
       clearTimeout(scrollTimeoutRef.current);
     }
-    
+
     // Set timeout to detect when scrolling has stopped
     scrollTimeoutRef.current = setTimeout(() => {
       setIsScrolling(false);
@@ -190,29 +202,35 @@ export function useGridKeyboardNavigation({
   }, []);
 
   // Handle mouse interactions
-  const handleMouseEnter = useCallback((index: number) => {
-    if (disabled) return;
-    
-    // Prevent mouse hover events during scrolling
-    if (isScrolling) {
-      return;
-    }
-    
-    // Only update visual focus indicator - NEVER trigger video selection on hover
-    // We set keyboard mode to false to indicate this is mouse interaction
-    setIsKeyboardMode(false);
-    // Use setVisualFocus which doesn't trigger onItemSelect
-    setVisualFocus(index);
-  }, [disabled, isScrolling, setVisualFocus]);
+  const handleMouseEnter = useCallback(
+    (index: number) => {
+      if (disabled) return;
 
-  const handleMouseClick = useCallback((index: number) => {
-    if (disabled) return;
-    
-    // Mouse click should only activate (open panel), not select (change video)
-    setIsKeyboardMode(false);
-    setVisualFocus(index); // Visual focus only
-    onItemActivate?.(items[index], index); // Open panel
-  }, [disabled, items, onItemActivate, setVisualFocus]);
+      // Prevent mouse hover events during scrolling
+      if (isScrolling) {
+        return;
+      }
+
+      // Only update visual focus indicator - NEVER trigger video selection on hover
+      // We set keyboard mode to false to indicate this is mouse interaction
+      setIsKeyboardMode(false);
+      // Use setVisualFocus which doesn't trigger onItemSelect
+      setVisualFocus(index);
+    },
+    [disabled, isScrolling, setVisualFocus],
+  );
+
+  const handleMouseClick = useCallback(
+    (index: number) => {
+      if (disabled) return;
+
+      // Mouse click should only activate (open panel), not select (change video)
+      setIsKeyboardMode(false);
+      setVisualFocus(index); // Visual focus only
+      onItemActivate?.(items[index], index); // Open panel
+    },
+    [disabled, items, onItemActivate, setVisualFocus],
+  );
 
   // Set up keyboard event listeners
   useEffect(() => {
@@ -231,7 +249,7 @@ export function useGridKeyboardNavigation({
     const handleGridScroll = handleScroll;
 
     window.addEventListener("scroll", handleWindowScroll, { passive: true });
-    
+
     if (gridRef.current) {
       gridRef.current.addEventListener("scroll", handleGridScroll, { passive: true });
     }
@@ -241,7 +259,7 @@ export function useGridKeyboardNavigation({
       if (gridRef.current) {
         gridRef.current.removeEventListener("scroll", handleGridScroll);
       }
-      
+
       // Clean up timeout on unmount
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current);
@@ -273,7 +291,7 @@ export function useGridKeyboardNavigation({
     document.addEventListener("wheel", handleWheel, { passive: true });
     document.addEventListener("touchstart", handleTouchStart, { passive: true });
     document.addEventListener("touchmove", handleTouchMove, { passive: true });
-    
+
     return () => {
       document.removeEventListener("wheel", handleWheel);
       document.removeEventListener("touchstart", handleTouchStart);
@@ -307,30 +325,36 @@ export function useGridKeyboardNavigation({
     }
   }, [disabled, items.length, navigateToIndex]);
 
-  const focusItemByIndex = useCallback((index: number) => {
-    if (!disabled && index >= 0 && index < items.length) {
-      setIsKeyboardMode(true);
-      navigateToIndex(index);
-    }
-  }, [disabled, items.length, navigateToIndex]);
-
-  // Helper to create item props
-  const getItemProps = useCallback((index: number) => ({
-    ref: (el: HTMLElement | null) => {
-      itemRefs.current[index] = el;
-    },
-    tabIndex: focusedIndex === index ? 0 : -1,
-    "data-keyboard-focused": isKeyboardMode && focusedIndex === index,
-    onMouseEnter: () => handleMouseEnter(index),
-    onClick: () => handleMouseClick(index),
-    onFocus: () => {
-      // Only update visual focus if not in keyboard mode
-      // Keyboard mode handles its own focus through navigation
-      if (!isKeyboardMode && focusedIndex !== index) {
-        setVisualFocus(index);
+  const focusItemByIndex = useCallback(
+    (index: number) => {
+      if (!disabled && index >= 0 && index < items.length) {
+        setIsKeyboardMode(true);
+        navigateToIndex(index);
       }
     },
-  }), [focusedIndex, isKeyboardMode, handleMouseEnter, handleMouseClick, setVisualFocus]);
+    [disabled, items.length, navigateToIndex],
+  );
+
+  // Helper to create item props
+  const getItemProps = useCallback(
+    (index: number) => ({
+      ref: (el: HTMLElement | null) => {
+        itemRefs.current[index] = el;
+      },
+      tabIndex: focusedIndex === index ? 0 : -1,
+      "data-keyboard-focused": isKeyboardMode && focusedIndex === index,
+      onMouseEnter: () => handleMouseEnter(index),
+      onClick: () => handleMouseClick(index),
+      onFocus: () => {
+        // Only update visual focus if not in keyboard mode
+        // Keyboard mode handles its own focus through navigation
+        if (!isKeyboardMode && focusedIndex !== index) {
+          setVisualFocus(index);
+        }
+      },
+    }),
+    [focusedIndex, isKeyboardMode, handleMouseEnter, handleMouseClick, setVisualFocus],
+  );
 
   // Calculate current grid dimensions for ARIA attributes
   const { columns: actualColumns, rows: actualRows } = getGridDimensions();

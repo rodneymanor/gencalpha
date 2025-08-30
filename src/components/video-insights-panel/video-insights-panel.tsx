@@ -5,22 +5,22 @@ import React, { useState } from "react";
 import { useScriptCopy } from "@/hooks/use-script-copy";
 import { useScriptDownload } from "@/hooks/use-script-download";
 import { cn } from "@/lib/utils";
-import { 
-  VideoInsightsPanelProps, 
-  VideoInsightsTabConfig, 
+import {
+  VideoInsightsPanelProps,
+  VideoInsightsTabConfig,
   VideoInsights,
-  VideoInsightsTabType 
+  VideoInsightsTabType,
 } from "@/types/video-insights";
 
-import { 
-  VideoInsightsHeader, 
-  VideoInsightsTabs, 
+import {
+  VideoInsightsHeader,
+  VideoInsightsTabs,
   VideoPlayerView,
   TranscriptView,
   VideoComponentsView,
   MetadataView,
   SuggestionsView,
-  AnalysisView
+  AnalysisView,
 } from "./video-insights-panel-components";
 
 /**
@@ -35,10 +35,10 @@ function getTabConfiguration(videoInsights: VideoInsights): VideoInsightsTabConf
     { key: "transcript", label: "Transcript", enabled: !!videoInsights.scriptData.fullScript },
     { key: "components", label: "Components", enabled: videoInsights.scriptData.components.length > 0 },
     { key: "metadata", label: "Metadata", enabled: true },
-    { 
-      key: "suggestions", 
-      label: "Suggestions", 
-      enabled: (videoInsights.suggestions.hooks.length + videoInsights.suggestions.content.length) > 0 
+    {
+      key: "suggestions",
+      label: "Suggestions",
+      enabled: videoInsights.suggestions.hooks.length + videoInsights.suggestions.content.length > 0,
     },
     { key: "analysis", label: "Analysis", enabled: true },
   ];
@@ -114,10 +114,10 @@ export function VideoInsightsPanel({
         onClose={onClose}
       />
 
-      <VideoInsightsTabs 
-        tabs={tabs} 
-        activeTab={activeTab} 
-        onTabChange={(tab) => setActiveTab(tab as VideoInsightsTabType)} 
+      <VideoInsightsTabs
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={(tab) => setActiveTab(tab as VideoInsightsTabType)}
       />
 
       <VideoInsightsPanelContent
@@ -146,14 +146,14 @@ interface VideoInsightsPanelContentProps {
   onVideoPause: () => void;
 }
 
-function VideoInsightsPanelContent({ 
-  activeTab, 
-  videoInsights, 
-  showMetrics, 
-  onCopy, 
+function VideoInsightsPanelContent({
+  activeTab,
+  videoInsights,
+  showMetrics,
+  onCopy,
   copyStatus,
   onVideoPlay,
-  onVideoPause
+  onVideoPause,
 }: VideoInsightsPanelContentProps) {
   return (
     <div className="flex-1 overflow-y-auto">
@@ -167,23 +167,14 @@ function VideoInsightsPanelContent({
       )}
 
       {activeTab === "transcript" && (
-        <TranscriptView
-          script={videoInsights.scriptData.fullScript}
-          onCopy={onCopy}
-          copyStatus={copyStatus}
-        />
+        <TranscriptView script={videoInsights.scriptData.fullScript} onCopy={onCopy} copyStatus={copyStatus} />
       )}
 
       {activeTab === "components" && (
-        <VideoComponentsView 
-          components={videoInsights.scriptData.components} 
-          onCopy={onCopy} 
-        />
+        <VideoComponentsView components={videoInsights.scriptData.components} onCopy={onCopy} />
       )}
 
-      {activeTab === "metadata" && (
-        <MetadataView metadata={videoInsights.metadata} />
-      )}
+      {activeTab === "metadata" && <MetadataView metadata={videoInsights.metadata} />}
 
       {activeTab === "suggestions" && (
         <SuggestionsView

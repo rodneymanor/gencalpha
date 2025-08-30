@@ -82,7 +82,7 @@ export function SectionLoader({ action = "fetch", message: _message, className }
   // For section loading, use appropriate skeleton based on action type
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { SkeletonMainContent, SkeletonVideoGrid, CardSkeleton } = require("@/components/ui/skeleton-screens");
-  
+
   // Choose skeleton based on action type
   if (action === "fetch" || action === "search") {
     return <SkeletonMainContent className={className} />;

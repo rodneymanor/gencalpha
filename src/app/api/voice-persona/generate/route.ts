@@ -6,11 +6,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { generateScriptWithPersona } from "@/lib/voice-persona/orchestrators/voice-analysis-orchestrator";
-import { 
-  ScriptGenerationInput, 
-  ScriptGenerationResult, 
-  PersonaProfile 
-} from "@/lib/voice-persona/types";
+import { ScriptGenerationInput, ScriptGenerationResult, PersonaProfile } from "@/lib/voice-persona/types";
 
 interface GenerateScriptRequest {
   personaProfile: PersonaProfile;
@@ -47,7 +43,7 @@ export async function POST(request: NextRequest) {
           },
           timestamp: new Date().toISOString(),
         } satisfies GenerateScriptResponse,
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -66,7 +62,7 @@ export async function POST(request: NextRequest) {
           },
           timestamp: new Date().toISOString(),
         } satisfies GenerateScriptResponse,
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -78,7 +74,8 @@ export async function POST(request: NextRequest) {
           success: false,
           error: {
             code: "INVALID_PERSONA",
-            message: "Persona profile is missing required components (voiceProfile, speechPatterns, generationParameters)",
+            message:
+              "Persona profile is missing required components (voiceProfile, speechPatterns, generationParameters)",
           },
           metadata: {
             generationTime: 0,
@@ -86,12 +83,14 @@ export async function POST(request: NextRequest) {
           },
           timestamp: new Date().toISOString(),
         } satisfies GenerateScriptResponse,
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     console.log(`🎬 [VOICE_PERSONA_GENERATE] Generating script for persona ${personaProfile.personaId}`);
-    console.log(`📝 [VOICE_PERSONA_GENERATE] Topic: "${topic}" | Length: ${targetLength}s | Style: ${style || "default"}`);
+    console.log(
+      `📝 [VOICE_PERSONA_GENERATE] Topic: "${topic}" | Length: ${targetLength}s | Style: ${style || "default"}`,
+    );
 
     // Create generation input
     const generationInput: ScriptGenerationInput = {
@@ -105,7 +104,7 @@ export async function POST(request: NextRequest) {
     // Generate script using persona
     const result = await generateScriptWithPersona(generationInput, personaProfile);
 
-    console.log(`${result.success ? '✅' : '❌'} [VOICE_PERSONA_GENERATE] Script generation completed`);
+    console.log(`${result.success ? "✅" : "❌"} [VOICE_PERSONA_GENERATE] Script generation completed`);
 
     if (result.success && result.script) {
       console.log(`📊 [VOICE_PERSONA_GENERATE] Script generated:`);
@@ -123,10 +122,9 @@ export async function POST(request: NextRequest) {
     };
 
     return NextResponse.json(response);
-
   } catch (error) {
     console.error("❌ [VOICE_PERSONA_GENERATE] Generation error:", error);
-    
+
     return NextResponse.json(
       {
         success: false,
@@ -141,7 +139,7 @@ export async function POST(request: NextRequest) {
         },
         timestamp: new Date().toISOString(),
       } satisfies GenerateScriptResponse,
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -177,7 +175,7 @@ export async function GET() {
     ],
     scriptStructure: {
       hook: "0-3 seconds - Opening attention grabber using persona hooks",
-      bridge: "3-5 seconds - Transition phrase using persona bridges", 
+      bridge: "3-5 seconds - Transition phrase using persona bridges",
       coreMessage: "5-20 seconds - Main content with persona vocabulary",
       escalation: "20-25 seconds - Energy spike with persona excitement patterns",
       close: "25-30 seconds - Conclusion using persona closing patterns",

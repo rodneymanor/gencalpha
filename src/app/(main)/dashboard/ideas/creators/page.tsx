@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 
 import { UserPlus, Check, ChevronsUpDown } from "lucide-react";
 
-import CreatorVideosGrid, { type VideoData } from "@/app/(main)/dashboard/daily/_components/creator-videos-grid";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { PlatformBadge } from "@/components/ui/platform-badges";
@@ -14,6 +13,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { FloatingVideoPlayer, useFloatingVideo } from "@/components/video/video-slideout-player";
 import { useCreatorsPageFlag } from "@/hooks/use-feature-flag";
 import { transformVideoDataToVideo } from "@/lib/video-player-helpers";
+
+import CreatorVideosGrid, { type VideoData } from "@/app/(main)/dashboard/daily/_components/creator-videos-grid";
 
 export default function IdeasCreatorsPage() {
   const router = useRouter();

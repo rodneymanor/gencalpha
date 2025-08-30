@@ -1,14 +1,10 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 
-import { startAckWithLoader, finishAndRemoveLoader } from "@/components/write-chat/ack-helpers";
+import { finishAndRemoveLoader } from "@/components/write-chat/ack-helpers";
 import { sendToSlideout, sendScriptToSlideout } from "@/components/write-chat/utils";
-import { 
-  transcribeVideoUrl, 
-  generateVideoIdeas, 
-  generateVideoHooks 
-} from "@/lib/video-actions";
+import { transcribeVideoUrl, generateVideoIdeas, generateVideoHooks } from "@/lib/video-actions";
 
 export type InlineVideoAction = "transcribe" | "ideas" | "hooks";
 

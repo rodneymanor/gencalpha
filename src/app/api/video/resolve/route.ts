@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
     // Check for internal API secret first
     const internalSecret = request.headers.get("x-internal-secret");
     const isInternalRequest = internalSecret && internalSecret === process.env.INTERNAL_API_SECRET;
-    
+
     // Skip auth for internal requests, otherwise require API key auth
     if (!isInternalRequest) {
       const authResult = await authenticateApiKey(request);

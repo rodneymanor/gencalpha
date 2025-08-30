@@ -40,7 +40,7 @@ export interface ScriptMetrics {
 
 export interface ScriptHook {
   id: string;
-  type: 'opening' | 'problem' | 'twist' | 'emotional' | 'question' | 'story' | 'custom';
+  type: "opening" | "problem" | "twist" | "emotional" | "question" | "story" | "custom";
   label: string;
   content: string;
   effectiveness?: number; // 0-100 effectiveness score

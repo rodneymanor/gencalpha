@@ -3,13 +3,7 @@
  * Creates comprehensive voice profiles from extracted patterns and analysis data
  */
 
-import {
-  VideoAnalysisData,
-  VoiceProfile,
-  GenerationParameters,
-  SpeechPatterns,
-  PatternMappingMatrix,
-} from "../types";
+import { VideoAnalysisData, VoiceProfile, GenerationParameters, SpeechPatterns, PatternMappingMatrix } from "../types";
 
 /**
  * Voice Profiler Class
@@ -21,11 +15,11 @@ export class VoiceProfiler {
   createProfile(
     videos: VideoAnalysisData[],
     speechPatterns: SpeechPatterns,
-    patternMatrix: PatternMappingMatrix
+    patternMatrix: PatternMappingMatrix,
   ): VoiceProfile {
     console.log(`🎭 [VOICE_PROFILER] Creating voice profile from ${videos.length} videos`);
 
-    const combinedTranscript = videos.map(v => v.transcript).join(" ");
+    const combinedTranscript = videos.map((v) => v.transcript).join(" ");
 
     // Extract core voice elements
     const hooks = this.extractHooks(speechPatterns, patternMatrix);
@@ -46,7 +40,9 @@ export class VoiceProfiler {
       rhythmPattern,
     };
 
-    console.log(`✅ [VOICE_PROFILER] Voice profile created with ${hooks.length} hooks and ${Object.keys(bridges).length} bridge patterns`);
+    console.log(
+      `✅ [VOICE_PROFILER] Voice profile created with ${hooks.length} hooks and ${Object.keys(bridges).length} bridge patterns`,
+    );
     return profile;
   }
 
@@ -56,7 +52,7 @@ export class VoiceProfiler {
   createGenerationParameters(
     voiceProfile: VoiceProfile,
     speechPatterns: SpeechPatterns,
-    videos: VideoAnalysisData[]
+    videos: VideoAnalysisData[],
   ): GenerationParameters {
     console.log(`⚙️ [VOICE_PROFILER] Creating generation parameters`);
 
@@ -84,7 +80,9 @@ export class VoiceProfiler {
       sentenceDistribution,
     };
 
-    console.log(`✅ [VOICE_PROFILER] Generation parameters created: ${optimalLength}s optimal length, ${authenticityThreshold}% authenticity threshold`);
+    console.log(
+      `✅ [VOICE_PROFILER] Generation parameters created: ${optimalLength}s optimal length, ${authenticityThreshold}% authenticity threshold`,
+    );
     return parameters;
   }
 
@@ -104,9 +102,7 @@ export class VoiceProfiler {
     hooks.push(...speechPatterns.emotionalStates.excited.markerPhrases.slice(0, 3));
 
     // Filter and deduplicate
-    return [...new Set(hooks)]
-      .filter(hook => hook && hook.length > 2)
-      .slice(0, 15); // Top 15 hooks
+    return [...new Set(hooks)].filter((hook) => hook && hook.length > 2).slice(0, 15); // Top 15 hooks
   }
 
   /**
@@ -143,7 +139,7 @@ export class VoiceProfiler {
 
     // Analyze energy distribution throughout transcript
     const sentences = transcript.split(/[.!?]+/);
-    const energyScores = sentences.map(sentence => {
+    const energyScores = sentences.map((sentence) => {
       const capsCount = (sentence.match(/[A-Z]/g) || []).length;
       const exclamationCount = (sentence.match(/[!]/g) || []).length;
       return capsCount + exclamationCount * 2;
@@ -153,7 +149,7 @@ export class VoiceProfiler {
     const energyVariation = this.calculateVariation(energyScores);
 
     let wavePattern = "";
-    
+
     if (energyVariation > 2) {
       wavePattern = "Dynamic energy waves with peaks and valleys";
     } else if (baseEnergy === "high") {
@@ -171,11 +167,11 @@ export class VoiceProfiler {
    * Analyze sentence pattern distribution
    */
   private analyzeSentencePatterns(transcript: string): string[] {
-    const sentences = transcript.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    const sentences = transcript.split(/[.!?]+/).filter((s) => s.trim().length > 0);
     const patterns: string[] = [];
 
     // Analyze sentence lengths
-    const lengths = sentences.map(s => s.split(/\s+/).length);
+    const lengths = sentences.map((s) => s.split(/\s+/).length);
     const avgLength = lengths.reduce((sum, len) => sum + len, 0) / lengths.length;
 
     if (avgLength < 8) {
@@ -187,7 +183,7 @@ export class VoiceProfiler {
     }
 
     // Analyze sentence starters
-    const starters = sentences.map(s => s.trim().toLowerCase().split(/\s+/)[0]);
+    const starters = sentences.map((s) => s.trim().toLowerCase().split(/\s+/)[0]);
     const starterFreq = this.getFrequencyMap(starters);
     const topStarters = Object.entries(starterFreq)
       .sort((a, b) => b[1] - a[1])
@@ -233,20 +229,57 @@ export class VoiceProfiler {
    * Create vocabulary fingerprint
    */
   private createVocabularyFingerprint(transcript: string): string[] {
-    const words = transcript.toLowerCase()
+    const words = transcript
+      .toLowerCase()
       .replace(/[^\w\s]/g, " ")
       .split(/\s+/)
-      .filter(word => word.length > 3);
+      .filter((word) => word.length > 3);
 
     const frequency = this.getFrequencyMap(words);
-    
+
     // Remove common words
     const commonWords = [
-      'that', 'this', 'with', 'have', 'will', 'they', 'from', 'been', 
-      'were', 'said', 'each', 'which', 'their', 'time', 'about', 'would',
-      'there', 'could', 'other', 'after', 'first', 'well', 'also', 'more',
-      'very', 'what', 'know', 'just', 'into', 'over', 'think', 'only',
-      'its', 'work', 'life', 'way', 'may', 'say', 'come', 'good', 'much',
+      "that",
+      "this",
+      "with",
+      "have",
+      "will",
+      "they",
+      "from",
+      "been",
+      "were",
+      "said",
+      "each",
+      "which",
+      "their",
+      "time",
+      "about",
+      "would",
+      "there",
+      "could",
+      "other",
+      "after",
+      "first",
+      "well",
+      "also",
+      "more",
+      "very",
+      "what",
+      "know",
+      "just",
+      "into",
+      "over",
+      "think",
+      "only",
+      "its",
+      "work",
+      "life",
+      "way",
+      "may",
+      "say",
+      "come",
+      "good",
+      "much",
     ];
 
     return Object.entries(frequency)
@@ -300,7 +333,7 @@ export class VoiceProfiler {
 
     // Decrease threshold for highly varied speakers
     if (speechPatterns.baseline.sentenceStructure === "varied") threshold -= 3;
-    
+
     return Math.min(Math.max(threshold, 75), 95); // Keep in 75-95 range
   }
 
@@ -310,7 +343,7 @@ export class VoiceProfiler {
   private analyzeHookRatio(hooks: string[]): GenerationParameters["hookRatio"] {
     // Assume first 60% are primary hooks, rest are secondary
     const primaryCount = Math.ceil(hooks.length * 0.6);
-    
+
     return {
       primary: primaryCount,
       secondary: hooks.length - primaryCount,
@@ -322,8 +355,8 @@ export class VoiceProfiler {
    */
   private analyzeSentenceDistribution(sentencePatterns: string[]): GenerationParameters["sentenceDistribution"] {
     // Default distribution based on patterns
-    const hasShort = sentencePatterns.some(p => p.includes("Short"));
-    const hasComplex = sentencePatterns.some(p => p.includes("Complex"));
+    const hasShort = sentencePatterns.some((p) => p.includes("Short"));
+    const hasComplex = sentencePatterns.some((p) => p.includes("Complex"));
 
     if (hasShort) {
       return { short: 50, medium: 30, long: 20 };
@@ -348,10 +381,13 @@ export class VoiceProfiler {
    * Helper method to get frequency map
    */
   private getFrequencyMap(items: string[]): Record<string, number> {
-    return items.reduce((freq, item) => {
-      freq[item] = (freq[item] || 0) + 1;
-      return freq;
-    }, {} as Record<string, number>);
+    return items.reduce(
+      (freq, item) => {
+        freq[item] = (freq[item] || 0) + 1;
+        return freq;
+      },
+      {} as Record<string, number>,
+    );
   }
 
   /**
@@ -378,7 +414,7 @@ export function createVoiceProfiler(): VoiceProfiler {
 export function createVoiceProfile(
   videos: VideoAnalysisData[],
   speechPatterns: SpeechPatterns,
-  patternMatrix: PatternMappingMatrix
+  patternMatrix: PatternMappingMatrix,
 ): VoiceProfile {
   const profiler = createVoiceProfiler();
   return profiler.createProfile(videos, speechPatterns, patternMatrix);

@@ -3,12 +3,7 @@
  * Evaluates generated content against original voice persona for authenticity scoring
  */
 
-import {
-  VoiceProfile,
-  GeneratedScript,
-  AuthenticityMetrics,
-  SpeechPatterns,
-} from "../types";
+import { VoiceProfile, AuthenticityMetrics, SpeechPatterns } from "../types";
 
 /**
  * Authenticity scoring configuration
@@ -52,7 +47,7 @@ export class AuthenticityScorer {
   scoreAuthenticity(
     generatedContent: string,
     voiceProfile: VoiceProfile,
-    speechPatterns?: SpeechPatterns
+    speechPatterns?: SpeechPatterns,
   ): AuthenticityMetrics {
     console.log(`🎯 [AUTHENTICITY_SCORER] Scoring generated content (${generatedContent.length} characters)`);
 
@@ -91,15 +86,14 @@ export class AuthenticityScorer {
     const contentLower = content.toLowerCase();
     const sentences = content.split(/[.!?]+/);
     const firstSentence = sentences[0]?.toLowerCase().trim() || "";
-    
+
     let score = 0;
     let matchedHooks = 0;
     let checkDescription = "Matches persona's primary hooks";
 
     // Check if opening uses persona's hooks
-    const hookMatches = profile.hooks.filter(hook => 
-      firstSentence.includes(hook.toLowerCase()) || 
-      contentLower.includes(hook.toLowerCase())
+    const hookMatches = profile.hooks.filter(
+      (hook) => firstSentence.includes(hook.toLowerCase()) || contentLower.includes(hook.toLowerCase()),
     );
 
     matchedHooks = hookMatches.length;
@@ -134,15 +128,15 @@ export class AuthenticityScorer {
   private scoreBridgeFrequency(content: string, profile: VoiceProfile): AuthenticityMetrics["bridgeFrequency"] {
     const contentLower = content.toLowerCase();
     const wordCount = content.split(/\s+/).length;
-    
+
     let bridgesFound = 0;
     let totalExpectedFrequency = 0;
 
     // Check each bridge phrase
     Object.entries(profile.bridges).forEach(([phrase, expectedFreq]) => {
-      const matches = (contentLower.match(new RegExp(phrase.toLowerCase(), 'g')) || []).length;
+      const matches = (contentLower.match(new RegExp(phrase.toLowerCase(), "g")) || []).length;
       bridgesFound += matches;
-      
+
       // Expected frequency is relative to content length
       const expectedInContent = Math.max(1, Math.round((wordCount / 100) * (expectedFreq / 10)));
       totalExpectedFrequency += expectedInContent;
@@ -183,17 +177,17 @@ export class AuthenticityScorer {
    * Score sentence pattern matching
    */
   private scoreSentencePatterns(content: string, profile: VoiceProfile): AuthenticityMetrics["sentencePatterns"] {
-    const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 0);
-    const lengths = sentences.map(s => s.split(/\s+/).length);
+    const sentences = content.split(/[.!?]+/).filter((s) => s.trim().length > 0);
+    const lengths = sentences.map((s) => s.split(/\s+/).length);
     const avgLength = lengths.reduce((sum, len) => sum + len, 0) / lengths.length;
-    
+
     let score = 70; // Base score
     let checkDescription = "Follows ratio distribution";
 
     // Analyze pattern matching
-    const patternChecks = profile.sentencePatterns.join(' ').toLowerCase();
-    
-    if (patternChecks.includes('short')) {
+    const patternChecks = profile.sentencePatterns.join(" ").toLowerCase();
+
+    if (patternChecks.includes("short")) {
       if (avgLength < 10) {
         score += 15;
         checkDescription = "Matches short sentence pattern";
@@ -202,8 +196,8 @@ export class AuthenticityScorer {
         checkDescription = "Deviates from short sentence pattern";
       }
     }
-    
-    if (patternChecks.includes('complex')) {
+
+    if (patternChecks.includes("complex")) {
       if (avgLength > 15) {
         score += 15;
         checkDescription = "Matches complex sentence pattern";
@@ -217,10 +211,10 @@ export class AuthenticityScorer {
     const exclamationRatio = (content.match(/!/g) || []).length / sentences.length;
     const questionRatio = (content.match(/\?/g) || []).length / sentences.length;
 
-    if (patternChecks.includes('exclamation') && exclamationRatio > 0.2) {
+    if (patternChecks.includes("exclamation") && exclamationRatio > 0.2) {
       score += 10;
     }
-    if (patternChecks.includes('question') && questionRatio > 0.1) {
+    if (patternChecks.includes("question") && questionRatio > 0.1) {
       score += 5;
     }
 
@@ -235,22 +229,23 @@ export class AuthenticityScorer {
    * Score vocabulary fingerprint matching
    */
   private scoreVocabularyMatch(content: string, profile: VoiceProfile): AuthenticityMetrics["vocabularyMatch"] {
-    const contentWords = content.toLowerCase()
-      .replace(/[^\w\s]/g, ' ')
+    const contentWords = content
+      .toLowerCase()
+      .replace(/[^\w\s]/g, " ")
       .split(/\s+/)
-      .filter(word => word.length > 3);
+      .filter((word) => word.length > 3);
 
-    const vocabularyWords = profile.vocabularyFingerprint.map(word => word.toLowerCase());
-    
+    const vocabularyWords = profile.vocabularyFingerprint.map((word) => word.toLowerCase());
+
     let matchedWords = 0;
-    vocabularyWords.forEach(vocabWord => {
+    vocabularyWords.forEach((vocabWord) => {
       if (contentWords.includes(vocabWord)) {
         matchedWords++;
       }
     });
 
     const matchRatio = vocabularyWords.length > 0 ? matchedWords / vocabularyWords.length : 0;
-    
+
     let score = Math.round(matchRatio * 100);
     let checkDescription = `Uses ${matchedWords}/${vocabularyWords.length} signature words`;
 
@@ -261,7 +256,7 @@ export class AuthenticityScorer {
     }
 
     // Penalty for overusing words not in vocabulary
-    const nonVocabWords = contentWords.filter(word => !vocabularyWords.includes(word));
+    const nonVocabWords = contentWords.filter((word) => !vocabularyWords.includes(word));
     if (nonVocabWords.length > contentWords.length * 0.8) {
       score = Math.max(0, score - 20);
       checkDescription += " (penalty for non-persona vocabulary)";
@@ -278,23 +273,23 @@ export class AuthenticityScorer {
    * Score rhythm and energy replication
    */
   private scoreRhythmReplication(
-    content: string, 
-    profile: VoiceProfile, 
-    speechPatterns?: SpeechPatterns
+    content: string,
+    profile: VoiceProfile,
+    speechPatterns?: SpeechPatterns,
   ): AuthenticityMetrics["rhythmReplication"] {
     let score = 70; // Base score
     let checkDescription = "Maintains energy wave";
 
-    const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    const sentences = content.split(/[.!?]+/).filter((s) => s.trim().length > 0);
     const avgSentenceLength = sentences.reduce((sum, s) => sum + s.split(/\s+/).length, 0) / sentences.length;
 
     // Check rhythm pattern matching
     const rhythmPattern = profile.rhythmPattern.toLowerCase();
-    
-    if (rhythmPattern.includes('fast') && avgSentenceLength < 8) {
+
+    if (rhythmPattern.includes("fast") && avgSentenceLength < 8) {
       score += 15;
       checkDescription = "Matches fast-paced rhythm";
-    } else if (rhythmPattern.includes('slow') && avgSentenceLength > 12) {
+    } else if (rhythmPattern.includes("slow") && avgSentenceLength > 12) {
       score += 15;
       checkDescription = "Matches deliberate rhythm";
     }
@@ -304,23 +299,23 @@ export class AuthenticityScorer {
       const baselineEnergy = speechPatterns.baseline.typicalEnergy;
       const capsCount = (content.match(/[A-Z]/g) || []).length;
       const exclamationCount = (content.match(/!/g) || []).length;
-      const energyScore = (capsCount + exclamationCount * 2) / content.length * 100;
+      const energyScore = ((capsCount + exclamationCount * 2) / content.length) * 100;
 
-      if (baselineEnergy === 'high' && energyScore > 2) {
+      if (baselineEnergy === "high" && energyScore > 2) {
         score += 10;
         checkDescription += ", high energy maintained";
-      } else if (baselineEnergy === 'low' && energyScore < 1) {
+      } else if (baselineEnergy === "low" && energyScore < 1) {
         score += 10;
         checkDescription += ", calm energy maintained";
-      } else if (baselineEnergy === 'medium' && energyScore >= 1 && energyScore <= 2) {
+      } else if (baselineEnergy === "medium" && energyScore >= 1 && energyScore <= 2) {
         score += 10;
         checkDescription += ", moderate energy maintained";
       }
     }
 
     // Check for signature elements usage
-    const signatureMatches = profile.signatureElements.filter(element =>
-      content.toLowerCase().includes(element.toLowerCase())
+    const signatureMatches = profile.signatureElements.filter((element) =>
+      content.toLowerCase().includes(element.toLowerCase()),
     ).length;
 
     if (signatureMatches >= 2) {
@@ -341,8 +336,8 @@ export class AuthenticityScorer {
   /**
    * Calculate weighted overall score
    */
-  private calculateOverallScore(metrics: Omit<AuthenticityMetrics, 'overallScore'>): number {
-    const totalWeightedScore = 
+  private calculateOverallScore(metrics: Omit<AuthenticityMetrics, "overallScore">): number {
+    const totalWeightedScore =
       metrics.hookAccuracy.score * (metrics.hookAccuracy.weight / 100) +
       metrics.bridgeFrequency.score * (metrics.bridgeFrequency.weight / 100) +
       metrics.sentencePatterns.score * (metrics.sentencePatterns.weight / 100) +
@@ -357,17 +352,23 @@ export class AuthenticityScorer {
    */
   private containsNonPersonaLanguage(content: string, profile: VoiceProfile): boolean {
     const contentLower = content.toLowerCase();
-    
+
     // Common formal/corporate language that might indicate non-persona content
     const formalLanguage = [
-      'furthermore', 'moreover', 'consequently', 'nevertheless', 'henceforth',
-      'pursuant to', 'in accordance with', 'notwithstanding', 'heretofore'
+      "furthermore",
+      "moreover",
+      "consequently",
+      "nevertheless",
+      "henceforth",
+      "pursuant to",
+      "in accordance with",
+      "notwithstanding",
+      "heretofore",
     ];
 
     // Check if content uses formal language not in persona vocabulary
-    return formalLanguage.some(formal => 
-      contentLower.includes(formal) && 
-      !profile.vocabularyFingerprint.includes(formal)
+    return formalLanguage.some(
+      (formal) => contentLower.includes(formal) && !profile.vocabularyFingerprint.includes(formal),
     );
   }
 
@@ -390,10 +391,10 @@ export class AuthenticityScorer {
       `Rhythm Replication: ${metrics.rhythmReplication.score}% (${metrics.rhythmReplication.check})`,
       ``,
       `Overall Score: ${metrics.overallScore}%`,
-      `Status: ${this.isPassing(metrics.overallScore) ? 'PASSING' : 'NEEDS IMPROVEMENT'}`,
+      `Status: ${this.isPassing(metrics.overallScore) ? "PASSING" : "NEEDS IMPROVEMENT"}`,
     ];
 
-    return breakdown.join('\n');
+    return breakdown.join("\n");
   }
 
   /**
@@ -418,7 +419,7 @@ export function scoreContentAuthenticity(
   content: string,
   voiceProfile: VoiceProfile,
   speechPatterns?: SpeechPatterns,
-  config?: Partial<ScoringConfig>
+  config?: Partial<ScoringConfig>,
 ): AuthenticityMetrics {
   const scorer = createAuthenticityScorer(config);
   return scorer.scoreAuthenticity(content, voiceProfile, speechPatterns);

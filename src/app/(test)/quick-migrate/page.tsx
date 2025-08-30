@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+
 import { Loader2, Database, CheckCircle, AlertCircle } from "lucide-react";
 
 export default function QuickMigratePage() {
@@ -19,7 +20,7 @@ export default function QuickMigratePage() {
     setChecking(true);
     try {
       // Get the current user from auth context
-      const authData = localStorage.getItem('auth-cache');
+      const authData = localStorage.getItem("auth-cache");
       if (authData) {
         const parsed = JSON.parse(authData);
         if (parsed.user?.uid) {
@@ -48,7 +49,7 @@ export default function QuickMigratePage() {
         },
         body: JSON.stringify({
           targetUid: currentUid || "xfPvnnUdJCRIJEVrpJCmR7kXBOX2", // Your actual UID
-          mode: "all" // Migrate all personas to your account
+          mode: "all", // Migrate all personas to your account
         }),
       });
 
@@ -85,9 +86,7 @@ export default function QuickMigratePage() {
       <div className="rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-50 p-6 shadow-[var(--shadow-soft-drop)]">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-neutral-900">Quick Persona Migration</h1>
-          <p className="mt-2 text-sm text-neutral-600">
-            Quickly migrate your existing personas to your account
-          </p>
+          <p className="mt-2 text-sm text-neutral-600">Quickly migrate your existing personas to your account</p>
         </div>
 
         {/* Current User Info */}
@@ -97,16 +96,16 @@ export default function QuickMigratePage() {
             Checking current user...
           </div>
         ) : currentUid ? (
-          <div className="mb-4 rounded-[var(--radius-button)] border border-primary-200 bg-primary-50 p-3">
-            <p className="text-sm text-primary-800">
+          <div className="border-primary-200 bg-primary-50 mb-4 rounded-[var(--radius-button)] border p-3">
+            <p className="text-primary-800 text-sm">
               <span className="font-medium">Your UID:</span>{" "}
-              <code className="rounded bg-primary-100 px-1">{currentUid}</code>
+              <code className="bg-primary-100 rounded px-1">{currentUid}</code>
             </p>
           </div>
         ) : (
-          <div className="mb-4 rounded-[var(--radius-button)] border border-warning-200 bg-warning-50 p-3">
-            <p className="text-sm text-warning-800">
-              Using hardcoded UID: <code className="rounded bg-warning-100 px-1">xfPvnnUdJCRIJEVrpJCmR7kXBOX2</code>
+          <div className="border-warning-200 bg-warning-50 mb-4 rounded-[var(--radius-button)] border p-3">
+            <p className="text-warning-800 text-sm">
+              Using hardcoded UID: <code className="bg-warning-100 rounded px-1">xfPvnnUdJCRIJEVrpJCmR7kXBOX2</code>
             </p>
           </div>
         )}
@@ -116,7 +115,7 @@ export default function QuickMigratePage() {
           <button
             onClick={handleMigrate}
             disabled={loading}
-            className="flex w-full items-center justify-center gap-2 rounded-[var(--radius-button)] bg-primary-600 px-4 py-3 text-white transition-colors hover:bg-primary-700 disabled:opacity-50"
+            className="bg-primary-600 hover:bg-primary-700 flex w-full items-center justify-center gap-2 rounded-[var(--radius-button)] px-4 py-3 text-white transition-colors disabled:opacity-50"
           >
             {loading ? (
               <>
@@ -138,19 +137,19 @@ export default function QuickMigratePage() {
 
         {/* Results */}
         {result && (
-          <div className="mt-6 rounded-[var(--radius-button)] border border-success-200 bg-success-50 p-4">
+          <div className="border-success-200 bg-success-50 mt-6 rounded-[var(--radius-button)] border p-4">
             <div className="flex items-start gap-3">
-              <CheckCircle className="h-5 w-5 text-success-600 mt-0.5" />
+              <CheckCircle className="text-success-600 mt-0.5 h-5 w-5" />
               <div className="flex-1">
-                <h3 className="font-medium text-success-900">Migration Successful!</h3>
-                <div className="mt-2 space-y-1 text-sm text-success-700">
+                <h3 className="text-success-900 font-medium">Migration Successful!</h3>
+                <div className="text-success-700 mt-2 space-y-1 text-sm">
                   <p>• Updated {result.updatedCount || 0} personas</p>
                   <p>• Total personas for your account: {result.totalPersonasForUser || 0}</p>
                 </div>
                 <div className="mt-3">
                   <a
                     href="/personas"
-                    className="inline-flex items-center gap-1 text-sm font-medium text-success-700 hover:text-success-800"
+                    className="text-success-700 hover:text-success-800 inline-flex items-center gap-1 text-sm font-medium"
                   >
                     View Your Personas →
                   </a>
@@ -162,12 +161,12 @@ export default function QuickMigratePage() {
 
         {/* Error */}
         {error && (
-          <div className="mt-6 rounded-[var(--radius-button)] border border-destructive-200 bg-destructive-50 p-4">
+          <div className="border-destructive-200 bg-destructive-50 mt-6 rounded-[var(--radius-button)] border p-4">
             <div className="flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-destructive-600 mt-0.5" />
+              <AlertCircle className="text-destructive-600 mt-0.5 h-5 w-5" />
               <div className="flex-1">
-                <h3 className="font-medium text-destructive-900">Migration Failed</h3>
-                <p className="mt-1 text-sm text-destructive-700">{error}</p>
+                <h3 className="text-destructive-900 font-medium">Migration Failed</h3>
+                <p className="text-destructive-700 mt-1 text-sm">{error}</p>
               </div>
             </div>
           </div>
@@ -175,14 +174,14 @@ export default function QuickMigratePage() {
 
         {/* Instructions */}
         <div className="mt-6 rounded-[var(--radius-button)] border border-neutral-200 bg-white p-4">
-          <h4 className="font-medium text-neutral-900 mb-2">What this does:</h4>
+          <h4 className="mb-2 font-medium text-neutral-900">What this does:</h4>
           <ul className="space-y-1 text-sm text-neutral-600">
             <li>• Updates all personas to have your userId (uid)</li>
             <li>• Makes them visible in your /personas page</li>
             <li>• Preserves all persona data and analysis</li>
           </ul>
-          <div className="mt-3 p-3 bg-brand-50 border border-brand-200 rounded-[var(--radius-button)]">
-            <p className="text-sm text-brand-800">
+          <div className="bg-brand-50 border-brand-200 mt-3 rounded-[var(--radius-button)] border p-3">
+            <p className="text-brand-800 text-sm">
               <strong>Your detected UID:</strong> xfPvnnUdJCRIJEVrpJCmR7kXBOX2
             </p>
           </div>

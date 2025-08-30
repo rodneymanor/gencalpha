@@ -4,19 +4,19 @@ import { useState, useEffect, useCallback } from "react";
 
 import { Play } from "lucide-react";
 
-import { VideoInsightsPanel } from "@/components/video-insights-panel/video-insights-panel";
 import { Button } from "@/components/ui/button";
 import { CardSkeleton, LoadingBoundary, useAsyncOperation, useIsLoading } from "@/components/ui/loading";
 import { UnifiedSlideout, ClaudeArtifactConfig } from "@/components/ui/unified-slideout";
 import { VideoGridProcessingPlaceholder } from "@/components/ui/video-grid-processing-placeholder";
 import { VideoGrid as NewVideoGrid, type VideoData } from "@/components/video/video-grid";
+import { VideoInsightsPanel } from "@/components/video-insights-panel/video-insights-panel";
 import { useAuth } from "@/contexts/auth-context";
 import { useVideoProcessing } from "@/contexts/video-processing-context";
 import { RBACClientService } from "@/core/auth/rbac-client";
 import { useRBAC } from "@/hooks/use-rbac";
+import { processScriptComponents } from "@/hooks/use-script-analytics";
 import { Video, CollectionsService } from "@/lib/collections";
 import { VideoInsights } from "@/types/video-insights";
-import { processScriptComponents } from "@/hooks/use-script-analytics";
 
 import { useCollections } from "./collections-context";
 import { DeleteConfirmDialog } from "./delete-confirm-dialog";
@@ -26,7 +26,6 @@ interface VideoGridProps {
   collectionId: string;
 }
 
-// eslint-disable-next-line complexity
 export function VideoGrid({ collectionId }: VideoGridProps) {
   const { state, dispatch } = useCollections();
   const { user } = useAuth();
@@ -67,7 +66,7 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
     (videoData: VideoData, index: number) => {
       // Find the original Video object by ID to preserve all metadata
       const originalVideo = state.videos.find((v) => v.id === videoData.id);
-      
+
       // If panel is open (selectedVideo is not null), auto-change the video
       if (selectedVideo && originalVideo) {
         setSelectedVideo(originalVideo);
@@ -125,40 +124,41 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
   // Transform Video to VideoInsights format
   const transformToVideoInsights = useCallback((video: Video): VideoInsights => {
     const transcript = video.transcript || "No transcript available";
-    
+
     // Create script components from transcript if available
-    const scriptComponents = transcript !== "No transcript available" 
-      ? processScriptComponents([
-          {
-            id: `${video.id}-hook`,
-            type: "hook",
-            label: "Hook",
-            content: transcript.split('.')[0] + '.' || "Opening statement to grab attention",
-            icon: "H",
-          },
-          {
-            id: `${video.id}-bridge`, 
-            type: "bridge",
-            label: "Bridge",
-            content: transcript.split('.').slice(1, 3).join('.') || "Transition element connecting ideas",
-            icon: "B",
-          },
-          {
-            id: `${video.id}-nugget`,
-            type: "nugget", 
-            label: "Golden Nugget",
-            content: transcript.split('.').slice(3, 6).join('.') || "Key value proposition or insight",
-            icon: "G",
-          },
-          {
-            id: `${video.id}-cta`,
-            type: "cta",
-            label: "Call to Action", 
-            content: transcript.split('.').slice(-2).join('.') || "Clear call to action",
-            icon: "C",
-          },
-        ])
-      : [];
+    const scriptComponents =
+      transcript !== "No transcript available"
+        ? processScriptComponents([
+            {
+              id: `${video.id}-hook`,
+              type: "hook",
+              label: "Hook",
+              content: transcript.split(".")[0] + "." || "Opening statement to grab attention",
+              icon: "H",
+            },
+            {
+              id: `${video.id}-bridge`,
+              type: "bridge",
+              label: "Bridge",
+              content: transcript.split(".").slice(1, 3).join(".") || "Transition element connecting ideas",
+              icon: "B",
+            },
+            {
+              id: `${video.id}-nugget`,
+              type: "nugget",
+              label: "Golden Nugget",
+              content: transcript.split(".").slice(3, 6).join(".") || "Key value proposition or insight",
+              icon: "G",
+            },
+            {
+              id: `${video.id}-cta`,
+              type: "cta",
+              label: "Call to Action",
+              content: transcript.split(".").slice(-2).join(".") || "Clear call to action",
+              icon: "C",
+            },
+          ])
+        : [];
 
     return {
       id: video.id || "",
@@ -171,9 +171,9 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
         fullScript: transcript,
         components: scriptComponents,
         metrics: {
-          totalWords: transcript.split(' ').length,
+          totalWords: transcript.split(" ").length,
           totalDuration: video.metadata?.duration || 30,
-          avgWordsPerSecond: transcript.split(' ').length / (video.metadata?.duration || 30),
+          avgWordsPerSecond: transcript.split(" ").length / (video.metadata?.duration || 30),
           readabilityScore: 75 + Math.floor(Math.random() * 20), // Mock score 75-95
           engagementScore: 70 + Math.floor(Math.random() * 25), // Mock score 70-95
         },
@@ -216,7 +216,7 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
           },
           {
             id: `${video.id}-hook-statistic`,
-            type: "statistic", 
+            type: "statistic",
             content: "89% of successful videos use this opening pattern",
             strength: "medium",
             rationale: "Statistics provide credibility and authority",
@@ -235,7 +235,7 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
           {
             id: `${video.id}-add-testimonial`,
             type: "addition",
-            target: "middle", 
+            target: "middle",
             suggestion: "Include social proof or success story",
             impact: "medium",
             effort: "low",
@@ -253,8 +253,8 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
             shortest: 3,
           },
           wordComplexity: {
-            simple: transcript.split(' ').length * 0.8,
-            complex: transcript.split(' ').length * 0.2,
+            simple: transcript.split(" ").length * 0.8,
+            complex: transcript.split(" ").length * 0.2,
             percentage: 80,
           },
           recommendations: [
@@ -289,17 +289,11 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
           ],
           titleOptimization: {
             score: 80,
-            suggestions: [
-              "Add power words for emotional impact",
-              "Include target year for relevance",
-            ],
+            suggestions: ["Add power words for emotional impact", "Include target year for relevance"],
           },
           descriptionOptimization: {
             score: 75,
-            suggestions: [
-              "Add relevant hashtags",
-              "Include clear call-to-action",
-            ],
+            suggestions: ["Add relevant hashtags", "Include clear call-to-action"],
           },
           hashtagSuggestions: video.hashtags?.slice(0, 6) || ["viral", "content", "tips"],
         },

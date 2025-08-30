@@ -274,11 +274,11 @@ export function HooksView({ hooks, onCopy }: HooksViewProps) {
   if (hooks.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-8 text-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-[var(--radius-button)] border border-neutral-200 bg-neutral-50 mb-3">
+        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-[var(--radius-button)] border border-neutral-200 bg-neutral-50">
           <span className="text-lg font-semibold text-neutral-400">H</span>
         </div>
         <p className="text-sm text-neutral-600">No hooks generated yet</p>
-        <p className="text-xs text-neutral-500 mt-1">Hooks will appear here once generated</p>
+        <p className="mt-1 text-xs text-neutral-500">Hooks will appear here once generated</p>
       </div>
     );
   }
@@ -286,11 +286,11 @@ export function HooksView({ hooks, onCopy }: HooksViewProps) {
   return (
     <div className="space-y-4 p-6">
       {/* Hooks Header Info */}
-      <div className="rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-100/50 p-4 mb-6">
-        <h3 className="text-sm font-semibold text-neutral-900 mb-2">Generated Hooks</h3>
+      <div className="mb-6 rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-100/50 p-4">
+        <h3 className="mb-2 text-sm font-semibold text-neutral-900">Generated Hooks</h3>
         <p className="text-xs text-neutral-600">
-          {hooks.length} hook{hooks.length !== 1 ? 's' : ''} generated for your script. 
-          Each hook is optimized to capture attention and engagement.
+          {hooks.length} hook{hooks.length !== 1 ? "s" : ""} generated for your script. Each hook is optimized to
+          capture attention and engagement.
         </p>
       </div>
 
@@ -303,9 +303,7 @@ export function HooksView({ hooks, onCopy }: HooksViewProps) {
           {/* Hook Header */}
           <div className="mb-3 flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-button)] border border-neutral-200 bg-neutral-50">
-              <span className="text-sm font-semibold text-neutral-600">
-                {SCRIPT_HOOK_ICONS[hook.type] ?? "H"}
-              </span>
+              <span className="text-sm font-semibold text-neutral-600">{SCRIPT_HOOK_ICONS[hook.type] ?? "H"}</span>
             </div>
             <div className="flex-1">
               <span className="text-xs font-semibold tracking-wide text-neutral-600 uppercase">
@@ -314,9 +312,9 @@ export function HooksView({ hooks, onCopy }: HooksViewProps) {
               {/* Effectiveness indicator if available */}
               {hook.effectiveness !== undefined && (
                 <div className="mt-1 flex items-center gap-2">
-                  <div className="h-1.5 w-24 rounded-full bg-neutral-200 overflow-hidden">
-                    <div 
-                      className="h-full bg-success-500 transition-all duration-300"
+                  <div className="h-1.5 w-24 overflow-hidden rounded-full bg-neutral-200">
+                    <div
+                      className="bg-success-500 h-full transition-all duration-300"
                       style={{ width: `${hook.effectiveness}%` }}
                     />
                   </div>
@@ -340,7 +338,7 @@ export function HooksView({ hooks, onCopy }: HooksViewProps) {
           </Button>
 
           {/* Hook Content */}
-          <div className="mt-1 text-sm leading-relaxed text-neutral-900 whitespace-pre-wrap">{hook.content}</div>
+          <div className="mt-1 text-sm leading-relaxed whitespace-pre-wrap text-neutral-900">{hook.content}</div>
 
           {/* Meta Info */}
           {hook.wordCount && (

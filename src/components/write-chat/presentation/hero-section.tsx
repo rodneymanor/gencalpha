@@ -1,7 +1,7 @@
 "use client";
+import ChatInput from "@/components/ChatInterface/ChatInput";
 import { type AssistantType, AssistantSelector } from "@/components/write-chat/persona-selector";
 import { PlaybookCards } from "@/components/write-chat/playbook-cards";
-import ChatInput from "@/components/ChatInterface/ChatInput";
 
 export function HeroSection(props: {
   resolvedName?: string | null;
@@ -55,7 +55,6 @@ export function HeroSection(props: {
             <span className="text-muted-foreground text-4xl font-bold">What will you record today?</span>
           </h1>
         </div>
-
 
         <div className="w-full max-w-3xl">
           <ChatInput

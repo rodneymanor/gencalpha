@@ -3,8 +3,8 @@
  * Handles the complete ideas generation workflow for video actions
  */
 
-import { validateVideoUrlOrThrow } from "../validators";
 import { transcribeVideo, generateIdeas } from "@/components/write-chat/services/video-service";
+
 import {
   VideoActionInput,
   VideoActionResult,
@@ -13,6 +13,7 @@ import {
   VideoActionErrorDetails,
   VideoActionConfig,
 } from "../types";
+import { validateVideoUrlOrThrow } from "../validators";
 
 /**
  * Default configuration for ideas orchestrator
@@ -39,7 +40,7 @@ export class IdeasOrchestrator {
    */
   async execute(input: VideoActionInput): Promise<VideoActionResult<IdeasResult>> {
     const startTime = Date.now();
-    
+
     if (this.config.enableLogging) {
       console.log("💡 [IDEAS_ORCHESTRATOR] Starting ideas generation for:", input.url);
     }
@@ -57,9 +58,9 @@ export class IdeasOrchestrator {
       if (this.config.enableLogging) {
         console.log("🔍 [IDEAS_ORCHESTRATOR] Scraping video URL...");
       }
-      
+
       const scraperResult = await this.scrapeVideoViaApi(input.url);
-      
+
       if (!scraperResult.videoUrl) {
         throw new Error("Unable to extract video URL from social media link");
       }
@@ -111,7 +112,6 @@ export class IdeasOrchestrator {
       }
 
       return result;
-
     } catch (error) {
       const duration = Date.now() - startTime;
       const errorMessage = error instanceof Error ? error.message : "Unknown ideas generation error";
@@ -173,7 +173,7 @@ export class IdeasOrchestrator {
     }
 
     const result = await response.json();
-    
+
     if (!result.success) {
       throw new Error(result.message || result.error || "Video resolve failed");
     }
@@ -205,7 +205,7 @@ export function createIdeasOrchestrator(config?: Partial<VideoActionConfig>): Id
  */
 export async function generateVideoIdeas(
   url: string,
-  config?: Partial<VideoActionConfig>
+  config?: Partial<VideoActionConfig>,
 ): Promise<VideoActionResult<IdeasResult>> {
   const orchestrator = createIdeasOrchestrator(config);
   return await orchestrator.execute({ url });

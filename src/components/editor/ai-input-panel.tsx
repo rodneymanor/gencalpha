@@ -1,7 +1,5 @@
 ("use client");
 
-import { InlineLoader } from "@/components/ui/loading";
-
 import { useState, useRef, useEffect } from "react";
 
 import { Send, Wand2, ChevronRight } from "lucide-react";
@@ -14,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { InlineLoader } from "@/components/ui/loading";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { type ScriptElement } from "@/lib/script-analysis";

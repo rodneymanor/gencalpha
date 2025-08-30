@@ -5,7 +5,7 @@
  * used in the VideoInsightsPanel slideout component.
  */
 
-import { ScriptData, ScriptMetrics, ScriptComponent } from "@/types/script-panel";
+import { ScriptData } from "@/types/script-panel";
 
 export type VideoInsightsTabType = "video" | "transcript" | "components" | "metadata" | "suggestions" | "analysis";
 
@@ -191,6 +191,6 @@ export const SUGGESTION_TYPE_LABELS: Record<HookSuggestion["type"], string> = {
 // Impact/priority colors for suggestions and analysis
 export const IMPACT_COLORS: Record<"high" | "medium" | "low", string> = {
   high: "destructive",
-  medium: "warning", 
+  medium: "warning",
   low: "success",
 };

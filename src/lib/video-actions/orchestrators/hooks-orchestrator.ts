@@ -3,8 +3,8 @@
  * Handles the complete hooks generation workflow for video actions
  */
 
-import { validateVideoUrlOrThrow } from "../validators";
 import { transcribeVideo, generateHooks } from "@/components/write-chat/services/video-service";
+
 import {
   VideoActionInput,
   VideoActionResult,
@@ -13,6 +13,7 @@ import {
   VideoActionErrorDetails,
   VideoActionConfig,
 } from "../types";
+import { validateVideoUrlOrThrow } from "../validators";
 
 /**
  * Default configuration for hooks orchestrator
@@ -39,7 +40,7 @@ export class HooksOrchestrator {
    */
   async execute(input: VideoActionInput): Promise<VideoActionResult<HooksResult>> {
     const startTime = Date.now();
-    
+
     if (this.config.enableLogging) {
       console.log("🎣 [HOOKS_ORCHESTRATOR] Starting hooks generation for:", input.url);
     }
@@ -57,9 +58,9 @@ export class HooksOrchestrator {
       if (this.config.enableLogging) {
         console.log("🔍 [HOOKS_ORCHESTRATOR] Scraping video URL...");
       }
-      
+
       const scraperResult = await this.scrapeVideoViaApi(input.url);
-      
+
       if (!scraperResult.videoUrl) {
         throw new Error("Unable to extract video URL from social media link");
       }
@@ -88,7 +89,7 @@ export class HooksOrchestrator {
       }
 
       const hooksResp = await generateHooks({ transcript });
-      
+
       // Format hooks for display
       const list = hooksResp.hooks.map((h, i) => `${i + 1}. ${h.text} — ${h.rating}/100 (${h.focus})`).join("\n");
       const markdown = `# Hooks\n\n${list}\n\n**Top Hook:** ${hooksResp.topHook.text} (${hooksResp.topHook.rating}/100)`;
@@ -115,7 +116,6 @@ export class HooksOrchestrator {
       }
 
       return result;
-
     } catch (error) {
       const duration = Date.now() - startTime;
       const errorMessage = error instanceof Error ? error.message : "Unknown hooks generation error";
@@ -177,7 +177,7 @@ export class HooksOrchestrator {
     }
 
     const result = await response.json();
-    
+
     if (!result.success) {
       throw new Error(result.message || result.error || "Video resolve failed");
     }
@@ -209,7 +209,7 @@ export function createHooksOrchestrator(config?: Partial<VideoActionConfig>): Ho
  */
 export async function generateVideoHooks(
   url: string,
-  config?: Partial<VideoActionConfig>
+  config?: Partial<VideoActionConfig>,
 ): Promise<VideoActionResult<HooksResult>> {
   const orchestrator = createHooksOrchestrator(config);
   return await orchestrator.execute({ url });

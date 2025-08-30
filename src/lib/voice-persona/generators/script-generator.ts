@@ -3,6 +3,7 @@
  * Generates authentic scripts using voice persona profiles and generation rules
  */
 
+import { createAuthenticityScorer, AuthenticityScorer } from "../analyzers/authenticity-scorer";
 import {
   PersonaProfile,
   ScriptGenerationInput,
@@ -10,7 +11,6 @@ import {
   ScriptGenerationResult,
 } from "../types";
 import { createRulesEngine, RulesEngine } from "./rules-engine";
-import { createAuthenticityScorer, AuthenticityScorer } from "../analyzers/authenticity-scorer";
 
 /**
  * Script generation configuration
@@ -51,10 +51,7 @@ export class ScriptGenerator {
    * Generate a 30-second script using the persona profile
    * Implements the formula: Hook → Bridge → Core Message → Escalation → Close
    */
-  async generateScript(
-    input: ScriptGenerationInput,
-    personaProfile: PersonaProfile
-  ): Promise<ScriptGenerationResult> {
+  async generateScript(input: ScriptGenerationInput, personaProfile: PersonaProfile): Promise<ScriptGenerationResult> {
     const startTime = Date.now();
     const requestId = this.generateRequestId();
 
@@ -72,7 +69,7 @@ export class ScriptGenerator {
         try {
           // Generate script structure
           const scriptStructure = this.generateScriptStructure(input, personaProfile);
-          
+
           // Combine structure into full script
           const fullScript = this.combineStructure(scriptStructure);
 
@@ -82,11 +79,11 @@ export class ScriptGenerator {
               fullScript,
               personaProfile.voiceProfile,
               personaProfile.generationParameters,
-              personaProfile.speechPatterns
+              personaProfile.speechPatterns,
             );
 
             if (!validation.valid) {
-              console.log(`❌ [SCRIPT_GENERATOR] Rule validation failed: ${validation.violations.join(', ')}`);
+              console.log(`❌ [SCRIPT_GENERATOR] Rule validation failed: ${validation.violations.join(", ")}`);
               if (attempts < this.config.maxRetries) continue;
             }
           }
@@ -97,12 +94,14 @@ export class ScriptGenerator {
             const authenticity = this.authenticityScorer.scoreAuthenticity(
               fullScript,
               personaProfile.voiceProfile,
-              personaProfile.speechPatterns
+              personaProfile.speechPatterns,
             );
             authenticityScore = authenticity.overallScore;
 
             if (authenticityScore < this.config.minAcceptableScore && attempts < this.config.maxRetries) {
-              console.log(`📊 [SCRIPT_GENERATOR] Authenticity score ${authenticityScore}% below threshold ${this.config.minAcceptableScore}%`);
+              console.log(
+                `📊 [SCRIPT_GENERATOR] Authenticity score ${authenticityScore}% below threshold ${this.config.minAcceptableScore}%`,
+              );
               continue;
             }
           }
@@ -114,8 +113,12 @@ export class ScriptGenerator {
             topic: input.topic,
             script: fullScript,
             structure: scriptStructure,
-            authenticity: this.config.enableAuthenticityScoring 
-              ? this.authenticityScorer.scoreAuthenticity(fullScript, personaProfile.voiceProfile, personaProfile.speechPatterns)
+            authenticity: this.config.enableAuthenticityScoring
+              ? this.authenticityScorer.scoreAuthenticity(
+                  fullScript,
+                  personaProfile.voiceProfile,
+                  personaProfile.speechPatterns,
+                )
               : this.createDefaultAuthenticity(),
             metadata: {
               generatedAt: new Date().toISOString(),
@@ -136,7 +139,6 @@ export class ScriptGenerator {
             console.log(`✅ [SCRIPT_GENERATOR] Script generated successfully with ${authenticityScore}% authenticity`);
             break;
           }
-
         } catch (error) {
           console.error(`❌ [SCRIPT_GENERATOR] Attempt ${attempts} failed:`, error);
           if (attempts === this.config.maxRetries) {
@@ -151,7 +153,9 @@ export class ScriptGenerator {
       }
 
       const generationTime = Date.now() - startTime;
-      console.log(`🎉 [SCRIPT_GENERATOR] Script generation completed in ${generationTime}ms with ${bestScore}% authenticity`);
+      console.log(
+        `🎉 [SCRIPT_GENERATOR] Script generation completed in ${generationTime}ms with ${bestScore}% authenticity`,
+      );
 
       return {
         success: true,
@@ -161,7 +165,6 @@ export class ScriptGenerator {
           requestId,
         },
       };
-
     } catch (error) {
       const generationTime = Date.now() - startTime;
       console.error(`❌ [SCRIPT_GENERATOR] Script generation failed after ${generationTime}ms:`, error);
@@ -183,10 +186,7 @@ export class ScriptGenerator {
   /**
    * Generate script structure following the 30-second formula
    */
-  private generateScriptStructure(
-    input: ScriptGenerationInput,
-    profile: PersonaProfile
-  ): GeneratedScript["structure"] {
+  private generateScriptStructure(input: ScriptGenerationInput, profile: PersonaProfile): GeneratedScript["structure"] {
     console.log(`🏗️ [SCRIPT_GENERATOR] Building script structure for ${input.targetLength}s target`);
 
     // 1. HOOK (0-3 sec): Use persona's top hook patterns
@@ -219,19 +219,19 @@ export class ScriptGenerator {
   private generateHook(input: ScriptGenerationInput, profile: PersonaProfile): string {
     const hooks = profile.voiceProfile.hooks;
     const primaryHooks = hooks.slice(0, Math.ceil(hooks.length * 0.6));
-    
+
     // Select hook based on style preference
     let selectedHook = primaryHooks[0] || "Hey everyone";
-    
+
     if (input.style === "energetic" && primaryHooks.length > 1) {
-      selectedHook = primaryHooks.find(h => h.toLowerCase().includes("check")) || primaryHooks[1] || selectedHook;
+      selectedHook = primaryHooks.find((h) => h.toLowerCase().includes("check")) || primaryHooks[1] || selectedHook;
     } else if (input.style === "educational") {
-      selectedHook = primaryHooks.find(h => h.toLowerCase().includes("let")) || primaryHooks[0] || selectedHook;
+      selectedHook = primaryHooks.find((h) => h.toLowerCase().includes("let")) || primaryHooks[0] || selectedHook;
     }
 
     // Customize hook for topic if possible
     const topicHook = this.customizeForTopic(selectedHook, input.topic);
-    
+
     return this.capitalizeFirstLetter(topicHook);
   }
 
@@ -258,7 +258,7 @@ export class ScriptGenerator {
 
     // Build core message using topic and persona elements
     let coreMessage = `When it comes to ${input.topic.toLowerCase()}, `;
-    
+
     // Add persona-specific vocabulary
     if (vocabularyWords.length > 0) {
       const randomVocab = vocabularyWords[Math.floor(Math.random() * vocabularyWords.length)];
@@ -266,9 +266,9 @@ export class ScriptGenerator {
     }
 
     // Add personal reference if available
-    const personalReferences = profile.speechPatterns.emotionalStates.explaining.transitionWords
-      .filter(word => word.toLowerCase().includes("i "));
-    
+    const personalReferences = profile.speechPatterns.emotionalStates.explaining.transitionWords.filter((word) =>
+      word.toLowerCase().includes("i "),
+
     if (personalReferences.length > 0) {
       coreMessage += `${personalReferences[0]} this changed everything for me. `;
     } else {
@@ -293,18 +293,18 @@ export class ScriptGenerator {
   private generateEscalation(input: ScriptGenerationInput, profile: PersonaProfile): string {
     const excitedMarkers = profile.speechPatterns.emotionalStates.excited.markerPhrases;
     const energyMarker = excitedMarkers[0] || "THIS is incredible";
-    
+
     let escalation = `But ${energyMarker.toLowerCase()}! `;
-    
+
     // Add emphasis based on persona energy
     if (profile.speechPatterns.baseline.typicalEnergy === "high") {
       escalation += `The results are MIND-BLOWING when you `;
     } else {
       escalation += `What happens next is remarkable when you `;
     }
-    
+
     escalation += this.generateActionStatement(input.topic, profile);
-    
+
     return escalation;
   }
 
@@ -313,16 +313,16 @@ export class ScriptGenerator {
    */
   private generateClose(input: ScriptGenerationInput, profile: PersonaProfile): string {
     const closingPhrases = profile.speechPatterns.signatureElements.catchphrases.closing;
-    const audienceAddress = ["you guys", "everyone", "people"].find(addr => 
-      profile.voiceProfile.vocabularyFingerprint.includes(addr)
-    ) || "you";
+    const audienceAddress =
+      ["you guys", "everyone", "people"].find((addr) => profile.voiceProfile.vocabularyFingerprint.includes(addr)) ||
+      "you";
 
-    let close = closingPhrases.length > 0 
-      ? closingPhrases[0] 
+    let close = closingPhrases.length > 0
+      ? closingPhrases[0]
       : `So ${audienceAddress}, `;
 
     close += `if you want to master ${input.topic.toLowerCase()}, `;
-    
+
     // Add call to action with persona style
     if (profile.speechPatterns.baseline.typicalEnergy === "high") {
       close += `DROP a comment below and let me know what you think!`;
@@ -338,12 +338,12 @@ export class ScriptGenerator {
    */
   private generateTopicContent(topic: string, profile: PersonaProfile): string {
     const vocab = profile.voiceProfile.vocabularyFingerprint;
-    const actionWords = vocab.filter(word => 
-      ['make', 'get', 'find', 'use', 'work', 'help', 'show', 'give'].some(action => word.includes(action))
+    const actionWords = vocab.filter((word) =>
+      ["make", "get", "find", "use", "work", "help", "show", "give"].some((action) => word.includes(action)),
     );
 
-    const actionWord = actionWords[0] || 'use';
-    
+    const actionWord = actionWords[0] || "use";
+
     return `you need to ${actionWord} the right approach. Most people skip the fundamentals, but that's exactly why they struggle.`;
   }
 
@@ -352,12 +352,12 @@ export class ScriptGenerator {
    */
   private generateActionStatement(topic: string, profile: PersonaProfile): string {
     const vocab = profile.voiceProfile.vocabularyFingerprint;
-    const processWords = vocab.filter(word => 
-      ['apply', 'follow', 'implement', 'practice', 'focus'].some(process => word.includes(process))
+    const processWords = vocab.filter((word) =>
+      ["apply", "follow", "implement", "practice", "focus"].some((process) => word.includes(process)),
     );
 
-    const processWord = processWords[0] || 'apply';
-    
+    const processWord = processWords[0] || "apply";
+
     return `${processWord} these principles consistently. It's not just theory - this is proven to work.`;
   }
 
@@ -366,13 +366,13 @@ export class ScriptGenerator {
    */
   private customizeForTopic(hook: string, topic: string): string {
     // Simple topic integration - could be made more sophisticated
-    if (hook.toLowerCase().includes('check this out')) {
+    if (hook.toLowerCase().includes("check this out")) {
       return `Check this out - ${topic.toLowerCase()} just got way easier`;
     }
-    if (hook.toLowerCase().includes('listen up')) {
+    if (hook.toLowerCase().includes("listen up")) {
       return `Listen up - everything you know about ${topic.toLowerCase()} is wrong`;
     }
-    
+
     return hook;
   }
 
@@ -380,13 +380,7 @@ export class ScriptGenerator {
    * Combine structure elements into full script
    */
   private combineStructure(structure: GeneratedScript["structure"]): string {
-    return [
-      structure.hook,
-      structure.bridge,
-      structure.coreMessage,
-      structure.escalation,
-      structure.close,
-    ].join(" ");
+    return [structure.hook, structure.bridge, structure.coreMessage, structure.escalation, structure.close].join(" ");
   }
 
   /**
@@ -448,7 +442,7 @@ export function createScriptGenerator(config?: Partial<GenerationConfig>): Scrip
 export async function generatePersonaScript(
   input: ScriptGenerationInput,
   personaProfile: PersonaProfile,
-  config?: Partial<GenerationConfig>
+  config?: Partial<GenerationConfig>,
 ): Promise<ScriptGenerationResult> {
   const generator = createScriptGenerator(config);
   return await generator.generateScript(input, personaProfile);

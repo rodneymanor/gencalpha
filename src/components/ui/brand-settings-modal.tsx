@@ -4,8 +4,6 @@ import { useEffect, useState } from "react";
 
 import { CheckCircle2, PencilLine, Save, X } from "lucide-react";
 
-import { SkeletonMainContent } from "@/components/ui/skeleton-screens";
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -17,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import type { OnboardingSelections } from "@/components/ui/onboarding-wizard-modal";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { SkeletonMainContent } from "@/components/ui/skeleton-screens";
 import { VisuallyHidden } from "@/components/ui/visually-hidden";
 import { useBrandSettingsFlag } from "@/hooks/use-feature-flag";
 import { ClientOnboardingService } from "@/lib/services/client-onboarding-service";

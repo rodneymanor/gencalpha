@@ -79,7 +79,6 @@ const getPlatformName = (url: string) => {
   return 'Video';
 };
 
-// eslint-disable-next-line complexity
 export function VideoGridProcessingPlaceholder({
   job,
   className,

@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { authenticateApiKey } from "@/lib/api-key-auth";
 import { getAdminDb, isAdminInitialized } from "@/lib/firebase-admin";
 import { parseStructuredResponse, createScriptElements } from "@/lib/json-extractor";
-import { enhancePromptWithPersona } from "@/lib/persona-integration";
 import { ensurePromptLibraryInitialized } from "@/lib/prompts";
 import { executePrompt } from "@/lib/prompts/prompt-manager";
 import { createSpeedWriteVariables, type SpeedWriteResult } from "@/lib/prompts/script-generation";
@@ -107,7 +106,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<GenerateR
       return NextResponse.json({ success: false, error: "Idea is required" }, { status: 400 });
     }
 
-    console.log(`🎭 [Script Generate] ${persona ? 'Using persona' : 'No persona'} for idea: "${idea.substring(0, 50)}..."`);
+    console.log(
+      `🎭 [Script Generate] ${persona ? "Using persona" : "No persona"} for idea: "${idea.substring(0, 50)}..."`,
+    );
 
     ensurePromptLibraryInitialized();
 

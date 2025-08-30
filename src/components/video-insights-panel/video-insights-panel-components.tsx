@@ -2,33 +2,12 @@
 
 import React, { useState } from "react";
 
-import { 
-  Play, 
-  Pause, 
-  Volume2, 
-  VolumeX, 
-  Maximize, 
-  FileText, 
-  Clock, 
-  Download, 
-  X, 
-  Eye,
-  Heart,
-  MessageCircle,
-  Share2,
-  TrendingUp,
-  TrendingDown,
-  Users,
-  Target,
-  Zap,
-  BookOpen,
-  BarChart3,
-  Search
-} from "lucide-react";
+import { Play, FileText, Clock, Download, X, BookOpen, Search } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { ScriptComponent } from "@/types/script-panel";
 import {
   VideoInsightsTabConfig,
   VideoInsights,
@@ -39,11 +18,9 @@ import {
   EngagementMetrics,
   SEOAnalysis,
   MetricCard,
-  VideoPlayerState,
   SUGGESTION_TYPE_ICONS,
   SUGGESTION_TYPE_LABELS,
 } from "@/types/video-insights";
-import { ScriptComponent } from "@/types/script-panel";
 
 /**
  * Video Insights Panel Header Component
@@ -76,9 +53,7 @@ export function VideoInsightsHeader({
           Video Insights
         </Badge>
         {videoInsights.title && (
-          <span className="text-sm text-neutral-600 truncate max-w-[200px]">
-            {videoInsights.title}
-          </span>
+          <span className="max-w-[200px] truncate text-sm text-neutral-600">{videoInsights.title}</span>
         )}
       </div>
 
@@ -172,7 +147,8 @@ export function VideoPlayerView({ videoUrl, thumbnailUrl, onPlay, onPause }: Vid
   const [hasError, setHasError] = useState(false);
 
   // Determine if this is an iframe URL (Bunny.net) or needs fallback
-  const isIframeUrl = videoUrl && (videoUrl.includes('iframe') || videoUrl.includes('embed') || videoUrl.includes('bunny'));
+  const isIframeUrl =
+    videoUrl && (videoUrl.includes("iframe") || videoUrl.includes("embed") || videoUrl.includes("bunny"));
 
   const handleIframeLoad = () => {
     setIsLoading(false);
@@ -188,11 +164,11 @@ export function VideoPlayerView({ videoUrl, thumbnailUrl, onPlay, onPause }: Vid
     return (
       <div className="flex h-full items-center justify-center bg-neutral-50 p-6">
         <div className="text-center">
-          <div className="bg-neutral-100 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[var(--radius-card)]">
-            <Play className="text-neutral-400 h-8 w-8" />
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[var(--radius-card)] bg-neutral-100">
+            <Play className="h-8 w-8 text-neutral-400" />
           </div>
-          <h3 className="text-neutral-900 mb-2 text-lg font-medium">No video available</h3>
-          <p className="text-neutral-600 text-sm">This video doesn't have a playable URL.</p>
+          <h3 className="mb-2 text-lg font-medium text-neutral-900">No video available</h3>
+          <p className="text-sm text-neutral-600">This video doesn't have a playable URL.</p>
         </div>
       </div>
     );
@@ -202,8 +178,8 @@ export function VideoPlayerView({ videoUrl, thumbnailUrl, onPlay, onPause }: Vid
     <div className="flex h-full items-center justify-center bg-neutral-50 p-6">
       <div className="relative w-full max-w-md">
         {/* Video Player Container with Soft UI styling */}
-        <div 
-          className="relative overflow-hidden rounded-[var(--radius-card)] bg-neutral-100 shadow-[var(--shadow-soft-drop)] border border-neutral-200"
+        <div
+          className="relative overflow-hidden rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-100 shadow-[var(--shadow-soft-drop)]"
           style={{ aspectRatio: "9/16", minHeight: "400px" }}
         >
           {/* Loading State */}
@@ -211,7 +187,7 @@ export function VideoPlayerView({ videoUrl, thumbnailUrl, onPlay, onPause }: Vid
             <div className="absolute inset-0 z-10 flex items-center justify-center bg-neutral-100">
               <div className="text-center">
                 <div className="mx-auto mb-3 h-6 w-6 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-600" />
-                <p className="text-neutral-600 text-sm">Loading video...</p>
+                <p className="text-sm text-neutral-600">Loading video...</p>
               </div>
             </div>
           )}
@@ -220,11 +196,11 @@ export function VideoPlayerView({ videoUrl, thumbnailUrl, onPlay, onPause }: Vid
           {hasError ? (
             <div className="flex h-full items-center justify-center bg-neutral-100">
               <div className="text-center">
-                <div className="bg-neutral-200 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[var(--radius-card)]">
-                  <FileText className="text-neutral-500 h-8 w-8" />
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[var(--radius-card)] bg-neutral-200">
+                  <FileText className="h-8 w-8 text-neutral-500" />
                 </div>
-                <h3 className="text-neutral-900 mb-2 text-lg font-medium">Unable to load video</h3>
-                <p className="text-neutral-600 text-sm">There was an error loading this video.</p>
+                <h3 className="mb-2 text-lg font-medium text-neutral-900">Unable to load video</h3>
+                <p className="text-sm text-neutral-600">There was an error loading this video.</p>
               </div>
             </div>
           ) : isIframeUrl ? (
@@ -258,9 +234,7 @@ export function VideoPlayerView({ videoUrl, thumbnailUrl, onPlay, onPause }: Vid
 
         {/* Video Info - Following Soft UI design patterns */}
         <div className="mt-4 text-center">
-          <p className="text-neutral-600 text-sm">
-            {isIframeUrl ? 'Iframe Player' : 'Direct Video'}
-          </p>
+          <p className="text-sm text-neutral-600">{isIframeUrl ? "Iframe Player" : "Direct Video"}</p>
         </div>
       </div>
     </div>
@@ -337,9 +311,7 @@ export function VideoComponentsView({ components, onCopy }: VideoComponentsViewP
           {/* Component Header */}
           <div className="mb-3 flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-button)] border border-neutral-200 bg-neutral-50">
-              <span className="text-sm font-semibold text-neutral-600">
-                {component.icon ?? "?"}
-              </span>
+              <span className="text-sm font-semibold text-neutral-600">{component.icon ?? "?"}</span>
             </div>
             <span className="text-xs font-semibold tracking-wide text-neutral-600 uppercase">
               {component.label ?? component.type}
@@ -434,11 +406,11 @@ export function MetadataView({ metadata }: MetadataViewProps) {
               <p className="text-sm text-neutral-900">{metadata.title}</p>
             </div>
           )}
-          
+
           {metadata.description && (
             <div>
               <span className="text-xs text-neutral-600">Description</span>
-              <p className="text-sm text-neutral-900 line-clamp-3">{metadata.description}</p>
+              <p className="line-clamp-3 text-sm text-neutral-900">{metadata.description}</p>
             </div>
           )}
 
@@ -454,14 +426,15 @@ export function MetadataView({ metadata }: MetadataViewProps) {
       {/* Metrics Grid */}
       <div className="grid grid-cols-2 gap-4">
         {metricCards.map((card) => (
-          <div key={card.id} className="border border-neutral-200 rounded-[var(--radius-card)]">
+          <div key={card.id} className="rounded-[var(--radius-card)] border border-neutral-200">
             <div className="flex items-center gap-3 p-4">
-              <div className="bg-yellow-400/10 text-yellow-400 flex h-10 w-10 items-center justify-center rounded-[var(--radius-button)]">
+              <div className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-button)] bg-yellow-400/10 text-yellow-400">
                 <span className="text-lg">{card.icon}</span>
               </div>
               <div>
                 <div className="text-lg font-semibold text-neutral-900">
-                  {card.value}{card.unit}
+                  {card.value}
+                  {card.unit}
                 </div>
                 <div className="text-xs text-neutral-600">{card.label}</div>
               </div>
@@ -479,7 +452,7 @@ export function MetadataView({ metadata }: MetadataViewProps) {
             </div>
             <span className="text-xs font-semibold tracking-wide text-neutral-600 uppercase">Tags</span>
           </div>
-          
+
           <div className="flex flex-wrap gap-2">
             {metadata.tags.map((tag, index) => (
               <Badge key={index} variant="outline" className="mt-1 text-xs">
@@ -526,17 +499,15 @@ export function SuggestionsView({ hooks, content, onCopy }: SuggestionsViewProps
                 <div className="mb-3 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-button)] border border-neutral-200 bg-neutral-50">
-                      <span className="text-sm font-semibold text-neutral-600">
-                        {SUGGESTION_TYPE_ICONS[hook.type]}
-                      </span>
+                      <span className="text-sm font-semibold text-neutral-600">{SUGGESTION_TYPE_ICONS[hook.type]}</span>
                     </div>
                     <span className="text-xs font-semibold tracking-wide text-neutral-600 uppercase">
                       {SUGGESTION_TYPE_LABELS[hook.type]}
                     </span>
                   </div>
-                  
-                  <Badge 
-                    variant={hook.strength === "high" ? "default" : "outline"} 
+
+                  <Badge
+                    variant={hook.strength === "high" ? "default" : "outline"}
                     className="px-3 py-1.5 text-sm font-medium"
                   >
                     {hook.strength}
@@ -557,7 +528,7 @@ export function SuggestionsView({ hooks, content, onCopy }: SuggestionsViewProps
                 </Button>
 
                 <div className="text-sm leading-relaxed text-neutral-900">{hook.content}</div>
-                
+
                 {hook.rationale && (
                   <div className="mt-3 border-t border-neutral-200 pt-3">
                     <span className="text-xs text-neutral-600">{hook.rationale}</span>
@@ -590,7 +561,7 @@ export function SuggestionsView({ hooks, content, onCopy }: SuggestionsViewProps
                       {suggestion.type} • {suggestion.target}
                     </span>
                   </div>
-                  
+
                   <div className="flex gap-2">
                     <Badge variant="outline" className="mt-1 text-xs">
                       Impact: {suggestion.impact}
@@ -644,7 +615,8 @@ export function AnalysisView({ readability, engagement, seo }: AnalysisViewProps
       value: engagement.retentionPotential,
       unit: "/100",
       icon: "🎯",
-      color: engagement.retentionPotential > 70 ? "success" : engagement.retentionPotential > 50 ? "warning" : "destructive",
+      color:
+        engagement.retentionPotential > 70 ? "success" : engagement.retentionPotential > 50 ? "warning" : "destructive",
     },
     {
       id: "cta-strength",
@@ -652,7 +624,12 @@ export function AnalysisView({ readability, engagement, seo }: AnalysisViewProps
       value: engagement.callToActionStrength,
       unit: "/100",
       icon: "📢",
-      color: engagement.callToActionStrength > 70 ? "success" : engagement.callToActionStrength > 50 ? "warning" : "destructive",
+      color:
+        engagement.callToActionStrength > 70
+          ? "success"
+          : engagement.callToActionStrength > 50
+            ? "warning"
+            : "destructive",
     },
   ];
 
@@ -661,14 +638,15 @@ export function AnalysisView({ readability, engagement, seo }: AnalysisViewProps
       {/* Analysis Metrics Grid */}
       <div className="grid grid-cols-2 gap-4">
         {analysisCards.map((card) => (
-          <div key={card.id} className="border border-neutral-200 rounded-[var(--radius-card)]">
+          <div key={card.id} className="rounded-[var(--radius-card)] border border-neutral-200">
             <div className="flex items-center gap-3 p-4">
-              <div className="bg-yellow-400/10 text-yellow-400 flex h-10 w-10 items-center justify-center rounded-[var(--radius-button)]">
+              <div className="flex h-10 w-10 items-center justify-center rounded-[var(--radius-button)] bg-yellow-400/10 text-yellow-400">
                 <span className="text-lg">{card.icon}</span>
               </div>
               <div>
                 <div className="text-lg font-semibold text-neutral-900">
-                  {card.value}{card.unit}
+                  {card.value}
+                  {card.unit}
                 </div>
                 <div className="text-xs text-neutral-600">{card.label}</div>
               </div>
@@ -691,7 +669,7 @@ export function AnalysisView({ readability, engagement, seo }: AnalysisViewProps
             <span className="text-xs text-neutral-600">Grade Level</span>
             <p className="text-sm text-neutral-900">{readability.grade}</p>
           </div>
-          
+
           <div>
             <span className="text-xs text-neutral-600">Complexity</span>
             <Badge variant="outline" className="ml-2 text-xs capitalize">

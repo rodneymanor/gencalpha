@@ -92,15 +92,17 @@ interface TikTokUserFeedResponse {
 // Helper function to select the lowest quality video URL based on bit_rate
 function getLowestQualityVideoUrl(video: any): { playUrl: string; downloadUrl: string } {
   const bitRates: any[] = video?.bit_rate ?? [];
-  
+
   if (Array.isArray(bitRates) && bitRates.length > 0) {
     // Sort by bit_rate (ascending) to get lowest quality first
     const sorted = [...bitRates].sort((a, b) => (a.bit_rate ?? 0) - (b.bit_rate ?? 0));
     const lowest = sorted[0];
     const playList: string[] = lowest?.play_addr?.url_list ?? [];
-    
+
     if (playList[0]) {
-      console.log(`🔽 Selected lowest quality: ${lowest.bit_rate ?? 'unknown'} bit_rate (${lowest.gear_name ?? 'unknown gear'})`);
+      console.log(
+        `🔽 Selected lowest quality: ${lowest.bit_rate ?? "unknown"} bit_rate (${lowest.gear_name ?? "unknown gear"})`,
+      );
       return {
         playUrl: playList[0],
         downloadUrl: playList[0],

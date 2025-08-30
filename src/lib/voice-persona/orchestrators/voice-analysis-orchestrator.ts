@@ -3,7 +3,6 @@
  * Main orchestrator that coordinates the complete voice persona analysis workflow
  */
 
-import { analyzeUserFeed } from "./user-feed-orchestrator";
 import { extractSpeechPatterns, extractPatternMatrix } from "../analyzers/pattern-extractor";
 import { createVoiceProfile, createVoiceProfiler } from "../analyzers/voice-profiler";
 import { generatePersonaScript } from "../generators/script-generator";
@@ -16,6 +15,8 @@ import {
   PersonaAnalysisConfig,
   PersonaAnalysisError,
 } from "../types";
+
+import { analyzeUserFeed } from "./user-feed-orchestrator";
 
 /**
  * Default configuration for voice analysis
@@ -53,13 +54,15 @@ export class VoiceAnalysisOrchestrator {
     const startTime = Date.now();
     const requestId = this.generateRequestId();
 
-    console.log(`🎭 [VOICE_ANALYSIS] Starting complete persona analysis for ${userIdentifier.handle} on ${userIdentifier.platform}`);
+    console.log(
+      `🎭 [VOICE_ANALYSIS] Starting complete persona analysis for ${userIdentifier.handle} on ${userIdentifier.platform}`,
+    );
 
     try {
       // Step 1: Retrieve and analyze user feed
       console.log(`📱 [VOICE_ANALYSIS] Step 1: Retrieving user feed...`);
       const feedAnalysis = await analyzeUserFeed(userIdentifier, this.config);
-      
+
       if (feedAnalysis.status === "failed" || feedAnalysis.processedVideos === 0) {
         throw new Error(`Feed analysis failed: ${feedAnalysis.processedVideos} videos processed`);
       }
@@ -87,7 +90,7 @@ export class VoiceAnalysisOrchestrator {
       const generationParameters = profiler.createGenerationParameters(
         voiceProfile,
         speechPatterns,
-        feedAnalysis.videos
+        feedAnalysis.videos,
       );
 
       // Step 6: Assemble complete persona profile
@@ -109,7 +112,7 @@ export class VoiceAnalysisOrchestrator {
       };
 
       const processingTime = Date.now() - startTime;
-      
+
       console.log(`🎉 [VOICE_ANALYSIS] Voice persona analysis completed successfully in ${processingTime}ms`);
       console.log(`📈 [VOICE_ANALYSIS] Profile created with:`);
       console.log(`   - ${voiceProfile.hooks.length} hooks identified`);
@@ -126,7 +129,6 @@ export class VoiceAnalysisOrchestrator {
           requestId,
         },
       };
-
     } catch (error) {
       const processingTime = Date.now() - startTime;
       console.error(`❌ [VOICE_ANALYSIS] Analysis failed after ${processingTime}ms:`, error);
@@ -166,10 +168,7 @@ export class VoiceAnalysisOrchestrator {
   /**
    * Generate script using existing persona profile
    */
-  async generateScript(
-    input: ScriptGenerationInput,
-    personaProfile: PersonaProfile
-  ): Promise<ScriptGenerationResult> {
+  async generateScript(input: ScriptGenerationInput, personaProfile: PersonaProfile): Promise<ScriptGenerationResult> {
     console.log(`📝 [VOICE_ANALYSIS] Generating script for persona ${input.personaId} on topic: ${input.topic}`);
 
     try {
@@ -180,11 +179,12 @@ export class VoiceAnalysisOrchestrator {
       });
 
       if (result.success) {
-        console.log(`✅ [VOICE_ANALYSIS] Script generated successfully with ${result.script?.authenticity.overallScore}% authenticity`);
+        console.log(
+          `✅ [VOICE_ANALYSIS] Script generated successfully with ${result.script?.authenticity.overallScore}% authenticity`,
+        );
       }
 
       return result;
-
     } catch (error) {
       console.error(`❌ [VOICE_ANALYSIS] Script generation failed:`, error);
       return {
@@ -218,9 +218,8 @@ export class VoiceAnalysisOrchestrator {
         if (results.length < userIdentifiers.length) {
           const delayMs = (60 / this.config.rateLimit.requestsPerMinute) * 1000;
           console.log(`⏳ [VOICE_ANALYSIS] Rate limiting delay: ${delayMs}ms`);
-          await new Promise(resolve => setTimeout(resolve, delayMs));
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
         }
-
       } catch (error) {
         console.error(`❌ [VOICE_ANALYSIS] Batch analysis failed for ${identifier.handle}:`, error);
         results.push({
@@ -238,7 +237,7 @@ export class VoiceAnalysisOrchestrator {
       }
     }
 
-    const successful = results.filter(r => r.success).length;
+    const successful = results.filter((r) => r.success).length;
     console.log(`📊 [VOICE_ANALYSIS] Batch analysis completed: ${successful}/${userIdentifiers.length} successful`);
 
     return results;
@@ -329,7 +328,7 @@ export function createVoiceAnalysisOrchestrator(config?: Partial<PersonaAnalysis
  */
 export async function analyzeVoicePersona(
   userIdentifier: UserIdentifier,
-  config?: Partial<PersonaAnalysisConfig>
+  config?: Partial<PersonaAnalysisConfig>,
 ): Promise<PersonaAnalysisResult> {
   const orchestrator = createVoiceAnalysisOrchestrator(config);
   return await orchestrator.analyzeVoicePersona(userIdentifier);
@@ -340,7 +339,7 @@ export async function analyzeVoicePersona(
  */
 export async function generateScriptWithPersona(
   input: ScriptGenerationInput,
-  personaProfile: PersonaProfile
+  personaProfile: PersonaProfile,
 ): Promise<ScriptGenerationResult> {
   const orchestrator = createVoiceAnalysisOrchestrator();
   return await orchestrator.generateScript(input, personaProfile);

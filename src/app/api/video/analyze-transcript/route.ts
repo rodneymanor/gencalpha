@@ -20,14 +20,12 @@ export async function POST(request: NextRequest) {
     const { transcript, url }: AnalyzeTranscriptRequest = await request.json();
 
     if (!transcript || transcript.trim().length === 0) {
-      return NextResponse.json(
-        { success: false, error: "Transcript is required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ success: false, error: "Transcript is required" }, { status: 400 });
     }
 
-    const systemPrompt = "You are an expert script analyst that breaks down video transcripts into structured script components.";
-    
+    const systemPrompt =
+      "You are an expert script analyst that breaks down video transcripts into structured script components.";
+
     const prompt = `# Analyze Video Transcript into Script Components
 
 Analyze the following transcript and extract four key script components. Return ONLY valid JSON.
@@ -72,20 +70,14 @@ OUTPUT (STRICT JSON):
     });
 
     if (!ai.success || !ai.content) {
-      return NextResponse.json(
-        { success: false, error: ai.error ?? "Failed to analyze transcript" },
-        { status: 500 },
-      );
+      return NextResponse.json({ success: false, error: ai.error ?? "Failed to analyze transcript" }, { status: 500 });
     }
 
-    const analyzed = ai.content as AnalyzedComponents;
-    
+    const analyzed = ai.content;
+
     // Validate the response has all required fields
     if (!analyzed.hook || !analyzed.bridge || !analyzed.goldenNugget || !analyzed.callToAction) {
-      return NextResponse.json(
-        { success: false, error: "Invalid AI response structure" },
-        { status: 500 },
-      );
+      return NextResponse.json({ success: false, error: "Invalid AI response structure" }, { status: 500 });
     }
 
     // Create properly structured script components
@@ -145,8 +137,8 @@ OUTPUT (STRICT JSON):
       },
     });
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       components,
       analyzed,
     });

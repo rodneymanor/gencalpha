@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 
 import { Plus, Bookmark } from "lucide-react";
 
-import { VideoInsightsPanel } from "@/components/video-insights-panel/video-insights-panel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CollectionCombobox } from "@/components/ui/collection-combobox";
@@ -13,14 +12,15 @@ import { CardSkeleton } from "@/components/ui/loading";
 import { UnifiedSlideout, ClaudeArtifactConfig } from "@/components/ui/unified-slideout";
 import { VideoGrid as NewVideoGrid, type VideoData } from "@/components/video/video-grid";
 import { VideoInsightsWrapper } from "@/components/video-insights";
+import { VideoInsightsPanel } from "@/components/video-insights-panel/video-insights-panel";
 import { useAuth } from "@/contexts/auth-context";
 import { VideoInsightsProvider } from "@/contexts/video-insights-context";
 import { VideoProcessingProvider } from "@/contexts/video-processing-context";
 import { RBACClientService } from "@/core/auth/rbac-client";
 import { useRBAC } from "@/hooks/use-rbac";
+import { processScriptComponents } from "@/hooks/use-script-analytics";
 import { CollectionsService, type Collection, type Video } from "@/lib/collections";
 import { VideoInsights } from "@/types/video-insights";
-import { processScriptComponents } from "@/hooks/use-script-analytics";
 
 import { AddVideoDialog } from "./_components/add-video-dialog";
 import { CollectionsProvider, useCollections } from "./_components/collections-context";
@@ -253,7 +253,7 @@ function SavedCollectionsTabContent() {
     (videoData: VideoData, index: number) => {
       // Find the original Video object by ID to preserve all metadata
       const originalVideo = savedVideos.find((v) => v.id === videoData.id);
-      
+
       // If panel is open (selectedVideo is not null), auto-change the video
       if (selectedVideo && originalVideo) {
         setSelectedVideo(originalVideo);
@@ -269,40 +269,41 @@ function SavedCollectionsTabContent() {
   // Transform Video to VideoInsights format
   const transformToVideoInsights = useCallback((video: Video): VideoInsights => {
     const transcript = video.transcript || "No transcript available";
-    
+
     // Create script components from transcript if available
-    const scriptComponents = transcript !== "No transcript available" 
-      ? processScriptComponents([
-          {
-            id: `${video.id}-hook`,
-            type: "hook",
-            label: "Hook",
-            content: transcript.split('.')[0] + '.' || "Opening statement to grab attention",
-            icon: "H",
-          },
-          {
-            id: `${video.id}-bridge`, 
-            type: "bridge",
-            label: "Bridge",
-            content: transcript.split('.').slice(1, 3).join('.') || "Transition element connecting ideas",
-            icon: "B",
-          },
-          {
-            id: `${video.id}-nugget`,
-            type: "nugget", 
-            label: "Golden Nugget",
-            content: transcript.split('.').slice(3, 6).join('.') || "Key value proposition or insight",
-            icon: "G",
-          },
-          {
-            id: `${video.id}-cta`,
-            type: "cta",
-            label: "Call to Action", 
-            content: transcript.split('.').slice(-2).join('.') || "Clear call to action",
-            icon: "C",
-          },
-        ])
-      : [];
+    const scriptComponents =
+      transcript !== "No transcript available"
+        ? processScriptComponents([
+            {
+              id: `${video.id}-hook`,
+              type: "hook",
+              label: "Hook",
+              content: transcript.split(".")[0] + "." || "Opening statement to grab attention",
+              icon: "H",
+            },
+            {
+              id: `${video.id}-bridge`,
+              type: "bridge",
+              label: "Bridge",
+              content: transcript.split(".").slice(1, 3).join(".") || "Transition element connecting ideas",
+              icon: "B",
+            },
+            {
+              id: `${video.id}-nugget`,
+              type: "nugget",
+              label: "Golden Nugget",
+              content: transcript.split(".").slice(3, 6).join(".") || "Key value proposition or insight",
+              icon: "G",
+            },
+            {
+              id: `${video.id}-cta`,
+              type: "cta",
+              label: "Call to Action",
+              content: transcript.split(".").slice(-2).join(".") || "Clear call to action",
+              icon: "C",
+            },
+          ])
+        : [];
 
     return {
       id: video.id || "",
@@ -315,9 +316,9 @@ function SavedCollectionsTabContent() {
         fullScript: transcript,
         components: scriptComponents,
         metrics: {
-          totalWords: transcript.split(' ').length,
+          totalWords: transcript.split(" ").length,
           totalDuration: video.metadata?.duration || 30,
-          avgWordsPerSecond: transcript.split(' ').length / (video.metadata?.duration || 30),
+          avgWordsPerSecond: transcript.split(" ").length / (video.metadata?.duration || 30),
           readabilityScore: 75 + Math.floor(Math.random() * 20),
           engagementScore: 70 + Math.floor(Math.random() * 25),
         },
@@ -381,14 +382,11 @@ function SavedCollectionsTabContent() {
             shortest: 3,
           },
           wordComplexity: {
-            simple: transcript.split(' ').length * 0.8,
-            complex: transcript.split(' ').length * 0.2,
+            simple: transcript.split(" ").length * 0.8,
+            complex: transcript.split(" ").length * 0.2,
             percentage: 80,
           },
-          recommendations: [
-            "Use shorter sentences for better flow",
-            "Include more emotional language",
-          ],
+          recommendations: ["Use shorter sentences for better flow", "Include more emotional language"],
         },
         engagement: {
           hookStrength: 70 + Math.floor(Math.random() * 25),
@@ -456,10 +454,12 @@ function SavedCollectionsTabContent() {
                   </div>
                 </div>
               ) : (
-                <div className="py-8 sm:py-12 text-center">
-                  <Bookmark className="text-muted-foreground mx-auto mb-3 sm:mb-4 h-12 w-12 sm:h-16 sm:w-16 opacity-50" />
-                  <h3 className="mb-1.5 sm:mb-2 text-base sm:text-lg font-semibold">No saved videos</h3>
-                  <p className="text-muted-foreground mb-3 sm:mb-4 text-xs sm:text-base px-4">Videos you favorite will appear here for quick access.</p>
+                <div className="py-8 text-center sm:py-12">
+                  <Bookmark className="text-muted-foreground mx-auto mb-3 h-12 w-12 opacity-50 sm:mb-4 sm:h-16 sm:w-16" />
+                  <h3 className="mb-1.5 text-base font-semibold sm:mb-2 sm:text-lg">No saved videos</h3>
+                  <p className="text-muted-foreground mb-3 px-4 text-xs sm:mb-4 sm:text-base">
+                    Videos you favorite will appear here for quick access.
+                  </p>
                 </div>
               )}
             </CardContent>
@@ -491,27 +491,27 @@ function SavedCollectionsTabContent() {
                 min-height: unset !important;
                 max-height: calc(100vh - 280px) !important; /* Account for headers and tabs */
               }
-              
+
               /* Add padding to the video container parent */
               .flex.h-full.items-center.justify-center.bg-neutral-50.p-6 {
                 padding-top: 2rem !important;
                 align-items: flex-start !important;
               }
-              
+
               /* Ensure proper sizing on different screens */
               @media (max-width: 768px) {
                 .relative.overflow-hidden[style*="aspect-ratio"] {
                   max-height: calc(100vh - 320px) !important;
                 }
               }
-              
+
               @media (min-width: 1024px) {
                 .relative.overflow-hidden[style*="aspect-ratio"] {
                   max-height: calc(100vh - 240px) !important;
                 }
               }
             `}</style>
-            
+
             <VideoInsightsPanel
               videoInsights={transformToVideoInsights(selectedVideo)}
               onCopy={(content: string, componentType?: string) => {
@@ -564,7 +564,7 @@ function CollectionsContent() {
 
   return (
     <div className="bg-background min-h-screen" id="collections-main-content">
-      <div className="mx-auto max-w-4xl px-3 sm:px-4 py-4 sm:py-6 lg:px-8">
+      <div className="mx-auto max-w-4xl px-3 py-4 sm:px-4 sm:py-6 lg:px-8">
         {/* Header */}
         <CollectionsHeader
           selectedCollectionId={selectedCollectionId}

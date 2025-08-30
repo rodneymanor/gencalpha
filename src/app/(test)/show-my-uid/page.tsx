@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+
 import { Loader2, User, Copy, CheckCircle } from "lucide-react";
 
 export default function ShowMyUidPage() {
@@ -31,7 +32,7 @@ export default function ShowMyUidPage() {
           uid: "test-user",
           email: "test@example.com",
           displayName: "Test User",
-          note: "In development mode with test authentication"
+          note: "In development mode with test authentication",
         });
       }
     } catch (err) {
@@ -56,9 +57,7 @@ export default function ShowMyUidPage() {
       <div className="rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-50 p-6 shadow-[var(--shadow-soft-drop)]">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-neutral-900">Your User Information</h1>
-          <p className="mt-2 text-sm text-neutral-600">
-            Find your Firebase Auth UID to use for persona migration
-          </p>
+          <p className="mt-2 text-sm text-neutral-600">Find your Firebase Auth UID to use for persona migration</p>
         </div>
 
         <div className="space-y-4">
@@ -66,7 +65,7 @@ export default function ShowMyUidPage() {
           <button
             onClick={fetchUserInfo}
             disabled={loading}
-            className="flex w-full items-center justify-center gap-2 rounded-[var(--radius-button)] bg-primary-600 px-4 py-2 text-white transition-colors hover:bg-primary-700 disabled:opacity-50"
+            className="bg-primary-600 hover:bg-primary-700 flex w-full items-center justify-center gap-2 rounded-[var(--radius-button)] px-4 py-2 text-white transition-colors disabled:opacity-50"
           >
             {loading ? (
               <>
@@ -83,24 +82,20 @@ export default function ShowMyUidPage() {
 
           {/* User Info Display */}
           {userInfo && (
-            <div className="rounded-[var(--radius-button)] border border-success-200 bg-success-50 p-4">
-              <h3 className="font-medium text-success-900 mb-3">Your User Information:</h3>
+            <div className="border-success-200 bg-success-50 rounded-[var(--radius-button)] border p-4">
+              <h3 className="text-success-900 mb-3 font-medium">Your User Information:</h3>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-neutral-700">UID:</span>
                   <div className="flex items-center gap-2">
-                    <code className="rounded bg-neutral-100 px-2 py-1 text-sm font-mono text-neutral-900">
+                    <code className="rounded bg-neutral-100 px-2 py-1 font-mono text-sm text-neutral-900">
                       {userInfo.uid}
                     </code>
                     <button
                       onClick={() => copyToClipboard(userInfo.uid)}
-                      className="text-neutral-600 hover:text-neutral-900 transition-colors"
+                      className="text-neutral-600 transition-colors hover:text-neutral-900"
                     >
-                      {copied ? (
-                        <CheckCircle className="h-4 w-4 text-success-600" />
-                      ) : (
-                        <Copy className="h-4 w-4" />
-                      )}
+                      {copied ? <CheckCircle className="text-success-600 h-4 w-4" /> : <Copy className="h-4 w-4" />}
                     </button>
                   </div>
                 </div>
@@ -117,8 +112,8 @@ export default function ShowMyUidPage() {
                   </div>
                 )}
                 {userInfo.note && (
-                  <div className="mt-2 pt-2 border-t border-success-200">
-                    <p className="text-xs text-success-700">{userInfo.note}</p>
+                  <div className="border-success-200 mt-2 border-t pt-2">
+                    <p className="text-success-700 text-xs">{userInfo.note}</p>
                   </div>
                 )}
               </div>
@@ -127,18 +122,18 @@ export default function ShowMyUidPage() {
 
           {/* Error Display */}
           {error && (
-            <div className="rounded-[var(--radius-button)] border border-destructive-200 bg-destructive-50 p-4">
-              <p className="text-sm text-destructive-700">{error}</p>
+            <div className="border-destructive-200 bg-destructive-50 rounded-[var(--radius-button)] border p-4">
+              <p className="text-destructive-700 text-sm">{error}</p>
             </div>
           )}
 
           {/* Instructions */}
           <div className="rounded-[var(--radius-button)] border border-neutral-200 bg-white p-4">
-            <h4 className="font-medium text-neutral-900 mb-2">How to find your UID:</h4>
+            <h4 className="mb-2 font-medium text-neutral-900">How to find your UID:</h4>
             <ol className="space-y-2 text-sm text-neutral-600">
               <li>
                 <strong>1. Firebase Console:</strong>
-                <ul className="ml-4 mt-1 space-y-1">
+                <ul className="mt-1 ml-4 space-y-1">
                   <li>• Go to Firebase Console → Authentication → Users</li>
                   <li>• Find your user by email</li>
                   <li>• Copy the UID column value</li>
@@ -146,24 +141,26 @@ export default function ShowMyUidPage() {
               </li>
               <li>
                 <strong>2. In Development:</strong>
-                <ul className="ml-4 mt-1 space-y-1">
-                  <li>• If using test auth, your UID is: <code className="bg-neutral-100 px-1">test-user</code></li>
+                <ul className="mt-1 ml-4 space-y-1">
+                  <li>
+                    • If using test auth, your UID is: <code className="bg-neutral-100 px-1">test-user</code>
+                  </li>
                   <li>• Check console logs when logging in</li>
                 </ul>
               </li>
               <li>
                 <strong>3. From Browser DevTools:</strong>
-                <ul className="ml-4 mt-1 space-y-1">
+                <ul className="mt-1 ml-4 space-y-1">
                   <li>• Open DevTools → Application → IndexedDB</li>
                   <li>• Look for Firebase auth data</li>
                 </ul>
               </li>
             </ol>
-            
-            <div className="mt-4 p-3 bg-brand-50 border border-brand-200 rounded-[var(--radius-button)]">
-              <p className="text-sm text-brand-800">
-                <strong>💡 Tip:</strong> The UID is what connects your personas to your account. 
-                It's stored as <code className="bg-brand-100 px-1">userId</code> in each persona document.
+
+            <div className="bg-brand-50 border-brand-200 mt-4 rounded-[var(--radius-button)] border p-3">
+              <p className="text-brand-800 text-sm">
+                <strong>💡 Tip:</strong> The UID is what connects your personas to your account. It's stored as{" "}
+                <code className="bg-brand-100 px-1">userId</code> in each persona document.
               </p>
             </div>
           </div>

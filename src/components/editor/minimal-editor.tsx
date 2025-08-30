@@ -195,7 +195,7 @@ export function MinimalEditor({ value, onChange }: MinimalEditorProps) {
         {isReady ? (
           <span className="ml-2 text-xs text-green-600">✓ Ready</span>
         ) : (
-          <span className="ml-2 text-xs text-gray-500 flex items-center gap-1">
+          <span className="ml-2 flex items-center gap-1 text-xs text-gray-500">
             <InlineLoader size="sm" /> Initializing...
           </span>
         )}

@@ -37,11 +37,11 @@ export function PersonasDropdown({
     };
 
     loadPersonas();
-    
+
     // Reload personas when window gains focus (in case they were updated elsewhere)
     const handleFocus = () => loadPersonas();
     window.addEventListener("focus", handleFocus);
-    
+
     return () => window.removeEventListener("focus", handleFocus);
   }, []);
 
@@ -169,11 +169,7 @@ export function PersonasDropdown({
                     <div className={`mt-0.5 flex-shrink-0 ${isSelected ? "text-primary-600" : "text-neutral-500"}`}>
                       {persona.avatar ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img 
-                          src={persona.avatar} 
-                          alt={persona.name}
-                          className="h-8 w-8 rounded-full object-cover"
-                        />
+                        <img src={persona.avatar} alt={persona.name} className="h-8 w-8 rounded-full object-cover" />
                       ) : (
                         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-200 text-xs font-medium text-neutral-700">
                           {persona.initials}
@@ -186,9 +182,7 @@ export function PersonasDropdown({
                       >
                         {persona.name}
                       </div>
-                      <div className="mt-0.5 text-xs text-neutral-500">
-                        @{persona.username}
-                      </div>
+                      <div className="mt-0.5 text-xs text-neutral-500">@{persona.username}</div>
                     </div>
                     {isSelected && (
                       <div className="text-primary-600 flex-shrink-0">
@@ -207,12 +201,8 @@ export function PersonasDropdown({
             ) : (
               <div className="px-3 py-4 text-center">
                 <User className="mx-auto h-8 w-8 text-neutral-400" />
-                <p className="mt-2 text-sm text-neutral-600">
-                  No personas saved yet
-                </p>
-                <p className="mt-1 text-xs text-neutral-500">
-                  Create your first persona to get started
-                </p>
+                <p className="mt-2 text-sm text-neutral-600">No personas saved yet</p>
+                <p className="mt-1 text-xs text-neutral-500">Create your first persona to get started</p>
               </div>
             )}
 

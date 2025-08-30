@@ -38,35 +38,40 @@ Save this for your next video! Follow for more content creation tips that actual
           id: "hook-1",
           type: "hook",
           label: "Attention Grabber",
-          content: "Stop scrolling! Did you know that 90% of viewers decide whether to keep watching in the first 3 seconds? Here's the secret that top creators don't want you to know...",
+          content:
+            "Stop scrolling! Did you know that 90% of viewers decide whether to keep watching in the first 3 seconds? Here's the secret that top creators don't want you to know...",
           icon: "H",
         },
         {
           id: "bridge-1",
-          type: "bridge", 
+          type: "bridge",
           label: "Relatability Bridge",
-          content: "I used to struggle with viewer retention too. My videos would get views but people would drop off immediately. Then I discovered this framework that changed everything. Let me show you exactly how it works...",
+          content:
+            "I used to struggle with viewer retention too. My videos would get views but people would drop off immediately. Then I discovered this framework that changed everything. Let me show you exactly how it works...",
           icon: "B",
         },
         {
           id: "nugget-1",
           type: "nugget",
           label: "Golden Nugget",
-          content: "The key is to structure your content in four parts: First, grab attention with a pattern interrupt. Second, build a bridge that creates relatability. Third, deliver massive value in a concise, actionable format. And finally, guide your viewer to take the next step.",
+          content:
+            "The key is to structure your content in four parts: First, grab attention with a pattern interrupt. Second, build a bridge that creates relatability. Third, deliver massive value in a concise, actionable format. And finally, guide your viewer to take the next step.",
           icon: "G",
         },
         {
           id: "value-1",
           type: "value",
-          label: "Value Proposition", 
-          content: "When you combine these elements with authentic storytelling and clear visuals, your engagement rates will skyrocket. This exact formula helped me go from 100 views to 100K in just 30 days.",
+          label: "Value Proposition",
+          content:
+            "When you combine these elements with authentic storytelling and clear visuals, your engagement rates will skyrocket. This exact formula helped me go from 100 views to 100K in just 30 days.",
           icon: "V",
         },
         {
           id: "cta-1",
           type: "cta",
           label: "Call to Action",
-          content: "Save this for your next video! Follow for more content creation tips that actually work. What type of videos are you creating? Let me know in the comments!",
+          content:
+            "Save this for your next video! Follow for more content creation tips that actually work. What type of videos are you creating? Let me know in the comments!",
           icon: "C",
         },
       ]),
@@ -98,7 +103,8 @@ Save this for your next video! Follow for more content creation tips that actual
       shareCount: 1200,
       uploadDate: new Date("2025-01-15"),
       tags: ["viral", "tiktok", "contentcreator", "tips", "2025", "engagement"],
-      description: "Learn the exact framework that helped me go from 100 views to 100K in 30 days. This step-by-step guide reveals the secret structure that top creators use to create viral content consistently.",
+      description:
+        "Learn the exact framework that helped me go from 100 views to 100K in 30 days. This step-by-step guide reveals the secret structure that top creators use to create viral content consistently.",
       author: {
         name: "@ContentCreatorPro",
         verified: true,
@@ -142,7 +148,7 @@ Save this for your next video! Follow for more content creation tips that actual
         },
         {
           id: "add-testimonial",
-          type: "addition", 
+          type: "addition",
           target: "middle",
           suggestion: "Include a brief success story or before/after comparison to strengthen credibility",
           impact: "medium",
@@ -227,7 +233,7 @@ Save this for your next video! Follow for more content creation tips that actual
         },
         hashtagSuggestions: [
           "viral",
-          "contentcreator", 
+          "contentcreator",
           "tiktoktips",
           "socialmedia",
           "engagement",
@@ -265,9 +271,7 @@ Save this for your next video! Follow for more content creation tips that actual
     <div className="p-8">
       <div className="mx-auto max-w-2xl space-y-6">
         <div>
-          <h1 className="mb-2 text-2xl font-bold text-neutral-900">
-            Video Insights Panel Test
-          </h1>
+          <h1 className="mb-2 text-2xl font-bold text-neutral-900">Video Insights Panel Test</h1>
           <p className="text-neutral-600">
             This test page demonstrates the VideoInsightsPanel component integration with the UnifiedSlideout system.
             The panel includes video player, transcript, components, metadata, suggestions, and analysis tabs.
@@ -277,14 +281,30 @@ Save this for your next video! Follow for more content creation tips that actual
         <div className="rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-100/50 p-6">
           <h2 className="mb-3 text-lg font-semibold text-neutral-900">Features Demonstrated</h2>
           <ul className="space-y-2 text-sm text-neutral-600">
-            <li>• <strong>Video Player:</strong> 9:16 aspect ratio with playback controls</li>
-            <li>• <strong>Transcript View:</strong> Full script with copy functionality</li>
-            <li>• <strong>Components View:</strong> Individual script components with metrics</li>
-            <li>• <strong>Metadata:</strong> Video statistics and engagement metrics</li>
-            <li>• <strong>Suggestions:</strong> Hook ideas and content improvements</li>
-            <li>• <strong>Analysis:</strong> Readability, engagement, and SEO analysis</li>
-            <li>• <strong>Exact Styling:</strong> Matches ScriptPanel design patterns</li>
-            <li>• <strong>Responsive Design:</strong> Works across all screen sizes</li>
+            <li>
+              • <strong>Video Player:</strong> 9:16 aspect ratio with playback controls
+            </li>
+            <li>
+              • <strong>Transcript View:</strong> Full script with copy functionality
+            </li>
+            <li>
+              • <strong>Components View:</strong> Individual script components with metrics
+            </li>
+            <li>
+              • <strong>Metadata:</strong> Video statistics and engagement metrics
+            </li>
+            <li>
+              • <strong>Suggestions:</strong> Hook ideas and content improvements
+            </li>
+            <li>
+              • <strong>Analysis:</strong> Readability, engagement, and SEO analysis
+            </li>
+            <li>
+              • <strong>Exact Styling:</strong> Matches ScriptPanel design patterns
+            </li>
+            <li>
+              • <strong>Responsive Design:</strong> Works across all screen sizes
+            </li>
           </ul>
         </div>
 
@@ -317,7 +337,7 @@ Save this for your next video! Follow for more content creation tips that actual
         <div className="rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-50 p-4">
           <h3 className="mb-2 font-medium text-neutral-900">Usage Code:</h3>
           <pre className="overflow-x-auto rounded-[var(--radius-button)] bg-neutral-100 p-3 text-xs text-neutral-600">
-{`import { UnifiedSlideout, useSlideout } from "@/components/ui/unified-slideout";
+            {`import { UnifiedSlideout, useSlideout } from "@/components/ui/unified-slideout";
 import { VideoInsightsPanel } from "@/components/video-insights-panel";
 
 function MyComponent() {

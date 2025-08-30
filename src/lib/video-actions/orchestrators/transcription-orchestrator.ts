@@ -3,10 +3,10 @@
  * Handles the complete transcription workflow for video actions
  */
 
-import { validateVideoUrlOrThrow } from "../validators";
 import { transcribeVideo } from "@/components/write-chat/services/video-service";
 import { processScriptComponents } from "@/hooks/use-script-analytics";
 import { ScriptData, ScriptComponent } from "@/types/script-panel";
+
 import {
   VideoActionInput,
   VideoActionResult,
@@ -15,6 +15,7 @@ import {
   VideoActionErrorDetails,
   VideoActionConfig,
 } from "../types";
+import { validateVideoUrlOrThrow } from "../validators";
 
 /**
  * Default configuration for transcription orchestrator
@@ -41,7 +42,7 @@ export class TranscriptionOrchestrator {
    */
   async execute(input: VideoActionInput): Promise<VideoActionResult<TranscriptionResult>> {
     const startTime = Date.now();
-    
+
     if (this.config.enableLogging) {
       console.log("🎬 [TRANSCRIPTION_ORCHESTRATOR] Starting transcription for:", input.url);
     }
@@ -59,9 +60,9 @@ export class TranscriptionOrchestrator {
       if (this.config.enableLogging) {
         console.log("🔍 [TRANSCRIPTION_ORCHESTRATOR] Scraping video URL via API...");
       }
-      
+
       const scraperResult = await this.scrapeVideoViaApi(input.url);
-      
+
       if (!scraperResult.videoUrl) {
         throw new Error("Unable to extract video URL from social media link");
       }
@@ -109,7 +110,6 @@ export class TranscriptionOrchestrator {
       }
 
       return result;
-
     } catch (error) {
       const duration = Date.now() - startTime;
       const errorMessage = error instanceof Error ? error.message : "Unknown transcription error";
@@ -171,7 +171,7 @@ export class TranscriptionOrchestrator {
     }
 
     const result = await response.json();
-    
+
     if (!result.success) {
       throw new Error(result.message || result.error || "Video resolve failed");
     }
@@ -189,7 +189,7 @@ export class TranscriptionOrchestrator {
    */
   private async convertTranscriptToScriptData(transcript: string, url: string): Promise<ScriptData> {
     let components: ScriptComponent[];
-    
+
     // Try to use AI analysis if enabled and available
     if (this.config.useAiAnalysis ?? true) {
       try {
@@ -208,7 +208,7 @@ export class TranscriptionOrchestrator {
       // Use basic extraction
       components = this.extractScriptComponents(transcript);
     }
-    
+
     // Process all components to add metrics
     const processedComponents = processScriptComponents(components);
 
@@ -242,17 +242,19 @@ export class TranscriptionOrchestrator {
    */
   private extractScriptComponents(transcript: string): ScriptComponent[] {
     const components: ScriptComponent[] = [];
-    const sentences = transcript.split(/[.!?]+/).filter(s => s.trim().length > 0);
-    
+    const sentences = transcript.split(/[.!?]+/).filter((s) => s.trim().length > 0);
+
     if (sentences.length === 0) {
       // If no sentences found, return the full transcript as a single component
-      return [{
-        id: "transcript-full",
-        type: "custom",
-        label: "Full Transcript",
-        content: transcript,
-        icon: "T",
-      }];
+      return [
+        {
+          id: "transcript-full",
+          type: "custom",
+          label: "Full Transcript",
+          content: transcript,
+          icon: "T",
+        },
+      ];
     }
 
     // Determine component distribution based on transcript length
@@ -260,18 +262,18 @@ export class TranscriptionOrchestrator {
     let hookEnd = 1;
     let bridgeEnd = 2;
     let nuggetEnd = totalSentences - 1;
-    
+
     if (totalSentences >= 4) {
       // For longer transcripts, use proportional distribution
       hookEnd = Math.max(1, Math.floor(totalSentences * 0.15)); // First 15% for hook
-      bridgeEnd = hookEnd + Math.max(1, Math.floor(totalSentences * 0.20)); // Next 20% for bridge
-      nuggetEnd = Math.min(totalSentences - 1, bridgeEnd + Math.ceil(totalSentences * 0.50)); // Next 50% for nugget
+      bridgeEnd = hookEnd + Math.max(1, Math.floor(totalSentences * 0.2)); // Next 20% for bridge
+      nuggetEnd = Math.min(totalSentences - 1, bridgeEnd + Math.ceil(totalSentences * 0.5)); // Next 50% for nugget
       // Last 15% for CTA
     }
 
     // Extract Hook (opening that grabs attention)
     if (sentences.length > 0) {
-      const hookContent = sentences.slice(0, hookEnd).join('. ').trim() + '.';
+      const hookContent = sentences.slice(0, hookEnd).join(". ").trim() + ".";
       components.push({
         id: "hook-extracted",
         type: "hook",
@@ -287,7 +289,7 @@ export class TranscriptionOrchestrator {
 
     // Extract Bridge (transition to main content)
     if (sentences.length > hookEnd) {
-      const bridgeContent = sentences.slice(hookEnd, bridgeEnd).join('. ').trim() + '.';
+      const bridgeContent = sentences.slice(hookEnd, bridgeEnd).join(". ").trim() + ".";
       components.push({
         id: "bridge-extracted",
         type: "bridge",
@@ -303,7 +305,7 @@ export class TranscriptionOrchestrator {
 
     // Extract Golden Nugget (main value/content)
     if (sentences.length > bridgeEnd) {
-      const nuggetContent = sentences.slice(bridgeEnd, nuggetEnd).join('. ').trim() + '.';
+      const nuggetContent = sentences.slice(bridgeEnd, nuggetEnd).join(". ").trim() + ".";
       components.push({
         id: "nugget-extracted",
         type: "nugget",
@@ -319,7 +321,7 @@ export class TranscriptionOrchestrator {
 
     // Extract Call to Action (closing/next steps)
     if (sentences.length > nuggetEnd) {
-      const ctaContent = sentences.slice(nuggetEnd).join('. ').trim() + '.';
+      const ctaContent = sentences.slice(nuggetEnd).join(". ").trim() + ".";
       components.push({
         id: "cta-extracted",
         type: "cta",
@@ -365,7 +367,7 @@ export class TranscriptionOrchestrator {
     }
 
     const result = await response.json();
-    
+
     if (!result.success || !result.components) {
       throw new Error(result.error || "AI analysis failed");
     }
@@ -393,7 +395,7 @@ export function createTranscriptionOrchestrator(config?: Partial<VideoActionConf
  */
 export async function transcribeVideoUrl(
   url: string,
-  config?: Partial<VideoActionConfig>
+  config?: Partial<VideoActionConfig>,
 ): Promise<VideoActionResult<TranscriptionResult>> {
   const orchestrator = createTranscriptionOrchestrator(config);
   return await orchestrator.execute({ url });

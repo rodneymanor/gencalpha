@@ -2,9 +2,9 @@
 
 import { createContext, useContext, useState, ReactNode, useCallback, useMemo } from "react";
 
-import { ClientScriptService, type ScriptGenerationRequest } from "@/lib/services/client-script-service";
 import { useConversationStore } from "@/lib/script-generation/conversation-store";
 import type { ScriptIteration } from "@/lib/script-generation/conversation-types";
+import { ClientScriptService, type ScriptGenerationRequest } from "@/lib/services/client-script-service";
 
 export interface ScriptComponent {
   id: string;
@@ -44,7 +44,7 @@ export function SimpleScriptProvider({ children }: { children: ReactNode }) {
   const [generationProgress, setGenerationProgress] = useState("");
   const [scriptComponents, setScriptComponents] = useState<ScriptComponent[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
-  
+
   const { startNewConversation, updateScript } = useConversationStore();
 
   const openPanel = useCallback(() => setIsPanelOpen(true), []);
@@ -54,101 +54,111 @@ export function SimpleScriptProvider({ children }: { children: ReactNode }) {
     setEditorContent((prev) => prev + (prev.length > 0 ? "\n\n" : "") + content);
   }, []);
 
-  const startInteractiveSession = useCallback((idea: string, initialScript?: ScriptIteration) => {
-    // Create a new conversation session
-    const sessionId = startNewConversation(idea, initialScript);
-    setCurrentSessionId(sessionId);
-    
-    // If initial script provided, update editor
-    if (initialScript) {
-      setEditorContent(initialScript.content);
-    }
-    
-    return sessionId;
-  }, [startNewConversation]);
+  const startInteractiveSession = useCallback(
+    (idea: string, initialScript?: ScriptIteration) => {
+      // Create a new conversation session
+      const sessionId = startNewConversation(idea, initialScript);
+      setCurrentSessionId(sessionId);
 
-  const generateScriptFromIdea = useCallback(async (request: ScriptGenerationRequest) => {
-    setIsGenerating(true);
-    setGenerationProgress("Generating script...");
-
-    try {
-      const response = await ClientScriptService.generateSpeedWrite(request);
-
-      if (response.success) {
-        const newComponents: ScriptComponent[] = [];
-        let primaryScript: ScriptIteration | undefined;
-
-        if (response.optionA) {
-          const wordCount = response.optionA.content.split(/\s+/).length;
-          
-          // Create ScriptIteration for conversation
-          primaryScript = {
-            version: 1,
-            content: response.optionA.content,
-            elements: {
-              hook: response.optionA.hook || '',
-              bridge: response.optionA.bridge || '',
-              goldenNugget: response.optionA.goldenNugget || '',
-              wta: response.optionA.wta || ''
-            },
-            metadata: {
-              tone: response.optionA.approach === 'viral' ? 'energetic' : 
-                    response.optionA.approach === 'educational' ? 'educational' : 'casual',
-              duration: response.optionA.estimatedDuration || '0:00',
-              wordCount,
-              lastModified: new Date(),
-              changeLog: ['Initial script generated']
-            }
-          };
-          
-          newComponents.push({
-            id: `option-a-${Date.now()}`,
-            type: "full-script",
-            title: `${response.optionA.title} (Option A)`,
-            content: response.optionA.content,
-            metadata: {
-              originalIdea: request.idea,
-              generatedAt: new Date().toISOString(),
-              approach: response.optionA.approach,
-              estimatedDuration: response.optionA.estimatedDuration,
-            },
-          });
-        }
-
-        if (response.optionB) {
-          newComponents.push({
-            id: `option-b-${Date.now()}`,
-            type: "full-script",
-            title: `${response.optionB.title} (Option B)`,
-            content: response.optionB.content,
-            metadata: {
-              originalIdea: request.idea,
-              generatedAt: new Date().toISOString(),
-              approach: response.optionB.approach,
-              estimatedDuration: response.optionB.estimatedDuration,
-            },
-          });
-        }
-
-        setScriptComponents((prev) => [...prev, ...newComponents]);
-        setGenerationProgress("Scripts generated successfully!");
-        
-        // Start interactive session with the primary script
-        if (primaryScript) {
-          const sessionId = startInteractiveSession(request.idea, primaryScript);
-          console.log('Started interactive session:', sessionId);
-        }
-      } else {
-        throw new Error(response.error ?? "Failed to generate script");
+      // If initial script provided, update editor
+      if (initialScript) {
+        setEditorContent(initialScript.content);
       }
-    } catch (error) {
-      console.error("Script generation failed:", error);
-      setGenerationProgress(`Error: ${error instanceof Error ? error.message : "Unknown error"}`);
-    } finally {
-      setIsGenerating(false);
-      setTimeout(() => setGenerationProgress(""), 3000);
-    }
-  }, [startInteractiveSession]);
+
+      return sessionId;
+    },
+    [startNewConversation],
+  );
+
+  const generateScriptFromIdea = useCallback(
+    async (request: ScriptGenerationRequest) => {
+      setIsGenerating(true);
+      setGenerationProgress("Generating script...");
+
+      try {
+        const response = await ClientScriptService.generateSpeedWrite(request);
+
+        if (response.success) {
+          const newComponents: ScriptComponent[] = [];
+          let primaryScript: ScriptIteration | undefined;
+
+          if (response.optionA) {
+            const wordCount = response.optionA.content.split(/\s+/).length;
+
+            // Create ScriptIteration for conversation
+            primaryScript = {
+              version: 1,
+              content: response.optionA.content,
+              elements: {
+                hook: response.optionA.hook || "",
+                bridge: response.optionA.bridge || "",
+                goldenNugget: response.optionA.goldenNugget || "",
+                wta: response.optionA.wta || "",
+              },
+              metadata: {
+                tone:
+                  response.optionA.approach === "viral"
+                    ? "energetic"
+                    : response.optionA.approach === "educational"
+                      ? "educational"
+                      : "casual",
+                duration: response.optionA.estimatedDuration || "0:00",
+                wordCount,
+                lastModified: new Date(),
+                changeLog: ["Initial script generated"],
+              },
+            };
+
+            newComponents.push({
+              id: `option-a-${Date.now()}`,
+              type: "full-script",
+              title: `${response.optionA.title} (Option A)`,
+              content: response.optionA.content,
+              metadata: {
+                originalIdea: request.idea,
+                generatedAt: new Date().toISOString(),
+                approach: response.optionA.approach,
+                estimatedDuration: response.optionA.estimatedDuration,
+              },
+            });
+          }
+
+          if (response.optionB) {
+            newComponents.push({
+              id: `option-b-${Date.now()}`,
+              type: "full-script",
+              title: `${response.optionB.title} (Option B)`,
+              content: response.optionB.content,
+              metadata: {
+                originalIdea: request.idea,
+                generatedAt: new Date().toISOString(),
+                approach: response.optionB.approach,
+                estimatedDuration: response.optionB.estimatedDuration,
+              },
+            });
+          }
+
+          setScriptComponents((prev) => [...prev, ...newComponents]);
+          setGenerationProgress("Scripts generated successfully!");
+
+          // Start interactive session with the primary script
+          if (primaryScript) {
+            const sessionId = startInteractiveSession(request.idea, primaryScript);
+            console.log("Started interactive session:", sessionId);
+          }
+        } else {
+          throw new Error(response.error ?? "Failed to generate script");
+        }
+      } catch (error) {
+        console.error("Script generation failed:", error);
+        setGenerationProgress(`Error: ${error instanceof Error ? error.message : "Unknown error"}`);
+      } finally {
+        setIsGenerating(false);
+        setTimeout(() => setGenerationProgress(""), 3000);
+      }
+    },
+    [startInteractiveSession],
+  );
 
   const contextValue = useMemo(
     () => ({

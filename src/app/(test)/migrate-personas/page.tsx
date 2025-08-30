@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+
 import { Loader2, Database, CheckCircle, AlertCircle } from "lucide-react";
 
 export default function MigratePersonasPage() {
@@ -24,7 +25,7 @@ export default function MigratePersonasPage() {
         },
         body: JSON.stringify({
           targetUid: "test-user", // Test auth UID for development
-          mode: mode === "orphaned" ? "orphaned" : "all"
+          mode: mode === "orphaned" ? "orphaned" : "all",
         }),
       });
 
@@ -76,9 +77,7 @@ export default function MigratePersonasPage() {
         <div className="space-y-4">
           {/* Migration Mode Selection */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-neutral-700">
-              Migration Mode
-            </label>
+            <label className="mb-2 block text-sm font-medium text-neutral-700">Migration Mode</label>
             <select
               value={mode}
               onChange={(e) => setMode(e.target.value as any)}
@@ -94,9 +93,7 @@ export default function MigratePersonasPage() {
           {/* Username Input (only for byUsername mode) */}
           {mode === "byUsername" && (
             <div>
-              <label className="mb-2 block text-sm font-medium text-neutral-700">
-                TikTok Username
-              </label>
+              <label className="mb-2 block text-sm font-medium text-neutral-700">TikTok Username</label>
               <input
                 type="text"
                 value={username}
@@ -110,10 +107,10 @@ export default function MigratePersonasPage() {
 
           {/* Warning for "all" mode */}
           {mode === "all" && (
-            <div className="rounded-[var(--radius-button)] border border-warning-200 bg-warning-50 p-3">
-              <p className="text-sm text-warning-800">
-                <strong>⚠️ Warning:</strong> This will claim ALL personas in the database for your account.
-                Only use this if you're sure no other users have personas.
+            <div className="border-warning-200 bg-warning-50 rounded-[var(--radius-button)] border p-3">
+              <p className="text-warning-800 text-sm">
+                <strong>⚠️ Warning:</strong> This will claim ALL personas in the database for your account. Only use
+                this if you're sure no other users have personas.
               </p>
             </div>
           )}
@@ -122,7 +119,7 @@ export default function MigratePersonasPage() {
           <button
             onClick={handleMigrate}
             disabled={loading || (mode === "byUsername" && !username)}
-            className="flex w-full items-center justify-center gap-2 rounded-[var(--radius-button)] bg-primary-600 px-4 py-2 text-white transition-colors hover:bg-primary-700 disabled:opacity-50"
+            className="bg-primary-600 hover:bg-primary-700 flex w-full items-center justify-center gap-2 rounded-[var(--radius-button)] px-4 py-2 text-white transition-colors disabled:opacity-50"
           >
             {loading ? (
               <>
@@ -140,21 +137,21 @@ export default function MigratePersonasPage() {
 
         {/* Results Display */}
         {result && (
-          <div className="mt-6 rounded-[var(--radius-button)] border border-success-200 bg-success-50 p-4">
+          <div className="border-success-200 bg-success-50 mt-6 rounded-[var(--radius-button)] border p-4">
             <div className="flex items-start gap-3">
-              <CheckCircle className="h-5 w-5 text-success-600 mt-0.5" />
+              <CheckCircle className="text-success-600 mt-0.5 h-5 w-5" />
               <div className="flex-1">
-                <h3 className="font-medium text-success-900">Migration Successful!</h3>
-                <div className="mt-2 space-y-1 text-sm text-success-700">
+                <h3 className="text-success-900 font-medium">Migration Successful!</h3>
+                <div className="text-success-700 mt-2 space-y-1 text-sm">
                   <p>• Updated {result.updatedCount} personas</p>
                   <p>• Total personas for your account: {result.totalPersonasForUser}</p>
                 </div>
                 {result.updatedPersonas && result.updatedPersonas.length > 0 && (
                   <div className="mt-3">
-                    <p className="text-sm font-medium text-success-800">Updated personas:</p>
+                    <p className="text-success-800 text-sm font-medium">Updated personas:</p>
                     <ul className="mt-1 space-y-1">
                       {result.updatedPersonas.map((persona: any) => (
-                        <li key={persona.id} className="text-sm text-success-700">
+                        <li key={persona.id} className="text-success-700 text-sm">
                           • {persona.name} ({persona.platform}, @{persona.username})
                         </li>
                       ))}
@@ -168,12 +165,12 @@ export default function MigratePersonasPage() {
 
         {/* Error Display */}
         {error && (
-          <div className="mt-6 rounded-[var(--radius-button)] border border-destructive-200 bg-destructive-50 p-4">
+          <div className="border-destructive-200 bg-destructive-50 mt-6 rounded-[var(--radius-button)] border p-4">
             <div className="flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-destructive-600 mt-0.5" />
+              <AlertCircle className="text-destructive-600 mt-0.5 h-5 w-5" />
               <div className="flex-1">
-                <h3 className="font-medium text-destructive-900">Migration Failed</h3>
-                <p className="mt-1 text-sm text-destructive-700">{error}</p>
+                <h3 className="text-destructive-900 font-medium">Migration Failed</h3>
+                <p className="text-destructive-700 mt-1 text-sm">{error}</p>
               </div>
             </div>
           </div>
@@ -181,14 +178,24 @@ export default function MigratePersonasPage() {
 
         {/* Info Box */}
         <div className="mt-6 rounded-[var(--radius-button)] border border-neutral-200 bg-white p-4">
-          <h4 className="font-medium text-neutral-900 mb-2">How this works:</h4>
+          <h4 className="mb-2 font-medium text-neutral-900">How this works:</h4>
           <ul className="space-y-1 text-sm text-neutral-600">
-            <li>• <strong>Orphaned Only:</strong> Claims personas that don't have an owner (safest option)</li>
-            <li>• <strong>All Personas:</strong> Claims all personas in the database for your account</li>
-            <li>• <strong>By Username:</strong> Claims personas matching a specific TikTok username</li>
+            <li>
+              • <strong>Orphaned Only:</strong> Claims personas that don't have an owner (safest option)
+            </li>
+            <li>
+              • <strong>All Personas:</strong> Claims all personas in the database for your account
+            </li>
+            <li>
+              • <strong>By Username:</strong> Claims personas matching a specific TikTok username
+            </li>
           </ul>
           <p className="mt-3 text-sm text-neutral-500">
-            After migration, go to <a href="/personas" className="text-primary-600 hover:underline">Your Personas</a> to see them.
+            After migration, go to{" "}
+            <a href="/personas" className="text-primary-600 hover:underline">
+              Your Personas
+            </a>{" "}
+            to see them.
           </p>
         </div>
       </div>

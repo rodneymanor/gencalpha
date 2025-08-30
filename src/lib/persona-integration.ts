@@ -112,7 +112,8 @@ export function generatePersonaInstructions(persona: VoiceAnalysis): string {
   instructions.push("LANGUAGE REQUIREMENTS (MUST FOLLOW):");
   instructions.push(`- Sentence length: Average ${persona.linguisticFingerprint.avgSentenceLength} words per sentence`);
   instructions.push(
-    `- Vocabulary: ${persona.linguisticFingerprint.vocabularyTier.simple}% simple, ${persona.linguisticFingerprint.vocabularyTier.moderate}% moderate, ${persona.linguisticFingerprint.vocabularyTier.advanced}% advanced words`);
+    `- Vocabulary: ${persona.linguisticFingerprint.vocabularyTier.simple}% simple, ${persona.linguisticFingerprint.vocabularyTier.moderate}% moderate, ${persona.linguisticFingerprint.vocabularyTier.advanced}% advanced words`,
+  );
 
   if (persona.linguisticFingerprint.topUniqueWords.length > 0) {
     instructions.push(`- MUST use these words: ${persona.linguisticFingerprint.topUniqueWords.join(", ")}`);
@@ -168,7 +169,8 @@ export function generatePersonaInstructions(persona: VoiceAnalysis): string {
     });
 
     instructions.push(
-      `\nStructure: ${persona.scriptGenerationRules.optimalStructure.hookSection} → ${persona.scriptGenerationRules.optimalStructure.bodySection} → ${persona.scriptGenerationRules.optimalStructure.closeSection}`);
+      `\nStructure: ${persona.scriptGenerationRules.optimalStructure.hookSection} → ${persona.scriptGenerationRules.optimalStructure.bodySection} → ${persona.scriptGenerationRules.optimalStructure.closeSection}`,
+    );
 
     instructions.push(`\nFormula: ${persona.scriptGenerationRules.formulaForNewScript}`);
     instructions.push("");
@@ -214,7 +216,8 @@ export function generateTopicPersonaPrompt(persona: VoiceAnalysis, topic: string
   instructions.push("=== UNIVERSAL VOICE TRANSFER: SCRIPT GENERATION ===");
   instructions.push(`TOPIC: ${topic}`);
   instructions.push(
-    "Apply this creator's voice patterns to this new topic. The templates are universal - adapt them to your subject.\n");
+    "Apply this creator's voice patterns to this new topic. The templates are universal - adapt them to your subject.\n",
+  );
 
   // Hook Selection - Most Important
   if (persona.hookReplicationSystem?.hookTemplates.length > 0) {

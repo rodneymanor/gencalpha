@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
 
     // Build the prompt with assistant context
     let systemPrompt = ASSISTANT_PROMPTS[assistant as keyof typeof ASSISTANT_PROMPTS] || ASSISTANT_PROMPTS.MiniBuddy;
-    
+
     // Apply persona enhancement if provided
     if (persona) {
       console.log(`🎯 [Chatbot API] Applying persona: ${persona.voiceProfile.primaryStyle} style`);
@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
     } else {
       console.log("🎭 [Chatbot API] Using base assistant prompt");
     }
-    
+
     console.log("🎭 [Chatbot API] Using assistant:", assistant);
     console.log("🎭 [Chatbot API] System prompt length:", systemPrompt.length);
 

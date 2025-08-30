@@ -6,14 +6,13 @@ import { useRouter } from "next/navigation";
 
 import { Plus, Filter, X, Star, Calendar, Tag, Type, Globe } from "lucide-react";
 
-import { CardSkeleton } from "@/components/ui/loading";
-
 import { IdeaDetailDialog } from "@/app/(main)/dashboard/idea-inbox/_components/idea-detail-dialog";
 import { mapNotesToIdeas } from "@/app/(main)/dashboard/idea-inbox/_components/note-mapper";
 import type { Idea, DatabaseNote } from "@/app/(main)/dashboard/idea-inbox/_components/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CardTransparent } from "@/components/ui/card";
+import { CardSkeleton } from "@/components/ui/loading";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { SearchField } from "@/components/ui/search-field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -246,7 +245,9 @@ export default function IdeasIdeaInboxPage() {
             <div className="space-y-1">
               <h1 className="text-foreground text-lg font-semibold sm:text-xl md:text-2xl">Your idea inbox</h1>
               <p className="text-muted-foreground text-sm">
-                {isLoading ? "Loading ideas..." : `${filteredIdeas.length} note${filteredIdeas.length !== 1 ? "s" : ""}`}
+                {isLoading
+                  ? "Loading ideas..."
+                  : `${filteredIdeas.length} note${filteredIdeas.length !== 1 ? "s" : ""}`}
               </p>
             </div>
             <div className="flex w-full gap-2 sm:w-auto">

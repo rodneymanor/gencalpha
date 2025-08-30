@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 export interface ThemeColors {
   // Core Colors
   background: string;

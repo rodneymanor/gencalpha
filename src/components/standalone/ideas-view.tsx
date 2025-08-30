@@ -4,8 +4,6 @@ import { useEffect, useState, useCallback } from "react";
 
 import { Filter, X, Star, Lightbulb, Edit3, MoreHorizontal } from "lucide-react";
 
-import { CardSkeleton } from "@/components/ui/loading";
-
 import { IdeaDetailDialog } from "@/app/(main)/dashboard/idea-inbox/_components/idea-detail-dialog";
 import { mapNotesToIdeas } from "@/app/(main)/dashboard/idea-inbox/_components/note-mapper";
 import type { Idea, DatabaseNote } from "@/app/(main)/dashboard/idea-inbox/_components/types";
@@ -19,6 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { CardSkeleton } from "@/components/ui/loading";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { SearchField } from "@/components/ui/search-field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";

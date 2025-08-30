@@ -1,5 +1,4 @@
 // Persona creation logic extracted to reduce complexity
-import { auth } from "@/lib/firebase";
 
 interface AnalysisProgress {
   step: string;
@@ -23,22 +22,19 @@ export async function fetchUserVideos(cleanUsername: string) {
   if (!feedData.success || !feedData.videos || feedData.videos.length === 0) {
     throw new Error(feedData.error ?? "No videos found for this user");
   }
-  
+
   return feedData;
 }
 
-export async function transcribeVideos(
-  videoUrls: string[],
-  onProgress?: (current: number, total: number) => void
-) {
+export async function transcribeVideos(videoUrls: string[], onProgress?: (current: number, total: number) => void) {
   const transcriptResults = [];
-  
+
   for (let i = 0; i < videoUrls.length; i++) {
     try {
       if (onProgress) {
         onProgress(i + 1, videoUrls.length);
       }
-      
+
       const transcriptResponse = await fetch("/api/video/transcribe-from-url", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -60,7 +56,7 @@ export async function transcribeVideos(
   if (transcriptResults.length < 3) {
     throw new Error("Not enough videos could be transcribed. Please try another creator.");
   }
-  
+
   return transcriptResults;
 }
 
@@ -100,7 +96,7 @@ export async function generatePersonaMetadata(voiceAnalysis: any, token: string)
       personaTags = metadataData.suggestedTags;
     }
   }
-  
+
   return { personaName, personaDescription, personaTags };
 }
 
@@ -108,7 +104,7 @@ export async function createPersona(
   cleanUsername: string,
   voiceAnalysis: any,
   metadata: { personaName: string; personaDescription: string; personaTags: string[] },
-  token: string
+  token: string,
 ) {
   const createResponse = await fetch("/api/personas/create", {
     method: "POST",

@@ -4,15 +4,9 @@
  */
 
 import { postJson } from "@/lib/http/post-json";
-import { scrapeVideoUrl } from "@/lib/unified-video-scraper";
 import { transcribeVideoUrl } from "@/lib/video-actions";
-import {
-  UserIdentifier,
-  UserFeedAnalysis,
-  VideoAnalysisData,
-  PersonaAnalysisConfig,
-  PersonaAnalysisError,
-} from "../types";
+
+import { UserIdentifier, UserFeedAnalysis, VideoAnalysisData, PersonaAnalysisConfig } from "../types";
 
 /**
  * Default configuration for user feed analysis
@@ -131,9 +125,9 @@ export class UserFeedOrchestrator {
    */
   async analyzeFeed(userIdentifier: UserIdentifier): Promise<UserFeedAnalysis> {
     console.log(`🎭 [FEED_ORCHESTRATOR] Starting analysis for ${userIdentifier.handle} on ${userIdentifier.platform}`);
-    
+
     const analysisStartTime = new Date().toISOString();
-    
+
     const analysis: UserFeedAnalysis = {
       userIdentifier,
       videos: [],
@@ -147,7 +141,7 @@ export class UserFeedOrchestrator {
     try {
       // Step 1: Retrieve user feed based on platform
       const feedData = await this.retrieveUserFeed(userIdentifier);
-      
+
       if (!feedData) {
         throw new Error(`Failed to retrieve ${userIdentifier.platform} feed for ${userIdentifier.handle}`);
       }
@@ -166,19 +160,18 @@ export class UserFeedOrchestrator {
       analysis.analysisCompleted = new Date().toISOString();
       analysis.status = "completed";
 
-      console.log(`✅ [FEED_ORCHESTRATOR] Analysis completed: ${analysis.processedVideos}/${analysis.totalVideos} videos processed`);
+      console.log(
+        `✅ [FEED_ORCHESTRATOR] Analysis completed: ${analysis.processedVideos}/${analysis.totalVideos} videos processed`,
+      );
 
       return analysis;
-
     } catch (error) {
       console.error(`❌ [FEED_ORCHESTRATOR] Analysis failed:`, error);
-      
+
       analysis.status = "failed";
       analysis.analysisCompleted = new Date().toISOString();
-      
-      throw new Error(
-        `Feed analysis failed: ${error instanceof Error ? error.message : "Unknown error"}`
-      );
+
+      throw new Error(`Feed analysis failed: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   }
 
@@ -218,7 +211,6 @@ export class UserFeedOrchestrator {
       }
 
       return response.videos;
-
     } catch (error) {
       console.error(`❌ [FEED_ORCHESTRATOR] TikTok feed retrieval failed:`, error);
       throw error;
@@ -228,7 +220,10 @@ export class UserFeedOrchestrator {
   /**
    * Process videos in batches for transcription
    */
-  private async processVideoBatches(videos: any[], platform: string): Promise<{
+  private async processVideoBatches(
+    videos: any[],
+    platform: string,
+  ): Promise<{
     successful: VideoAnalysisData[];
     failed: { video: any; error: string }[];
   }> {
@@ -240,7 +235,9 @@ export class UserFeedOrchestrator {
     // Process videos in batches to respect rate limits
     for (let i = 0; i < videos.length; i += this.config.batchSize) {
       const batch = videos.slice(i, i + this.config.batchSize);
-      console.log(`📦 [FEED_ORCHESTRATOR] Processing batch ${Math.floor(i / this.config.batchSize) + 1}/${Math.ceil(videos.length / this.config.batchSize)}`);
+      console.log(
+        `📦 [FEED_ORCHESTRATOR] Processing batch ${Math.floor(i / this.config.batchSize) + 1}/${Math.ceil(videos.length / this.config.batchSize)}`,
+      );
 
       const batchPromises = batch.map(async (video) => {
         try {
@@ -248,10 +245,10 @@ export class UserFeedOrchestrator {
           return { success: true, data: analysisData };
         } catch (error) {
           console.error(`❌ [FEED_ORCHESTRATOR] Video processing failed for ${video.id}:`, error);
-          return { 
-            success: false, 
-            video, 
-            error: error instanceof Error ? error.message : "Unknown error" 
+          return {
+            success: false,
+            video,
+            error: error instanceof Error ? error.message : "Unknown error",
           };
         }
       });
@@ -281,11 +278,13 @@ export class UserFeedOrchestrator {
       if (i + this.config.batchSize < videos.length) {
         const delayMs = (60 / this.config.rateLimit.requestsPerMinute) * 1000 * this.config.batchSize;
         console.log(`⏳ [FEED_ORCHESTRATOR] Rate limiting delay: ${delayMs}ms`);
-        await new Promise(resolve => setTimeout(resolve, delayMs));
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
       }
     }
 
-    console.log(`📊 [FEED_ORCHESTRATOR] Batch processing completed: ${successful.length} successful, ${failed.length} failed`);
+    console.log(
+      `📊 [FEED_ORCHESTRATOR] Batch processing completed: ${successful.length} successful, ${failed.length} failed`,
+    );
 
     return { successful, failed };
   }
@@ -310,7 +309,9 @@ export class UserFeedOrchestrator {
       // Filter out transcripts that are too short
       const transcript = transcriptionResult.data.transcript;
       if (transcript.length < this.config.analysis.minTranscriptLength) {
-        throw new Error(`Transcript too short: ${transcript.length} characters (minimum: ${this.config.analysis.minTranscriptLength})`);
+        throw new Error(
+          `Transcript too short: ${transcript.length} characters (minimum: ${this.config.analysis.minTranscriptLength})`,
+        );
       }
 
       const analysisData: VideoAnalysisData = {
@@ -331,7 +332,6 @@ export class UserFeedOrchestrator {
 
       console.log(`✅ [FEED_ORCHESTRATOR] Successfully processed video ${video.id} (${transcript.length} chars)`);
       return analysisData;
-
     } catch (error) {
       console.error(`❌ [FEED_ORCHESTRATOR] Failed to process video ${video.id}:`, error);
       throw error;
@@ -365,7 +365,7 @@ export function createUserFeedOrchestrator(config?: Partial<PersonaAnalysisConfi
  */
 export async function analyzeUserFeed(
   userIdentifier: UserIdentifier,
-  config?: Partial<PersonaAnalysisConfig>
+  config?: Partial<PersonaAnalysisConfig>,
 ): Promise<UserFeedAnalysis> {
   const orchestrator = createUserFeedOrchestrator(config);
   return await orchestrator.analyzeFeed(userIdentifier);

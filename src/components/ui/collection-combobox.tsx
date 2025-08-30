@@ -4,10 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 
 import { ChevronsUpDown, FolderOpen } from "lucide-react";
 
-import { InlineLoader } from "@/components/ui/loading";
-
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import { InlineLoader } from "@/components/ui/loading";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useAuth } from "@/contexts/auth-context";
 import { RBACClientService } from "@/core/auth/rbac-client";

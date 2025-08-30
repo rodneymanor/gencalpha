@@ -77,10 +77,7 @@ async function downloadVideo(url: string): Promise<{ success: boolean; buffer?: 
 }
 
 // Transcribe video using Gemini
-async function transcribeVideo(
-  videoBuffer: ArrayBuffer,
-  requestId: string,
-): Promise<TranscriptionResponse> {
+async function transcribeVideo(videoBuffer: ArrayBuffer, requestId: string): Promise<TranscriptionResponse> {
   let tempFilePath: string | null = null;
   let uploadedFile: any = null;
 
@@ -260,10 +257,9 @@ export async function POST(request: NextRequest) {
     const { videoUrl } = body;
 
     if (!videoUrl) {
-      return NextResponse.json(
-        { success: false, error: "Video URL is required" } satisfies TranscriptionResponse,
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: "Video URL is required" } satisfies TranscriptionResponse, {
+        status: 400,
+      });
     }
 
     // Validate environment
@@ -271,7 +267,7 @@ export async function POST(request: NextRequest) {
       console.error(`❌ [${requestId}] Missing GEMINI_API_KEY`);
       return NextResponse.json(
         { success: false, error: "Server configuration incomplete" } satisfies TranscriptionResponse,
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -287,7 +283,7 @@ export async function POST(request: NextRequest) {
           error: "Failed to download video",
           details: downloadResult.error,
         } satisfies TranscriptionResponse,
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -303,7 +299,6 @@ export async function POST(request: NextRequest) {
 
     console.log(`🎉 [${requestId}] Transcription completed successfully`);
     return NextResponse.json(transcriptionResult);
-
   } catch (error) {
     console.error(`❌ [${requestId}] Unexpected error:`, error);
     return NextResponse.json(
@@ -312,7 +307,7 @@ export async function POST(request: NextRequest) {
         error: "Internal server error",
         details: error instanceof Error ? error.message : "Unknown error occurred",
       } satisfies TranscriptionResponse,
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

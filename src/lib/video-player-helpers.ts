@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-import { type VideoData } from "@/app/(main)/dashboard/daily/_components/creator-videos-grid";
 import { type Video } from "@/lib/collections";
+
+import { type VideoData } from "@/app/(main)/dashboard/daily/_components/creator-videos-grid";
 
 /**
  * Transform VideoData from creator videos to Video format for the video player

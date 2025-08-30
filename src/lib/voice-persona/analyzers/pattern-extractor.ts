@@ -3,12 +3,7 @@
  * Analyzes transcripts to extract speech patterns, signature elements, and voice characteristics
  */
 
-import {
-  VideoAnalysisData,
-  SpeechPatterns,
-  PatternMappingMatrix,
-  PatternElement,
-} from "../types";
+import { VideoAnalysisData, SpeechPatterns, PatternMappingMatrix, PatternElement } from "../types";
 
 /**
  * Configuration for pattern extraction
@@ -60,10 +55,7 @@ const PATTERN_DEFINITIONS = {
     /(you guys|you need to|you should|you have to|you can)/i,
     /(let me ask you|think about it|imagine this)/i,
   ],
-  fillers: [
-    /(um|uh|like|you know|so|well|actually)/i,
-    /(obviously|literally|basically|honestly)/i,
-  ],
+  fillers: [/(um|uh|like|you know|so|well|actually)/i, /(obviously|literally|basically|honestly)/i],
 };
 
 /**
@@ -71,25 +63,15 @@ const PATTERN_DEFINITIONS = {
  */
 const EMOTIONAL_PATTERNS = {
   excited: {
-    markers: [
-      /(amazing|incredible|unbelievable|wow|omg|crazy)/i,
-      /[!]{2,}/g,
-      /[A-Z]{3,}/g,
-    ],
+    markers: [/(amazing|incredible|unbelievable|wow|omg|crazy)/i, /[!]{2,}/g, /[A-Z]{3,}/g],
     rhythm: "fast",
   },
   explaining: {
-    markers: [
-      /(first|second|third|next|then|finally)/i,
-      /(because|since|due to|as a result)/i,
-    ],
+    markers: [/(first|second|third|next|then|finally)/i, /(because|since|due to|as a result)/i],
     rhythm: "measured",
   },
   storytelling: {
-    markers: [
-      /(once|when|there was|i remember|back when)/i,
-      /(and then|suddenly|meanwhile|after that)/i,
-    ],
+    markers: [/(once|when|there was|i remember|back when)/i, /(and then|suddenly|meanwhile|after that)/i],
     rhythm: "narrative",
   },
 };
@@ -111,12 +93,12 @@ export class PatternExtractor {
     console.log(`🔍 [PATTERN_EXTRACTOR] Analyzing ${videos.length} videos for speech patterns`);
 
     // Combine all transcripts for comprehensive analysis
-    const combinedTranscript = videos.map(v => v.transcript).join(" ");
-    const transcripts = videos.map(v => v.transcript);
+    const combinedTranscript = videos.map((v) => v.transcript).join(" ");
+    const transcripts = videos.map((v) => v.transcript);
 
     // Extract baseline patterns
     const baseline = this.extractBaseline(combinedTranscript, transcripts);
-    
+
     // Extract emotional state patterns
     const emotionalStates = this.config.enableEmotionalAnalysis
       ? this.extractEmotionalStates(transcripts)
@@ -141,17 +123,47 @@ export class PatternExtractor {
   extractPatternMatrix(videos: VideoAnalysisData[]): PatternMappingMatrix {
     console.log(`📊 [PATTERN_EXTRACTOR] Creating pattern mapping matrix`);
 
-    const transcripts = videos.map(v => v.transcript);
+    const transcripts = videos.map((v) => v.transcript);
     const combinedTranscript = transcripts.join(" ");
     const wordCount = combinedTranscript.split(/\s+/).length;
 
     return {
-      primaryHook: this.analyzePatternElement("Primary Hook", PATTERN_DEFINITIONS.hooks.opening, combinedTranscript, wordCount),
-      bridgePhrase: this.analyzePatternElement("Bridge Phrase", PATTERN_DEFINITIONS.bridges, combinedTranscript, wordCount),
-      energyEscalator: this.analyzePatternElement("Energy Escalator", PATTERN_DEFINITIONS.energyEscalators, combinedTranscript, wordCount),
-      personalReference: this.analyzePatternElement("Personal Reference", PATTERN_DEFINITIONS.personalReferences, combinedTranscript, wordCount),
-      audienceAddress: this.analyzePatternElement("Audience Address", PATTERN_DEFINITIONS.audienceAddress, combinedTranscript, wordCount),
-      questionPattern: this.analyzePatternElement("Question Pattern", PATTERN_DEFINITIONS.hooks.questions, combinedTranscript, wordCount),
+      primaryHook: this.analyzePatternElement(
+        "Primary Hook",
+        PATTERN_DEFINITIONS.hooks.opening,
+        combinedTranscript,
+        wordCount,
+      ),
+      bridgePhrase: this.analyzePatternElement(
+        "Bridge Phrase",
+        PATTERN_DEFINITIONS.bridges,
+        combinedTranscript,
+        wordCount,
+      ),
+      energyEscalator: this.analyzePatternElement(
+        "Energy Escalator",
+        PATTERN_DEFINITIONS.energyEscalators,
+        combinedTranscript,
+        wordCount,
+      ),
+      personalReference: this.analyzePatternElement(
+        "Personal Reference",
+        PATTERN_DEFINITIONS.personalReferences,
+        combinedTranscript,
+        wordCount,
+      ),
+      audienceAddress: this.analyzePatternElement(
+        "Audience Address",
+        PATTERN_DEFINITIONS.audienceAddress,
+        combinedTranscript,
+        wordCount,
+      ),
+      questionPattern: this.analyzePatternElement(
+        "Question Pattern",
+        PATTERN_DEFINITIONS.hooks.questions,
+        combinedTranscript,
+        wordCount,
+      ),
     };
   }
 
@@ -159,9 +171,9 @@ export class PatternExtractor {
    * Extract baseline speech patterns
    */
   private extractBaseline(combinedTranscript: string, transcripts: string[]): SpeechPatterns["baseline"] {
-    const sentences = combinedTranscript.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    const sentences = combinedTranscript.split(/[.!?]+/).filter((s) => s.trim().length > 0);
     const avgSentenceLength = sentences.reduce((sum, s) => sum + s.split(/\s+/).length, 0) / sentences.length;
-    
+
     // Analyze sentence structure
     let sentenceStructure: "short" | "varied" | "complex" = "varied";
     if (avgSentenceLength < 8) sentenceStructure = "short";
@@ -170,11 +182,11 @@ export class PatternExtractor {
     // Analyze energy level from caps and punctuation
     const capsWords = (combinedTranscript.match(/\b[A-Z]{2,}\b/g) || []).length;
     const exclamations = (combinedTranscript.match(/[!]/g) || []).length;
-    const energyScore = (capsWords + exclamations) / combinedTranscript.length * 1000;
+    const energyScore = ((capsWords + exclamations) / combinedTranscript.length) * 1000;
 
     let typicalEnergy: "low" | "medium" | "high" = "medium";
     let energyDescription = "Consistent moderate energy";
-    
+
     if (energyScore > 5) {
       typicalEnergy = "high";
       energyDescription = "High energy with frequent emphasis and excitement";
@@ -184,7 +196,7 @@ export class PatternExtractor {
     }
 
     // Analyze rhythm from sentence variation
-    const sentenceLengths = sentences.map(s => s.split(/\s+/).length);
+    const sentenceLengths = sentences.map((s) => s.split(/\s+/).length);
     const variation = this.calculateVariation(sentenceLengths);
     const defaultRhythm = variation > 0.3 ? "Variable pacing with dynamic rhythm" : "Consistent, steady rhythm";
 
@@ -268,7 +280,7 @@ export class PatternExtractor {
     elementName: string,
     patterns: RegExp[],
     transcript: string,
-    totalWords: number
+    totalWords: number,
   ): PatternElement {
     const matches = patterns.reduce((acc, pattern) => {
       const found = transcript.match(new RegExp(pattern, "gi")) || [];
@@ -277,9 +289,9 @@ export class PatternExtractor {
 
     const frequency = matches.length;
     const wordsPerOccurrence = frequency > 0 ? Math.round(totalWords / frequency) : 0;
-    
+
     const examples = [...new Set(matches)].slice(0, 5);
-    
+
     return {
       element: elementName,
       frequency: frequency > 0 ? `Every ${wordsPerOccurrence} words` : "Rarely used",
@@ -326,10 +338,12 @@ export class PatternExtractor {
    * Extract opening phrases from transcripts
    */
   private extractOpeningPhrases(transcripts: string[]): string[] {
-    const openings = transcripts.map(transcript => {
-      const sentences = transcript.split(/[.!?]+/);
-      return sentences[0]?.trim().toLowerCase();
-    }).filter(Boolean);
+    const openings = transcripts
+      .map((transcript) => {
+        const sentences = transcript.split(/[.!?]+/);
+        return sentences[0]?.trim().toLowerCase();
+      })
+      .filter(Boolean);
 
     return this.findCommonPatterns(openings).slice(0, 5);
   }
@@ -338,10 +352,12 @@ export class PatternExtractor {
    * Extract closing phrases from transcripts
    */
   private extractClosingPhrases(transcripts: string[]): string[] {
-    const closings = transcripts.map(transcript => {
-      const sentences = transcript.split(/[.!?]+/).filter(s => s.trim());
-      return sentences[sentences.length - 1]?.trim().toLowerCase();
-    }).filter(Boolean);
+    const closings = transcripts
+      .map((transcript) => {
+        const sentences = transcript.split(/[.!?]+/).filter((s) => s.trim());
+        return sentences[sentences.length - 1]?.trim().toLowerCase();
+      })
+      .filter(Boolean);
 
     return this.findCommonPatterns(closings).slice(0, 5);
   }
@@ -351,13 +367,14 @@ export class PatternExtractor {
    */
   private findCommonPatterns(phrases: string[]): string[] {
     const frequency: { [key: string]: number } = {};
-    
-    phrases.forEach(phrase => {
+
+    phrases.forEach((phrase) => {
       // Extract key words (ignore common words)
-      const keyWords = phrase.split(/\s+/)
-        .filter(word => !['the', 'a', 'an', 'and', 'or', 'but', 'is', 'are', 'was', 'were'].includes(word));
-      
-      keyWords.forEach(word => {
+      const keyWords = phrase
+        .split(/\s+/)
+        .filter((word) => !["the", "a", "an", "and", "or", "but", "is", "are", "was", "were"].includes(word));
+
+      keyWords.forEach((word) => {
         frequency[word] = (frequency[word] || 0) + 1;
       });
     });
@@ -373,12 +390,10 @@ export class PatternExtractor {
    */
   private isValidPhrase(phrase: string): boolean {
     // Filter out common words and short phrases
-    const commonWords = ['the', 'and', 'or', 'but', 'is', 'are', 'was', 'were', 'a', 'an'];
+    const commonWords = ["the", "and", "or", "but", "is", "are", "was", "were", "a", "an"];
     const words = phrase.split(/\s+/);
-    
-    return !words.every(word => commonWords.includes(word)) && 
-           phrase.length > 3 && 
-           !phrase.match(/^\d+$/);
+
+    return !words.every((word) => commonWords.includes(word)) && phrase.length > 3 && !phrase.match(/^\d+$/);
   }
 
   /**
@@ -444,7 +459,7 @@ export function createPatternExtractor(config?: Partial<PatternExtractionConfig>
  */
 export function extractSpeechPatterns(
   videos: VideoAnalysisData[],
-  config?: Partial<PatternExtractionConfig>
+  config?: Partial<PatternExtractionConfig>,
 ): SpeechPatterns {
   const extractor = createPatternExtractor(config);
   return extractor.extractPatterns(videos);
@@ -455,7 +470,7 @@ export function extractSpeechPatterns(
  */
 export function extractPatternMatrix(
   videos: VideoAnalysisData[],
-  config?: Partial<PatternExtractionConfig>
+  config?: Partial<PatternExtractionConfig>,
 ): PatternMappingMatrix {
   const extractor = createPatternExtractor(config);
   return extractor.extractPatternMatrix(videos);

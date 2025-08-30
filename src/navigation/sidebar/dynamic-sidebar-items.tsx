@@ -1,6 +1,15 @@
 "use client";
 
-import { Calendar, GalleryVerticalEnd, LibraryBig, Inbox, PenLine, Users, VenetianMask, type LucideIcon } from "lucide-react";
+import {
+  Calendar,
+  GalleryVerticalEnd,
+  LibraryBig,
+  Inbox,
+  PenLine,
+  Users,
+  VenetianMask,
+  type LucideIcon,
+} from "lucide-react";
 
 import { useCreatorsPageFlag, useGhostWriterFlag, useIdeaInboxFlag } from "@/hooks/use-feature-flag";
 

@@ -4,6 +4,7 @@
  */
 
 import { UnifiedVideoScraper } from "@/lib/unified-video-scraper";
+
 import { VideoUrlValidation, VideoPlatform, VideoActionError, VideoActionErrorDetails } from "../types";
 
 /**
@@ -16,7 +17,7 @@ export function validateVideoUrl(url: string): VideoUrlValidation {
   try {
     // Use the unified scraper's validation method
     const validation = UnifiedVideoScraper.validateUrlWithMessage(url);
-    
+
     const result: VideoUrlValidation = {
       valid: validation.valid,
       platform: validation.platform as VideoPlatform,
@@ -32,7 +33,7 @@ export function validateVideoUrl(url: string): VideoUrlValidation {
     return result;
   } catch (error) {
     console.error("❌ [URL_VALIDATOR] Validation error:", error);
-    
+
     return {
       valid: false,
       error: error instanceof Error ? error.message : "Unknown validation error",
@@ -45,7 +46,7 @@ export function validateVideoUrl(url: string): VideoUrlValidation {
  */
 export function validateVideoUrlOrThrow(url: string): VideoPlatform {
   const validation = validateVideoUrl(url);
-  
+
   if (!validation.valid) {
     const errorDetails: VideoActionErrorDetails = {
       code: VideoActionError.INVALID_URL,
@@ -53,10 +54,10 @@ export function validateVideoUrlOrThrow(url: string): VideoPlatform {
       url,
       timestamp: new Date(),
     };
-    
+
     throw new Error(`URL Validation Failed: ${errorDetails.message}`);
   }
-  
+
   return validation.platform!;
 }
 
@@ -92,7 +93,7 @@ export function validateVideoUrlDetailed(url: string): {
 } {
   try {
     const validation = validateVideoUrl(url);
-    
+
     if (validation.valid) {
       return {
         valid: true,
@@ -107,11 +108,11 @@ export function validateVideoUrlDetailed(url: string): {
     if (lowerUrl.includes("instagram") && !lowerUrl.includes("/reel")) {
       suggestions.push("Try using an Instagram Reel URL instead (look for /reel/ in the URL)");
     }
-    
+
     if (lowerUrl.includes("youtube")) {
       suggestions.push("YouTube URLs are not supported. Please use TikTok or Instagram URLs.");
     }
-    
+
     if (!lowerUrl.includes("http")) {
       suggestions.push("Make sure to include the full URL starting with https://");
     }
