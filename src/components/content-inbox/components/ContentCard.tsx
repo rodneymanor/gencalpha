@@ -21,6 +21,8 @@ import {
   ExternalLink,
   Tag,
   Calendar,
+  Pin,
+  Sparkles,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -107,6 +109,7 @@ const PlatformBadge: React.FC<{ platform: string }> = ({ platform }) => {
     instagram: "bg-gradient-to-r from-purple-500 to-pink-500 text-white",
     twitter: "bg-blue-100 text-blue-700 border-blue-200",
     linkedin: "bg-blue-600 text-white",
+    genc: "bg-brand-100 text-brand-700 border-brand-200",
     unknown: "bg-neutral-100 text-neutral-600 border-neutral-200",
   };
 
@@ -291,6 +294,8 @@ export const ContentCard: React.FC<ContentCardProps> = ({
         "transition-all duration-200",
         "overflow-hidden",
         isSelected && "border-primary-400 bg-primary-50",
+        item.isSystemContent && "border-brand-200 bg-gradient-to-br from-brand-50 to-primary-50",
+        item.isPinned && "border-primary-300",
       )}
     >
       {/* Drag handle */}
@@ -308,6 +313,20 @@ export const ContentCard: React.FC<ContentCardProps> = ({
       <div className="absolute top-2 right-2 z-10">
         <Checkbox checked={isSelected} onCheckedChange={onSelect} className="border-neutral-300 bg-white/90" />
       </div>
+
+      {/* Pinned indicator */}
+      {item.isPinned && (
+        <div className="absolute top-2 left-12 z-10 rounded-full bg-primary-500 p-1.5">
+          <Pin className="h-3 w-3 text-white" />
+        </div>
+      )}
+
+      {/* System content indicator */}
+      {item.isSystemContent && (
+        <div className="absolute top-2 left-2 z-10 rounded-full bg-brand-500 p-1.5">
+          <Sparkles className="h-3 w-3 text-white" />
+        </div>
+      )}
 
       {/* Thumbnail */}
       <div className="relative aspect-video cursor-pointer bg-neutral-200" onClick={onClick}>
@@ -352,9 +371,11 @@ export const ContentCard: React.FC<ContentCardProps> = ({
           />
         </div>
 
-        {/* Transcript snippet */}
-        {item.transcription?.text && (
-          <p className="mb-2 line-clamp-2 text-xs text-neutral-600">{item.transcription.text}</p>
+        {/* Content/Transcript snippet */}
+        {(item.content || item.transcription?.text) && (
+          <p className="mb-2 line-clamp-2 text-xs text-neutral-600">
+            {item.content || item.transcription.text}
+          </p>
         )}
 
         {/* Metrics */}

@@ -1,10 +1,10 @@
 // Content Inbox Types
 
-export type Platform = "youtube" | "tiktok" | "instagram" | "twitter" | "linkedin" | "unknown";
+export type Platform = "youtube" | "tiktok" | "instagram" | "twitter" | "linkedin" | "genc" | "unknown";
 
 export type TranscriptionStatus = "pending" | "processing" | "complete" | "failed" | "none";
 
-export type ContentCategory = "inspiration" | "competitor" | "trending" | "evergreen" | "seasonal" | "educational";
+export type ContentCategory = "inspiration" | "competitor" | "trending" | "educational";
 
 export type ViewMode = "grid" | "list";
 
@@ -22,6 +22,7 @@ export interface ContentItem {
   url: string;
   title?: string;
   description?: string;
+  content?: string; // For system content like getting started note
   thumbnailUrl?: string;
   platform: Platform;
   creator?: Creator;
@@ -41,6 +42,8 @@ export interface ContentItem {
   likeCount?: number;
   commentCount?: number;
   order?: number;
+  isSystemContent?: boolean; // Flag for system-generated content
+  isPinned?: boolean; // Keep important content at the top
 }
 
 export interface FilterOptions {

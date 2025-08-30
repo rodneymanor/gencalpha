@@ -81,8 +81,6 @@ export const SearchFilterBar: React.FC<SearchFilterBarProps> = ({
     { value: "inspiration", label: "Inspiration" },
     { value: "competitor", label: "Competitor" },
     { value: "trending", label: "Trending" },
-    { value: "evergreen", label: "Evergreen" },
-    { value: "seasonal", label: "Seasonal" },
     { value: "educational", label: "Educational" },
   ];
 

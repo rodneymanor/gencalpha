@@ -100,6 +100,26 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
     }
   }, [data]);
 
+  // Check for onboarding content on first load
+  useEffect(() => {
+    const checkOnboarding = async () => {
+      try {
+        const response = await fetch("/api/content-inbox/check-onboarding");
+        if (response.ok) {
+          const result = await response.json();
+          if (result.gettingStartedAdded && !result.hasContent) {
+            // Refresh the content list to show the new getting started note
+            refetch();
+          }
+        }
+      } catch (error) {
+        console.error("Error checking onboarding:", error);
+      }
+    };
+
+    checkOnboarding();
+  }, []); // Only run once on mount
+
   // Select/deselect all
   const handleSelectAll = useCallback(
     (checked: boolean) => {

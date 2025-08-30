@@ -43,7 +43,11 @@ export async function GET(request: NextRequest) {
         .where("savedAt", "<=", new Date(filters.dateRange.to));
     }
 
-    // Apply sorting
+    // Apply sorting - always show pinned items first
+    if (sort.field !== "custom") {
+      // First order by pinned status, then by the requested field
+      query = query.orderBy("isPinned", "desc");
+    }
     const sortField = sort.field === "custom" ? "order" : sort.field;
     query = query.orderBy(sortField, sort.direction);
 

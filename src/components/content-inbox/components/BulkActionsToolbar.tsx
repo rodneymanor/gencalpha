@@ -180,8 +180,6 @@ export const BulkActionsToolbar: React.FC<BulkActionsToolbarProps> = ({
                 <SelectItem value="inspiration">Inspiration</SelectItem>
                 <SelectItem value="competitor">Competitor</SelectItem>
                 <SelectItem value="trending">Trending</SelectItem>
-                <SelectItem value="evergreen">Evergreen</SelectItem>
-                <SelectItem value="seasonal">Seasonal</SelectItem>
                 <SelectItem value="educational">Educational</SelectItem>
               </SelectContent>
             </Select>

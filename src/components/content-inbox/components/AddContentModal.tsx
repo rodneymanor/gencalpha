@@ -153,8 +153,6 @@ export const AddContentModal: React.FC<AddContentModalProps> = ({ isOpen, onClos
     { value: "inspiration", label: "Inspiration", description: "Creative ideas and concepts" },
     { value: "competitor", label: "Competitor", description: "Competitive analysis" },
     { value: "trending", label: "Trending", description: "Currently popular content" },
-    { value: "evergreen", label: "Evergreen", description: "Timeless content" },
-    { value: "seasonal", label: "Seasonal", description: "Time-specific content" },
     { value: "educational", label: "Educational", description: "Learning resources" },
   ];
 
