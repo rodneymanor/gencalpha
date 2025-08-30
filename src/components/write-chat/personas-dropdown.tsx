@@ -187,10 +187,7 @@ export function PersonasDropdown({
                         {persona.name}
                       </div>
                       <div className="mt-0.5 text-xs text-neutral-500">
-                        @{persona.username} • {persona.platform === "tiktok" ? "TikTok" : "Instagram"}
-                      </div>
-                      <div className="mt-0.5 text-xs text-neutral-400">
-                        {persona.followers} followers
+                        @{persona.username}
                       </div>
                     </div>
                     {isSelected && (
