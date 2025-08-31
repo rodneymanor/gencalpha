@@ -20,14 +20,9 @@ import { AddContentForm } from "./components/add-content-form";
 import { BulkActionsToolbar } from "./components/BulkActionsToolbar";
 import { ContentTable } from "./components/content-table";
 import { ContentViewer } from "./components/content-viewer";
-import { SearchFilterBar } from "./components/SearchFilterBar";
+import { ContentInboxHeader } from "./content-inbox-header";
 // Import types and hooks
-import { 
-  useContentItems, 
-  useDeleteContent, 
-  useBulkAction, 
-  useAddContent 
-} from "./hooks/use-content-inbox";
+import { useContentItems, useDeleteContent, useBulkAction, useAddContent } from "./hooks/use-content-inbox";
 import { ContentItem, FilterOptions, SortOptions, BulkAction } from "./types";
 
 interface ContentInboxProps {
@@ -80,19 +75,19 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
         // Import auth to get the current user
         const { auth } = await import("@/lib/firebase");
         const user = auth.currentUser;
-        
+
         if (!user) {
           console.log("No authenticated user, skipping onboarding check");
           return;
         }
-        
+
         const token = await user.getIdToken();
         const response = await fetch("/api/content-inbox/check-onboarding", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-        
+
         if (response.ok) {
           const result = await response.json();
           if (result.gettingStartedAdded && !result.hasContent) {
@@ -207,19 +202,15 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
     return (
       <div className="slideout-layout-container">
         <main className={cn("main-content flex h-full flex-col", className)}>
-          <div className="border-b border-neutral-200 p-6">
-            <h1 className="mb-4 text-2xl font-semibold text-neutral-900">Content Inbox</h1>
-            <SearchFilterBar
-              filters={filters}
-              onFiltersChange={setFilters}
-              sort={sort}
-              onSortChange={setSort}
-              viewMode="list"
-              onViewModeChange={() => {}}
-              totalItems={0}
-              selectedCount={0}
-            />
-          </div>
+          <ContentInboxHeader
+            itemCount={0}
+            onAddContent={() => setIsAddSlideoutOpen(true)}
+            onSearch={(query) => setFilters({ ...filters, search: query })}
+            onFilterChange={(filter, value) => setFilters({ ...filters, [filter]: value })}
+            onViewChange={() => {}}
+            currentView="list"
+            searchQuery={filters.search}
+          />
 
           <div className="flex flex-1 items-center justify-center p-8">
             <div className="max-w-md text-center">
@@ -228,11 +219,7 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
               <p className="mb-6 text-neutral-600">
                 Start building your content library by adding videos and links you want to reference later.
               </p>
-              <Button
-                onClick={() => setIsAddSlideoutOpen(true)}
-                className="gap-2"
-                variant="soft"
-              >
+              <Button onClick={() => setIsAddSlideoutOpen(true)} className="gap-2" variant="soft">
                 <Plus className="h-4 w-4" />
                 Add First Content
               </Button>
@@ -265,30 +252,15 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
     <div className="slideout-layout-container">
       <main className={cn("main-content flex h-full flex-col", className)}>
         {/* Header */}
-        <div className="border-b border-neutral-200 p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <h1 className="text-2xl font-semibold text-neutral-900">Content Inbox</h1>
-            <Button
-              onClick={() => setIsAddSlideoutOpen(true)}
-              className="gap-2"
-              variant="soft"
-            >
-              <Plus className="h-4 w-4" />
-              Add Content
-            </Button>
-          </div>
-
-          <SearchFilterBar
-            filters={filters}
-            onFiltersChange={setFilters}
-            sort={sort}
-            onSortChange={setSort}
-            viewMode="list"
-            onViewModeChange={() => {}}
-            totalItems={totalItems}
-            selectedCount={selectedCount}
-          />
-        </div>
+        <ContentInboxHeader
+          itemCount={totalItems}
+          onAddContent={() => setIsAddSlideoutOpen(true)}
+          onSearch={(query) => setFilters({ ...filters, search: query })}
+          onFilterChange={(filter, value) => setFilters({ ...filters, [filter]: value })}
+          onViewChange={() => {}}
+          currentView="list"
+          searchQuery={filters.search}
+        />
 
         {/* Bulk actions toolbar */}
         <AnimatePresence>
@@ -311,7 +283,7 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
             {/* Error state */}
             {isError && (
               <div className="flex flex-col items-center justify-center py-12">
-                <AlertCircle className="mb-4 h-12 w-12 text-destructive-500" />
+                <AlertCircle className="text-destructive-500 mb-4 h-12 w-12" />
                 <p className="mb-2 font-medium text-neutral-900">Failed to load content</p>
                 <Button onClick={() => refetch()} variant="outline" size="sm">
                   Try Again

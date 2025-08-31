@@ -49,7 +49,7 @@ export function CreatorPersonaCard({ persona, onClick, className }: CreatorPerso
       onClick={handleClick}
       className={cn(
         "group flex cursor-pointer flex-col gap-2.5 text-left",
-        "rounded-[var(--radius-card)] outline-2 outline-offset-2 outline-transparent",
+        "rounded-[var(--radius-card)] outline-offset-2 outline-transparent",
         "transition-all duration-200",
         "hover:outline-primary-300/30 focus:outline-primary-300/70",
         className,
@@ -60,12 +60,12 @@ export function CreatorPersonaCard({ persona, onClick, className }: CreatorPerso
         className={cn(
           "relative flex h-[164px] items-end justify-center",
           "p-5 pb-0",
-          "border border-neutral-300/30 bg-neutral-50/20",
-          "dark:border-neutral-50/10 dark:bg-neutral-800/20",
+          "border border-neutral-200 bg-neutral-50",
+          "dark:border-neutral-700 dark:bg-neutral-800",
           "rounded-[var(--radius-card)]",
           "transition-all duration-300 ease-out",
-          "group-hover:border-neutral-300/40 group-hover:bg-neutral-50/40",
-          "dark:group-hover:border-neutral-50/15 dark:group-hover:bg-neutral-800/40",
+          "group-hover:border-neutral-300 group-hover:bg-neutral-100",
+          "dark:group-hover:border-neutral-600 dark:group-hover:bg-neutral-700",
           "overflow-hidden",
         )}
       >
@@ -74,13 +74,13 @@ export function CreatorPersonaCard({ persona, onClick, className }: CreatorPerso
           className={cn(
             "relative h-[calc(100%-20px)] w-[70%] max-w-[180px]",
             "rounded-t-[var(--radius-card)]",
-            "bg-gradient-to-b from-neutral-50 to-neutral-50/95",
-            "dark:from-neutral-800 dark:to-neutral-800/95",
+            "bg-gradient-to-b from-neutral-50 to-neutral-100",
+            "dark:from-neutral-800 dark:to-neutral-700",
             "transition-all duration-300 ease-out",
             "shadow-[0_-5px_10px_-3px_rgba(0,0,0,0.08),0_-2px_4px_-2px_rgba(0,0,0,0.06)]",
             "dark:shadow-[0_-5px_10px_-3px_rgba(0,0,0,0.2),0_-2px_4px_-2px_rgba(0,0,0,0.15)]",
-            "border border-b-0 border-neutral-200/15",
-            "dark:border-neutral-50/10",
+            "border border-b-0 border-neutral-200",
+            "dark:border-neutral-700",
             "group-hover:-translate-y-1.5",
             "group-hover:shadow-[0_-10px_20px_-5px_rgba(0,0,0,0.12),0_-4px_8px_-3px_rgba(0,0,0,0.08)]",
             "dark:group-hover:shadow-[0_-10px_20px_-5px_rgba(0,0,0,0.3),0_-4px_8px_-3px_rgba(0,0,0,0.2)]",
@@ -149,12 +149,12 @@ export function AddPersonaCard({ onClick, className }: AddPersonaCardProps) {
       <div
         className={cn(
           "relative flex h-[164px] items-center justify-center",
-          "border-2 border-dashed border-neutral-300/30 bg-transparent",
-          "dark:border-neutral-50/10",
+          "border-2 border-dashed border-neutral-300 bg-transparent",
+          "dark:border-neutral-600",
           "rounded-[var(--radius-card)]",
           "transition-all duration-300 ease-out",
-          "group-hover:border-neutral-300/50 group-hover:bg-neutral-50/10",
-          "dark:group-hover:border-neutral-50/20 dark:group-hover:bg-neutral-800/10",
+          "group-hover:border-neutral-400 group-hover:bg-neutral-50",
+          "dark:group-hover:border-neutral-500 dark:group-hover:bg-neutral-800",
         )}
       >
         <Plus className="h-8 w-8 text-neutral-500 dark:text-neutral-400" />
