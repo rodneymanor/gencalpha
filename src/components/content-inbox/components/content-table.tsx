@@ -99,7 +99,7 @@ export const ContentTable: React.FC<ContentTableProps> = ({
             <TableHead className="w-12">
               <Checkbox
                 checked={allSelected}
-                indeterminate={!allSelected && someSelected}
+                indeterminate={!allSelected && someSelected ? true : undefined}
                 onCheckedChange={onSelectAll}
                 className="border-neutral-300"
               />

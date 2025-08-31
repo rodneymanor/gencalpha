@@ -319,7 +319,7 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
           {/* Select all checkbox */}
           {items.length > 0 && (
             <div className="mb-4 flex items-center gap-3">
-              <Checkbox checked={isAllSelected} indeterminate={isIndeterminate} onCheckedChange={handleSelectAll} />
+              <Checkbox checked={isAllSelected} indeterminate={isIndeterminate ? true : undefined} onCheckedChange={handleSelectAll} />
               <span className="text-sm text-neutral-600">Select all {totalItems} items</span>
             </div>
           )}
