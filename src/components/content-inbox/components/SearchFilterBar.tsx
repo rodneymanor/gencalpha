@@ -365,10 +365,16 @@ export const SearchFilterBar: React.FC<SearchFilterBarProps> = ({
             <List className="h-4 w-4" />
           </button>
         </div>
+
+        {/* Item count - moved to main row */}
+        <div className="ml-auto flex items-center gap-2 text-sm text-neutral-600">
+          {selectedCount > 0 && <span className="text-primary-600 font-medium">{selectedCount} selected</span>}
+          <span className="text-neutral-900 font-medium">{totalItems} items</span>
+        </div>
       </div>
 
-      {/* Active filters and stats */}
-      <div className="flex items-center justify-between">
+      {/* Active filters only - stats moved to main row */}
+      {(activeFilterCount > 0 || filters.searchQuery || filters.dateRange) && (
         <div className="flex items-center gap-2">
           {activeFilterCount > 0 && (
             <>
@@ -411,13 +417,7 @@ export const SearchFilterBar: React.FC<SearchFilterBarProps> = ({
             )}
           </div>
         </div>
-
-        {/* Item count and selection info */}
-        <div className="flex items-center gap-3 text-sm text-neutral-600">
-          {selectedCount > 0 && <span className="text-primary-600 font-medium">{selectedCount} selected</span>}
-          <span>{totalItems} items</span>
-        </div>
-      </div>
+      )}
     </div>
   );
 };
