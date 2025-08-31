@@ -205,27 +205,32 @@ export default function NotionPanel({
         </div>
       )}
 
-      {/* Tab Navigation */}
+      {/* Tab Navigation - Scrollable with Soft Buttons */}
       {availableTabs.length > 0 && (
-        <div className="px-4 pb-2 border-b border-neutral-200">
-          <div className="flex gap-1">
-            {availableTabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`
-                  flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-[var(--radius-button)]
-                  transition-all duration-150
-                  ${activeTab === tab.id 
-                    ? 'bg-neutral-900 text-neutral-50' 
-                    : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
-                  }
-                `}
-              >
-                {tab.icon}
-                <span>{tab.label}</span>
-              </button>
-            ))}
+        <div className="border-b border-neutral-200">
+          <div className="px-4 pb-2 overflow-x-auto scrollbar-thin scrollbar-thumb-neutral-300 scrollbar-track-transparent">
+            <div className="flex gap-1 min-w-max">
+              {availableTabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`
+                    flex items-center gap-2 px-3 py-1.5 text-sm font-medium 
+                    rounded-[var(--radius-button)] whitespace-nowrap
+                    transition-all duration-150
+                    ${activeTab === tab.id 
+                      ? 'bg-neutral-200 text-neutral-900 border border-neutral-300' 
+                      : 'bg-neutral-100 text-neutral-600 border border-neutral-200 hover:bg-neutral-200 hover:text-neutral-900 hover:border-neutral-300'
+                    }
+                  `}
+                >
+                  <span className={activeTab === tab.id ? 'text-neutral-700' : 'text-neutral-500'}>
+                    {tab.icon}
+                  </span>
+                  <span>{tab.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}
