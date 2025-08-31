@@ -171,7 +171,7 @@ export const AddIdeaPanel: React.FC<AddIdeaPanelProps> = ({ isOpen, onClose, onS
       onClose={onClose}
       config={{
         ...ClaudeArtifactConfig,
-        width: "md", // 600px width
+        width: "lg", // 600px width to match content viewer
         showHeader: false, // Disable default header completely
         showCloseButton: false,
         animationType: "claude", // Claude-style smooth animation

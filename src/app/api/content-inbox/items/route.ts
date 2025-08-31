@@ -4,11 +4,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getAdminDb, isAdminInitialized } from "@/lib/firebase-admin";
 import { authenticateWithFirebaseToken } from "@/lib/firebase-auth-helpers";
+import { authenticateApiKey } from "@/lib/api-key-auth";
 
 // GET - Fetch content items with pagination and filters
 export async function GET(request: NextRequest) {
   try {
-    // Authenticate with Firebase token
+    // Authenticate with Firebase token or API key
     const authHeader = request.headers.get("authorization");
     
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -16,7 +17,14 @@ export async function GET(request: NextRequest) {
     }
     
     const token = authHeader.substring(7);
-    const authResult = await authenticateWithFirebaseToken(token);
+    
+    // Check if it's an API key
+    let authResult;
+    if (token.startsWith("gencbeta_")) {
+      authResult = await authenticateApiKey(request);
+    } else {
+      authResult = await authenticateWithFirebaseToken(token);
+    }
     
     if (authResult instanceof NextResponse) {
       return authResult;
@@ -138,7 +146,7 @@ export async function GET(request: NextRequest) {
 // POST - Add new content item
 export async function POST(request: NextRequest) {
   try {
-    // Authenticate with Firebase token
+    // Authenticate with Firebase token or API key
     const authHeader = request.headers.get("authorization");
     
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -146,7 +154,14 @@ export async function POST(request: NextRequest) {
     }
     
     const token = authHeader.substring(7);
-    const authResult = await authenticateWithFirebaseToken(token);
+    
+    // Check if it's an API key
+    let authResult;
+    if (token.startsWith("gencbeta_")) {
+      authResult = await authenticateApiKey(request);
+    } else {
+      authResult = await authenticateWithFirebaseToken(token);
+    }
     
     if (authResult instanceof NextResponse) {
       return authResult;
@@ -159,7 +174,7 @@ export async function POST(request: NextRequest) {
     const adminDb = getAdminDb();
 
     const body = await request.json();
-    const { url, platform, category, tags } = body;
+    const { url, platform, category, tags, title, content, description } = body;
 
     // Validate required fields
     if (!url) {
@@ -169,6 +184,9 @@ export async function POST(request: NextRequest) {
     // Create content item
     const contentItem = {
       url,
+      title: title || null,
+      content: content || null,
+      description: description || null,
       platform: platform || "unknown",
       category: category || "inspiration",
       tags: tags || [],

@@ -15,7 +15,7 @@ import { IdeaDetailDialog } from "./_components/idea-detail-dialog";
 import { IdeaTable } from "./_components/idea-table";
 import { ImportDialog } from "./_components/import-dialog";
 import { mapNotesToIdeas } from "./_components/note-mapper";
-import type { Idea, DatabaseNote } from "./_components/types";
+import type { Idea, DatabaseNote, NoteType } from "./_components/types";
 
 export default function IdeaInboxPage() {
   const [ideas, setIdeas] = useState<Idea[]>([]);
@@ -82,8 +82,7 @@ export default function IdeaInboxPage() {
       const filtered = ideas.filter(
         (idea) =>
           idea.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          idea.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          idea.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase())),
+          idea.content.toLowerCase().includes(searchQuery.toLowerCase()),
       );
       setFilteredIdeas(filtered);
     } else {
@@ -119,7 +118,7 @@ The content would be processed and cleaned up for easier reading and conversion 
       await clientNotesService.createNote({
         title: `Imported from ${importSource.charAt(0).toUpperCase() + importSource.slice(1)}`,
         content: mockContent,
-        tags: [importSource, "imported"],
+        noteType: NoteType.NOTE,
         type: "text",
         source: "import",
         starred: false,
@@ -148,7 +147,7 @@ The content would be processed and cleaned up for easier reading and conversion 
       await clientNotesService.createNote({
         title,
         content: manualContent,
-        tags: ["manual"],
+        noteType: NoteType.NOTE,
         type: "text",
         source: "manual",
         starred: false,
