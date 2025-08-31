@@ -207,8 +207,6 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
             onAddContent={() => setIsAddSlideoutOpen(true)}
             onSearch={(query) => setFilters({ ...filters, search: query })}
             onFilterChange={(filter, value) => setFilters({ ...filters, [filter]: value })}
-            onViewChange={() => {}}
-            currentView="list"
             searchQuery={filters.search}
           />
 
@@ -257,8 +255,6 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
           onAddContent={() => setIsAddSlideoutOpen(true)}
           onSearch={(query) => setFilters({ ...filters, search: query })}
           onFilterChange={(filter, value) => setFilters({ ...filters, [filter]: value })}
-          onViewChange={() => {}}
-          currentView="list"
           searchQuery={filters.search}
         />
 
