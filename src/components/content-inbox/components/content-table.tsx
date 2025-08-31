@@ -4,8 +4,6 @@ import React from "react";
 
 import { formatDistanceToNow } from "date-fns";
 import {
-  Eye,
-  Heart,
   Calendar,
   Pin,
   Sparkles,
@@ -13,6 +11,9 @@ import {
   FileText,
   Video,
   Image,
+  CheckCircle,
+  Clock,
+  AlertCircle,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -78,13 +79,6 @@ const ContentTypeIcon: React.FC<{ item: ContentItem }> = ({ item }) => {
   return <FileText className="h-4 w-4 text-neutral-500" />;
 };
 
-// Format count for display
-const formatCount = (count?: number) => {
-  if (!count) return "—";
-  if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
-  if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
-  return count.toString();
-};
 
 export const ContentTable: React.FC<ContentTableProps> = ({
   items,
@@ -110,13 +104,11 @@ export const ContentTable: React.FC<ContentTableProps> = ({
                 className="border-neutral-300"
               />
             </TableHead>
-            <TableHead className="w-12"></TableHead>
             <TableHead>Title</TableHead>
-            <TableHead className="w-32">Platform</TableHead>
             <TableHead className="w-32">Category</TableHead>
-            <TableHead className="w-24 text-right">Views</TableHead>
-            <TableHead className="w-24 text-right">Likes</TableHead>
-            <TableHead className="w-32">Saved</TableHead>
+            <TableHead className="w-32">Platform</TableHead>
+            <TableHead className="w-32">Created</TableHead>
+            <TableHead className="w-32">Status</TableHead>
             <TableHead className="w-12"></TableHead>
           </TableRow>
         </TableHeader>
@@ -144,48 +136,69 @@ export const ContentTable: React.FC<ContentTableProps> = ({
                   />
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-1">
-                    {isPinned && (
-                      <Pin className="h-3 w-3 text-primary-500" />
-                    )}
-                    {isSystemContent && (
-                      <Sparkles className="h-3 w-3 text-brand-500" />
-                    )}
-                    <ContentTypeIcon item={item} />
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+                      {isPinned && (
+                        <Pin className="h-3 w-3 text-primary-500" />
+                      )}
+                      {isSystemContent && (
+                        <Sparkles className="h-3 w-3 text-brand-500" />
+                      )}
+                      <ContentTypeIcon item={item} />
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="font-medium text-neutral-900 line-clamp-1">
+                        {item.title ?? "Untitled"}
+                      </span>
+                      {item.description && (
+                        <span className="text-xs text-neutral-600 line-clamp-1">
+                          {item.description}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </TableCell>
                 <TableCell>
-                  <div className="flex flex-col gap-1">
-                    <span className="font-medium text-neutral-900 line-clamp-1">
-                      {item.title ?? "Untitled"}
-                    </span>
-                    {item.description && (
-                      <span className="text-xs text-neutral-600 line-clamp-1">
-                        {item.description}
-                      </span>
-                    )}
-                  </div>
+                  {item.category ? (
+                    <Badge variant="outline" className="text-xs capitalize">
+                      {item.category}
+                    </Badge>
+                  ) : (
+                    <span className="text-neutral-400">—</span>
+                  )}
                 </TableCell>
                 <TableCell>
                   <PlatformBadge platform={item.platform} />
                 </TableCell>
                 <TableCell>
-                  {item.category && (
-                    <Badge variant="outline" className="text-xs capitalize">
-                      {item.category}
-                    </Badge>
-                  )}
-                </TableCell>
-                <TableCell className="text-right text-sm text-neutral-600">
-                  {formatCount(item.viewCount)}
-                </TableCell>
-                <TableCell className="text-right text-sm text-neutral-600">
-                  {formatCount(item.likeCount)}
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-1 text-xs text-neutral-500">
+                  <div className="flex items-center gap-1 text-xs text-neutral-600">
                     <Calendar className="h-3 w-3" />
                     {formatDistanceToNow(new Date(item.savedAt), { addSuffix: true })}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-1.5">
+                    {item.transcription?.status === 'completed' || item.isSystemContent ? (
+                      <>
+                        <CheckCircle className="h-3.5 w-3.5 text-success-600" />
+                        <span className="text-xs text-success-700">Ready</span>
+                      </>
+                    ) : item.transcription?.status === 'processing' ? (
+                      <>
+                        <Clock className="h-3.5 w-3.5 text-warning-600 animate-pulse" />
+                        <span className="text-xs text-warning-700">Processing</span>
+                      </>
+                    ) : item.transcription?.status === 'failed' ? (
+                      <>
+                        <AlertCircle className="h-3.5 w-3.5 text-destructive-600" />
+                        <span className="text-xs text-destructive-700">Failed</span>
+                      </>
+                    ) : (
+                      <>
+                        <Clock className="h-3.5 w-3.5 text-neutral-400" />
+                        <span className="text-xs text-neutral-500">Pending</span>
+                      </>
+                    )}
                   </div>
                 </TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
