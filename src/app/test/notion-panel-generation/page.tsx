@@ -32,10 +32,17 @@ export default function NotionPanelGenerationTest() {
   const [editorContent, setEditorContent] = useState('');
   const [currentStatusIndex, setCurrentStatusIndex] = useState(0);
   
-  // Single status property for generation tracking
+  // Properties including URL and generation status
   const [properties, setProperties] = useState([
     { 
       id: '1', 
+      type: 'url' as const, 
+      name: 'URL', 
+      value: '',
+      icon: 'link' 
+    },
+    { 
+      id: '2', 
       type: 'status' as const, 
       name: 'Generation', 
       value: GENERATION_STATUSES[0], 
@@ -74,23 +81,55 @@ export default function NotionPanelGenerationTest() {
   const cycleStatus = () => {
     const nextIndex = (currentStatusIndex + 1) % GENERATION_STATUSES.length;
     setCurrentStatusIndex(nextIndex);
-    setProperties([
-      { 
-        id: '1', 
-        type: 'status' as const, 
-        name: 'Generation', 
-        value: GENERATION_STATUSES[nextIndex], 
-        icon: 'burst' 
-      }
-    ]);
+    setProperties(prev => prev.map(prop => 
+      prop.id === '2' ? { ...prop, value: GENERATION_STATUSES[nextIndex] } : prop
+    ));
   };
 
-  const handlePropertyChange = (id: string, value: string | { label: string; color: string }) => {
+  const handlePropertyChange = async (id: string, value: string | { label: string; color: string }) => {
     setProperties(prev => 
       prev.map(prop => 
         prop.id === id ? { ...prop, value } : prop
       )
     );
+
+    // If URL field is updated, fetch the page title
+    if (id === '1' && typeof value === 'string' && value) {
+      try {
+        // Try to fetch the title from the URL
+        const response = await fetch('/api/fetch-title', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: value })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.title) {
+            setTitle(data.title);
+          }
+        } else {
+          // Fallback: extract domain name as title
+          try {
+            const url = new URL(value);
+            const domain = url.hostname.replace('www.', '');
+            setTitle(domain.charAt(0).toUpperCase() + domain.slice(1));
+          } catch {
+            // If URL is invalid, keep the current title
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching title:', error);
+        // Fallback: use URL hostname as title
+        try {
+          const url = new URL(value);
+          const domain = url.hostname.replace('www.', '');
+          setTitle(domain.charAt(0).toUpperCase() + domain.slice(1));
+        } catch {
+          // If URL is invalid, keep the current title
+        }
+      }
+    }
   };
 
   const getStatusIcon = (status: string) => {
@@ -146,15 +185,9 @@ export default function NotionPanelGenerationTest() {
                   key={index}
                   onClick={() => {
                     setCurrentStatusIndex(index);
-                    setProperties([
-                      { 
-                        id: '1', 
-                        type: 'status' as const, 
-                        name: 'Generation', 
-                        value: status, 
-                        icon: 'burst' 
-                      }
-                    ]);
+                    setProperties(prev => prev.map(prop => 
+                      prop.id === '2' ? { ...prop, value: status } : prop
+                    ));
                   }}
                   className={`
                     px-3 py-2 rounded-[var(--radius-button)] text-sm font-medium

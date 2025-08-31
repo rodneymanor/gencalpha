@@ -20,7 +20,8 @@ export default function NotionPanelTest() {
   
   // Sample properties for testing
   const [properties, setProperties] = useState([
-    { id: '1', type: 'status' as const, name: 'Generation Status', value: { label: 'Hooks Generated', color: 'success' }, icon: 'burst' }
+    { id: '1', type: 'url' as const, name: 'URL', value: '', icon: 'link' },
+    { id: '2', type: 'status' as const, name: 'Generation Status', value: { label: 'Hooks Generated', color: 'success' }, icon: 'burst' }
   ]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -51,12 +52,41 @@ export default function NotionPanelTest() {
     };
   }, [isDragging]);
 
-  const handlePropertyChange = (id: string, value: string | { label: string; color: string }) => {
+  const handlePropertyChange = async (id: string, value: string | { label: string; color: string }) => {
     setProperties(prev => 
       prev.map(prop => 
         prop.id === id ? { ...prop, value } : prop
       )
     );
+
+    // If URL field is updated, fetch the page title
+    if (id === '1' && typeof value === 'string' && value) {
+      try {
+        // Try to fetch the title from the URL
+        const response = await fetch('/api/fetch-title', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: value })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.title) {
+            setTitle(data.title);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching title:', error);
+        // Fallback: use URL hostname as title
+        try {
+          const url = new URL(value);
+          const domain = url.hostname.replace('www.', '');
+          setTitle(domain.charAt(0).toUpperCase() + domain.slice(1));
+        } catch {
+          // If URL is invalid, keep the current title
+        }
+      }
+    }
   };
 
   return (
