@@ -35,8 +35,8 @@ const IsComingSoon = () => (
 );
 
 const SidebarIcon = ({ icon: Icon }: { icon: React.ComponentType<React.SVGProps<SVGSVGElement>> }) => (
-  <div className="flex size-6 shrink-0 items-center justify-start">
-    <Icon className="size-5" />
+  <div className="group flex size-6 shrink-0 items-center justify-start">
+    <Icon className="size-5 transition-transform duration-200 group-hover:scale-110" />
   </div>
 );
 
@@ -64,8 +64,8 @@ const CustomDailyButton = ({ url }: { url: string }) => {
       className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground data-[active=true]:bg-transparent data-[active=true]:font-normal"
     >
       <Link href={url} onClick={handleClick}>
-        <div className="-ml-1 flex size-6 shrink-0 items-center justify-center rounded-[var(--radius-pill)] bg-neutral-200 border border-neutral-300 shadow-[var(--shadow-soft-drop)] transition-all duration-200 ease-linear hover:bg-neutral-300 hover:border-neutral-400">
-          <Plus className="size-5 text-neutral-900" />
+        <div className="-ml-1 flex size-6 shrink-0 items-center justify-center rounded-[var(--radius-pill)] bg-neutral-200 border border-neutral-200 shadow-[var(--shadow-soft-drop)] transition-all duration-200 ease-linear hover:bg-neutral-300 hover:border-neutral-400 hover:scale-110">
+          <Plus className="size-4 text-neutral-900 transition-transform duration-200" />
         </div>
         <span className="font-semibold text-neutral-900">New Script</span>
       </Link>
@@ -106,6 +106,7 @@ const NavItemExpanded = ({
               aria-disabled={item.comingSoon}
               isActive={isActive(item.url)}
               tooltip={item.title}
+              className="group"
             >
               <Link href={item.url} target={item.newTab ? "_blank" : undefined}>
                 {item.icon && <SidebarIcon icon={item.icon} />}
@@ -120,7 +121,7 @@ const NavItemExpanded = ({
             <SidebarMenuSub>
               {item.subItems.map((subItem) => (
                 <SidebarMenuSubItem key={subItem.title}>
-                  <SidebarMenuSubButton aria-disabled={subItem.comingSoon} isActive={isActive(subItem.url)} asChild>
+                  <SidebarMenuSubButton aria-disabled={subItem.comingSoon} isActive={isActive(subItem.url)} asChild className="group">
                     <Link href={subItem.url} target={subItem.newTab ? "_blank" : undefined}>
                       {subItem.icon && <SidebarIcon icon={subItem.icon} />}
                       <span>{subItem.title}</span>
@@ -152,6 +153,7 @@ const NavItemCollapsed = ({
             disabled={item.comingSoon}
             tooltip={item.title}
             isActive={isActive(item.url, item.subItems)}
+            className="group"
           >
             {item.icon && <SidebarIcon icon={item.icon} />}
             <span>{item.title === "Queue" ? "Q" : item.title}</span>
@@ -164,7 +166,7 @@ const NavItemCollapsed = ({
               <SidebarMenuSubButton
                 key={subItem.title}
                 asChild
-                className="focus-visible:ring-0"
+                className="focus-visible:ring-0 group"
                 aria-disabled={subItem.comingSoon}
                 isActive={isActive(subItem.url)}
               >
