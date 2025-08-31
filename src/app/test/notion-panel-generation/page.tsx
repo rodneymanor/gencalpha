@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
-import { X, Menu, FileText, Hash, Calendar, Users, Tag } from 'lucide-react';
+import { X, Menu, FileText, Sparkles, Check, Clock, AlertCircle } from 'lucide-react';
 import NotionPanel from '@/components/panels/notion-panel';
 
 // Dynamically import BlockNote to avoid SSR issues
@@ -11,16 +11,36 @@ const BlockNoteEditor = dynamic(() => import('@/components/editor/block-note-edi
   loading: () => <div className="animate-pulse bg-neutral-100 rounded h-20" />
 });
 
-export default function NotionPanelTest() {
+// Generation status options
+const GENERATION_STATUSES = [
+  { label: 'Hooks Ready', color: 'success' },
+  { label: 'Script Ready', color: 'success' },
+  { label: 'Content Ready', color: 'success' },
+  { label: 'Hooks + Script', color: 'warning' },
+  { label: 'Script + Content', color: 'warning' },
+  { label: 'All Generated', color: 'success' },
+  { label: 'Pending', color: 'default' },
+  { label: 'Processing', color: 'warning' },
+  { label: 'Failed', color: 'error' }
+];
+
+export default function NotionPanelGenerationTest() {
   const [isPanelOpen, setIsPanelOpen] = useState(true);
   const [panelWidth, setPanelWidth] = useState(600);
   const [isDragging, setIsDragging] = useState(false);
-  const [title, setTitle] = useState('Project Planning Document');
+  const [title, setTitle] = useState('Content Generation Idea');
   const [editorContent, setEditorContent] = useState('');
+  const [currentStatusIndex, setCurrentStatusIndex] = useState(0);
   
-  // Sample properties for testing
+  // Single status property for generation tracking
   const [properties, setProperties] = useState([
-    { id: '1', type: 'status' as const, name: 'Generation Status', value: { label: 'Hooks Generated', color: 'success' }, icon: 'burst' }
+    { 
+      id: '1', 
+      type: 'status' as const, 
+      name: 'Generation', 
+      value: GENERATION_STATUSES[0], 
+      icon: 'burst' 
+    }
   ]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -51,6 +71,20 @@ export default function NotionPanelTest() {
     };
   }, [isDragging]);
 
+  const cycleStatus = () => {
+    const nextIndex = (currentStatusIndex + 1) % GENERATION_STATUSES.length;
+    setCurrentStatusIndex(nextIndex);
+    setProperties([
+      { 
+        id: '1', 
+        type: 'status' as const, 
+        name: 'Generation', 
+        value: GENERATION_STATUSES[nextIndex], 
+        icon: 'burst' 
+      }
+    ]);
+  };
+
   const handlePropertyChange = (id: string, value: string | { label: string; color: string }) => {
     setProperties(prev => 
       prev.map(prop => 
@@ -59,22 +93,29 @@ export default function NotionPanelTest() {
     );
   };
 
+  const getStatusIcon = (status: string) => {
+    if (status.includes('Ready') || status === 'All Generated') return <Check className="w-4 h-4" />;
+    if (status === 'Processing') return <Clock className="w-4 h-4" />;
+    if (status === 'Failed') return <AlertCircle className="w-4 h-4" />;
+    return <Sparkles className="w-4 h-4" />;
+  };
+
   return (
     <div className="min-h-screen bg-neutral-100">
       {/* Main Content Area */}
       <div className="p-8">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold text-neutral-900 mb-4">
-            Notion Panel Test Page
+            Generation Status Panel Test
           </h1>
           <p className="text-neutral-600 mb-8">
-            Test the Notion-like panel interface with BlockNote editor integration.
+            Test different generation status states for content ideas.
           </p>
 
           {/* Test Controls */}
           <div className="bg-white rounded-[var(--radius-card)] shadow-[var(--shadow-soft-drop)] p-6 mb-6">
-            <h2 className="text-xl font-semibold text-neutral-900 mb-4">Panel Controls</h2>
-            <div className="flex gap-3">
+            <h2 className="text-xl font-semibold text-neutral-900 mb-4">Status Controls</h2>
+            <div className="flex gap-3 flex-wrap">
               <button
                 onClick={() => setIsPanelOpen(!isPanelOpen)}
                 className="px-4 py-2 bg-neutral-900 text-neutral-50 rounded-[var(--radius-button)] hover:bg-neutral-800 transition-colors duration-150"
@@ -82,28 +123,78 @@ export default function NotionPanelTest() {
                 {isPanelOpen ? 'Close Panel' : 'Open Panel'}
               </button>
               <button
-                onClick={() => setPanelWidth(600)}
-                className="px-4 py-2 bg-neutral-100 text-neutral-700 rounded-[var(--radius-button)] hover:bg-neutral-200 transition-colors duration-150"
+                onClick={cycleStatus}
+                className="px-4 py-2 bg-primary-500 text-white rounded-[var(--radius-button)] hover:bg-primary-600 transition-colors duration-150"
               >
-                Reset Width
+                Cycle Status
               </button>
+              <div className="flex items-center gap-2 px-3 py-2 bg-neutral-100 rounded-[var(--radius-button)]">
+                {getStatusIcon(GENERATION_STATUSES[currentStatusIndex].label)}
+                <span className="text-sm font-medium text-neutral-700">
+                  Current: {GENERATION_STATUSES[currentStatusIndex].label}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Status Options Preview */}
+          <div className="bg-white rounded-[var(--radius-card)] shadow-[var(--shadow-soft-drop)] p-6 mb-6">
+            <h2 className="text-xl font-semibold text-neutral-900 mb-4">Available Statuses</h2>
+            <div className="grid grid-cols-3 gap-3">
+              {GENERATION_STATUSES.map((status, index) => (
+                <button
+                  key={index}
+                  onClick={() => {
+                    setCurrentStatusIndex(index);
+                    setProperties([
+                      { 
+                        id: '1', 
+                        type: 'status' as const, 
+                        name: 'Generation', 
+                        value: status, 
+                        icon: 'burst' 
+                      }
+                    ]);
+                  }}
+                  className={`
+                    px-3 py-2 rounded-[var(--radius-button)] text-sm font-medium
+                    transition-all duration-150 flex items-center gap-2
+                    ${currentStatusIndex === index 
+                      ? 'bg-neutral-900 text-neutral-50' 
+                      : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                    }
+                  `}
+                >
+                  {getStatusIcon(status.label)}
+                  {status.label}
+                </button>
+              ))}
             </div>
           </div>
 
           {/* Sample Content Cards */}
           <div className="grid grid-cols-2 gap-4">
-            {[1, 2, 3, 4].map(i => (
+            {[
+              { title: 'Hook Ideas', status: 'Hooks Ready' },
+              { title: 'Script Draft', status: 'Script Ready' },
+              { title: 'Visual Content', status: 'Content Ready' },
+              { title: 'Complete Package', status: 'All Generated' }
+            ].map((item, i) => (
               <div 
                 key={i}
                 className="bg-white rounded-[var(--radius-card)] shadow-[var(--shadow-soft-drop)] p-6"
               >
                 <div className="flex items-center gap-2 mb-3">
                   <FileText className="w-5 h-5 text-neutral-400" />
-                  <h3 className="font-medium text-neutral-900">Document {i}</h3>
+                  <h3 className="font-medium text-neutral-900">{item.title}</h3>
                 </div>
-                <p className="text-sm text-neutral-600">
-                  Sample document content. Click the panel button to see the Notion-like interface.
+                <p className="text-sm text-neutral-600 mb-3">
+                  Sample content for {item.title.toLowerCase()}.
                 </p>
+                <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs bg-success-100 text-success-900 border border-success-200">
+                  <div className="w-2 h-2 rounded-full bg-success-600" />
+                  {item.status}
+                </div>
               </div>
             ))}
           </div>
@@ -159,6 +250,7 @@ export default function NotionPanelTest() {
               <BlockNoteEditor
                 content={editorContent}
                 onChange={setEditorContent}
+                placeholder="Describe your content idea here..."
               />
             </div>
           </NotionPanel>

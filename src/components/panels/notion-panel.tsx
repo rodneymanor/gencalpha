@@ -35,8 +35,7 @@ export default function NotionPanel({
   title = 'New page',
   onTitleChange,
   properties = [
-    { id: '1', type: 'url', name: 'URL', icon: 'link' },
-    { id: '2', type: 'status', name: 'Status', value: { label: 'Done', color: 'success' }, icon: 'burst' }
+    { id: '1', type: 'status', name: 'Generation Status', value: { label: 'Script Ready', color: 'success' }, icon: 'burst' }
   ],
   onPropertyChange,
   showComments = true,
