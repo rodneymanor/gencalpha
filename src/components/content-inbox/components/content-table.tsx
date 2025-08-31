@@ -92,11 +92,12 @@ export const ContentTable: React.FC<ContentTableProps> = ({
   const someSelected = items.some(item => selectedIds.has(item.id));
 
   return (
-    <div className="rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-50 overflow-hidden">
-      <Table>
+    <div className="rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-50">
+      <div className="w-full overflow-x-auto">
+        <Table className="min-w-[800px]">
         <TableHeader>
           <TableRow className="hover:bg-transparent border-b border-neutral-200">
-            <TableHead className="w-12">
+            <TableHead className="w-[50px]">
               <Checkbox
                 checked={allSelected}
                 indeterminate={!allSelected && someSelected ? true : undefined}
@@ -104,12 +105,12 @@ export const ContentTable: React.FC<ContentTableProps> = ({
                 className="border-neutral-300"
               />
             </TableHead>
-            <TableHead>Title</TableHead>
-            <TableHead className="w-32">Category</TableHead>
-            <TableHead className="w-32">Platform</TableHead>
-            <TableHead className="w-32">Created</TableHead>
-            <TableHead className="w-32">Status</TableHead>
-            <TableHead className="w-12"></TableHead>
+            <TableHead className="min-w-[300px]">Title</TableHead>
+            <TableHead className="w-[120px]">Category</TableHead>
+            <TableHead className="w-[120px]">Platform</TableHead>
+            <TableHead className="w-[120px]">Created</TableHead>
+            <TableHead className="w-[120px]">Status</TableHead>
+            <TableHead className="w-[50px]"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -135,7 +136,7 @@ export const ContentTable: React.FC<ContentTableProps> = ({
                     className="border-neutral-300"
                   />
                 </TableCell>
-                <TableCell>
+                <TableCell className="min-w-[300px]">
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-1">
                       {isPinned && (
@@ -147,18 +148,18 @@ export const ContentTable: React.FC<ContentTableProps> = ({
                       <ContentTypeIcon item={item} />
                     </div>
                     <div className="flex flex-col gap-0.5">
-                      <span className="font-medium text-neutral-900 line-clamp-1">
+                      <span className="font-medium text-neutral-900 line-clamp-1 break-words whitespace-normal">
                         {item.title ?? "Untitled"}
                       </span>
                       {item.description && (
-                        <span className="text-xs text-neutral-600 line-clamp-1">
+                        <span className="text-xs text-neutral-600 line-clamp-1 break-words whitespace-normal">
                           {item.description}
                         </span>
                       )}
                     </div>
                   </div>
                 </TableCell>
-                <TableCell>
+                <TableCell className="w-[120px]">
                   {item.category ? (
                     <Badge variant="outline" className="text-xs capitalize">
                       {item.category}
@@ -167,16 +168,16 @@ export const ContentTable: React.FC<ContentTableProps> = ({
                     <span className="text-neutral-400">—</span>
                   )}
                 </TableCell>
-                <TableCell>
+                <TableCell className="w-[120px]">
                   <PlatformBadge platform={item.platform} />
                 </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-1 text-xs text-neutral-600">
-                    <Calendar className="h-3 w-3" />
-                    {formatDistanceToNow(new Date(item.savedAt), { addSuffix: true })}
+                <TableCell className="w-[120px]">
+                  <div className="flex items-center gap-1 text-xs text-neutral-600 whitespace-normal">
+                    <Calendar className="h-3 w-3 flex-shrink-0" />
+                    <span className="break-words">{formatDistanceToNow(new Date(item.savedAt), { addSuffix: true })}</span>
                   </div>
                 </TableCell>
-                <TableCell>
+                <TableCell className="w-[120px]">
                   <div className="flex items-center gap-1.5">
                     {item.transcription?.status === 'completed' || item.isSystemContent ? (
                       <>
@@ -210,7 +211,8 @@ export const ContentTable: React.FC<ContentTableProps> = ({
             );
           })}
         </TableBody>
-      </Table>
+        </Table>
+      </div>
       
       {items.length === 0 && !isLoading && (
         <div className="py-12 text-center">
