@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 
-import { Loader2, X, Link, Tag, Folder, AlertCircle } from "lucide-react";
+import { Loader2, X, Link, Folder, AlertCircle } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,6 @@ interface AddContentFormProps {
   onSubmit: (data: {
     url: string;
     category?: ContentCategory;
-    tags?: string[];
     title?: string;
     description?: string;
   }) => Promise<void>;
@@ -50,8 +49,6 @@ export const AddContentForm: React.FC<AddContentFormProps> = ({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<ContentCategory>("inspiration");
-  const [tagInput, setTagInput] = useState("");
-  const [tags, setTags] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [detectedPlatform, setDetectedPlatform] = useState<Platform>("unknown");
 
@@ -64,20 +61,6 @@ export const AddContentForm: React.FC<AddContentFormProps> = ({
       setDetectedPlatform("unknown");
     }
   }, [url]);
-
-  // Handle adding a tag
-  const handleAddTag = () => {
-    const trimmedTag = tagInput.trim().toLowerCase();
-    if (trimmedTag && !tags.includes(trimmedTag)) {
-      setTags([...tags, trimmedTag]);
-      setTagInput("");
-    }
-  };
-
-  // Handle removing a tag
-  const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
-  };
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -95,7 +78,6 @@ export const AddContentForm: React.FC<AddContentFormProps> = ({
         title: title.trim() || undefined,
         description: description.trim() || undefined,
         category,
-        tags: tags.length > 0 ? tags : undefined,
       });
       
       // Reset form on success
@@ -103,8 +85,6 @@ export const AddContentForm: React.FC<AddContentFormProps> = ({
       setTitle("");
       setDescription("");
       setCategory("inspiration");
-      setTags([]);
-      setTagInput("");
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to add content");
@@ -207,56 +187,26 @@ export const AddContentForm: React.FC<AddContentFormProps> = ({
             </Select>
           </div>
 
-          {/* Tags */}
-          <div className="space-y-2">
-            <Label htmlFor="tags" className="flex items-center gap-2">
-              <Tag className="h-4 w-4" />
-              Tags
-            </Label>
-            <div className="flex gap-2">
-              <Input
-                id="tags"
-                type="text"
-                placeholder="Add a tag"
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleAddTag();
-                  }
-                }}
+          {/* Tags - TODO: Implement tag functionality in future */}
+          {/* 
+            TODO: Future Tags Implementation
+            - Multi-select tag input component
+            - Auto-complete from existing tags
+            - Create new tags on the fly
+            - Tag color/category selection
+            - Maximum tag limit (e.g., 5 tags per item)
+            
+            Example UI:
+            <div className="space-y-2">
+              <Label>Tags</Label>
+              <TagInput 
+                value={tags}
+                onChange={setTags}
+                suggestions={availableTags}
+                maxTags={5}
               />
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleAddTag}
-                disabled={!tagInput.trim()}
-              >
-                Add
-              </Button>
             </div>
-            {tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 pt-2">
-                {tags.map((tag) => (
-                  <Badge
-                    key={tag}
-                    variant="secondary"
-                    className="gap-1 pr-1"
-                  >
-                    {tag}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveTag(tag)}
-                      className="ml-1 rounded-full p-0.5 hover:bg-neutral-300"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
-            )}
-          </div>
+          */}
 
           {/* Error Message */}
           {error && (

@@ -157,7 +157,7 @@ export const ContentTable: React.FC<ContentTableProps> = ({
                 <TableCell>
                   <div className="flex flex-col gap-1">
                     <span className="font-medium text-neutral-900 line-clamp-1">
-                      {item.title || "Untitled"}
+                      {item.title ?? "Untitled"}
                     </span>
                     {item.description && (
                       <span className="text-xs text-neutral-600 line-clamp-1">

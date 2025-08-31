@@ -16,12 +16,11 @@ import { UnifiedSlideout, ClaudeArtifactConfig } from "@/components/ui/unified-s
 import { cn } from "@/lib/utils";
 
 // Import components
-import { AddContentForm } from "./components/AddContentForm";
+import { AddContentForm } from "./components/add-content-form";
 import { BulkActionsToolbar } from "./components/BulkActionsToolbar";
-import { ContentTable } from "./components/ContentTable";
-import { ContentViewer } from "./components/ContentViewer";
+import { ContentTable } from "./components/content-table";
+import { ContentViewer } from "./components/content-viewer";
 import { SearchFilterBar } from "./components/SearchFilterBar";
-
 // Import types and hooks
 import { 
   useContentItems, 
@@ -148,7 +147,7 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
       await deleteContentMutation.mutateAsync(Array.from(selectedIds));
       setSelectedIds(new Set());
       toast.success(`Deleted ${selectedIds.size} items`);
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete items");
     }
   };
@@ -164,7 +163,7 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
       });
       setSelectedIds(new Set());
       toast.success("Action completed successfully");
-    } catch (error) {
+    } catch {
       toast.error("Failed to perform action");
     }
   };
@@ -175,7 +174,7 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
       await deleteContentMutation.mutateAsync([id]);
       setSelectedItem(null);
       toast.success("Content deleted");
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete content");
     }
   };
@@ -187,7 +186,7 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
   };
 
   // Handle edit from viewer
-  const handleEdit = (item: ContentItem) => {
+  const handleEdit = () => {
     // For now, just close the viewer
     // In future, could open an edit form
     setSelectedItem(null);
@@ -195,7 +194,7 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
   };
 
   // Handle copy transcript
-  const handleCopyTranscript = (text: string) => {
+  const handleCopyTranscript = () => {
     toast.success("Transcript copied to clipboard");
   };
 
