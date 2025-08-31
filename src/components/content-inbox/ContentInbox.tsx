@@ -1,48 +1,35 @@
 "use client";
 
-// Main Content Inbox Component with Infinite Scroll, Virtualization, and Drag-and-Drop
+// Main Content Inbox Component with Table View and Slideout Panels
 
-import React, { useState, useCallback, useEffect, useMemo } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-  DragStartEvent,
-  DragOverlay,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-  rectSortingStrategy,
-} from "@dnd-kit/sortable";
 import { AnimatePresence } from "framer-motion";
 import { Plus, Loader2, AlertCircle, Inbox } from "lucide-react";
 import { useInView } from "react-intersection-observer";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { SkeletonContentList } from "@/components/ui/skeleton";
+import { SkeletonTable } from "@/components/ui/skeleton";
+import { UnifiedSlideout, ClaudeArtifactConfig } from "@/components/ui/unified-slideout";
 import { cn } from "@/lib/utils";
 
 // Import components
-import { AddContentModal } from "./components/AddContentModal";
+import { AddContentForm } from "./components/AddContentForm";
 import { BulkActionsToolbar } from "./components/BulkActionsToolbar";
-import { ContentCard } from "./components/ContentCard";
-import { FloatingActionButton } from "./components/FloatingActionButton";
+import { ContentTable } from "./components/ContentTable";
+import { ContentViewer } from "./components/ContentViewer";
 import { SearchFilterBar } from "./components/SearchFilterBar";
 
 // Import types and hooks
-import { useContentItems, useDeleteContent, useBulkAction, useUpdateOrder } from "./hooks/use-content-inbox";
-import { ContentItem, FilterOptions, SortOptions, ViewMode, BulkAction } from "./types";
+import { 
+  useContentItems, 
+  useDeleteContent, 
+  useBulkAction, 
+  useAddContent 
+} from "./hooks/use-content-inbox";
+import { ContentItem, FilterOptions, SortOptions, BulkAction } from "./types";
 
 interface ContentInboxProps {
   className?: string;
@@ -55,10 +42,9 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
     field: "savedAt",
     direction: "desc",
   });
-  const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const [isAddSlideoutOpen, setIsAddSlideoutOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<ContentItem | null>(null);
   const [items, setItems] = useState<ContentItem[]>([]);
 
   // Queries and mutations
@@ -69,7 +55,7 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
 
   const deleteContentMutation = useDeleteContent();
   const bulkActionMutation = useBulkAction();
-  const updateOrderMutation = useUpdateOrder();
+  const addContentMutation = useAddContent();
 
   // Infinite scroll observer
   const { ref: loadMoreRef } = useInView({
@@ -79,18 +65,6 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
       }
     },
   });
-
-  // DnD sensors
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
-  );
 
   // Update local items when data changes
   useEffect(() => {
@@ -161,39 +135,10 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
     });
   }, []);
 
-  // Handle drag start
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
-  };
-
-  // Handle drag end
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event;
-    setActiveId(null);
-
-    if (over && active.id !== over.id) {
-      const oldIndex = items.findIndex((item) => item.id === active.id);
-      const newIndex = items.findIndex((item) => item.id === over.id);
-
-      const newItems = arrayMove(items, oldIndex, newIndex);
-      setItems(newItems);
-
-      // Update order in database
-      const orderUpdates = newItems.map((item, index) => ({
-        id: item.id,
-        order: index,
-      }));
-
-      try {
-        await updateOrderMutation.mutateAsync(orderUpdates);
-        toast.success("Order updated");
-      } catch (error) {
-        toast.error("Failed to update order");
-        // Revert on error
-        setItems(items);
-      }
-    }
-  };
+  // Handle item click to open viewer
+  const handleItemClick = useCallback((item: ContentItem) => {
+    setSelectedItem(item);
+  }, []);
 
   // Handle bulk delete
   const handleBulkDelete = async () => {
@@ -224,17 +169,42 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
     }
   };
 
-  // Get active item for drag overlay
-  const activeItem = useMemo(() => items.find((item) => item.id === activeId), [activeId, items]);
+  // Handle content deletion from viewer
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteContentMutation.mutateAsync([id]);
+      setSelectedItem(null);
+      toast.success("Content deleted");
+    } catch (error) {
+      toast.error("Failed to delete content");
+    }
+  };
+
+  // Handle add content
+  const handleAddContent = async (data: Parameters<typeof addContentMutation.mutateAsync>[0]) => {
+    await addContentMutation.mutateAsync(data);
+    toast.success("Content added successfully");
+  };
+
+  // Handle edit from viewer
+  const handleEdit = (item: ContentItem) => {
+    // For now, just close the viewer
+    // In future, could open an edit form
+    setSelectedItem(null);
+    toast.info("Edit functionality coming soon");
+  };
+
+  // Handle copy transcript
+  const handleCopyTranscript = (text: string) => {
+    toast.success("Transcript copied to clipboard");
+  };
 
   // Calculate stats
   const totalItems = items.length;
   const selectedCount = selectedIds.size;
-  const isAllSelected = selectedCount > 0 && selectedCount === totalItems;
-  const isIndeterminate = selectedCount > 0 && selectedCount < totalItems;
 
   // Empty state
-  if (!isLoading && items.length === 0) {
+  if (!isLoading && items.length === 0 && !isError) {
     return (
       <div className={cn("flex h-full flex-col", className)}>
         <div className="border-b border-neutral-200 p-6">
@@ -244,8 +214,8 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
             onFiltersChange={setFilters}
             sort={sort}
             onSortChange={setSort}
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
+            viewMode="list"
+            onViewModeChange={() => {}}
             totalItems={0}
             selectedCount={0}
           />
@@ -259,17 +229,33 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
               Start building your content library by adding videos and links you want to reference later.
             </p>
             <Button
-              onClick={() => setIsAddModalOpen(true)}
-              className="bg-neutral-900 text-neutral-50 hover:bg-neutral-800"
+              onClick={() => setIsAddSlideoutOpen(true)}
+              className="gap-2"
+              variant="soft"
             >
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus className="h-4 w-4" />
               Add First Content
             </Button>
           </div>
         </div>
 
-        <FloatingActionButton onClick={() => setIsAddModalOpen(true)} />
-        <AddContentModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} onSuccess={() => refetch()} />
+        {/* Add Content Slideout */}
+        <UnifiedSlideout
+          isOpen={isAddSlideoutOpen}
+          onClose={() => setIsAddSlideoutOpen(false)}
+          config={{
+            ...ClaudeArtifactConfig,
+            width: "md",
+            showHeader: false,
+            showCloseButton: false,
+          }}
+        >
+          <AddContentForm
+            onClose={() => setIsAddSlideoutOpen(false)}
+            onSubmit={handleAddContent}
+            isSubmitting={addContentMutation.isPending}
+          />
+        </UnifiedSlideout>
       </div>
     );
   }
@@ -281,10 +267,11 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
         <div className="mb-4 flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-neutral-900">Content Inbox</h1>
           <Button
-            onClick={() => setIsAddModalOpen(true)}
-            className="bg-neutral-900 text-neutral-50 hover:bg-neutral-800"
+            onClick={() => setIsAddSlideoutOpen(true)}
+            className="gap-2"
+            variant="soft"
           >
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="h-4 w-4" />
             Add Content
           </Button>
         </div>
@@ -294,8 +281,8 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
           onFiltersChange={setFilters}
           sort={sort}
           onSortChange={setSort}
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
+          viewMode="list"
+          onViewModeChange={() => {}}
           totalItems={totalItems}
           selectedCount={selectedCount}
         />
@@ -316,21 +303,13 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
       {/* Content area */}
       <ScrollArea className="flex-1">
         <div className="p-6">
-          {/* Select all checkbox */}
-          {items.length > 0 && (
-            <div className="mb-4 flex items-center gap-3">
-              <Checkbox checked={isAllSelected} indeterminate={isIndeterminate} onCheckedChange={handleSelectAll} />
-              <span className="text-sm text-neutral-600">Select all {totalItems} items</span>
-            </div>
-          )}
-
           {/* Loading state */}
-          {isLoading && <SkeletonContentList count={viewMode === "grid" ? 8 : 5} />}
+          {isLoading && <SkeletonTable rows={5} columns={9} />}
 
           {/* Error state */}
           {isError && (
             <div className="flex flex-col items-center justify-center py-12">
-              <AlertCircle className="text-destructive-500 mb-4 h-12 w-12" />
+              <AlertCircle className="mb-4 h-12 w-12 text-destructive-500" />
               <p className="mb-2 font-medium text-neutral-900">Failed to load content</p>
               <Button onClick={() => refetch()} variant="outline" size="sm">
                 Try Again
@@ -338,92 +317,70 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
             </div>
           )}
 
-          {/* Content grid/list with DnD */}
+          {/* Content Table */}
           {!isLoading && !isError && items.length > 0 && (
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragStart={handleDragStart}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext
-                items={items.map((item) => item.id)}
-                strategy={viewMode === "grid" ? rectSortingStrategy : verticalListSortingStrategy}
-              >
-                <div
-                  className={cn(
-                    viewMode === "grid"
-                      ? "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-                      : "space-y-2",
+            <>
+              <ContentTable
+                items={items}
+                selectedIds={selectedIds}
+                onToggleSelect={handleToggleSelect}
+                onSelectAll={handleSelectAll}
+                onItemClick={handleItemClick}
+                isLoading={isLoading}
+              />
+
+              {/* Load more trigger */}
+              {hasNextPage && (
+                <div ref={loadMoreRef} className="flex justify-center py-8">
+                  {isFetchingNextPage ? (
+                    <Loader2 className="h-6 w-6 animate-spin text-neutral-400" />
+                  ) : (
+                    <span className="text-sm text-neutral-500">Load more</span>
                   )}
-                >
-                  {items.map((item) => (
-                    <ContentCard
-                      key={item.id}
-                      item={item}
-                      isSelected={selectedIds.has(item.id)}
-                      onSelect={(checked) => handleToggleSelect(item.id, checked)}
-                      onClick={() => {
-                        // Handle item click - open detail view
-                        console.log("Open item:", item.id);
-                      }}
-                      onEdit={() => {
-                        // Handle edit
-                        console.log("Edit item:", item.id);
-                      }}
-                      onDelete={async () => {
-                        try {
-                          await deleteContentMutation.mutateAsync([item.id]);
-                          toast.success("Item deleted");
-                        } catch (error) {
-                          toast.error("Failed to delete item");
-                        }
-                      }}
-                      isDraggable={sort.field === "custom"}
-                      viewMode={viewMode}
-                    />
-                  ))}
                 </div>
-              </SortableContext>
-
-              {/* Drag overlay */}
-              <DragOverlay>
-                {activeItem ? (
-                  <div className="opacity-80">
-                    <ContentCard
-                      item={activeItem}
-                      isSelected={false}
-                      onSelect={() => {}}
-                      onClick={() => {}}
-                      onEdit={() => {}}
-                      onDelete={() => {}}
-                      isDraggable={false}
-                      viewMode={viewMode}
-                    />
-                  </div>
-                ) : null}
-              </DragOverlay>
-            </DndContext>
-          )}
-
-          {/* Load more trigger */}
-          {hasNextPage && (
-            <div ref={loadMoreRef} className="flex justify-center py-8">
-              {isFetchingNextPage ? (
-                <Loader2 className="h-6 w-6 animate-spin text-neutral-400" />
-              ) : (
-                <span className="text-sm text-neutral-500">Load more</span>
               )}
-            </div>
+            </>
           )}
         </div>
       </ScrollArea>
 
-      {/* Floating action button */}
-      <FloatingActionButton onClick={() => setIsAddModalOpen(true)} />
+      {/* Content Viewer Slideout */}
+      <UnifiedSlideout
+        isOpen={!!selectedItem}
+        onClose={() => setSelectedItem(null)}
+        config={{
+          ...ClaudeArtifactConfig,
+          width: "lg",
+          showHeader: false,
+          showCloseButton: false,
+        }}
+      >
+        <ContentViewer
+          item={selectedItem}
+          onClose={() => setSelectedItem(null)}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onCopyTranscript={handleCopyTranscript}
+        />
+      </UnifiedSlideout>
 
-      {/* Add content modal */}
-      <AddContentModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} onSuccess={() => refetch()} />
+      {/* Add Content Slideout */}
+      <UnifiedSlideout
+        isOpen={isAddSlideoutOpen}
+        onClose={() => setIsAddSlideoutOpen(false)}
+        config={{
+          ...ClaudeArtifactConfig,
+          width: "md",
+          showHeader: false,
+          showCloseButton: false,
+        }}
+      >
+        <AddContentForm
+          onClose={() => setIsAddSlideoutOpen(false)}
+          onSubmit={handleAddContent}
+          isSubmitting={addContentMutation.isPending}
+        />
+      </UnifiedSlideout>
     </div>
   );
 };
