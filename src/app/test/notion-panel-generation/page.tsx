@@ -275,18 +275,113 @@ export default function NotionPanelGenerationTest() {
             onTitleChange={setTitle}
             properties={properties}
             onPropertyChange={handlePropertyChange}
-            showComments={true}
             showPageControls={true}
-          >
-            {/* BlockNote Editor Integration */}
-            <div className="h-full">
-              <BlockNoteEditor
-                content={editorContent}
-                onChange={setEditorContent}
-                placeholder="Describe your content idea here..."
-              />
-            </div>
-          </NotionPanel>
+            tabData={{
+              video: (
+                <div className="space-y-4">
+                  <div className="aspect-video bg-neutral-900 rounded-[var(--radius-card)] flex items-center justify-center">
+                    <span className="text-neutral-400">Video Player Placeholder</span>
+                  </div>
+                  <div className="text-sm text-neutral-600">
+                    Video content would be displayed here with playback controls.
+                  </div>
+                </div>
+              ),
+              transcript: (
+                <div className="prose prose-neutral max-w-none">
+                  <h3>Video Transcript</h3>
+                  <p className="text-neutral-600">
+                    [00:00] Introduction to the topic...
+                  </p>
+                  <p className="text-neutral-600">
+                    [00:15] Main points discussed...
+                  </p>
+                  <p className="text-neutral-600">
+                    [00:45] Key insights and takeaways...
+                  </p>
+                </div>
+              ),
+              components: (
+                <div className="space-y-3">
+                  <div className="p-3 bg-neutral-100 rounded-[var(--radius-card)]">
+                    <div className="font-medium text-sm mb-1">Hook Component</div>
+                    <div className="text-xs text-neutral-600">Opening hook to grab attention</div>
+                  </div>
+                  <div className="p-3 bg-neutral-100 rounded-[var(--radius-card)]">
+                    <div className="font-medium text-sm mb-1">Main Content</div>
+                    <div className="text-xs text-neutral-600">Core message and value proposition</div>
+                  </div>
+                  <div className="p-3 bg-neutral-100 rounded-[var(--radius-card)]">
+                    <div className="font-medium text-sm mb-1">Call to Action</div>
+                    <div className="text-xs text-neutral-600">Engagement prompt for viewers</div>
+                  </div>
+                </div>
+              ),
+              metadata: (
+                <div className="space-y-2">
+                  <div className="flex justify-between py-2 border-b border-neutral-200">
+                    <span className="text-sm text-neutral-600">Duration</span>
+                    <span className="text-sm font-medium">2:45</span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b border-neutral-200">
+                    <span className="text-sm text-neutral-600">Format</span>
+                    <span className="text-sm font-medium">16:9 Vertical</span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b border-neutral-200">
+                    <span className="text-sm text-neutral-600">Platform</span>
+                    <span className="text-sm font-medium">TikTok, Instagram Reels</span>
+                  </div>
+                  <div className="flex justify-between py-2">
+                    <span className="text-sm text-neutral-600">Created</span>
+                    <span className="text-sm font-medium">2 hours ago</span>
+                  </div>
+                </div>
+              ),
+              suggestions: (
+                <div className="space-y-3">
+                  <div className="p-3 bg-success-50 border border-success-200 rounded-[var(--radius-card)]">
+                    <div className="text-sm font-medium text-success-900 mb-1">✓ Strong opening hook</div>
+                    <div className="text-xs text-success-700">The first 3 seconds effectively capture attention</div>
+                  </div>
+                  <div className="p-3 bg-warning-50 border border-warning-200 rounded-[var(--radius-card)]">
+                    <div className="text-sm font-medium text-warning-900 mb-1">⚠ Consider adding captions</div>
+                    <div className="text-xs text-warning-700">85% of viewers watch with sound off</div>
+                  </div>
+                  <div className="p-3 bg-primary-50 border border-primary-200 rounded-[var(--radius-card)]">
+                    <div className="text-sm font-medium text-primary-900 mb-1">💡 Try a pattern interrupt</div>
+                    <div className="text-xs text-primary-700">Add a visual change at 0:30 to maintain engagement</div>
+                  </div>
+                </div>
+              ),
+              analysis: (
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Engagement Metrics</h4>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 bg-neutral-200 rounded-full h-2">
+                          <div className="bg-success-500 h-2 rounded-full" style={{ width: '85%' }} />
+                        </div>
+                        <span className="text-xs text-neutral-600">85% Hook Rate</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 bg-neutral-200 rounded-full h-2">
+                          <div className="bg-primary-500 h-2 rounded-full" style={{ width: '72%' }} />
+                        </div>
+                        <span className="text-xs text-neutral-600">72% Retention</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Content Score</h4>
+                    <div className="text-2xl font-bold text-success-600">8.5/10</div>
+                    <div className="text-xs text-neutral-600">Based on platform best practices</div>
+                  </div>
+                </div>
+              )
+            }}
+            defaultTab="video"
+          />
         </div>
       </div>
     </div>

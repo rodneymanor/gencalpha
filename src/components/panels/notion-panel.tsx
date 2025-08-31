@@ -8,7 +8,13 @@ import {
   Link, 
   Zap,
   MoreHorizontal,
-  GripVertical 
+  GripVertical,
+  Video,
+  FileText,
+  Box,
+  Database,
+  Lightbulb,
+  BarChart3
 } from 'lucide-react';
 
 interface PageProperty {
@@ -19,34 +25,66 @@ interface PageProperty {
   icon?: string;
 }
 
+type TabType = 'video' | 'transcript' | 'components' | 'metadata' | 'suggestions' | 'analysis';
+
+interface TabData {
+  video?: React.ReactNode;
+  transcript?: React.ReactNode;
+  components?: React.ReactNode;
+  metadata?: React.ReactNode;
+  suggestions?: React.ReactNode;
+  analysis?: React.ReactNode;
+}
+
 interface NotionPanelProps {
   title?: string;
   onTitleChange?: (title: string) => void;
   properties?: PageProperty[];
   onPropertyChange?: (id: string, value: string | { label: string; color: string }) => void;
-  showComments?: boolean;
   showPageControls?: boolean;
   onClose?: () => void;
   children?: React.ReactNode;
   editorContent?: React.ReactNode;
+  tabData?: TabData;
+  defaultTab?: TabType;
 }
 
 export default function NotionPanel({
   title = 'New page',
   onTitleChange,
   properties = [
-    { id: '1', type: 'status', name: 'Generation Status', value: { label: 'Script Ready', color: 'success' }, icon: 'burst' }
+    { id: '1', type: 'status', name: 'Generation', value: { label: 'Script Ready', color: 'success' }, icon: 'burst' }
   ],
   onPropertyChange,
-  showComments = true,
   showPageControls = true,
   children,
-  editorContent
+  editorContent,
+  tabData,
+  defaultTab = 'video'
 }: NotionPanelProps) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [localTitle, setLocalTitle] = useState(title);
-  const [comment, setComment] = useState('');
+  const [activeTab, setActiveTab] = useState<TabType>(defaultTab);
   const [showControls, setShowControls] = useState(false);
+
+  // Determine which tabs to show based on available data
+  const availableTabs = React.useMemo(() => {
+    const tabs: { id: TabType; label: string; icon: React.ReactNode; content?: React.ReactNode }[] = [];
+    
+    if (tabData?.video) tabs.push({ id: 'video', label: 'Video', icon: <Video className="w-4 h-4" />, content: tabData.video });
+    if (tabData?.transcript) tabs.push({ id: 'transcript', label: 'Transcript', icon: <FileText className="w-4 h-4" />, content: tabData.transcript });
+    if (tabData?.components) tabs.push({ id: 'components', label: 'Components', icon: <Box className="w-4 h-4" />, content: tabData.components });
+    if (tabData?.metadata) tabs.push({ id: 'metadata', label: 'Metadata', icon: <Database className="w-4 h-4" />, content: tabData.metadata });
+    if (tabData?.suggestions) tabs.push({ id: 'suggestions', label: 'Suggestions', icon: <Lightbulb className="w-4 h-4" />, content: tabData.suggestions });
+    if (tabData?.analysis) tabs.push({ id: 'analysis', label: 'Analysis', icon: <BarChart3 className="w-4 h-4" />, content: tabData.analysis });
+    
+    // If no tabs have data, show editor content or children
+    if (tabs.length === 0 && (editorContent || children)) {
+      tabs.push({ id: 'video', label: 'Content', icon: <FileText className="w-4 h-4" />, content: editorContent ?? children });
+    }
+    
+    return tabs;
+  }, [tabData, editorContent, children]);
 
   const handleTitleBlur = () => {
     setIsEditingTitle(false);
@@ -130,7 +168,7 @@ export default function NotionPanel({
                   </div>
                 </div>
                 <div className="flex-1">
-                  {property.type === 'status' && property.value && (
+                  {property.type === 'status' && property.value && typeof property.value === 'object' && (
                     <div className={`
                       inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs
                       ${getStatusColor(property.value.color)}
@@ -167,31 +205,36 @@ export default function NotionPanel({
         </div>
       )}
 
-      {/* Comments Section */}
-      {showComments && (
-        <div className="px-4 pb-4 border-b border-neutral-200">
-          <div className="text-xs font-medium text-neutral-500 mb-2">Comments</div>
-          <div className="flex gap-2">
-            <div className="w-6 h-6 rounded-full bg-neutral-200 flex-shrink-0" />
-            <input
-              type="text"
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder="Add a comment..."
-              className="flex-1 text-sm bg-transparent placeholder-neutral-300 outline-none"
-            />
+      {/* Tab Navigation */}
+      {availableTabs.length > 0 && (
+        <div className="px-4 pb-2 border-b border-neutral-200">
+          <div className="flex gap-1">
+            {availableTabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`
+                  flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-[var(--radius-button)]
+                  transition-all duration-150
+                  ${activeTab === tab.id 
+                    ? 'bg-neutral-900 text-neutral-50' 
+                    : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
+                  }
+                `}
+              >
+                {tab.icon}
+                <span>{tab.label}</span>
+              </button>
+            ))}
           </div>
         </div>
       )}
 
-      {/* Editor Content Area */}
+      {/* Tab Content Area */}
       <div className="flex-1 px-4 py-4 overflow-y-auto">
-        {editorContent ?? children ?? (
+        {availableTabs.find(tab => tab.id === activeTab)?.content ?? (
           <div className="text-neutral-400 text-sm">
-            Press Enter to continue with an empty page, or{' '}
-            <button className="underline hover:text-neutral-600 transition-colors duration-150">
-              create a template
-            </button>
+            No content available for this tab.
           </div>
         )}
       </div>
