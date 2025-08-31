@@ -205,38 +205,40 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
   // Empty state
   if (!isLoading && items.length === 0 && !isError) {
     return (
-      <div className={cn("flex h-full flex-col", className)}>
-        <div className="border-b border-neutral-200 p-6">
-          <h1 className="mb-4 text-2xl font-semibold text-neutral-900">Content Inbox</h1>
-          <SearchFilterBar
-            filters={filters}
-            onFiltersChange={setFilters}
-            sort={sort}
-            onSortChange={setSort}
-            viewMode="list"
-            onViewModeChange={() => {}}
-            totalItems={0}
-            selectedCount={0}
-          />
-        </div>
-
-        <div className="flex flex-1 items-center justify-center p-8">
-          <div className="max-w-md text-center">
-            <Inbox className="mx-auto mb-4 h-16 w-16 text-neutral-300" />
-            <h3 className="mb-2 text-lg font-medium text-neutral-900">No content saved yet</h3>
-            <p className="mb-6 text-neutral-600">
-              Start building your content library by adding videos and links you want to reference later.
-            </p>
-            <Button
-              onClick={() => setIsAddSlideoutOpen(true)}
-              className="gap-2"
-              variant="soft"
-            >
-              <Plus className="h-4 w-4" />
-              Add First Content
-            </Button>
+      <div className="slideout-layout-container">
+        <main className={cn("main-content flex h-full flex-col", className)}>
+          <div className="border-b border-neutral-200 p-6">
+            <h1 className="mb-4 text-2xl font-semibold text-neutral-900">Content Inbox</h1>
+            <SearchFilterBar
+              filters={filters}
+              onFiltersChange={setFilters}
+              sort={sort}
+              onSortChange={setSort}
+              viewMode="list"
+              onViewModeChange={() => {}}
+              totalItems={0}
+              selectedCount={0}
+            />
           </div>
-        </div>
+
+          <div className="flex flex-1 items-center justify-center p-8">
+            <div className="max-w-md text-center">
+              <Inbox className="mx-auto mb-4 h-16 w-16 text-neutral-300" />
+              <h3 className="mb-2 text-lg font-medium text-neutral-900">No content saved yet</h3>
+              <p className="mb-6 text-neutral-600">
+                Start building your content library by adding videos and links you want to reference later.
+              </p>
+              <Button
+                onClick={() => setIsAddSlideoutOpen(true)}
+                className="gap-2"
+                variant="soft"
+              >
+                <Plus className="h-4 w-4" />
+                Add First Content
+              </Button>
+            </div>
+          </div>
+        </main>
 
         {/* Add Content Slideout */}
         <UnifiedSlideout
@@ -260,88 +262,90 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
   }
 
   return (
-    <div className={cn("flex h-full flex-col", className)}>
-      {/* Header */}
-      <div className="border-b border-neutral-200 p-6">
-        <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-2xl font-semibold text-neutral-900">Content Inbox</h1>
-          <Button
-            onClick={() => setIsAddSlideoutOpen(true)}
-            className="gap-2"
-            variant="soft"
-          >
-            <Plus className="h-4 w-4" />
-            Add Content
-          </Button>
-        </div>
+    <div className="slideout-layout-container">
+      <main className={cn("main-content flex h-full flex-col", className)}>
+        {/* Header */}
+        <div className="border-b border-neutral-200 p-6">
+          <div className="mb-4 flex items-center justify-between">
+            <h1 className="text-2xl font-semibold text-neutral-900">Content Inbox</h1>
+            <Button
+              onClick={() => setIsAddSlideoutOpen(true)}
+              className="gap-2"
+              variant="soft"
+            >
+              <Plus className="h-4 w-4" />
+              Add Content
+            </Button>
+          </div>
 
-        <SearchFilterBar
-          filters={filters}
-          onFiltersChange={setFilters}
-          sort={sort}
-          onSortChange={setSort}
-          viewMode="list"
-          onViewModeChange={() => {}}
-          totalItems={totalItems}
-          selectedCount={selectedCount}
-        />
-      </div>
-
-      {/* Bulk actions toolbar */}
-      <AnimatePresence>
-        {selectedCount > 0 && (
-          <BulkActionsToolbar
+          <SearchFilterBar
+            filters={filters}
+            onFiltersChange={setFilters}
+            sort={sort}
+            onSortChange={setSort}
+            viewMode="list"
+            onViewModeChange={() => {}}
+            totalItems={totalItems}
             selectedCount={selectedCount}
-            onDelete={handleBulkDelete}
-            onAction={handleBulkAction}
-            onClearSelection={() => setSelectedIds(new Set())}
           />
-        )}
-      </AnimatePresence>
-
-      {/* Content area */}
-      <ScrollArea className="flex-1">
-        <div className="p-6">
-          {/* Loading state */}
-          {isLoading && <SkeletonTable rows={5} columns={9} />}
-
-          {/* Error state */}
-          {isError && (
-            <div className="flex flex-col items-center justify-center py-12">
-              <AlertCircle className="mb-4 h-12 w-12 text-destructive-500" />
-              <p className="mb-2 font-medium text-neutral-900">Failed to load content</p>
-              <Button onClick={() => refetch()} variant="outline" size="sm">
-                Try Again
-              </Button>
-            </div>
-          )}
-
-          {/* Content Table */}
-          {!isLoading && !isError && items.length > 0 && (
-            <>
-              <ContentTable
-                items={items}
-                selectedIds={selectedIds}
-                onToggleSelect={handleToggleSelect}
-                onSelectAll={handleSelectAll}
-                onItemClick={handleItemClick}
-                isLoading={isLoading}
-              />
-
-              {/* Load more trigger */}
-              {hasNextPage && (
-                <div ref={loadMoreRef} className="flex justify-center py-8">
-                  {isFetchingNextPage ? (
-                    <Loader2 className="h-6 w-6 animate-spin text-neutral-400" />
-                  ) : (
-                    <span className="text-sm text-neutral-500">Load more</span>
-                  )}
-                </div>
-              )}
-            </>
-          )}
         </div>
-      </ScrollArea>
+
+        {/* Bulk actions toolbar */}
+        <AnimatePresence>
+          {selectedCount > 0 && (
+            <BulkActionsToolbar
+              selectedCount={selectedCount}
+              onDelete={handleBulkDelete}
+              onAction={handleBulkAction}
+              onClearSelection={() => setSelectedIds(new Set())}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Content area */}
+        <ScrollArea className="flex-1">
+          <div className="p-6">
+            {/* Loading state */}
+            {isLoading && <SkeletonTable rows={5} columns={9} />}
+
+            {/* Error state */}
+            {isError && (
+              <div className="flex flex-col items-center justify-center py-12">
+                <AlertCircle className="mb-4 h-12 w-12 text-destructive-500" />
+                <p className="mb-2 font-medium text-neutral-900">Failed to load content</p>
+                <Button onClick={() => refetch()} variant="outline" size="sm">
+                  Try Again
+                </Button>
+              </div>
+            )}
+
+            {/* Content Table */}
+            {!isLoading && !isError && items.length > 0 && (
+              <>
+                <ContentTable
+                  items={items}
+                  selectedIds={selectedIds}
+                  onToggleSelect={handleToggleSelect}
+                  onSelectAll={handleSelectAll}
+                  onItemClick={handleItemClick}
+                  isLoading={isLoading}
+                />
+
+                {/* Load more trigger */}
+                {hasNextPage && (
+                  <div ref={loadMoreRef} className="flex justify-center py-8">
+                    {isFetchingNextPage ? (
+                      <Loader2 className="h-6 w-6 animate-spin text-neutral-400" />
+                    ) : (
+                      <span className="text-sm text-neutral-500">Load more</span>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </ScrollArea>
+      </main>
 
       {/* Content Viewer Slideout */}
       <UnifiedSlideout
