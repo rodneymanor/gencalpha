@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-import type { Idea } from "./types";
+import type { Idea, NoteType } from "./types";
 
 interface IdeaTableProps {
   ideas: Idea[];
@@ -77,19 +77,10 @@ export function IdeaTable({ ideas, onViewIdea }: IdeaTableProps) {
             <TableCell onClick={() => onViewIdea(idea)} className="max-w-48 font-medium">
               <div className="flex flex-col gap-1">
                 <span className="line-clamp-1 text-sm font-medium">{idea.title}</span>
-                {idea.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {idea.tags.slice(0, 2).map((tag) => (
-                      <Badge key={tag} variant="secondary" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                    {idea.tags.length > 2 && (
-                      <Badge variant="outline" className="text-xs">
-                        +{idea.tags.length - 2}
-                      </Badge>
-                    )}
-                  </div>
+                {idea.noteType && (
+                  <Badge variant="secondary" className="text-xs w-fit">
+                    {idea.noteType}
+                  </Badge>
                 )}
               </div>
             </TableCell>

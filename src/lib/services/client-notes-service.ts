@@ -4,6 +4,7 @@
  */
 
 import { auth } from "@/lib/firebase";
+import { NoteType } from "@/app/(main)/dashboard/idea-inbox/_components/types";
 
 import { Note, CreateNoteData, UpdateNoteData, NotesFilter } from "./notes-service";
 
@@ -46,7 +47,7 @@ class ClientNotesService {
     if (filter.starred !== undefined) params.append("starred", filter.starred.toString());
     if (filter.source) params.append("source", filter.source);
     if (filter.limit) params.append("limit", filter.limit.toString());
-    if (filter.tags) params.append("tags", filter.tags.join(","));
+    if (filter.noteType) params.append("noteType", filter.noteType);
     if (filter.search) params.append("search", filter.search);
 
     const response = await fetch(`/api/notes?${params.toString()}`, {
@@ -174,10 +175,10 @@ class ClientNotesService {
   }
 
   /**
-   * Update note tags
+   * Update note type
    */
-  async updateTags(noteId: string, tags: string[]): Promise<NoteResponse> {
-    return this.updateNote(noteId, { tags });
+  async updateNoteType(noteId: string, noteType: NoteType): Promise<NoteResponse> {
+    return this.updateNote(noteId, { noteType });
   }
 }
 

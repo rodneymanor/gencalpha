@@ -7,12 +7,13 @@ import "@blocknote/core/fonts/inter.css";
 import { BlockNoteView } from "@blocknote/mantine";
 import "@blocknote/mantine/style.css";
 import { formatDistanceToNow } from "date-fns";
-import { X, ExternalLink, Copy, Edit, Trash2, Eye, Heart, MessageCircle, Clock, Calendar } from "lucide-react";
+import { ExternalLink, Copy, Edit, Trash2, Eye, Heart, MessageCircle, Clock, Calendar } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { SimpleSlideoutHeader } from "@/components/ui/slideout-header";
 
 import { ContentItem } from "../types";
 
@@ -242,16 +243,11 @@ export const ContentViewer: React.FC<ContentViewerProps> = ({ item, onClose, onE
 
   return (
     <div className="flex h-full flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-neutral-200 px-6 py-4">
-        <h2 className="text-lg font-semibold text-neutral-900">Content Details</h2>
-        <button
-          onClick={onClose}
-          className="rounded-[var(--radius-button)] p-1.5 transition-colors hover:bg-neutral-100"
-        >
-          <X className="h-5 w-5 text-neutral-600" />
-        </button>
-      </div>
+      {/* Standardized Header - 52px height */}
+      <SimpleSlideoutHeader
+        title="Content Details"
+        onClose={onClose}
+      />
 
       {/* Content */}
       <ScrollArea className="flex-1">

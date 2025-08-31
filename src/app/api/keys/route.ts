@@ -14,6 +14,7 @@ interface ApiKeyDocument {
   requestCount: number;
   violations: number;
   lockoutUntil?: string;
+  apiKey?: string; // Store the actual key (encrypted in production, plain for now)
 }
 
 /**
@@ -106,6 +107,7 @@ export async function POST(request: NextRequest) {
       status: "active",
       requestCount: 0,
       violations: 0,
+      apiKey: apiKey, // Store the actual key for retrieval
     };
 
     await adminDb.collection("users").doc(userId).collection("apiKeys").doc(hash).create(keyMetadata);
@@ -297,6 +299,7 @@ export async function GET(request: NextRequest) {
         violations: data.violations,
         lockoutUntil: data.lockoutUntil,
         revokedAt: data.revokedAt,
+        apiKey: data.apiKey, // Include the actual API key if it exists
       };
     });
 

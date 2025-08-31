@@ -79,10 +79,10 @@ export function useDynamicSidebarItems(): NavGroup[] {
   // Build Ideas section items based on feature flags
   const ideasSectionItems = [];
 
-  // Always include Content Inbox
+  // Idea Inbox (formerly Content Inbox) - using new route
   ideasSectionItems.push({
-    title: "Content Inbox",
-    url: "/content-inbox",
+    title: "Idea Inbox",
+    url: "/idea-inbox",
     icon: Archive,
     isNew: true,
   });

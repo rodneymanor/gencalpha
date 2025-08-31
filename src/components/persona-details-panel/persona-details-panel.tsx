@@ -2,11 +2,12 @@
 
 import React, { useState } from "react";
 
-import { Copy, Download, X, User, Wand2 } from "lucide-react";
+import { Copy, Download, User, Wand2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import { IconSlideoutHeader } from "@/components/ui/slideout-header";
 
 export interface PersonaDetails {
   id: string;
@@ -101,44 +102,40 @@ export function PersonaDetailsPanel({
 
   return (
     <div className={cn("flex h-full flex-col bg-neutral-50", className)}>
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-neutral-200 px-6 py-4">
-        <div className="flex items-center gap-3">
-          <div className="bg-primary-100 flex h-10 w-10 items-center justify-center rounded-full">
-            <User className="text-primary-600 h-5 w-5" />
+      {/* Standardized Header - 52px height */}
+      <IconSlideoutHeader
+        icon={
+          <div className="bg-primary-100 flex h-8 w-8 items-center justify-center rounded-full">
+            <User className="text-primary-600 h-4 w-4" />
           </div>
-          <div>
-            <h2 className="text-lg font-semibold text-neutral-900">{persona.name}</h2>
-            {persona.username && <p className="text-sm text-neutral-600">@{persona.username}</p>}
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleCopy(JSON.stringify(persona.analysis, null, 2), "analysis")}
-            disabled={copying}
-            className="text-neutral-600 hover:text-neutral-900"
-          >
-            <Copy className="h-4 w-4" />
-            {copying ? "Copied!" : "Copy"}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleDownload}
-            className="text-neutral-600 hover:text-neutral-900"
-          >
-            <Download className="h-4 w-4" />
-            Export
-          </Button>
-          {onClose && (
-            <Button variant="ghost" size="sm" onClick={onClose} className="text-neutral-600 hover:text-neutral-900">
-              <X className="h-4 w-4" />
+        }
+        title={persona.name}
+        subtitle={persona.username ? `@${persona.username}` : undefined}
+        onClose={onClose || (() => {})}
+        rightActions={
+          <>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleCopy(JSON.stringify(persona.analysis, null, 2), "analysis")}
+              disabled={copying}
+              className="h-9 px-2 text-xs text-neutral-600 hover:text-neutral-900"
+            >
+              <Copy className="mr-1 h-3.5 w-3.5" />
+              {copying ? "Copied!" : "Copy"}
             </Button>
-          )}
-        </div>
-      </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleDownload}
+              className="h-9 px-2 text-xs text-neutral-600 hover:text-neutral-900"
+            >
+              <Download className="mr-1 h-3.5 w-3.5" />
+              Export
+            </Button>
+          </>
+        }
+      />
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabType)} className="flex-1 overflow-hidden">

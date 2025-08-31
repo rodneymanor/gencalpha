@@ -24,14 +24,14 @@ export function ContentInboxHeader({
     <div className="border-b border-neutral-200 p-6">
       {/* Header Title & Add Button */}
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-neutral-900">Content Inbox</h1>
+        <h1 className="text-2xl font-semibold text-neutral-900">Idea Inbox</h1>
         <Button
           onClick={onAddContent}
           className="border border-neutral-200 bg-neutral-100 text-neutral-900 shadow-[0_0_0_1px_rgba(0,0,0,0.04)] hover:-translate-y-px hover:border-neutral-300 hover:bg-neutral-200 hover:shadow-[var(--shadow-soft-drop)]"
           size="sm"
         >
           <Plus className="h-4 w-4" />
-          Add Content
+          New Idea
         </Button>
       </div>
 

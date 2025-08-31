@@ -20,6 +20,7 @@ interface ApiKeyStatus {
   violations: number;
   lockoutUntil?: string;
   revokedAt?: string;
+  apiKey?: string; // The actual API key (for new keys going forward)
 }
 
 interface ApiKeyResponse {
@@ -42,6 +43,7 @@ export function ApiKeysSettings() {
   const [revoking, setRevoking] = useState(false);
   const [newApiKey, setNewApiKey] = useState<string | null>(null);
   const [showKey, setShowKey] = useState(false);
+  const [showActiveKey, setShowActiveKey] = useState(false);
 
   const fetchKeyStatus = async () => {
     console.log("fetchKeyStatus called, user:", !!user);
@@ -231,6 +233,32 @@ export function ApiKeysSettings() {
                 {revoking ? "Revoking..." : "Revoke"}
               </Button>
             </div>
+
+            {/* API Key Display with Click-to-Show */}
+            {keyStatus.activeKey?.apiKey && (
+              <div className="space-y-2 border-t pt-4">
+                <div className="text-sm font-medium">Your API Key</div>
+                <div className="flex items-center space-x-2">
+                  <code className="flex-1 rounded border bg-neutral-50 p-2 font-mono text-sm">
+                    {showActiveKey ? keyStatus.activeKey.apiKey : "••••••••••••••••••••••••••••••••••••••••"}
+                  </code>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowActiveKey(!showActiveKey)}
+                  >
+                    {showActiveKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => copyToClipboard(keyStatus.activeKey.apiKey)}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>

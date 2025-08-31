@@ -6,13 +6,14 @@
 import { FieldValue } from "firebase-admin/firestore";
 
 import { adminDb } from "@/lib/firebase-admin";
+import { NoteType } from "@/app/(main)/dashboard/idea-inbox/_components/types";
 
 export interface Note {
   id: string;
   userId: string;
   title: string;
   content: string;
-  tags: string[];
+  noteType: NoteType; // Changed from tags to noteType
   type: "text" | "voice" | "idea_inbox";
   source?: "manual" | "inbox" | "import";
   starred: boolean;
@@ -35,7 +36,7 @@ export interface Note {
 export interface CreateNoteData {
   title: string;
   content: string;
-  tags?: string[];
+  noteType?: NoteType; // Changed from tags to noteType
   type?: "text" | "voice" | "idea_inbox";
   source?: "manual" | "inbox" | "import";
   starred?: boolean;
@@ -56,14 +57,14 @@ export interface CreateNoteData {
 export interface UpdateNoteData {
   title?: string;
   content?: string;
-  tags?: string[];
+  noteType?: NoteType; // Changed from tags to noteType
   starred?: boolean;
   audioUrl?: string;
   duration?: number;
 }
 
 export interface NotesFilter {
-  tags?: string[];
+  noteType?: NoteType; // Changed from tags to noteType
   type?: "text" | "voice" | "idea_inbox";
   starred?: boolean;
   source?: "manual" | "inbox" | "import";
@@ -101,22 +102,22 @@ class NotesService {
           userId: data.userId,
           title: data.title,
           content: data.content,
-          tags: data.tags || [],
-          type: data.type || "text",
-          source: data.source || "manual",
-          starred: data.starred || false,
+          noteType: data.noteType ?? NoteType.NOTE, // Changed from tags to noteType
+          type: data.type ?? "text",
+          source: data.source ?? "manual",
+          starred: data.starred ?? false,
           audioUrl: data.audioUrl,
           duration: data.duration,
           metadata: data.metadata,
-          createdAt: data.createdAt?.toDate() || new Date(),
-          updatedAt: data.updatedAt?.toDate() || new Date(),
+          createdAt: data.createdAt?.toDate() ?? new Date(),
+          updatedAt: data.updatedAt?.toDate() ?? new Date(),
         });
       });
 
-      // Filter by tags if specified (Firestore doesn't support array-contains-any with other filters)
+      // Filter by noteType if specified
       let filteredNotes = notes;
-      if (filter.tags && filter.tags.length > 0) {
-        filteredNotes = notes.filter((note) => filter.tags!.some((tag) => note.tags.includes(tag)));
+      if (filter.noteType) {
+        filteredNotes = notes.filter((note) => note.noteType === filter.noteType);
       }
 
       // Sort by updatedAt in memory (descending - newest first)
@@ -158,15 +159,15 @@ class NotesService {
         userId: data.userId,
         title: data.title,
         content: data.content,
-        tags: data.tags || [],
-        type: data.type || "text",
-        source: data.source || "manual",
-        starred: data.starred || false,
+        noteType: data.noteType ?? NoteType.NOTE, // Changed from tags to noteType
+        type: data.type ?? "text",
+        source: data.source ?? "manual",
+        starred: data.starred ?? false,
         audioUrl: data.audioUrl,
         duration: data.duration,
         metadata: data.metadata,
-        createdAt: data.createdAt?.toDate() || new Date(),
-        updatedAt: data.updatedAt?.toDate() || new Date(),
+        createdAt: data.createdAt?.toDate() ?? new Date(),
+        updatedAt: data.updatedAt?.toDate() ?? new Date(),
       };
     } catch (error) {
       console.error("Error fetching note:", error);
@@ -184,10 +185,10 @@ class NotesService {
         userId,
         title: noteData.title,
         content: noteData.content,
-        tags: noteData.tags || [],
-        type: noteData.type || "text",
-        source: noteData.source || "manual",
-        starred: noteData.starred || false,
+        noteType: noteData.noteType ?? NoteType.NOTE, // Changed from tags to noteType
+        type: noteData.type ?? "text",
+        source: noteData.source ?? "manual",
+        starred: noteData.starred ?? false,
         createdAt: now,
         updatedAt: now,
       };
@@ -278,8 +279,7 @@ class NotesService {
       return allNotes.filter(
         (note) =>
           note.title.toLowerCase().includes(searchLower) ||
-          note.content.toLowerCase().includes(searchLower) ||
-          note.tags.some((tag) => tag.toLowerCase().includes(searchLower)),
+          note.content.toLowerCase().includes(searchLower),
       );
     } catch (error) {
       console.error("Error searching notes:", error);
@@ -288,21 +288,21 @@ class NotesService {
   }
 
   /**
-   * Get unique tags for a user
+   * Get unique note types for a user
    */
-  async getUserTags(userId: string): Promise<string[]> {
+  async getUserNoteTypes(userId: string): Promise<NoteType[]> {
     try {
       const notes = await this.getUserNotes(userId);
-      const tagSet = new Set<string>();
+      const typeSet = new Set<NoteType>();
 
       notes.forEach((note) => {
-        note.tags.forEach((tag) => tagSet.add(tag));
+        typeSet.add(note.noteType);
       });
 
-      return Array.from(tagSet).sort();
+      return Array.from(typeSet).sort();
     } catch (error) {
-      console.error("Error fetching user tags:", error);
-      throw new Error("Failed to fetch tags");
+      console.error("Error fetching user note types:", error);
+      throw new Error("Failed to fetch note types");
     }
   }
 

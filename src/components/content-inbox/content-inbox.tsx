@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 
 // Import components
 import { AddContentForm } from "./components/add-content-form";
+import { AddIdeaPanel } from "./components/AddIdeaPanel";
 import { BulkActionsToolbar } from "./components/BulkActionsToolbar";
 import { ContentTable } from "./components/content-table";
 import { ContentViewer } from "./components/content-viewer";
@@ -174,7 +175,7 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
     }
   };
 
-  // Handle add content
+  // Handle New Idea submission
   const handleAddContent = async (data: Parameters<typeof addContentMutation.mutateAsync>[0]) => {
     await addContentMutation.mutateAsync(data);
     toast.success("Content added successfully");
@@ -225,23 +226,14 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
           </div>
         </main>
 
-        {/* Add Content Slideout */}
-        <UnifiedSlideout
+        {/* New Idea Panel - Notion Style */}
+        <AddIdeaPanel
           isOpen={isAddSlideoutOpen}
           onClose={() => setIsAddSlideoutOpen(false)}
-          config={{
-            ...ClaudeArtifactConfig,
-            width: "md",
-            showHeader: false,
-            showCloseButton: false,
+          onSuccess={() => {
+            refetch();
           }}
-        >
-          <AddContentForm
-            onClose={() => setIsAddSlideoutOpen(false)}
-            onSubmit={handleAddContent}
-            isSubmitting={addContentMutation.isPending}
-          />
-        </UnifiedSlideout>
+        />
       </div>
     );
   }
@@ -335,23 +327,14 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
         />
       </UnifiedSlideout>
 
-      {/* Add Content Slideout */}
-      <UnifiedSlideout
+      {/* New Idea Panel - Notion Style */}
+      <AddIdeaPanel
         isOpen={isAddSlideoutOpen}
         onClose={() => setIsAddSlideoutOpen(false)}
-        config={{
-          ...ClaudeArtifactConfig,
-          width: "md",
-          showHeader: false,
-          showCloseButton: false,
+        onSuccess={() => {
+          refetch();
         }}
-      >
-        <AddContentForm
-          onClose={() => setIsAddSlideoutOpen(false)}
-          onSubmit={handleAddContent}
-          isSubmitting={addContentMutation.isPending}
-        />
-      </UnifiedSlideout>
+      />
     </div>
   );
 };

@@ -2,11 +2,12 @@
 
 import React, { useState } from "react";
 
-import { Play, FileText, Clock, Download, X, BookOpen, Search } from "lucide-react";
+import { Play, FileText, Clock, Download, BookOpen, Search } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { SlideoutHeader } from "@/components/ui/slideout-header";
 import { ScriptComponent } from "@/types/script-panel";
 import {
   VideoInsightsTabConfig,
@@ -47,56 +48,53 @@ export function VideoInsightsHeader({
   onClose,
 }: VideoInsightsHeaderProps) {
   return (
-    <div className="flex items-center justify-between border-b border-neutral-200 p-4">
-      <div className="flex items-center gap-3">
-        <Badge variant="outline" className="px-3 py-1.5 text-sm font-medium">
-          Video Insights
-        </Badge>
-        {videoInsights.title && (
-          <span className="max-w-[200px] truncate text-sm text-neutral-600">{videoInsights.title}</span>
-        )}
-      </div>
-
-      <div className="flex items-center gap-2">
-        {/* Dual Action Button - Copy & Download */}
-        <div className="flex overflow-hidden rounded-[var(--radius-button)] border border-neutral-200 bg-neutral-50">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onCopy(videoInsights.scriptData.fullScript)}
-            disabled={copyStatus === "copying"}
-            className={cn(
-              "h-8 rounded-none border-r border-neutral-200 px-3 text-xs font-medium transition-colors duration-200",
-              copyStatus === "success" && "bg-success-50 text-success-600 dark:bg-success-950/20",
-            )}
-          >
-            {copyStatus === "copying" ? "Copying..." : copyStatus === "success" ? "Copied" : "Copy"}
-          </Button>
-
-          {showDownload && (
+    <SlideoutHeader
+      leftContent={
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="px-2.5 py-1 text-xs font-medium">
+            Video Insights
+          </Badge>
+          {videoInsights.title && (
+            <span className="max-w-[200px] truncate text-sm text-neutral-600">{videoInsights.title}</span>
+          )}
+        </div>
+      }
+      rightActions={
+        <>
+          {/* Dual Action Button - Copy & Download */}
+          <div className="flex overflow-hidden rounded-[var(--radius-button)] border border-neutral-200 bg-neutral-50">
             <Button
               variant="ghost"
               size="sm"
-              onClick={onDownload}
-              disabled={isDownloading}
-              className="h-8 rounded-none px-2"
+              onClick={() => onCopy(videoInsights.scriptData.fullScript)}
+              disabled={copyStatus === "copying"}
+              className={cn(
+                "h-9 rounded-none border-r border-neutral-200 px-2.5 text-xs font-medium transition-colors duration-200",
+                copyStatus === "success" && "bg-success-50 text-success-600 dark:bg-success-950/20",
+              )}
             >
-              <Download className="h-3.5 w-3.5" />
+              {copyStatus === "copying" ? "Copying..." : copyStatus === "success" ? "Copied" : "Copy"}
             </Button>
-          )}
-        </div>
 
-        {/* Custom Actions */}
-        {customActions}
+            {showDownload && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onDownload}
+                disabled={isDownloading}
+                className="h-9 rounded-none px-2"
+              >
+                <Download className="h-3.5 w-3.5" />
+              </Button>
+            )}
+          </div>
 
-        {/* Close Button */}
-        {onClose && (
-          <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0 hover:bg-neutral-100">
-            <X className="h-4 w-4" />
-          </Button>
-        )}
-      </div>
-    </div>
+          {/* Custom Actions */}
+          {customActions}
+        </>
+      }
+      onClose={onClose || (() => {})}
+    />
   );
 }
 

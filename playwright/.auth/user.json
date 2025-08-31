@@ -1,0 +1,14 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "http://localhost:3000",
+      "localStorage": [
+        {
+          "name": "ph_phx_qI3JcOt2cSPS7434Ics1xX2k1hY2cKUeTZhInc3I7XzL1vM_posthog",
+          "value": "{\"$initialization_time\":\"2025-08-31T18:35:20.398Z\",\"$configured_session_timeout_ms\":1800000,\"$sesid\":[1756665320398,\"01990169-93ce-7013-b6ea-6cd37c856bae\",1756665320398],\"$client_session_props\":{\"sessionId\":\"01990169-93ce-7013-b6ea-6cd37c856bae\",\"props\":{\"r\":\"$direct\",\"u\":\"http://localhost:3000/collections\"}},\"distinct_id\":\"01990169-93cf-7172-a306-1036d4ebba1a\",\"$device_id\":\"01990169-93cf-7172-a306-1036d4ebba1a\",\"$user_state\":\"anonymous\"}"
+        }
+      ]
+    }
+  ]
+}

@@ -352,7 +352,8 @@ function MyComponent() {
         onClose={close}
         config={{
           showHeader: false,  // Let VideoInsightsPanel handle its own header
-          width: "lg"
+          width: "lg",
+          animationType: "claude"  // Ensure Claude-style transitions
         }}
       >
         <VideoInsightsPanel

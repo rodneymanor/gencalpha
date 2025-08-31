@@ -67,16 +67,51 @@ const PlatformBadge: React.FC<{ platform: Platform }> = ({ platform }) => {
   );
 };
 
+// Determine content type
+const getContentType = (item: ContentItem): { type: string; icon: React.ReactNode } => {
+  // Check if it's a note (has content but no URL or platform is unknown/genc)
+  if (item.platform === "genc" || item.platform === "unknown" || !item.url) {
+    return { 
+      type: "Note", 
+      icon: <FileText className="h-4 w-4 text-neutral-500" /> 
+    };
+  }
+  
+  // Video platforms
+  if (item.platform === "youtube" || item.platform === "tiktok") {
+    return { 
+      type: "Video", 
+      icon: <Video className="h-4 w-4 text-neutral-500" /> 
+    };
+  }
+  
+  // Image/Photo platforms
+  if (item.platform === "instagram") {
+    return { 
+      type: "Photo", 
+      icon: <Image className="h-4 w-4 text-neutral-500" /> 
+    };
+  }
+  
+  // Social posts
+  if (item.platform === "twitter" || item.platform === "linkedin") {
+    return { 
+      type: "Post", 
+      icon: <FileText className="h-4 w-4 text-neutral-500" /> 
+    };
+  }
+  
+  // Default to Link for anything else
+  return { 
+    type: "Link", 
+    icon: <ExternalLink className="h-4 w-4 text-neutral-500" /> 
+  };
+};
+
 // Content type icon
 const ContentTypeIcon: React.FC<{ item: ContentItem }> = ({ item }) => {
-  // Determine content type based on available data
-  if (item.thumbnailUrl || item.platform === "youtube" || item.platform === "tiktok") {
-    return <Video className="h-4 w-4 text-neutral-500" />;
-  }
-  if (item.platform === "instagram") {
-    return <Image className="h-4 w-4 text-neutral-500" />;
-  }
-  return <FileText className="h-4 w-4 text-neutral-500" />;
+  const { icon } = getContentType(item);
+  return <>{icon}</>;
 };
 
 
@@ -106,7 +141,7 @@ export const ContentTable: React.FC<ContentTableProps> = ({
               />
             </TableHead>
             <TableHead className="min-w-[300px]">Title</TableHead>
-            <TableHead className="w-[120px]">Category</TableHead>
+            <TableHead className="w-[100px]">Type</TableHead>
             <TableHead className="w-[120px]">Platform</TableHead>
             <TableHead className="w-[120px]">Created</TableHead>
             <TableHead className="w-[120px]">Status</TableHead>
@@ -159,14 +194,18 @@ export const ContentTable: React.FC<ContentTableProps> = ({
                     </div>
                   </div>
                 </TableCell>
-                <TableCell className="w-[120px]">
-                  {item.category ? (
-                    <Badge variant="outline" className="text-xs capitalize">
-                      {item.category}
-                    </Badge>
-                  ) : (
-                    <span className="text-neutral-400">—</span>
-                  )}
+                <TableCell className="w-[100px]">
+                  <div className="flex items-center gap-1.5">
+                    {(() => {
+                      const { type, icon } = getContentType(item);
+                      return (
+                        <>
+                          {icon}
+                          <span className="text-sm text-neutral-700">{type}</span>
+                        </>
+                      );
+                    })()}
+                  </div>
                 </TableCell>
                 <TableCell className="w-[120px]">
                   <PlatformBadge platform={item.platform} />

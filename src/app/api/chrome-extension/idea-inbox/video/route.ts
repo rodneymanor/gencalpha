@@ -3,11 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { authenticateApiKey } from "@/lib/api-key-auth";
 import { notesService } from "@/lib/services/notes-service";
 import { UnifiedVideoScraper, scrapeVideoUrl } from "@/lib/unified-video-scraper";
+import { NoteType } from "@/app/(main)/dashboard/idea-inbox/_components/types";
 
 interface VideoIdeaBody {
   url: string;
   title?: string;
-  tags?: string[];
+  noteType?: NoteType;
 }
 
 export async function POST(request: NextRequest) {
@@ -16,7 +17,7 @@ export async function POST(request: NextRequest) {
     if (authResult instanceof NextResponse) return authResult;
     const userId = authResult.user.uid;
 
-    const { url, title, tags = [] }: VideoIdeaBody = await request.json();
+    const { url, title, noteType }: VideoIdeaBody = await request.json();
     if (!url) {
       return NextResponse.json({ success: false, error: "url is required" }, { status: 400 });
     }
@@ -38,10 +39,22 @@ export async function POST(request: NextRequest) {
     // Scrape metadata (no upload/processing here)
     const videoData = await scrapeVideoUrl(decodedUrl).catch(() => null);
 
+    // Determine note type based on platform
+    let derivedNoteType = noteType;
+    if (!derivedNoteType) {
+      if (validation.platform.includes("tiktok")) {
+        derivedNoteType = NoteType.TIKTOK;
+      } else if (validation.platform.includes("instagram")) {
+        derivedNoteType = NoteType.INSTAGRAM;
+      } else {
+        derivedNoteType = NoteType.NOTE;
+      }
+    }
+
     const noteId = await notesService.createNote(userId, {
       title: (title ?? `Idea from ${validation.platform}`).trim(),
       content: decodedUrl,
-      tags: tags.filter((t) => t && t.trim()),
+      noteType: derivedNoteType,
       type: "idea_inbox",
       source: "inbox",
       starred: false,

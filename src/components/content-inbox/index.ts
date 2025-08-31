@@ -3,6 +3,7 @@
 export { ContentInbox } from "./content-inbox";
 export { ContentCard } from "./components/ContentCard";
 export { AddContentModal } from "./components/AddContentModal";
+export { AddIdeaPanel } from "./components/AddIdeaPanel";
 export { SearchFilterBar } from "./components/SearchFilterBar";
 export { BulkActionsToolbar } from "./components/BulkActionsToolbar";
 export { FloatingActionButton } from "./components/FloatingActionButton";

@@ -2,9 +2,8 @@ import { cn } from "@/lib/utils";
 
 // Claude-style animation classes
 const getClaudeAnimationClasses = (isOpen: boolean, position: string) => {
-  const claudeEasing = "cubic-bezier(0.32, 0.72, 0, 1)";
-  const baseClasses = "transform transition-transform will-change-transform";
-  const duration = isOpen ? "duration-[400ms]" : "duration-[250ms]";
+  const baseClasses = "transform will-change-transform slideout-claude-transition";
+  const stateClass = isOpen ? "opening" : "closing";
 
   const transforms = {
     right: isOpen ? "translate-x-0" : "translate-x-full",
@@ -14,7 +13,11 @@ const getClaudeAnimationClasses = (isOpen: boolean, position: string) => {
 
   const transform = transforms[position as keyof typeof transforms] || "translate-x-0";
 
-  return cn(baseClasses, duration, `ease-[${claudeEasing}]`, transform);
+  return cn(
+    baseClasses,
+    stateClass,
+    transform
+  );
 };
 
 // Animation variants following Claude's artifact panel physics

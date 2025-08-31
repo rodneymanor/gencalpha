@@ -1,3 +1,11 @@
+// Note types enum for categorizing content
+export enum NoteType {
+  NOTE = "note",
+  TIKTOK = "tiktok",
+  INSTAGRAM = "instagram",
+  YOUTUBE = "youtube"
+}
+
 export interface Idea {
   id: string;
   title: string;
@@ -8,7 +16,7 @@ export interface Idea {
   createdAt: string;
   updatedAt: string;
   wordCount: number;
-  tags: string[];
+  noteType: NoteType; // Replaced tags with noteType
   type?: "text" | "voice" | "idea_inbox";
   starred?: boolean;
   metadata?: {
@@ -31,7 +39,7 @@ export interface DatabaseNote {
   userId: string;
   title: string;
   content: string;
-  tags: string[];
+  noteType: NoteType; // Replaced tags with noteType
   type: "text" | "voice" | "idea_inbox";
   source?: "manual" | "inbox" | "import";
   starred: boolean;

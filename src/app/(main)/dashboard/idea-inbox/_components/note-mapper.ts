@@ -1,4 +1,4 @@
-import type { Idea, DatabaseNote } from "./types";
+import type { Idea, DatabaseNote, NoteType } from "./types";
 
 /**
  * Check video URL for platform
@@ -26,25 +26,19 @@ function getSourceFromMetadata(note: DatabaseNote): Idea["source"] | null {
 }
 
 /**
- * Check tags for source hints
+ * Determine note type based on source
  */
-function getSourceFromTags(tags: string[]): Idea["source"] | null {
-  const lowerTags = tags.map((tag) => tag.toLowerCase());
-
-  if (lowerTags.some((tag) => tag.includes("instagram") || tag.includes("ig"))) {
-    return "instagram";
+function getNoteTypeFromSource(source: Idea["source"]): NoteType {
+  switch (source) {
+    case "youtube":
+      return NoteType.YOUTUBE;
+    case "tiktok":
+      return NoteType.TIKTOK;
+    case "instagram":
+      return NoteType.INSTAGRAM;
+    default:
+      return NoteType.NOTE;
   }
-  if (lowerTags.some((tag) => tag.includes("tiktok") || tag.includes("tt"))) {
-    return "tiktok";
-  }
-  if (lowerTags.some((tag) => tag.includes("youtube") || tag.includes("yt"))) {
-    return "youtube";
-  }
-  if (lowerTags.some((tag) => tag.includes("blog") || tag.includes("website") || tag.includes("web"))) {
-    return "blog";
-  }
-
-  return null;
 }
 
 /**
@@ -136,10 +130,6 @@ export function mapNoteToIdea(note: DatabaseNote): Idea {
     const metadataSource = getSourceFromMetadata(note);
     if (metadataSource) return metadataSource;
 
-    // Try tags
-    const tagSource = getSourceFromTags(note.tags);
-    if (tagSource) return tagSource;
-
     // Try content
     const contentSource = getSourceFromContent(note.title, note.content);
     if (contentSource) return contentSource;
@@ -165,18 +155,19 @@ export function mapNoteToIdea(note: DatabaseNote): Idea {
   };
 
   const parsedContent = parseContent(note.content);
+  const source = determineSource(note);
 
   return {
     id: note.id,
     title: note.title,
     content: parsedContent,
-    source: determineSource(note),
+    source: source,
     sourceUrl: getSourceUrl(note),
     excerpt: generateExcerpt(parsedContent),
     createdAt: note.createdAt instanceof Date ? note.createdAt.toISOString() : new Date(note.createdAt).toISOString(),
     updatedAt: note.updatedAt instanceof Date ? note.updatedAt.toISOString() : new Date(note.updatedAt).toISOString(),
     wordCount: getWordCount(parsedContent),
-    tags: note.tags,
+    noteType: note.noteType ?? getNoteTypeFromSource(source), // Use provided noteType or derive from source
     type: note.type,
     starred: note.starred,
     metadata: note.metadata,

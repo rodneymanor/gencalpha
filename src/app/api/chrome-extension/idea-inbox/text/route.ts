@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { authenticateApiKey } from "@/lib/api-key-auth";
 import { notesService } from "@/lib/services/notes-service";
+import { NoteType } from "@/app/(main)/dashboard/idea-inbox/_components/types";
 
 interface TextIdeaBody {
   title?: string;
   content?: string;
   url?: string;
-  tags?: string[];
+  noteType?: NoteType;
 }
 
 export async function POST(request: NextRequest) {
@@ -19,7 +20,7 @@ export async function POST(request: NextRequest) {
     const body: TextIdeaBody = await request.json();
     const incomingTitle = (body.title ?? "").trim();
     const resolvedContent = (body.content ?? body.url ?? "").trim();
-    const safeTags = Array.isArray(body.tags) ? body.tags.filter((t) => typeof t === "string" && t.trim()) : [];
+    const noteType = body.noteType ?? NoteType.NOTE;
 
     if (!incomingTitle && !resolvedContent) {
       return NextResponse.json(
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
     const noteId = await notesService.createNote(userId, {
       title: finalTitle,
       content: resolvedContent,
-      tags: safeTags,
+      noteType: noteType,
       type: "idea_inbox",
       source: "inbox",
       starred: false,

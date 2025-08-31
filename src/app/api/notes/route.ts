@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { authenticateApiKey } from "@/lib/api-key-auth";
 import { authenticateWithFirebaseToken } from "@/lib/firebase-auth-helpers";
 import { notesService, CreateNoteData, NotesFilter } from "@/lib/services/notes-service";
+import { NoteType } from "@/app/(main)/dashboard/idea-inbox/_components/types";
 
 async function authenticateRequest(request: NextRequest) {
   console.log("📋 [Notes API] Authenticating request");
@@ -70,8 +71,8 @@ export async function GET(request: NextRequest) {
     if (searchParams.get("limit")) {
       filter.limit = parseInt(searchParams.get("limit")!);
     }
-    if (searchParams.get("tags")) {
-      filter.tags = searchParams.get("tags")!.split(",");
+    if (searchParams.get("noteType")) {
+      filter.noteType = searchParams.get("noteType") as NoteType;
     }
 
     const search = searchParams.get("search");

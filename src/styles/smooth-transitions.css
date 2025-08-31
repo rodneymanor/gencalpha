@@ -17,6 +17,23 @@
 }
 
 /* ========================================
+   SLIDEOUT PANEL TRANSITIONS - Claude Style
+   ======================================== */
+
+.slideout-claude-transition {
+  transition-property: transform;
+  transition-timing-function: var(--ease-claude);
+}
+
+.slideout-claude-transition.opening {
+  transition-duration: var(--slideout-duration);
+}
+
+.slideout-claude-transition.closing {
+  transition-duration: var(--slideout-close-duration);
+}
+
+/* ========================================
    HERO TO CHAT EXPANSION - Claude Style
    ======================================== */
 

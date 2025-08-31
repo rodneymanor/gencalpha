@@ -6,7 +6,7 @@ import { Filter, X, Star, Lightbulb, Edit3, MoreHorizontal } from "lucide-react"
 
 import { IdeaDetailDialog } from "@/app/(main)/dashboard/idea-inbox/_components/idea-detail-dialog";
 import { mapNotesToIdeas } from "@/app/(main)/dashboard/idea-inbox/_components/note-mapper";
-import type { Idea, DatabaseNote } from "@/app/(main)/dashboard/idea-inbox/_components/types";
+import type { Idea, DatabaseNote, NoteType } from "@/app/(main)/dashboard/idea-inbox/_components/types";
 import { EditNoteDialog } from "@/components/standalone/edit-note-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,7 @@ interface FilterState {
   type: string;
   starred: string;
   dateRange: string;
-  tags: string[];
+  noteType: NoteType | "all";
 }
 
 interface IdeasViewProps {
@@ -51,7 +51,7 @@ export function IdeasView({ refreshTrigger }: IdeasViewProps = {}) {
     type: "all",
     starred: "all",
     dateRange: "all",
-    tags: [],
+    noteType: "all",
   });
 
   useEffect(() => {
@@ -101,8 +101,7 @@ export function IdeasView({ refreshTrigger }: IdeasViewProps = {}) {
       filtered = filtered.filter(
         (idea) =>
           idea.title.toLowerCase().includes(query) ||
-          (idea.content || "").toLowerCase().includes(query) ||
-          (idea.tags || []).some((tag) => tag.toLowerCase().includes(query)),
+          (idea.content || "").toLowerCase().includes(query),
       );
     }
 
@@ -150,9 +149,9 @@ export function IdeasView({ refreshTrigger }: IdeasViewProps = {}) {
       }
     }
 
-    // Apply tags filter
-    if (filters.tags.length > 0) {
-      filtered = filtered.filter((idea) => filters.tags.every((tag) => (idea.tags || []).includes(tag)));
+    // Apply noteType filter
+    if (filters.noteType !== "all") {
+      filtered = filtered.filter((idea) => idea.noteType === filters.noteType);
     }
 
     setFilteredIdeas(filtered);
@@ -184,10 +183,9 @@ export function IdeasView({ refreshTrigger }: IdeasViewProps = {}) {
     return Array.from(types);
   }, [ideas]);
 
-  const getUniqueTagsFromIdeas = useCallback(() => {
-    const allTags = ideas.flatMap((idea) => idea.tags || []);
-    const uniqueTags = new Set(allTags.filter(Boolean));
-    return Array.from(uniqueTags).sort();
+  const getUniqueNoteTypesFromIdeas = useCallback(() => {
+    const noteTypes = new Set(ideas.map((idea) => idea.noteType).filter(Boolean));
+    return Array.from(noteTypes);
   }, [ideas]);
 
   // Filter management functions
@@ -197,7 +195,7 @@ export function IdeasView({ refreshTrigger }: IdeasViewProps = {}) {
       type: "all",
       starred: "all",
       dateRange: "all",
-      tags: [],
+      noteType: "all",
     });
   };
 
@@ -207,7 +205,7 @@ export function IdeasView({ refreshTrigger }: IdeasViewProps = {}) {
       filters.type !== "all" ||
       filters.starred !== "all" ||
       filters.dateRange !== "all" ||
-      filters.tags.length > 0
+      filters.noteType !== "all"
     );
   };
 
@@ -217,7 +215,7 @@ export function IdeasView({ refreshTrigger }: IdeasViewProps = {}) {
     if (filters.type !== "all") count++;
     if (filters.starred !== "all") count++;
     if (filters.dateRange !== "all") count++;
-    if (filters.tags.length > 0) count += filters.tags.length;
+    if (filters.noteType !== "all") count++;
     return count;
   };
 
@@ -382,33 +380,25 @@ export function IdeasView({ refreshTrigger }: IdeasViewProps = {}) {
                         </div>
                       </div>
 
-                      {/* Tags */}
-                      {getUniqueTagsFromIdeas().length > 0 && (
-                        <div>
-                          <label className="text-muted-foreground mb-1 block text-xs">Tags</label>
-                          <div className="flex max-h-16 flex-wrap gap-1 overflow-y-auto">
-                            {getUniqueTagsFromIdeas()
-                              .slice(0, 8)
-                              .map((tag) => (
-                                <Badge
-                                  key={tag}
-                                  variant={filters.tags.includes(tag) ? "default" : "outline"}
-                                  className="h-5 cursor-pointer px-2 text-xs"
-                                  onClick={() => {
-                                    setFilters((prev) => ({
-                                      ...prev,
-                                      tags: prev.tags.includes(tag)
-                                        ? prev.tags.filter((t) => t !== tag)
-                                        : [...prev.tags, tag],
-                                    }));
-                                  }}
-                                >
-                                  {tag}
-                                </Badge>
-                              ))}
-                          </div>
-                        </div>
-                      )}
+                      {/* Note Type */}
+                      <div>
+                        <label className="text-muted-foreground mb-1 block text-xs">Note Type</label>
+                        <Select
+                          value={filters.noteType}
+                          onValueChange={(value) => setFilters((prev) => ({ ...prev, noteType: value as NoteType | "all" }))}
+                        >
+                          <SelectTrigger className="h-7 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All types</SelectItem>
+                            <SelectItem value="note">Note</SelectItem>
+                            <SelectItem value="tiktok">TikTok</SelectItem>
+                            <SelectItem value="instagram">Instagram</SelectItem>
+                            <SelectItem value="youtube">YouTube</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                   </PopoverContent>
                 </Popover>
@@ -442,20 +432,15 @@ export function IdeasView({ refreshTrigger }: IdeasViewProps = {}) {
                     />
                   </Badge>
                 )}
-                {filters.tags.slice(0, 3).map((tag) => (
-                  <Badge key={tag} variant="secondary" className="h-5 px-2 text-xs">
-                    #{tag}
+                {filters.noteType !== "all" && (
+                  <Badge variant="secondary" className="h-5 px-2 text-xs">
+                    {filters.noteType}
                     <X
                       className="ml-1 h-2 w-2 cursor-pointer"
-                      onClick={() =>
-                        setFilters((prev) => ({
-                          ...prev,
-                          tags: prev.tags.filter((t) => t !== tag),
-                        }))
-                      }
+                      onClick={() => setFilters((prev) => ({ ...prev, noteType: "all" }))}
                     />
                   </Badge>
-                ))}
+                )}
               </div>
             )}
           </div>
