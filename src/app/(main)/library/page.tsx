@@ -90,12 +90,12 @@ export default function LibraryPage() {
   };
 
   return (
-    <div className="bg-background min-h-screen">
+    <div className="bg-neutral-50 min-h-screen">
       <div className="container mx-auto flex min-h-screen flex-col overflow-auto p-6 md:p-8">
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-foreground text-3xl font-bold tracking-tight">Chat History</h1>
-            <p className="text-muted-foreground">Browse and continue your saved conversations</p>
+            <h1 className="text-neutral-900 text-3xl font-bold tracking-tight">Chat History</h1>
+            <p className="text-neutral-600">Browse and continue your saved conversations</p>
           </div>
           <div className="flex gap-3">
             <Button
@@ -142,8 +142,8 @@ export default function LibraryPage() {
               />
             )}
 
-            {loading && <div className="text-muted-foreground text-sm">Loading…</div>}
-            {error && <div className="text-destructive text-sm">{error}</div>}
+            {loading && <div className="text-neutral-600 text-sm">Loading…</div>}
+            {error && <div className="text-destructive-600 text-sm">{error}</div>}
           </div>
         </div>
       </div>

@@ -12,7 +12,7 @@ export default async function WritePage({
   const chatId = typeof params.chatId === "string" ? params.chatId : undefined;
   const remountKey = typeof params.new === "string" ? params.new : undefined;
   return (
-    <div className="font-sans">
+    <div className="font-sans bg-neutral-50 min-h-screen">
       <UnifiedWriteClient
         key={remountKey}
         initialPrompt={initialPrompt}

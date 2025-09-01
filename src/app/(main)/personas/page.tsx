@@ -169,7 +169,7 @@ export default function PersonasPage() {
   return (
     <>
       {/* Main content wrapper */}
-      <div className="min-h-screen transition-all duration-300" id="personas-main-content">
+      <div className="min-h-screen bg-neutral-50 transition-all duration-300" id="personas-main-content">
         <div className="container mx-auto p-6">
           {/* Header Section */}
           <PersonaHeader onFilterChange={setFilterValue} onAddPersona={handleAddPersona} />

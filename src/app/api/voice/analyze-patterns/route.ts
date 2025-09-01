@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { GeminiService } from "@/lib/gemini";
+import { parseJsonWithRecovery, validateAnalysisResponse, createPartialResponse } from "@/lib/utils/json-parser";
 
 interface AnalyzeRequest {
   transcripts: string[];
@@ -23,7 +24,94 @@ export async function POST(request: NextRequest) {
 
     console.log(`🎙️ Analyzing voice patterns for ${scriptsToAnalyze.length} transcripts`);
 
-    const prompt = `# Voice Pattern Analysis: Hook Extraction & Script Formula Generation
+    // Generate analysis with retry logic
+    const generateAnalysisWithRetry = async (maxRetries = 3): Promise<any> => {
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          console.log(`🔄 Analysis attempt ${attempt}/${maxRetries}`);
+
+          const result = await GeminiService.generateContent({
+            prompt: createOptimizedPrompt(scriptsToAnalyze),
+            responseType: "text",
+            temperature: 0.1, // Lower temperature for more consistent JSON output
+            maxTokens: 16384,
+            model: "gemini-1.5-flash",
+          });
+
+          if (!result.success || !result.content) {
+            throw new Error(`Generation failed: ${result.error || "No content received"}`);
+          }
+
+          console.log(`📊 Response content length: ${result.content.length} characters`);
+
+          // Parse with recovery
+          const analysis = parseJsonWithRecovery(result.content);
+
+          // Validate the response
+          if (validateAnalysisResponse(analysis)) {
+            console.log(`✅ Analysis succeeded on attempt ${attempt}`);
+            return analysis;
+          } else {
+            // Try to create a partial response with defaults
+            console.log(`⚠️ Validation failed, attempting partial recovery...`);
+            const partialAnalysis = createPartialResponse(analysis);
+            if (validateAnalysisResponse(partialAnalysis)) {
+              console.log(`✅ Partial recovery successful on attempt ${attempt}`);
+              return partialAnalysis;
+            }
+            throw new Error("Invalid analysis structure after recovery attempt");
+          }
+
+        } catch (error) {
+          console.log(`❌ Attempt ${attempt} failed:`, error instanceof Error ? error.message : error);
+
+          if (attempt === maxRetries) {
+            // Final attempt - try fallback analysis with fewer transcripts
+            console.log("🔄 Attempting fallback analysis with reduced scope...");
+            return await fallbackAnalysis(scriptsToAnalyze.slice(0, 5));
+          }
+
+          // Exponential backoff between retries
+          const delay = Math.pow(2, attempt) * 1000;
+          console.log(`⏳ Waiting ${delay}ms before retry...`);
+          await new Promise((resolve) => setTimeout(resolve, delay));
+        }
+      }
+    };
+
+    // Fallback analysis with reduced scope
+    const fallbackAnalysis = async (reducedTranscripts: string[]): Promise<any> => {
+      console.log(
+        `🔄 Fallback: Analyzing ${reducedTranscripts.length} transcripts instead of ${scriptsToAnalyze.length}`
+      );
+
+      try {
+        const result = await GeminiService.generateContent({
+          prompt: createSimplifiedPrompt(reducedTranscripts),
+          responseType: "text",
+          temperature: 0.1,
+          maxTokens: 8192, // Smaller token limit for fallback
+          model: "gemini-1.5-flash",
+        });
+
+        if (!result.success || !result.content) {
+          throw new Error(`Fallback generation failed: ${result.error}`);
+        }
+
+        const analysis = parseJsonWithRecovery(result.content);
+        return createPartialResponse(analysis); // Always use partial response for fallback
+      } catch (error) {
+        console.error("❌ Fallback analysis failed:", error);
+        throw error;
+      }
+    };
+
+    // Create optimized prompt with explicit JSON requirements
+    const createOptimizedPrompt = (transcripts: string[]): string => {
+      return `CRITICAL: Return ONLY valid, complete JSON. No markdown, no code blocks, no explanations.
+Your response must start with { and end with }.
+
+# Voice Pattern Analysis: Hook Extraction & Script Formula Generation
 
 Analyze these ${scriptsToAnalyze.length} scripts to extract EVERY hook pattern and create a detailed step-by-step formula for generating new scripts in this creator's style.
 
@@ -189,7 +277,7 @@ IMPORTANT: Use proper JSON formatting - numbers without quotes, strings in quote
     }
     // MUST include ALL scripts analyzed
   ],
-    "hookProgression": {
+  "hookProgression": {
       "structure": "[HOOK_TYPE] → [TRANSITION_PHRASE] → [VALUE_PROMISE]",
       "avgWordCount": 20,
       "timing": "3 seconds",
@@ -333,167 +421,71 @@ FINAL CHECK BEFORE RESPONDING:
 □ Does "detailedScriptFormula" have all 14 steps?
 □ Is each hook's "originalHook" an exact quote from the transcript?
 
-Scripts to analyze (${scriptsToAnalyze.length} total):
-${scriptsToAnalyze.map((t, i) => `---SCRIPT ${i + 1}---\n${t}`).join("\n\n")}`;
+Scripts to analyze (${transcripts.length} total):
+${transcripts.map((t, i) => `---SCRIPT ${i + 1}---\n${t}`).join("\n\n")}
 
-    // Calculate approximate input tokens (rough estimate: 1 token ≈ 4 characters)
-    const totalInputChars = prompt.length;
-    const estimatedInputTokens = Math.ceil(totalInputChars / 4);
-    console.log(`📊 Estimated input size: ${totalInputChars} chars ≈ ${estimatedInputTokens} tokens`);
-    console.log(`📊 Transcripts: ${scriptsToAnalyze.length} scripts, total ${scriptsToAnalyze.join("").length} chars`);
+FINAL REMINDER: Return ONLY the JSON object. No additional text before or after.`;
+    };
 
-    const result = await GeminiService.generateContent({
-      prompt,
-      responseType: "text", // Text mode for flexibility
-      temperature: 0.3,
-      maxTokens: 16384, // Sufficient for 10 transcripts
-      model: "gemini-1.5-flash",
-    });
+    // Create simplified prompt for fallback
+    const createSimplifiedPrompt = (transcripts: string[]): string => {
+      return `RETURN ONLY VALID JSON.
 
-    if (!result.success || !result.content) {
-      console.error("Voice analysis failed:", result.error);
-      return NextResponse.json({ error: result.error || "Failed to analyze voice patterns" }, { status: 500 });
+Analyze these ${transcripts.length} scripts and return a JSON object with these required fields:
+
+{
+  "voiceProfile": { "tone": "string", "personality": "string", "style": "string" },
+  "linguisticFingerprint": { "vocabulary": [], "patterns": [], "uniqueExpressions": [] },
+  "allHooksExtracted": [
+    { "scriptNumber": 1, "originalHook": "exact text", "universalTemplate": "template", "type": "hook type", "trigger": "emotion" }
+  ],
+  "scriptGenerationRules": {
+    "detailedScriptFormula": {
+      "structure": "basic structure",
+      "elements": []
     }
+  }
+}
 
-    // Log response details
-    console.log(`📊 Response content length: ${result.content.length} characters`);
-    console.log(`📊 Response appears truncated: ${result.content.length < 1000 ? "YES!" : "No"}`);
-    if (result.content.length < 1000) {
-      console.log("⚠️ Response is suspiciously short - may be truncated by Gemini");
-    }
+Scripts:
+${transcripts.map((t, i) => `Script ${i + 1}: ${t.substring(0, 200)}...`).join("\n")}`;
+    };
 
-    // Clean and parse JSON response with improved error handling
-    let analysis;
+    // Perform analysis with retry logic
     try {
-      let cleanContent = result.content;
+      const analysis = await generateAnalysisWithRetry();
 
-      // Remove markdown code blocks if present
-      if (cleanContent.includes("```json")) {
-        const jsonMatch = cleanContent.match(/```json\s*([\s\S]*?)\s*```/);
-        if (jsonMatch && jsonMatch[1]) {
-          cleanContent = jsonMatch[1].trim();
-        }
-      } else if (cleanContent.includes("```")) {
-        const codeMatch = cleanContent.match(/```\s*([\s\S]*?)\s*```/);
-        if (codeMatch && codeMatch[1]) {
-          cleanContent = codeMatch[1].trim();
-        }
-      }
-
-      // Find JSON object boundaries
-      const startIndex = cleanContent.indexOf("{");
-      const lastIndex = cleanContent.lastIndexOf("}");
-
-      if (startIndex !== -1 && lastIndex !== -1 && lastIndex > startIndex) {
-        cleanContent = cleanContent.substring(startIndex, lastIndex + 1);
-      }
-
-      // Clean up common JSON issues
-      // Remove any trailing commas before closing braces/brackets
-      cleanContent = cleanContent.replace(/,(\s*[}\]])/g, "$1");
-
-      // Remove any control characters that might break JSON
-      cleanContent = cleanContent.replace(/[\x00-\x1F\x7F]/g, "");
-
-      // Fix common percentage/number formatting issues
-      cleanContent = cleanContent.replace(/"(\d+)%"/g, "$1"); // Convert "80%" to 80
-
-      // Try to parse with better error recovery
-      try {
-        analysis = JSON.parse(cleanContent);
-      } catch (firstError) {
-        // If first parse fails, try to fix common issues
-        console.log("⚠️ First parse attempt failed, trying to fix common issues...");
-
-        // Replace single quotes with double quotes (common mistake)
-        cleanContent = cleanContent.replace(/'/g, '"');
-
-        // Ensure all string values are properly quoted
-        cleanContent = cleanContent.replace(/:\s*([^",\[\{\}\]]+?)([,\}\]])/g, ':"$1"$2');
-
-        // Try parsing again
-        analysis = JSON.parse(cleanContent);
-      }
-
+      // Log success metrics
       console.log("✅ Voice analysis completed successfully");
-
-      // Log the generated content structure for debugging
-      console.log("📊 Generated Analysis Structure:");
-      console.log(`  - allHooksExtracted: ${analysis.allHooksExtracted ? analysis.allHooksExtracted.length : 0} hooks`);
-      console.log(`  - hookReplicationSystem: ${analysis.hookReplicationSystem ? "Present" : "Missing"}`);
+      console.log("📊 Analysis metrics:");
+      console.log(`  - Hooks extracted: ${analysis.allHooksExtracted?.length || 0}`);
+      console.log(`  - Voice profile: ${analysis.voiceProfile ? "Complete" : "Missing"}`);
       console.log(
-        `  - detailedScriptFormula: ${analysis.scriptGenerationRules?.detailedScriptFormula ? Object.keys(analysis.scriptGenerationRules.detailedScriptFormula).length : 0} steps`,
+        `  - Script formula: ${analysis.scriptGenerationRules?.detailedScriptFormula ? "Present" : "Missing"}`
       );
 
-      // Log the actual content of critical fields
-      if (analysis.allHooksExtracted && analysis.allHooksExtracted.length > 0) {
-        console.log("🎯 Sample Hooks Extracted:");
-        analysis.allHooksExtracted.slice(0, 3).forEach((hook: any, i: number) => {
-          console.log(`  Hook ${i + 1}: "${hook.originalHook?.substring(0, 50)}..."`);
-          console.log(`    Template: "${hook.universalTemplate?.substring(0, 50)}..."`);
-        });
-      } else {
-        console.log("⚠️ WARNING: No hooks in allHooksExtracted array!");
-      }
+      return NextResponse.json(analysis);
 
-      if (analysis.scriptGenerationRules?.detailedScriptFormula) {
-        const steps = Object.keys(analysis.scriptGenerationRules.detailedScriptFormula);
-        console.log(`🎬 Script Formula Steps Found: ${steps.join(", ")}`);
-        if (steps.length < 14) {
-          console.log(`⚠️ WARNING: Only ${steps.length} steps found, expected 14!`);
-        }
-      } else {
-        console.log("⚠️ WARNING: No detailedScriptFormula found in scriptGenerationRules!");
-      }
-
-      // Log the raw JSON for debugging if needed
-      if (process.env.NODE_ENV === "development") {
-        console.log("🔍 Full Analysis JSON (first 2000 chars):");
-        console.log(JSON.stringify(analysis, null, 2).substring(0, 2000));
-      }
-
-      // Log sample data
-      if (analysis.allHooksExtracted && analysis.allHooksExtracted.length > 0) {
-        console.log("🎯 First Hook:", JSON.stringify(analysis.allHooksExtracted[0], null, 2));
-        console.log(`🎯 Total Hooks Extracted: ${analysis.allHooksExtracted.length}`);
-      } else {
-        console.warn("⚠️ No hooks found in allHooksExtracted!");
-      }
-
-      if (analysis.scriptGenerationRules?.detailedScriptFormula) {
-        const steps = Object.keys(analysis.scriptGenerationRules.detailedScriptFormula);
-        console.log("📝 Formula Steps Found:", steps);
-        console.log("📝 First Step:", analysis.scriptGenerationRules.detailedScriptFormula.step1);
-      } else {
-        console.warn("⚠️ No detailedScriptFormula found!");
-      }
-    } catch (parseError) {
-      console.error("❌ JSON parse error:", parseError);
-
-      // Try to extract partial data if possible
-      const partialMatch = result.content.match(/"voiceProfile":\s*{[^}]+}/);
-      const hasPartialData = partialMatch !== null;
-
-      console.error("❌ Raw content length:", result.content.length);
-      console.error("❌ First 500 chars:", result.content.substring(0, 500));
-      console.error("❌ Last 500 chars:", result.content.substring(result.content.length - 500));
+    } catch (error) {
+      console.error("❌ Voice analysis failed after all attempts:", error);
 
       return NextResponse.json(
         {
-          error: "Failed to parse analysis results - JSON may be truncated or malformed",
-          details: parseError instanceof Error ? parseError.message : "JSON parsing failed",
-          contentLength: result.content.length,
-          hasPartialData,
-          debugInfo: {
-            firstChars: result.content.substring(0, 500),
-            lastChars: result.content.substring(result.content.length - 500),
+          error: "Analysis failed after multiple attempts",
+          primaryError: error instanceof Error ? error.message : "Unknown error",
+          suggestions: [
+            "Try with fewer transcripts (3-5 instead of 10)",
+            "Check transcript quality and length",
+            "Retry the request after a short delay",
+          ],
+          debug: {
+            transcriptsProvided: scriptsToAnalyze.length,
+            totalCharacters: scriptsToAnalyze.join("").length,
           },
         },
         { status: 500 },
       );
     }
-
-    return NextResponse.json(analysis);
   } catch (error) {
     console.error("Voice analysis error:", error);
     return NextResponse.json(

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-import { EllipsisVertical, CircleUser, CreditCard, MessageSquareDot, LogOut, Building2 } from "lucide-react";
+import { EllipsisVertical, CircleUser, CreditCard, MessageSquareDot, LogOut, Building2, Moon, Sun } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -16,6 +16,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/auth-context";
+import { usePreferencesStore } from "@/lib/stores/preferences/preferences-provider";
+import { updateThemeMode } from "@/lib/theme-utils";
+import { setValueToCookie } from "@/server/server-actions";
 // removed getInitials; using first initial for avatar per design request
 
 // Helper function to get display name
@@ -26,6 +29,8 @@ function getDisplayName(userProfile: any, user: any): string {
 export function NavUser() {
   const { user, userProfile, logout, loading } = useAuth();
   const { isMobile } = useSidebar();
+  const themeMode = usePreferencesStore((s) => s.themeMode);
+  const setThemeMode = usePreferencesStore((s) => s.setThemeMode);
 
   const handleLogout = async () => {
     try {
@@ -35,6 +40,13 @@ export function NavUser() {
       console.error("Logout error:", error);
       toast.error("Failed to logout. Please try again.");
     }
+  };
+
+  const handleThemeToggle = async () => {
+    const newTheme = themeMode === "dark" ? "light" : "dark";
+    updateThemeMode(newTheme);
+    setThemeMode(newTheme);
+    await setValueToCookie("theme_mode", newTheme);
   };
 
   if (!user) {
@@ -106,6 +118,11 @@ export function NavUser() {
                 </Link>
               </DropdownMenuItem>
             </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleThemeToggle} className="flex items-center gap-2">
+              {themeMode === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              {themeMode === "dark" ? "Light Mode" : "Dark Mode"}
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout} disabled={loading}>
               <LogOut />

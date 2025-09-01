@@ -49,10 +49,10 @@ export function HeroSection(props: {
     <div className="flex max-h-screen min-h-screen flex-col items-center justify-center overflow-y-auto px-4 py-8 transition-all duration-300">
       <div className="mx-auto flex w-full max-w-3xl flex-col items-center gap-3 px-5">
         <div className="text-center">
-          <h1 className="text-foreground text-4xl leading-10 font-bold tracking-tight">
+          <h1 className="text-neutral-900 text-4xl leading-10 font-bold tracking-tight">
             {`Hello${resolvedName ? ", " + resolvedName : ""}`}
             <br />
-            <span className="text-muted-foreground text-4xl font-bold">What will you record today?</span>
+            <span className="text-neutral-600 text-4xl font-bold">What will you record today?</span>
           </h1>
         </div>
 

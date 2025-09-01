@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 
 import { PanelLeft } from "lucide-react";
 
-import { ThemeSwitcher as ColorThemeSwitcher } from "@/components/theme/theme-switcher";
 import {
   Sidebar,
   SidebarContent,
@@ -187,14 +186,6 @@ export function AppSidebar({ layoutPreferences: _layoutPreferences, ...props }: 
         </div>
       </SidebarContent>
       <SidebarFooter>
-        <div className="flex flex-col items-center gap-2 px-2 pb-2">
-          {/* Always show theme switcher for development - remove feature flag dependency */}
-          <ColorThemeSwitcher />
-          {/* <LayoutControls
-            {...(layoutPreferences ?? { variant: "sidebar", collapsible: "icon", contentLayout: "centered" })}
-          />
-          <ThemeSwitcher /> */}
-        </div>
         <NavUser />
       </SidebarFooter>
     </Sidebar>
