@@ -24,6 +24,7 @@ import {
   Clock,
   CheckCircle,
   Eye,
+  MessageSquare,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
@@ -50,7 +51,7 @@ export const columns: ColumnConfig<LibraryItem>[] = [
     render: (item) => (
       <div className="flex items-start gap-3">
         <div className="mt-1 flex h-10 w-10 items-center justify-center rounded-[var(--radius-card)] bg-neutral-100 text-neutral-600">
-          {TypeIcon[item.type]}
+          {item.tags?.includes('chat') ? <MessageSquare className="h-4 w-4" /> : TypeIcon[item.type]}
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
@@ -96,8 +97,10 @@ export const columns: ColumnConfig<LibraryItem>[] = [
     sortable: true,
     render: (item) => (
       <div className="flex items-center gap-1.5">
-        {TypeIcon[item.type]}
-        <span className="text-sm capitalize text-neutral-700">{item.type}</span>
+        {item.tags?.includes('chat') ? <MessageSquare className="h-4 w-4" /> : TypeIcon[item.type]}
+        <span className="text-sm capitalize text-neutral-700">
+          {item.tags?.includes('chat') ? 'Chat' : item.type}
+        </span>
       </div>
     ),
   },
@@ -266,7 +269,7 @@ export const getLibraryConfig = (): DataTableTemplateConfig<LibraryItem> => ({
         { value: "audio", label: "Audio" },
         { value: "image", label: "Image" },
         { value: "link", label: "Link" },
-        { value: "note", label: "Note" },
+        { value: "note", label: "Note / Chat" },
       ],
     },
     {
@@ -321,7 +324,7 @@ export const getLibraryConfig = (): DataTableTemplateConfig<LibraryItem> => ({
   statusField: "status",
   
   enableSearch: true,
-  searchPlaceholder: "Search library by title, description, or author...",
+  searchPlaceholder: "Search library items and chat conversations...",
   searchFields: ["title", "description"],
   
   defaultSort: { field: "updatedAt", direction: "desc" },
@@ -387,8 +390,8 @@ export const getLibraryConfig = (): DataTableTemplateConfig<LibraryItem> => ({
   enableDragAndDrop: true,
   
   emptyState: {
-    title: "No library items yet",
-    description: "Start building your knowledge base by adding documents, videos, and other resources.",
+    title: "No library items or chats yet",
+    description: "Start building your knowledge base by adding documents, videos, chats, and other resources.",
     icon: <BookOpen className="h-16 w-16" />,
     action: {
       label: "Add First Item",
