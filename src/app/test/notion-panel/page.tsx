@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { X, Menu, FileText, Hash, Calendar, Users, Tag } from 'lucide-react';
-import NotionPanel from '@/components/panels/notion-panel';
+import { NotionPanel } from '@/components/panels/notion';
 
 // Dynamically import BlockNote to avoid SSR issues
 const BlockNoteEditor = dynamic(() => import('@/components/editor/block-note-editor'), {
