@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
           });
 
           if (!result.success || !result.content) {
-            throw new Error(`Generation failed: ${result.error || "No content received"}`);
+            throw new Error(`Generation failed: ${result.error ?? "No content received"}`);
           }
 
           console.log(`📊 Response content length: ${result.content.length} characters`);
@@ -458,7 +458,7 @@ ${transcripts.map((t, i) => `Script ${i + 1}: ${t.substring(0, 200)}...`).join("
       // Log success metrics
       console.log("✅ Voice analysis completed successfully");
       console.log("📊 Analysis metrics:");
-      console.log(`  - Hooks extracted: ${analysis.allHooksExtracted?.length || 0}`);
+      console.log(`  - Hooks extracted: ${analysis.allHooksExtracted?.length ?? 0}`);
       console.log(`  - Voice profile: ${analysis.voiceProfile ? "Complete" : "Missing"}`);
       console.log(
         `  - Script formula: ${analysis.scriptGenerationRules?.detailedScriptFormula ? "Present" : "Missing"}`

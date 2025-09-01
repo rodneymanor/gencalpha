@@ -24,6 +24,7 @@ export function parseJsonWithRecovery(content: string): any {
       .replace(/,(\s*[}\]])/g, "$1") // Remove trailing commas
       .replace(/([{,]\s*)(\w+):/g, '$1"$2":') // Quote unquoted keys
       .replace(/:\s*'([^']*)'/g, ':"$1"') // Replace single quotes with double
+      // eslint-disable-next-line no-useless-escape
       .replace(/:\s*([^",\[{][^,}\]]*[^,}\]\s])/g, (match: string, value: string) => {
         // Quote unquoted string values, but not booleans/numbers/null
         if (value === "true" || value === "false" || value === "null" || !isNaN(value)) {
