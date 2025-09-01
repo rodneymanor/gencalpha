@@ -246,6 +246,7 @@ export default function NotionPanelGenerationTest() {
             onWidthChange={setPanelWidth}
             minWidth={400}
             maxWidth={900}
+            onClose={() => setIsPanelOpen(false)}
             tabData={{
               video: (
                 <div className="space-y-4">

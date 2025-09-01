@@ -100,6 +100,7 @@ export default function NotionPanel({
         title={title}
         onTitleChange={onTitleChange}
         showPageControls={showPageControls}
+        onClose={onClose}
       />
 
       {/* Properties Section */}

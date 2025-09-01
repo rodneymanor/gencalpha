@@ -1,18 +1,20 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Smile, Image, Layout } from 'lucide-react';
+import { Smile, Image, Layout, ChevronsRight } from 'lucide-react';
 
 interface NotionPanelHeaderProps {
   title: string;
   onTitleChange?: (title: string) => void;
   showPageControls?: boolean;
+  onClose?: () => void;
 }
 
 export default function NotionPanelHeader({
   title,
   onTitleChange,
-  showPageControls = true
+  showPageControls = true,
+  onClose
 }: NotionPanelHeaderProps) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [localTitle, setLocalTitle] = useState(title);
@@ -32,6 +34,19 @@ export default function NotionPanelHeader({
 
   return (
     <>
+      {/* Close Button */}
+      {onClose && (
+        <div className="absolute top-2 right-2 z-40">
+          <button
+            onClick={onClose}
+            className="p-1.5 hover:bg-neutral-100 rounded-[var(--radius-button)] transition-all duration-150 group"
+            aria-label="Close panel"
+          >
+            <ChevronsRight className="w-5 h-5 text-neutral-400 group-hover:text-neutral-600 transition-colors duration-150" />
+          </button>
+        </div>
+      )}
+
       {/* Page Controls */}
       {showPageControls && (
         <div 
