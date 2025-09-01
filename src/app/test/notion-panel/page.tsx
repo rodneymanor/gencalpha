@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
-import { X, Menu, FileText, Hash, Calendar, Users, Tag } from 'lucide-react';
+import { ChevronsRight, Maximize2, Minimize2, FileText, Hash, Calendar, Users, Tag, Copy, Download } from 'lucide-react';
 import { NotionPanel } from '@/components/panels/notion';
 
 // Dynamically import BlockNote to avoid SSR issues
@@ -13,6 +13,7 @@ const BlockNoteEditor = dynamic(() => import('@/components/editor/block-note-edi
 
 export default function NotionPanelTest() {
   const [isPanelOpen, setIsPanelOpen] = useState(true);
+  const [isFullScreen, setIsFullScreen] = useState(false);
   const [panelWidth, setPanelWidth] = useState(600);
   const [isDragging, setIsDragging] = useState(false);
   const [title, setTitle] = useState('Project Planning Document');
@@ -91,8 +92,14 @@ export default function NotionPanelTest() {
 
   return (
     <div className="min-h-screen bg-neutral-100">
-      {/* Main Content Area */}
-      <div className="p-8">
+      {/* Main Content Area - Responsive to panel */}
+      <div 
+        className="p-8 transition-all duration-300"
+        style={{
+          marginRight: isPanelOpen && !isFullScreen ? `${panelWidth}px` : '0',
+          transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)'
+        }}
+      >
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold text-neutral-900 mb-4">
             Notion Panel Test Page
@@ -125,7 +132,11 @@ export default function NotionPanelTest() {
             {[1, 2, 3, 4].map(i => (
               <div 
                 key={i}
-                className="bg-white rounded-[var(--radius-card)] shadow-[var(--shadow-soft-drop)] p-6"
+                className="bg-white rounded-[var(--radius-card)] shadow-[var(--shadow-soft-drop)] p-6 transition-all duration-300"
+                style={{
+                  transform: isPanelOpen ? 'scale(0.98)' : 'scale(1)',
+                  transitionDelay: `${(i - 1) * 50}ms`
+                }}
               >
                 <div className="flex items-center gap-2 mb-3">
                   <FileText className="w-5 h-5 text-neutral-400" />
@@ -140,37 +151,82 @@ export default function NotionPanelTest() {
         </div>
       </div>
 
-      {/* Slide-out Panel */}
+      {/* Slide-out Panel Container */}
       <div 
         className={`
-          fixed top-0 right-0 h-full bg-white
-          shadow-[var(--shadow-soft-drop)] 
-          transform transition-transform duration-300 ease-out
-          ${isPanelOpen ? 'translate-x-0' : 'translate-x-full'}
+          fixed top-0 right-0 h-full
+          transition-all duration-300
+          ${isPanelOpen ? 'visible' : 'invisible delay-300'}
         `}
-        style={{ width: `${panelWidth}px` }}
+        style={{ 
+          width: isFullScreen ? '100vw' : `${panelWidth}px`,
+          zIndex: 1000,
+          transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)'
+        }}
       >
-        {/* Resize Handle */}
-        <div
-          className="absolute left-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-primary-400 transition-colors duration-150"
-          onMouseDown={handleMouseDown}
-        />
+        {/* Panel Content with slide animation */}
+        <div 
+          className={`
+            h-full bg-white shadow-[var(--shadow-soft-drop)] relative
+            transform transition-transform duration-300
+            ${isPanelOpen ? 'translate-x-0' : 'translate-x-full'}
+          `}
+          style={{
+            transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)'
+          }}
+        >
+        {/* Resize Handle - hidden in full-screen */}
+        {!isFullScreen && (
+          <div
+            className="absolute left-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-primary-400 transition-colors duration-150"
+            onMouseDown={handleMouseDown}
+          />
+        )}
 
         {/* Panel Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200">
+        <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsPanelOpen(false)}
               className="p-1.5 hover:bg-neutral-100 rounded-[var(--radius-button)] transition-colors duration-150"
             >
-              <X className="w-4 h-4 text-neutral-600" />
+              <ChevronsRight className="w-4 h-4 text-neutral-600" />
             </button>
-            <button className="p-1.5 hover:bg-neutral-100 rounded-[var(--radius-button)] transition-colors duration-150">
-              <Menu className="w-4 h-4 text-neutral-600" />
+            <button 
+              onClick={() => setIsFullScreen(!isFullScreen)}
+              className="p-1.5 hover:bg-neutral-100 rounded-[var(--radius-button)] transition-colors duration-150"
+            >
+              {isFullScreen ? (
+                <Minimize2 className="w-4 h-4 text-neutral-600" />
+              ) : (
+                <Maximize2 className="w-4 h-4 text-neutral-600" />
+              )}
             </button>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-neutral-400">Width: {panelWidth}px</span>
+            {/* Copy and Download buttons */}
+            <div className="flex items-center overflow-hidden rounded-[var(--radius-button)] border border-neutral-200 bg-neutral-50">
+              <button
+                onClick={() => {
+                  // Copy functionality would go here
+                  console.log('Copy clicked');
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-100 transition-colors duration-150"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                <span>Copy</span>
+              </button>
+              <div className="w-px h-5 bg-neutral-200" />
+              <button
+                onClick={() => {
+                  // Download functionality would go here
+                  console.log('Download clicked');
+                }}
+                className="px-2 py-1.5 text-neutral-700 hover:bg-neutral-100 transition-colors duration-150"
+              >
+                <Download className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -181,8 +237,12 @@ export default function NotionPanelTest() {
             onTitleChange={setTitle}
             properties={properties}
             onPropertyChange={handlePropertyChange}
-            showComments={true}
             showPageControls={true}
+            width={isFullScreen ? undefined : panelWidth}
+            onWidthChange={isFullScreen ? undefined : setPanelWidth}
+            minWidth={400}
+            maxWidth={900}
+            isOpen={isPanelOpen}
           >
             {/* BlockNote Editor Integration */}
             <div className="h-full">
@@ -192,6 +252,7 @@ export default function NotionPanelTest() {
               />
             </div>
           </NotionPanel>
+        </div>
         </div>
       </div>
     </div>

@@ -319,13 +319,34 @@ export async function authenticateApiKey(
     // Log relevant auth headers (redacting sensitive values)
     const incomingApiKey = request.headers.get("x-api-key");
     const incomingAuth = request.headers.get("authorization");
+    const internalSecret = request.headers.get("x-internal-secret");
 
     console.log(
       "🧾 [Auth] Headers summary | x-api-key:",
       incomingApiKey ? "<provided>" : "<none>",
       "| authorization:",
       incomingAuth ? `${incomingAuth.substring(0, 20)}...` : "<none>",
+      "| x-internal-secret:",
+      internalSecret ? "<provided>" : "<none>",
     );
+
+    // Internal API authentication bypass for background processing
+    if (internalSecret && internalSecret === process.env.INTERNAL_API_SECRET) {
+      console.log("🔓 [Auth] Using internal API authentication");
+      return {
+        user: {
+          uid: "internal-system",
+          email: "system@genc.app",
+          role: "system",
+          displayName: "Internal System",
+        },
+        rateLimitResult: {
+          allowed: true,
+          requestCount: 0,
+          violationsCount: 0,
+        },
+      };
+    }
 
     // Development/test bypass for test pages
     if (process.env.NODE_ENV === "development" && incomingApiKey === "test-internal-secret-123") {

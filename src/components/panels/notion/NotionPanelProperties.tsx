@@ -64,7 +64,7 @@ export default function NotionPanelProperties({
               <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-150">
                 <GripVertical className="w-3 h-3 cursor-grab" />
               </div>
-              <div className="flex items-center gap-1.5 px-2 py-1 rounded-[var(--radius-button)] hover:bg-neutral-100 cursor-pointer">
+              <div className="flex items-center gap-2 px-2 py-1 rounded-[var(--radius-button)] hover:bg-neutral-100 cursor-pointer">
                 {getIcon(property.icon)}
                 <span className="text-sm">{property.name}</span>
               </div>
@@ -75,7 +75,7 @@ export default function NotionPanelProperties({
               {/* Status Property */}
               {property.type === 'status' && property.value && typeof property.value === 'object' && (
                 <div className={`
-                  inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs
+                  inline-flex items-center gap-2 px-2 py-1 rounded-full text-xs
                   ${getStatusColor(property.value.color)} transition-all duration-150
                 `}>
                   <div className={`w-2 h-2 rounded-full ${getStatusDotColor(property.value.color)}`} />

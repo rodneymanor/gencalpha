@@ -1,14 +1,15 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 
 import { onAuthStateChanged } from "firebase/auth";
-import { Plus, Filter, Loader2, User, ChevronUp, Sparkles, AlertCircle } from "lucide-react";
+import { Plus, Filter, User } from "lucide-react";
 
 import { SkeletonPersonaGrid, SkeletonPageHeader } from "@/components/ui/skeleton";
 
 import { CreatorPersonaGrid, type CreatorPersona } from "@/components/creator-personas/creator-persona-card";
-import { PersonaDetailsPanel, type PersonaDetails } from "@/components/persona-details-panel";
+import { PersonaDetailsContent, type PersonaDetails } from "@/components/persona-details-panel/persona-details-content";
+import { PersonaCreateContent } from "@/components/persona-details-panel/persona-create-content";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -16,7 +17,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { UnifiedSlideout, ClaudeArtifactConfig } from "@/components/ui/unified-slideout";
+import NotionPanelWrapper from "@/components/panels/notion/NotionPanelWrapper";
+import { type TabData, type CustomTabLabels } from "@/components/panels/notion/NotionPanel";
 import { auth } from "@/lib/firebase";
 
 // Interface for persona data from Firestore
@@ -63,6 +65,41 @@ const getRelativeTime = (dateString: string): string => {
   }
 };
 
+// Helper function to prepare tab data for NotionPanel
+const getTabData = (persona: PersonaDetails | null): TabData => {
+  if (!persona) return {};
+
+  const tabs: TabData = {};
+
+  // Overview tab - always available
+  tabs.video = <PersonaDetailsContent persona={persona} activeTab="overview" />;
+
+  // Voice Profile tab
+  if (persona.analysis?.voiceProfile) {
+    tabs.transcript = <PersonaDetailsContent persona={persona} activeTab="voice" />;
+  }
+
+  // Hooks tab
+  if (persona.analysis?.hookReplicationSystem || persona.analysis?.allHooksExtracted) {
+    tabs.components = <PersonaDetailsContent persona={persona} activeTab="hooks" />;
+  }
+
+  // Patterns tab
+  if (persona.analysis?.linguisticFingerprint) {
+    tabs.metadata = <PersonaDetailsContent persona={persona} activeTab="patterns" />;
+  }
+
+  // Script Rules tab
+  if (persona.analysis?.scriptGenerationRules) {
+    tabs.suggestions = <PersonaDetailsContent persona={persona} activeTab="rules" />;
+  }
+
+  // Usage tab - always available
+  tabs.analysis = <PersonaDetailsContent persona={persona} activeTab="usage" />;
+
+  return tabs;
+};
+
 export default function PersonasPage() {
   const [filterValue, setFilterValue] = useState("all");
   const [userPersonas, setUserPersonas] = useState<CreatorPersona[]>([]);
@@ -71,8 +108,7 @@ export default function PersonasPage() {
   const [personasData, setPersonasData] = useState<FirestorePersona[]>([]);
 
   // Persona creation state
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [personaUsername, setPersonaUsername] = useState("");
+  const [showCreatePanel, setShowCreatePanel] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState<{
     step: string;
@@ -80,7 +116,6 @@ export default function PersonasPage() {
     total: number;
   } | null>(null);
   const [analysisError, setAnalysisError] = useState<string>("");
-  const formRef = useRef<HTMLDivElement>(null);
 
   // Load personas from Firestore
   useEffect(() => {
@@ -126,15 +161,10 @@ export default function PersonasPage() {
     }
   };
 
-  // Handle add new persona - show slide-down form
+  // Handle add new persona - show NotionPanel
   const handleAddPersona = () => {
-    setShowCreateForm(!showCreateForm);
+    setShowCreatePanel(true);
     setAnalysisError("");
-    if (!showCreateForm) {
-      setTimeout(() => {
-        formRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      }, 100);
-    }
   };
 
   // Extract username from various TikTok URL formats
@@ -165,14 +195,16 @@ export default function PersonasPage() {
   };
 
   // Run complete analysis workflow
-  const runCompleteAnalysis = async () => {
-    const rawInput = personaUsername.trim();
-    if (!rawInput) {
-      setAnalysisError("Please enter a username or TikTok URL");
-      return;
-    }
+  const runCompleteAnalysis = async (input: string | string[], mode: 'profile' | 'videos') => {
+    // Handle profile mode
+    if (mode === 'profile') {
+      const rawInput = typeof input === 'string' ? input : input[0];
+      if (!rawInput) {
+        setAnalysisError("Please enter a username or TikTok URL");
+        return;
+      }
 
-    const cleanUsername = extractUsername(rawInput);
+      const cleanUsername = extractUsername(rawInput);
     if (!cleanUsername) {
       setAnalysisError(
         "Could not extract username from the provided input. Please enter a valid TikTok username or profile URL.",
@@ -306,8 +338,7 @@ export default function PersonasPage() {
       await createResponse.json();
 
       // Success! Refresh the personas list
-      setShowCreateForm(false);
-      setPersonaUsername("");
+      setShowCreatePanel(false);
 
       // Reload personas to show the new one
       await loadPersonas();
@@ -317,6 +348,194 @@ export default function PersonasPage() {
     } finally {
       setIsAnalyzing(false);
       setAnalysisProgress(null);
+    }
+    }
+
+    // Handle videos mode
+    if (mode === 'videos') {
+      const videoUrls = Array.isArray(input) ? input : [input];
+      const validUrls = videoUrls.filter(url => url && url.trim());
+      
+      if (validUrls.length === 0) {
+        setAnalysisError("Please provide at least one video URL");
+        return;
+      }
+
+      setIsAnalyzing(true);
+      setAnalysisError("");
+      setAnalysisProgress({ step: "Processing video URLs", current: 1, total: 5 });
+
+      try {
+        // Get Firebase Auth token
+        if (!auth.currentUser) {
+          throw new Error("Please sign in to create personas");
+        }
+        const token = await auth.currentUser.getIdToken();
+
+        // Step 1: Add videos to queue for processing
+        setAnalysisProgress({ step: "Adding videos to processing queue", current: 1, total: 5 });
+        
+        const jobIds = [];
+        for (let i = 0; i < validUrls.length; i++) {
+          try {
+            const queueResponse = await fetch("/api/video/add-to-queue", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ 
+                videoUrl: validUrls[i],
+                userId: auth.currentUser.uid
+              }),
+            });
+
+            const queueData = await queueResponse.json();
+            if (queueData.success && queueData.job) {
+              jobIds.push(queueData.job.id);
+            }
+          } catch (error) {
+            console.error(`Failed to queue video ${i + 1}:`, error);
+          }
+        }
+
+        if (jobIds.length === 0) {
+          throw new Error("Could not process any videos. Please check the URLs and try again.");
+        }
+
+        // Step 2: Wait for videos to be processed and get CDN links
+        setAnalysisProgress({ step: "Fetching video data from social platforms", current: 2, total: 5 });
+        
+        // Poll for job completion
+        const processedVideos = [];
+        const maxAttempts = 60; // 60 seconds timeout
+        for (const jobId of jobIds) {
+          let attempts = 0;
+          let jobComplete = false;
+          
+          while (attempts < maxAttempts && !jobComplete) {
+            const statusResponse = await fetch(`/api/video/processing-status?jobId=${jobId}`);
+            const statusData = await statusResponse.json();
+            
+            if (statusData.job?.status === 'completed' && statusData.job?.result) {
+              processedVideos.push(statusData.job.result);
+              jobComplete = true;
+            } else if (statusData.job?.status === 'failed') {
+              console.error(`Job ${jobId} failed:`, statusData.job.error);
+              jobComplete = true;
+            } else {
+              // Wait 1 second before checking again
+              await new Promise(resolve => setTimeout(resolve, 1000));
+              attempts++;
+            }
+          }
+        }
+
+        if (processedVideos.length === 0) {
+          throw new Error("Could not process any videos. Please try again.");
+        }
+
+        // Step 3: Upload to Bunny.net and get transcriptions
+        setAnalysisProgress({ step: "Uploading videos for transcription", current: 3, total: 5 });
+        
+        const transcriptResults = [];
+        for (const video of processedVideos) {
+          try {
+            // Get the CDN URL from the processed video data
+            const cdnUrl = video.data?.playUrl || video.data?.downloadUrl;
+            if (!cdnUrl) continue;
+
+            // Upload to Bunny and transcribe
+            const transcriptResponse = await fetch("/api/video/transcribe-from-url", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ videoUrl: cdnUrl }),
+            });
+
+            const transcriptData = await transcriptResponse.json();
+            if (transcriptData.success && transcriptData.transcript) {
+              transcriptResults.push(transcriptData.transcript);
+            }
+          } catch (error) {
+            console.error(`Failed to transcribe video:`, error);
+          }
+        }
+
+        if (transcriptResults.length < 1) {
+          throw new Error("Could not transcribe any videos. Please check the URLs and try again.");
+        }
+
+        // Step 4: Analyze voice patterns
+        setAnalysisProgress({ step: "Analyzing voice patterns and style", current: 4, total: 5 });
+        const analysisResponse = await fetch("/api/voice/analyze-patterns", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ transcripts: transcriptResults }),
+        });
+
+        if (!analysisResponse.ok) {
+          throw new Error("Failed to analyze voice patterns");
+        }
+
+        const voiceAnalysis = await analysisResponse.json();
+
+        // Step 5: Create persona with metadata
+        setAnalysisProgress({ step: "Creating persona profile", current: 5, total: 5 });
+
+        // Generate metadata
+        const metadataResponse = await fetch("/api/personas/generate-metadata", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ voiceAnalysis }),
+        });
+
+        let personaName = "Custom Voice";
+        let personaDescription = "Voice persona created from selected videos";
+        let personaTags: string[] = [];
+
+        if (metadataResponse.ok) {
+          const metadataData = await metadataResponse.json();
+          if (metadataData.success) {
+            personaName = metadataData.title || "Custom Voice";
+            personaDescription = metadataData.description || "Voice persona created from selected videos";
+            personaTags = metadataData.suggestedTags || [];
+          }
+        }
+
+        // Create the persona
+        const createResponse = await fetch("/api/personas/create", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            name: personaName,
+            description: personaDescription,
+            platform: "custom",
+            username: "Custom Collection",
+            analysis: voiceAnalysis,
+            tags: personaTags,
+          }),
+        });
+
+        if (!createResponse.ok) {
+          const errorData = await createResponse.json();
+          throw new Error(errorData.error ?? "Failed to create persona");
+        }
+
+        await createResponse.json();
+
+        // Success! Close panel and refresh
+        setShowCreatePanel(false);
+        await loadPersonas();
+      } catch (error) {
+        console.error("Analysis error:", error);
+        setAnalysisError(error instanceof Error ? error.message : "Analysis failed. Please try again.");
+      } finally {
+        setIsAnalyzing(false);
+        setAnalysisProgress(null);
+      }
     }
   };
 
@@ -430,120 +649,12 @@ export default function PersonasPage() {
                 </DropdownMenuContent>
               </DropdownMenu>
               <Button onClick={handleAddPersona} variant="soft" className="gap-2">
-                {showCreateForm ? (
-                  <>
-                    <ChevronUp className="h-4 w-4" />
-                    Hide Form
-                  </>
-                ) : (
-                  <>
-                    <Plus className="h-4 w-4" />
-                    Create New Persona
-                  </>
-                )}
+                <Plus className="h-4 w-4" />
+                Create New Persona
               </Button>
             </div>
           </div>
 
-          {/* Slide-down Create Form */}
-          <div
-            ref={formRef}
-            className={`overflow-hidden transition-all duration-500 ease-in-out ${
-              showCreateForm ? "mb-6 max-h-96 opacity-100" : "max-h-0 opacity-0"
-            }`}
-          >
-            <div className="border-primary-200 from-primary-50 to-brand-50 rounded-[var(--radius-card)] border-2 bg-gradient-to-br p-6 shadow-[var(--shadow-soft-drop)]">
-              <div className="mb-4">
-                <h3 className="flex items-center gap-2 text-lg font-semibold text-neutral-900">
-                  <Sparkles className="text-primary-600 h-5 w-5" />
-                  Create Voice Persona from TikTok
-                </h3>
-                <p className="mt-1 text-sm text-neutral-600">
-                  Analyze a creator's voice patterns to generate scripts in their style
-                </p>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label htmlFor="persona-username" className="mb-2 block text-sm font-medium text-neutral-700">
-                    TikTok Username or Profile URL
-                  </label>
-                  <input
-                    id="persona-username"
-                    type="text"
-                    value={personaUsername}
-                    onChange={(e) => setPersonaUsername(e.target.value)}
-                    placeholder="Enter @username or TikTok profile URL"
-                    className="focus:border-primary-400 focus:ring-primary-400 w-full rounded-[var(--radius-button)] border border-neutral-200 bg-white px-3 py-2 transition-colors focus:ring-1 focus:outline-none disabled:cursor-not-allowed disabled:bg-neutral-100"
-                    disabled={isAnalyzing}
-                  />
-                  <p className="mt-1 text-xs text-neutral-500">
-                    We&apos;ll analyze their recent videos to capture their unique voice and style
-                  </p>
-                </div>
-
-                {/* Progress indicator */}
-                {isAnalyzing && analysisProgress && (
-                  <div className="border-primary-200 bg-primary-50 rounded-[var(--radius-button)] border p-4">
-                    <div className="mb-2 flex items-center gap-2">
-                      <Loader2 className="text-primary-600 h-4 w-4 animate-spin" />
-                      <span className="text-primary-700 text-sm font-medium">{analysisProgress.step}</span>
-                    </div>
-                    <div className="bg-primary-200 h-2 w-full rounded-full">
-                      <div
-                        className="bg-primary-600 h-2 rounded-full transition-all duration-500"
-                        style={{ width: `${(analysisProgress.current / analysisProgress.total) * 100}%` }}
-                      />
-                    </div>
-                    <p className="text-primary-600 mt-2 text-xs">
-                      Step {analysisProgress.current} of {analysisProgress.total} • This may take about a minute
-                    </p>
-                  </div>
-                )}
-
-                {/* Error display */}
-                {analysisError && (
-                  <div className="border-destructive-200 bg-destructive-50 rounded-[var(--radius-button)] border p-3">
-                    <div className="flex items-start gap-2">
-                      <AlertCircle className="text-destructive-600 mt-0.5 h-4 w-4" />
-                      <p className="text-destructive-700 text-sm">{analysisError}</p>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex gap-3">
-                  <button
-                    onClick={runCompleteAnalysis}
-                    disabled={isAnalyzing || !personaUsername.trim()}
-                    className="bg-primary-600 hover:bg-primary-700 flex flex-1 items-center justify-center gap-2 rounded-[var(--radius-button)] px-4 py-2.5 text-white transition-all duration-200 disabled:cursor-not-allowed disabled:bg-neutral-300"
-                  >
-                    {isAnalyzing ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Analyzing Creator...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="h-4 w-4" />
-                        Analyze & Create Persona
-                      </>
-                    )}
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowCreateForm(false);
-                      setPersonaUsername("");
-                      setAnalysisError("");
-                    }}
-                    disabled={isAnalyzing}
-                    className="rounded-[var(--radius-button)] bg-neutral-100 px-4 py-2.5 text-neutral-700 transition-colors hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
 
           {/* Content Section */}
           <div className="mt-6">
@@ -576,28 +687,108 @@ export default function PersonasPage() {
         </div>
       </div>
 
-      {/* Persona Details Slideout */}
-      <UnifiedSlideout
+      {/* Persona Details Panel using NotionPanelWrapper */}
+      <NotionPanelWrapper
         isOpen={!!selectedPersona}
-        onClose={() => setSelectedPersona(null)}
-        config={{
-          ...ClaudeArtifactConfig,
-          showHeader: false,
-          showCloseButton: false,
-          adjustsContent: true,
-          backdrop: false,
-          modal: false,
-          width: "lg",
+        onClose={() => {
+          setSelectedPersona(null);
         }}
+        title={selectedPersona?.name || ''}
+        showPageControls={false}
+        showHeaderControls={true}
+        width={600}
+        isNewIdea={false}
+        onCopy={() => {
+          if (selectedPersona) {
+            const dataStr = JSON.stringify(selectedPersona.analysis, null, 2);
+            navigator.clipboard.writeText(dataStr);
+            console.log('Copied persona analysis');
+          }
+        }}
+        onDownload={() => {
+          if (selectedPersona) {
+            const dataStr = JSON.stringify(selectedPersona, null, 2);
+            const dataUri = "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
+            const exportFileDefaultName = `persona-${selectedPersona.name.toLowerCase().replace(/\s+/g, "-")}.json`;
+            
+            const linkElement = document.createElement("a");
+            linkElement.setAttribute("href", dataUri);
+            linkElement.setAttribute("download", exportFileDefaultName);
+            linkElement.click();
+            console.log('Downloaded persona data');
+          }
+        }}
+        tabData={getTabData(selectedPersona)}
+        defaultTab={'video'}
+        customTabLabels={{
+          video: 'Overview',
+          transcript: 'Voice',
+          components: 'Hooks',
+          metadata: 'Patterns',
+          suggestions: 'Rules',
+          analysis: 'Usage'
+        } as CustomTabLabels}
+        footer={
+          selectedPersona && (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-neutral-600">Inspired by</span>
+                <span className="text-sm font-medium text-neutral-900">
+                  @{selectedPersona.username || 'Unknown Creator'}
+                </span>
+              </div>
+              <div className="text-xs text-neutral-500">
+                {selectedPersona.platform || 'TikTok'} • {selectedPersona.usageCount || 0} uses
+              </div>
+            </div>
+          )
+        }
       >
-        <PersonaDetailsPanel
-          persona={selectedPersona}
-          onClose={() => setSelectedPersona(null)}
-          onCopy={(content, type) => {
-            console.log(`Copied ${type}:`, content);
-          }}
-        />
-      </UnifiedSlideout>
+        {/* Content is now handled by tabData */}
+      </NotionPanelWrapper>
+
+      {/* Create Persona Panel */}
+      <NotionPanelWrapper
+        isOpen={showCreatePanel}
+        onClose={() => {
+          setShowCreatePanel(false);
+          setAnalysisError("");
+          setIsAnalyzing(false);
+          setAnalysisProgress(null);
+        }}
+        title="Create Voice Persona"
+        showPageControls={false}
+        showHeaderControls={true}
+        width={600}
+        isNewIdea={false}
+        tabData={{
+          video: (
+            <PersonaCreateContent
+              activeTab="profile"
+              onAnalyze={runCompleteAnalysis}
+              isAnalyzing={isAnalyzing}
+              analysisProgress={analysisProgress}
+              analysisError={analysisError}
+            />
+          ),
+          transcript: (
+            <PersonaCreateContent
+              activeTab="videos"
+              onAnalyze={runCompleteAnalysis}
+              isAnalyzing={isAnalyzing}
+              analysisProgress={analysisProgress}
+              analysisError={analysisError}
+            />
+          ),
+        }}
+        defaultTab={'video'}
+        customTabLabels={{
+          video: 'From Profile',
+          transcript: 'From Videos',
+        } as CustomTabLabels}
+      >
+        {/* Content is handled by tabData */}
+      </NotionPanelWrapper>
     </>
   );
 }

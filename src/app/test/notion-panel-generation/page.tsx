@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
-import { X, Menu, FileText, Sparkles, Check, Clock, AlertCircle } from 'lucide-react';
+import { ChevronsRight, Maximize, Minimize, FileText, Sparkles, Check, Clock, AlertCircle, Copy, Download } from 'lucide-react';
 import { NotionPanel } from '@/components/panels/notion';
 
 // Dynamically import BlockNote to avoid SSR issues
@@ -26,6 +26,8 @@ const GENERATION_STATUSES = [
 
 export default function NotionPanelGenerationTest() {
   const [isPanelOpen, setIsPanelOpen] = useState(true);
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const [isNewIdea, setIsNewIdea] = useState(false);
   const [panelWidth, setPanelWidth] = useState(600);
   const [title, setTitle] = useState('Content Generation Idea');
   const [editorContent, setEditorContent] = useState('');
@@ -52,9 +54,12 @@ export default function NotionPanelGenerationTest() {
   const cycleStatus = () => {
     const nextIndex = (currentStatusIndex + 1) % GENERATION_STATUSES.length;
     setCurrentStatusIndex(nextIndex);
-    setProperties(prev => prev.map(prop => 
-      prop.id === '2' ? { ...prop, value: GENERATION_STATUSES[nextIndex] } : prop
-    ));
+    setProperties(prev => prev.map(prop => {
+      if (prop.id === '2' && prop.type === 'status') {
+        return { ...prop, value: GENERATION_STATUSES[nextIndex] };
+      }
+      return prop;
+    }));
   };
 
   const handlePropertyChange = async (id: string, value: string | { label: string; color: string }) => {
@@ -112,8 +117,14 @@ export default function NotionPanelGenerationTest() {
 
   return (
     <div className="min-h-screen bg-neutral-100">
-      {/* Main Content Area */}
-      <div className="p-8">
+      {/* Main Content Area - Responsive to panel */}
+      <div 
+        className="p-8 transition-all duration-300"
+        style={{
+          marginRight: isPanelOpen && !isFullScreen ? `${panelWidth}px` : '0',
+          transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)'
+        }}
+      >
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold text-neutral-900 mb-4">
             Generation Status Panel Test
@@ -133,8 +144,30 @@ export default function NotionPanelGenerationTest() {
                 {isPanelOpen ? 'Close Panel' : 'Open Panel'}
               </button>
               <button
+                onClick={() => {
+                  setIsNewIdea(!isNewIdea);
+                  if (!isNewIdea) {
+                    setTitle('');
+                    setProperties([
+                      { id: '1', type: 'url' as const, name: 'URL', value: '', icon: 'link' },
+                      { id: '2', type: 'status' as const, name: 'Generation', value: '', icon: 'burst' }
+                    ]);
+                  } else {
+                    setTitle('Content Generation Idea');
+                    setProperties([
+                      { id: '1', type: 'url' as const, name: 'URL', value: '', icon: 'link' },
+                      { id: '2', type: 'status' as const, name: 'Generation', value: GENERATION_STATUSES[0], icon: 'burst' }
+                    ]);
+                  }
+                }}
+                className="px-4 py-2 bg-success-500 text-white rounded-[var(--radius-button)] hover:bg-success-600 transition-colors duration-150"
+              >
+                {isNewIdea ? 'Exit New Idea Mode' : 'New Idea Mode'}
+              </button>
+              <button
                 onClick={cycleStatus}
                 className="px-4 py-2 bg-primary-500 text-white rounded-[var(--radius-button)] hover:bg-primary-600 transition-colors duration-150"
+                disabled={isNewIdea}
               >
                 Cycle Status
               </button>
@@ -156,9 +189,12 @@ export default function NotionPanelGenerationTest() {
                   key={index}
                   onClick={() => {
                     setCurrentStatusIndex(index);
-                    setProperties(prev => prev.map(prop => 
-                      prop.id === '2' ? { ...prop, value: status } : prop
-                    ));
+                    setProperties(prev => prev.map(prop => {
+                      if (prop.id === '2' && prop.type === 'status') {
+                        return { ...prop, value: status };
+                      }
+                      return prop;
+                    }));
                   }}
                   className={`
                     px-3 py-2 rounded-[var(--radius-button)] text-sm font-medium
@@ -186,7 +222,11 @@ export default function NotionPanelGenerationTest() {
             ].map((item, i) => (
               <div 
                 key={i}
-                className="bg-white rounded-[var(--radius-card)] shadow-[var(--shadow-soft-drop)] p-6"
+                className="bg-white rounded-[var(--radius-card)] shadow-[var(--shadow-soft-drop)] p-6 transition-all duration-300"
+                style={{
+                  transform: isPanelOpen ? 'scale(0.98)' : 'scale(1)',
+                  transitionDelay: `${i * 50}ms`
+                }}
               >
                 <div className="flex items-center gap-2 mb-3">
                   <FileText className="w-5 h-5 text-neutral-400" />
@@ -205,32 +245,74 @@ export default function NotionPanelGenerationTest() {
         </div>
       </div>
 
-      {/* Slide-out Panel */}
+      {/* Slide-out Panel Container */}
       <div 
         className={`
-          fixed top-0 right-0 h-full bg-white
-          shadow-[var(--shadow-soft-drop)] 
-          transform transition-transform duration-300 ease-out
-          ${isPanelOpen ? 'translate-x-0' : 'translate-x-full'}
+          fixed top-0 right-0 h-full
+          transition-all duration-300
+          ${isPanelOpen ? 'visible' : 'invisible delay-300'}
         `}
-        style={{ width: `${panelWidth}px` }}
+        style={{ 
+          width: isFullScreen ? '100vw' : `${panelWidth}px`,
+          zIndex: 1000,
+          transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)'
+        }}
       >
-
+        {/* Panel Content with slide animation */}
+        <div 
+          className={`
+            h-full bg-white shadow-[var(--shadow-soft-drop)]
+            transform transition-transform duration-300
+            ${isPanelOpen ? 'translate-x-0' : 'translate-x-full'}
+          `}
+          style={{
+            transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)'
+          }}
+        >
         {/* Panel Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200">
+        <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsPanelOpen(false)}
               className="p-1.5 hover:bg-neutral-100 rounded-[var(--radius-button)] transition-colors duration-150"
             >
-              <X className="w-4 h-4 text-neutral-600" />
+              <ChevronsRight className="w-4 h-4 text-neutral-600" />
             </button>
-            <button className="p-1.5 hover:bg-neutral-100 rounded-[var(--radius-button)] transition-colors duration-150">
-              <Menu className="w-4 h-4 text-neutral-600" />
+            <button 
+              onClick={() => setIsFullScreen(!isFullScreen)}
+              className="p-1.5 hover:bg-neutral-100 rounded-[var(--radius-button)] transition-colors duration-150"
+            >
+              {isFullScreen ? (
+                <Minimize className="w-4 h-4 text-neutral-600" />
+              ) : (
+                <Maximize className="w-4 h-4 text-neutral-600" />
+              )}
             </button>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-neutral-400">Width: {panelWidth}px</span>
+            {/* Copy and Download buttons */}
+            <div className="flex items-center overflow-hidden rounded-[var(--radius-button)] border border-neutral-200 bg-neutral-50">
+              <button
+                onClick={() => {
+                  // Copy functionality would go here
+                  console.log('Copy clicked');
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-100 transition-colors duration-150"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                <span>Copy</span>
+              </button>
+              <div className="w-px h-5 bg-neutral-200" />
+              <button
+                onClick={() => {
+                  // Download functionality would go here
+                  console.log('Download clicked');
+                }}
+                className="px-2 py-1.5 text-neutral-700 hover:bg-neutral-100 transition-colors duration-150"
+              >
+                <Download className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -242,12 +324,14 @@ export default function NotionPanelGenerationTest() {
             properties={properties}
             onPropertyChange={handlePropertyChange}
             showPageControls={true}
-            width={panelWidth}
-            onWidthChange={setPanelWidth}
+            width={isFullScreen ? undefined : panelWidth}
+            onWidthChange={isFullScreen ? undefined : setPanelWidth}
             minWidth={400}
             maxWidth={900}
-            onClose={() => setIsPanelOpen(false)}
-            tabData={{
+            isOpen={isPanelOpen}
+            isNewIdea={isNewIdea}
+            placeholder="Enter text or type / for commands"
+            tabData={isNewIdea ? undefined : {
               video: (
                 <div className="space-y-4">
                   <div className="aspect-video bg-neutral-900 rounded-[var(--radius-card)] flex items-center justify-center">
@@ -352,7 +436,19 @@ export default function NotionPanelGenerationTest() {
               )
             }}
             defaultTab="video"
-          />
+          >
+            {isNewIdea && (
+              <div className="min-h-[400px]">
+                <div className="text-neutral-400 text-base">
+                  Enter text or type / for commands
+                </div>
+                <div className="mt-4 text-neutral-300 text-sm">
+                  This is where the BlockNote editor would be integrated.
+                </div>
+              </div>
+            )}
+          </NotionPanel>
+        </div>
         </div>
       </div>
     </div>

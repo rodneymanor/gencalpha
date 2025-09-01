@@ -23,11 +23,21 @@ export interface TabData {
   analysis?: React.ReactNode;
 }
 
+export interface CustomTabLabels {
+  video?: string;
+  transcript?: string;
+  components?: string;
+  metadata?: string;
+  suggestions?: string;
+  analysis?: string;
+}
+
 interface NotionPanelTabsProps {
   tabData?: TabData;
   activeTab: TabType;
   onTabChange: (tab: TabType) => void;
   defaultContent?: React.ReactNode;
+  customLabels?: CustomTabLabels;
 }
 
 const TAB_CONFIG = {
@@ -43,7 +53,8 @@ export default function NotionPanelTabs({
   tabData,
   activeTab,
   onTabChange,
-  defaultContent
+  defaultContent,
+  customLabels
 }: NotionPanelTabsProps) {
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(false);
@@ -58,7 +69,7 @@ export default function NotionPanelTabs({
       if (tabData?.[tabKey]) {
         tabs.push({
           id: tabKey,
-          label: config.label,
+          label: customLabels?.[tabKey] || config.label,
           icon: config.icon,
           content: tabData[tabKey]
         });
@@ -76,7 +87,7 @@ export default function NotionPanelTabs({
     }
     
     return tabs;
-  }, [tabData, defaultContent]);
+  }, [tabData, defaultContent, customLabels]);
 
   // Check scroll position and update arrow visibility
   const checkScroll = () => {
@@ -125,15 +136,15 @@ export default function NotionPanelTabs({
   }
 
   return (
-    <>
+    <div className="flex flex-col h-full">
       {/* Tab Navigation with Arrow Controls */}
-      <div className="border-b border-neutral-200 relative group">
+      <div className="relative group flex-shrink-0">
         {/* Left Arrow */}
         <button
           onClick={() => scrollTo('left')}
           className={`
             absolute left-2 top-1/2 -translate-y-1/2 z-20
-            w-7 h-7 rounded-full bg-white shadow-[var(--shadow-soft-drop)] border border-neutral-200
+            w-8 h-8 rounded-full bg-white shadow-[var(--shadow-soft-drop)] border border-neutral-200
             flex items-center justify-center
             transition-all duration-200
             ${showLeftArrow 
@@ -151,7 +162,7 @@ export default function NotionPanelTabs({
           onClick={() => scrollTo('right')}
           className={`
             absolute right-2 top-1/2 -translate-y-1/2 z-20
-            w-7 h-7 rounded-full bg-white shadow-[var(--shadow-soft-drop)] border border-neutral-200
+            w-8 h-8 rounded-full bg-white shadow-[var(--shadow-soft-drop)] border border-neutral-200
             flex items-center justify-center
             transition-all duration-200
             ${showRightArrow 
@@ -201,7 +212,7 @@ export default function NotionPanelTabs({
                   key={tab.id}
                   onClick={() => onTabChange(tab.id)}
                   className={`
-                    flex items-center gap-2 px-3 py-1.5 text-sm font-medium 
+                    flex items-center gap-2 px-3 py-2 text-sm font-medium 
                     rounded-[var(--radius-button)] whitespace-nowrap
                     transition-all duration-150
                     ${activeTab === tab.id 
@@ -220,13 +231,13 @@ export default function NotionPanelTabs({
       </div>
 
       {/* Tab Content Area */}
-      <div className="flex-1 px-4 py-4 overflow-y-auto">
+      <div className="flex-1 px-4 py-4 overflow-y-auto min-h-0">
         {currentContent ?? (
           <div className="text-neutral-400 text-sm">
             No content available for this tab.
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }
