@@ -49,6 +49,10 @@ interface NotionPanelProps {
   editorContent?: React.ReactNode;
   tabData?: TabData;
   defaultTab?: TabType;
+  width?: number;
+  onWidthChange?: (width: number) => void;
+  minWidth?: number;
+  maxWidth?: number;
 }
 
 export default function NotionPanel({
@@ -62,7 +66,11 @@ export default function NotionPanel({
   children,
   editorContent,
   tabData,
-  defaultTab = 'video'
+  defaultTab = 'video',
+  width,
+  onWidthChange,
+  minWidth = 400,
+  maxWidth = 900
 }: NotionPanelProps) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [localTitle, setLocalTitle] = useState(title);
@@ -70,7 +78,11 @@ export default function NotionPanel({
   const [showControls, setShowControls] = useState(false);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStartX, setDragStartX] = useState(0);
+  const [dragStartWidth, setDragStartWidth] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   // Determine which tabs to show based on available data
   const availableTabs = React.useMemo(() => {
@@ -141,8 +153,62 @@ export default function NotionPanel({
     return () => window.removeEventListener('resize', handleResize);
   }, [availableTabs]);
 
+  // Handle resize drag
+  const handleResizeMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+    setDragStartX(e.clientX);
+    setDragStartWidth(width ?? panelRef.current?.offsetWidth ?? 600);
+  };
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return;
+      
+      const deltaX = dragStartX - e.clientX;
+      const newWidth = Math.min(Math.max(dragStartWidth + deltaX, minWidth), maxWidth);
+      
+      if (onWidthChange) {
+        onWidthChange(newWidth);
+      } else if (panelRef.current) {
+        panelRef.current.style.width = `${newWidth}px`;
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, dragStartX, dragStartWidth, minWidth, maxWidth, onWidthChange]);
+
   return (
-    <div className="flex flex-col h-full bg-neutral-50">
+    <div ref={panelRef} className="flex flex-col h-full bg-neutral-50 relative" style={{ width: width ? `${width}px` : undefined }}>
+      {/* Resize Handle */}
+      <div
+        className={`
+          absolute left-0 top-0 bottom-0 w-1 cursor-col-resize z-30
+          bg-transparent hover:bg-primary-400 transition-colors duration-150
+          ${isDragging ? 'bg-primary-500' : ''}
+        `}
+        onMouseDown={handleResizeMouseDown}
+      >
+        {/* Visual indicator on hover */}
+        <div className={`
+          absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
+          w-1 h-12 bg-neutral-300 rounded-full opacity-0 hover:opacity-100
+          transition-opacity duration-150
+          ${isDragging ? 'opacity-100 bg-primary-500' : ''}
+        `} />
+      </div>
       {/* Page Controls */}
       {showPageControls && (
         <div 

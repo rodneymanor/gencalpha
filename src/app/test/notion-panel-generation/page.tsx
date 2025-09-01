@@ -27,7 +27,6 @@ const GENERATION_STATUSES = [
 export default function NotionPanelGenerationTest() {
   const [isPanelOpen, setIsPanelOpen] = useState(true);
   const [panelWidth, setPanelWidth] = useState(600);
-  const [isDragging, setIsDragging] = useState(false);
   const [title, setTitle] = useState('Content Generation Idea');
   const [editorContent, setEditorContent] = useState('');
   const [currentStatusIndex, setCurrentStatusIndex] = useState(0);
@@ -49,34 +48,6 @@ export default function NotionPanelGenerationTest() {
       icon: 'burst' 
     }
   ]);
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  React.useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (isDragging) {
-        const newWidth = window.innerWidth - e.clientX;
-        setPanelWidth(Math.min(Math.max(newWidth, 400), 900));
-      }
-    };
-
-    const handleMouseUp = () => {
-      setIsDragging(false);
-    };
-
-    if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-    }
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isDragging]);
 
   const cycleStatus = () => {
     const nextIndex = (currentStatusIndex + 1) % GENERATION_STATUSES.length;
@@ -244,11 +215,6 @@ export default function NotionPanelGenerationTest() {
         `}
         style={{ width: `${panelWidth}px` }}
       >
-        {/* Resize Handle */}
-        <div
-          className="absolute left-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-primary-400 transition-colors duration-150"
-          onMouseDown={handleMouseDown}
-        />
 
         {/* Panel Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200">
@@ -276,6 +242,10 @@ export default function NotionPanelGenerationTest() {
             properties={properties}
             onPropertyChange={handlePropertyChange}
             showPageControls={true}
+            width={panelWidth}
+            onWidthChange={setPanelWidth}
+            minWidth={400}
+            maxWidth={900}
             tabData={{
               video: (
                 <div className="space-y-4">
