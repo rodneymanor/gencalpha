@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Smile, 
   Image, 
@@ -14,7 +14,9 @@ import {
   Box,
   Database,
   Lightbulb,
-  BarChart3
+  BarChart3,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
 interface PageProperty {
@@ -66,6 +68,9 @@ export default function NotionPanel({
   const [localTitle, setLocalTitle] = useState(title);
   const [activeTab, setActiveTab] = useState<TabType>(defaultTab);
   const [showControls, setShowControls] = useState(false);
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
+  const [showRightArrow, setShowRightArrow] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Determine which tabs to show based on available data
   const availableTabs = React.useMemo(() => {
@@ -102,6 +107,39 @@ export default function NotionPanel({
     };
     return colors[status] || colors.default;
   };
+
+  // Check scroll position and update arrow visibility
+  const checkScroll = () => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+      setShowLeftArrow(scrollLeft > 0);
+      setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 1);
+    }
+  };
+
+  // Scroll to position
+  const scrollTo = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = 200;
+      const currentScroll = scrollContainerRef.current.scrollLeft;
+      const newScroll = direction === 'left' 
+        ? currentScroll - scrollAmount 
+        : currentScroll + scrollAmount;
+      
+      scrollContainerRef.current.scrollTo({
+        left: newScroll,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  // Check scroll on mount and resize
+  useEffect(() => {
+    checkScroll();
+    const handleResize = () => checkScroll();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [availableTabs]);
 
   return (
     <div className="flex flex-col h-full bg-neutral-50">
@@ -205,10 +243,74 @@ export default function NotionPanel({
         </div>
       )}
 
-      {/* Tab Navigation - Scrollable with Soft Buttons */}
+      {/* Tab Navigation with Arrow Controls */}
       {availableTabs.length > 0 && (
-        <div className="border-b border-neutral-200">
-          <div className="px-4 pb-2 overflow-x-auto scrollbar-thin scrollbar-thumb-neutral-300 scrollbar-track-transparent">
+        <div className="border-b border-neutral-200 relative group">
+          {/* Left Arrow */}
+          <button
+            onClick={() => scrollTo('left')}
+            className={`
+              absolute left-2 top-1/2 -translate-y-1/2 z-20
+              w-7 h-7 rounded-full bg-white shadow-[var(--shadow-soft-drop)] border border-neutral-200
+              flex items-center justify-center
+              transition-all duration-200
+              ${showLeftArrow 
+                ? 'opacity-0 group-hover:opacity-100 hover:bg-neutral-50 hover:scale-110' 
+                : 'opacity-0 pointer-events-none'
+              }
+            `}
+            aria-label="Scroll left"
+          >
+            <ChevronLeft className="w-4 h-4 text-neutral-600" />
+          </button>
+
+          {/* Right Arrow */}
+          <button
+            onClick={() => scrollTo('right')}
+            className={`
+              absolute right-2 top-1/2 -translate-y-1/2 z-20
+              w-7 h-7 rounded-full bg-white shadow-[var(--shadow-soft-drop)] border border-neutral-200
+              flex items-center justify-center
+              transition-all duration-200
+              ${showRightArrow 
+                ? 'opacity-0 group-hover:opacity-100 hover:bg-neutral-50 hover:scale-110' 
+                : 'opacity-0 pointer-events-none'
+              }
+            `}
+            aria-label="Scroll right"
+          >
+            <ChevronRight className="w-4 h-4 text-neutral-600" />
+          </button>
+
+          {/* Fade edges */}
+          <div 
+            className={`
+              absolute left-0 top-0 bottom-0 w-12 
+              bg-gradient-to-r from-neutral-50 to-transparent z-10 pointer-events-none
+              transition-opacity duration-200
+              ${showLeftArrow ? 'opacity-100' : 'opacity-0'}
+            `} 
+          />
+          <div 
+            className={`
+              absolute right-0 top-0 bottom-0 w-12 
+              bg-gradient-to-l from-neutral-50 to-transparent z-10 pointer-events-none
+              transition-opacity duration-200
+              ${showRightArrow ? 'opacity-100' : 'opacity-0'}
+            `} 
+          />
+
+          {/* Scrollable Container */}
+          <div 
+            ref={scrollContainerRef}
+            onScroll={checkScroll}
+            className="px-4 pb-2 overflow-x-auto scrollbar-none scroll-smooth"
+            style={{
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              WebkitOverflowScrolling: 'touch'
+            }}
+          >
             <div className="flex gap-1 min-w-max">
               {availableTabs.map((tab) => (
                 <button
