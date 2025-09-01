@@ -31,6 +31,7 @@ export default function NotionPanel({
   ],
   onPropertyChange,
   showPageControls = true,
+  onClose,
   children,
   editorContent,
   tabData,
