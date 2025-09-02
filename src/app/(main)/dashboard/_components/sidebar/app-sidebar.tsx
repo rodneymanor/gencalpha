@@ -36,7 +36,19 @@ function SidebarLogo({ isPinned, onPinToggle }: { isPinned: boolean; onPinToggle
   const isCollapsed = state === "collapsed";
 
   const handleLogoClick = () => {
-    router.push(APP_CONFIG.navigation.homePage);
+    // Close slideout wrapper by dispatching a global event
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("write:close-slideout"));
+    }
+
+    // If already on /write (with or without query params), reload the page for a fresh script
+    if (window.location.pathname === APP_CONFIG.navigation.homePage || 
+        window.location.pathname.startsWith(APP_CONFIG.navigation.homePage)) {
+      window.location.href = APP_CONFIG.navigation.homePage;
+    } else {
+      // Otherwise navigate normally
+      router.push(APP_CONFIG.navigation.homePage);
+    }
   };
 
   return (

@@ -3,7 +3,6 @@
 // React Query hooks for Content Inbox
 
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
-import { onAuthStateChanged } from "firebase/auth";
 
 import { auth } from "@/lib/firebase";
 
@@ -69,8 +68,18 @@ export const useAddContent = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: { url: string; category?: string; tags?: string[] }) => {
-      const platform = detectPlatform(data.url);
+    mutationFn: async (data: {
+      url?: string;
+      title?: string;
+      description?: string;
+      category?: string;
+      tags?: string[];
+      notes?: {
+        content: string;
+        format?: "text" | "json" | "markdown";
+      };
+    }) => {
+      const platform = data.url ? detectPlatform(data.url) : "manual";
 
       const headers = await getAuthHeaders();
       const response = await fetch(`${API_BASE}/items`, {
@@ -98,12 +107,17 @@ export const useAddContent = () => {
 
         const optimisticItem: ContentItem = {
           id: `temp-${Date.now()}`,
-          url: newItem.url,
-          platform: detectPlatform(newItem.url),
+          url: newItem.url ?? "",
+          title: newItem.title,
+          description: newItem.description,
+          platform: newItem.url ? detectPlatform(newItem.url) : "manual",
           savedAt: new Date(),
-          transcription: {
-            status: "pending",
-          },
+          notes: newItem.notes,
+          transcription: newItem.url
+            ? {
+                status: "pending",
+              }
+            : undefined,
         };
 
         return {
@@ -235,7 +249,7 @@ export const useUpdateOrder = () => {
                 const orderUpdate = newOrder.find((o) => o.id === item.id);
                 return orderUpdate ? { ...item, order: orderUpdate.order } : item;
               })
-              .sort((a: ContentItem, b: ContentItem) => (a.order || 0) - (b.order || 0)),
+              .sort((a: ContentItem, b: ContentItem) => (a.order ?? 0) - (b.order ?? 0)),
           })),
         };
       });

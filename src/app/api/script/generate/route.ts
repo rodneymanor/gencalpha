@@ -117,7 +117,12 @@ export async function POST(request: NextRequest): Promise<NextResponse<GenerateR
     // If persona is provided, enhance the prompt with voice cloning instructions
     const promptOptions: any = { variables };
     if (persona) {
-      console.log(`🎯 [Script Generate] Applying persona: ${persona.voiceProfile.primaryStyle} style`);
+      // Add safety check for voiceProfile
+      if (persona.voiceProfile?.primaryStyle) {
+        console.log(`🎯 [Script Generate] Applying persona: ${persona.voiceProfile.primaryStyle} style`);
+      } else {
+        console.log(`🎭 [Script Generate] Persona provided but missing voiceProfile data`);
+      }
       // We'll need to modify executePrompt to support persona enhancement
       promptOptions.persona = persona;
     }

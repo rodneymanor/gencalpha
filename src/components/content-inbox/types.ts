@@ -32,6 +32,12 @@ export interface ContentItem {
     progress?: number;
     error?: string;
   };
+  notes?: {
+    content: string; // User-created notes content (can be JSON for rich text)
+    format?: "text" | "json" | "markdown"; // Format of the notes content
+    createdAt?: Date;
+    updatedAt?: Date;
+  };
   category?: ContentCategory;
   tags?: string[];
   savedAt: Date;

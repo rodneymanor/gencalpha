@@ -4,16 +4,16 @@
 
 import React, { useState, useEffect, useRef } from "react";
 
+import { BlockNoteEditor, BlockNoteSchema, defaultBlockSpecs } from "@blocknote/core";
 import { Globe, Youtube, Music, Instagram, Twitter, Linkedin } from "lucide-react";
 import { toast } from "sonner";
-import { BlockNoteEditor, BlockNoteSchema, defaultBlockSpecs } from "@blocknote/core";
 import "@blocknote/core/fonts/inter.css";
 import { BlockNoteView } from "@blocknote/mantine";
 import "@blocknote/mantine/style.css";
 
-import { cn } from "@/lib/utils";
-import { UnifiedSlideout, ClaudeArtifactConfig } from "@/components/ui/unified-slideout";
 import { SlideoutHeader } from "@/components/ui/slideout-header";
+import { UnifiedSlideout, ClaudeArtifactConfig } from "@/components/ui/unified-slideout";
+import { cn } from "@/lib/utils";
 
 import { detectPlatform, useAddContent } from "../hooks/use-content-inbox";
 import { Platform } from "../types";
@@ -39,13 +39,13 @@ export const AddIdeaPanel: React.FC<AddIdeaPanelProps> = ({ isOpen, onClose, onS
   const [url, setUrl] = useState("");
   const [detectedPlatform, setDetectedPlatform] = useState<Platform>("unknown");
   const [editor, setEditor] = useState<BlockNoteEditor | null>(null);
-  const [editorContent, setEditorContent] = useState("");
+  const [_editorContent, _setEditorContent] = useState("");
   const [isUrlFocused, setIsUrlFocused] = useState(false);
-  
+
   const titleRef = useRef<HTMLInputElement>(null);
   const urlRef = useRef<HTMLInputElement>(null);
   const editorContainerRef = useRef<HTMLDivElement>(null);
-  
+
   const addContentMutation = useAddContent();
 
   // Initialize BlockNote editor
@@ -132,13 +132,19 @@ export const AddIdeaPanel: React.FC<AddIdeaPanelProps> = ({ isOpen, onClose, onS
 
     try {
       // Get editor content as JSON
-      const blocks = editor?.document || [];
+      const blocks = editor?.document ?? [];
       const noteContent = JSON.stringify(blocks);
 
       await addContentMutation.mutateAsync({
         url: url || undefined,
+        title: title,
+        description: undefined, // Can be added if needed
         category: "inspiration", // Default category
         tags: [], // Can be extended later
+        notes: {
+          content: noteContent,
+          format: "json", // BlockNote uses JSON format
+        },
       });
 
       toast.success("Idea saved successfully!");
@@ -146,7 +152,7 @@ export const AddIdeaPanel: React.FC<AddIdeaPanelProps> = ({ isOpen, onClose, onS
       // Reset form
       setTitle("");
       setUrl("");
-      setEditorContent("");
+      _setEditorContent("");
       if (editor) {
         editor.replaceBlocks(editor.document, [
           {
@@ -158,7 +164,7 @@ export const AddIdeaPanel: React.FC<AddIdeaPanelProps> = ({ isOpen, onClose, onS
 
       onSuccess?.();
       onClose();
-    } catch (error) {
+    } catch (_error) {
       toast.error("Failed to save idea. Please try again.");
     }
   };
@@ -177,8 +183,8 @@ export const AddIdeaPanel: React.FC<AddIdeaPanelProps> = ({ isOpen, onClose, onS
         animationType: "claude", // Claude-style smooth animation
         responsive: {
           mobile: "takeover",
-          tablet: "overlay", 
-          desktop: "sidebar"
+          tablet: "overlay",
+          desktop: "sidebar",
         },
         variant: "artifact",
       }}
@@ -195,14 +201,14 @@ export const AddIdeaPanel: React.FC<AddIdeaPanelProps> = ({ isOpen, onClose, onS
               "rounded-[var(--radius-button)] px-3 py-1.5 text-sm font-medium transition-all",
               title.trim()
                 ? "bg-neutral-900 text-white hover:bg-neutral-800"
-                : "bg-neutral-100 text-neutral-400 cursor-not-allowed"
+                : "cursor-not-allowed bg-neutral-100 text-neutral-400",
             )}
           >
             {addContentMutation.isPending ? "Saving..." : "Save"}
           </button>
         }
       />
-      
+
       {/* Main Content */}
       <div className="mx-auto max-w-2xl space-y-4 px-8 pb-6">
         {/* Title Field - Notion Style */}
@@ -233,11 +239,11 @@ export const AddIdeaPanel: React.FC<AddIdeaPanelProps> = ({ isOpen, onClose, onS
               placeholder="empty"
               className={cn(
                 "w-full border-none bg-transparent text-base text-neutral-700 placeholder:text-neutral-400 focus:outline-none",
-                isUrlFocused && "placeholder:text-neutral-500"
+                isUrlFocused && "placeholder:text-neutral-500",
               )}
             />
             {PlatformIconComponent && url && (
-              <span className="absolute right-0 top-1/2 -translate-y-1/2">
+              <span className="absolute top-1/2 right-0 -translate-y-1/2">
                 <PlatformIconComponent className="h-4 w-4 text-neutral-400" />
               </span>
             )}
@@ -245,9 +251,7 @@ export const AddIdeaPanel: React.FC<AddIdeaPanelProps> = ({ isOpen, onClose, onS
         </div>
 
         {/* Helper Text */}
-        <p className="text-sm text-neutral-400">
-          Press Enter to continue typing your note
-        </p>
+        <p className="text-sm text-neutral-400">Press Enter to continue typing your note</p>
 
         {/* Divider */}
         <div className="h-px bg-neutral-100" />
@@ -260,7 +264,7 @@ export const AddIdeaPanel: React.FC<AddIdeaPanelProps> = ({ isOpen, onClose, onS
               theme="light"
               onChange={() => {
                 const blocks = editor.document;
-                setEditorContent(JSON.stringify(blocks));
+                _setEditorContent(JSON.stringify(blocks));
               }}
               className="blocknote-minimal"
             />

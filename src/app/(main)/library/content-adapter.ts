@@ -2,6 +2,7 @@
 // Transforms ContentInbox items to LibraryItem format for the unified Library
 
 import { ContentItem } from "@/components/content-inbox/types";
+
 import { LibraryItem } from "./types";
 
 /**
@@ -30,19 +31,19 @@ function determineCategory(item: ContentItem): LibraryItem["category"] {
   if (item.isSystemContent) {
     return "idea";
   }
-  
+
   // Video content from social platforms is typically inspiration/ideas
   if (["tiktok", "instagram", "youtube"].includes(item.platform.toLowerCase())) {
     return "idea";
   }
-  
+
   // Manual entries could be ideas, scripts, or hooks based on tags
   if (item.platform.toLowerCase() === "manual") {
     if (item.tags?.includes("script")) return "script";
     if (item.tags?.includes("hooks")) return "hooks";
     return "idea";
   }
-  
+
   return "idea";
 }
 
@@ -53,15 +54,15 @@ function determineStatus(item: ContentItem): LibraryItem["status"] {
   if (item.isSystemContent) {
     return "published";
   }
-  
+
   if (item.usedAt) {
     return "published"; // Has been used in content creation
   }
-  
+
   if (item.viewedAt) {
     return "reviewing"; // Has been viewed but not used
   }
-  
+
   return "draft"; // Saved but not yet reviewed
 }
 
@@ -73,7 +74,7 @@ export function contentToLibraryItem(content: ContentItem): LibraryItem {
   const type = mapPlatformToType(content.platform);
   const category = determineCategory(content);
   const status = determineStatus(content);
-  
+
   // Estimate size based on content
   let estimatedSize: number | undefined;
   if (content.transcription?.text) {
@@ -83,11 +84,36 @@ export function contentToLibraryItem(content: ContentItem): LibraryItem {
   } else if (content.description) {
     estimatedSize = content.description.length * 2;
   }
-  
+
+  // Get description based on content type
+  let description = content.description ?? content.content;
+
+  // For user notes, extract text from notes content
+  if (content.notes?.content) {
+    if (content.notes.format === "json") {
+      try {
+        const blocks = JSON.parse(content.notes.content);
+        // Extract text from BlockNote JSON (simplified extraction)
+        const textContent = blocks
+          .map((block: any) => block.content?.[0]?.text ?? "")
+          .filter(Boolean)
+          .join(" ");
+        description = description ?? textContent.slice(0, 200) + (textContent.length > 200 ? "..." : "");
+      } catch {
+        description = description ?? content.notes.content.slice(0, 200) + "...";
+      }
+    } else {
+      description =
+        description ?? content.notes.content.slice(0, 200) + (content.notes.content.length > 200 ? "..." : "");
+    }
+  } else if (content.transcription?.text) {
+    description = description ?? content.transcription.text.slice(0, 200) + "...";
+  }
+
   return {
     id: content.id,
     title: content.title ?? `${content.platform} Content`,
-    description: content.description ?? content.content ?? (content.transcription?.text ? content.transcription.text.slice(0, 200) + "..." : undefined),
+    description,
     type,
     category,
     status,
@@ -101,7 +127,8 @@ export function contentToLibraryItem(content: ContentItem): LibraryItem {
       content.platform.toLowerCase(),
       ...(content.tags ?? []),
       ...(content.isPinned ? ["pinned"] : []),
-      ...(content.transcription?.status === "completed" ? ["transcribed"] : []),
+      ...(content.transcription?.status === "complete" ? ["transcribed"] : []),
+      ...(content.notes ? ["has-notes"] : []),
       ...(content.creator?.verified ? ["verified-creator"] : []),
     ].filter(Boolean),
     createdAt: new Date(content.savedAt),
@@ -116,7 +143,11 @@ export function contentToLibraryItem(content: ContentItem): LibraryItem {
     thumbnail: content.thumbnailUrl,
     collaborators: [],
     metadata: {
-      wordCount: content.transcription?.text ? content.transcription.text.split(" ").length : undefined,
+      wordCount: content.notes?.content
+        ? content.notes.content.split(" ").length
+        : content.transcription?.text
+          ? content.transcription.text.split(" ").length
+          : undefined,
       pageCount: undefined,
       format: content.platform,
       language: "English", // Could be detected
@@ -124,6 +155,8 @@ export function contentToLibraryItem(content: ContentItem): LibraryItem {
       platform: content.platform,
       originalUrl: content.url,
       transcriptionStatus: content.transcription?.status,
+      notesFormat: content.notes?.format,
+      hasNotes: !!content.notes,
       likes: content.likeCount,
       comments: content.commentCount,
     },
@@ -143,29 +176,28 @@ export function contentsToLibraryItems(contents: ContentItem[]): LibraryItem[] {
 export function combineAllDataSources(
   chats: unknown[], // ChatConversation[]
   contents: ContentItem[],
-  mockData: LibraryItem[]
+  mockData: LibraryItem[],
 ): LibraryItem[] {
   // Import the existing chat adapter
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { chatsToLibraryItems } = require("./chat-adapter") as { 
-    chatsToLibraryItems: (chats: unknown[]) => LibraryItem[] 
+  const { chatsToLibraryItems } = require("./chat-adapter") as {
+    chatsToLibraryItems: (chats: unknown[]) => LibraryItem[];
   };
-  
+
   const chatItems = chatsToLibraryItems(chats);
   const contentItems = contentsToLibraryItems(contents);
-  
+
   // Combine and sort by updatedAt date, with pinned items first
-  return [...chatItems, ...contentItems, ...mockData]
-    .sort((a, b) => {
-      // Pinned items first
-      const aPinned = a.tags.includes("pinned");
-      const bPinned = b.tags.includes("pinned");
-      if (aPinned && !bPinned) return -1;
-      if (!aPinned && bPinned) return 1;
-      
-      // Then sort by date (with safety check for valid dates)
-      const aTime = a.updatedAt instanceof Date ? a.updatedAt.getTime() : 0;
-      const bTime = b.updatedAt instanceof Date ? b.updatedAt.getTime() : 0;
-      return bTime - aTime;
-    });
+  return [...chatItems, ...contentItems, ...mockData].sort((a, b) => {
+    // Pinned items first
+    const aPinned = a.tags.includes("pinned");
+    const bPinned = b.tags.includes("pinned");
+    if (aPinned && !bPinned) return -1;
+    if (!aPinned && bPinned) return 1;
+
+    // Then sort by date (with safety check for valid dates)
+    const aTime = a.updatedAt instanceof Date ? a.updatedAt.getTime() : 0;
+    const bTime = b.updatedAt instanceof Date ? b.updatedAt.getTime() : 0;
+    return bTime - aTime;
+  });
 }

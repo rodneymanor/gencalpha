@@ -47,6 +47,7 @@ export interface LibraryItem extends BaseItem {
     pageCount?: number;
     format?: string;
     language?: string;
+    [key: string]: any; // Allow additional metadata properties
   };
 }
 
