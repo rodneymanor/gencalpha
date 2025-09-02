@@ -147,7 +147,9 @@ export function combineAllDataSources(
 ): LibraryItem[] {
   // Import the existing chat adapter
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { chatsToLibraryItems } = require("./chat-adapter") as { chatsToLibraryItems: (chats: unknown[]) => LibraryItem[] };
+  const { chatsToLibraryItems } = require("./chat-adapter") as { 
+    chatsToLibraryItems: (chats: unknown[]) => LibraryItem[] 
+  };
   
   const chatItems = chatsToLibraryItems(chats);
   const contentItems = contentsToLibraryItems(contents);

@@ -27,6 +27,8 @@ import { type ChatMessage } from "@/components/write-chat/types";
 import { sendScriptToSlideout, delay } from "@/components/write-chat/utils";
 import { useAuth } from "@/contexts/auth-context";
 import { useIdeaInboxFlag } from "@/hooks/use-feature-flag";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 import { useLightweightUrlDetection, type LightweightDetectionResult } from "@/hooks/use-lightweight-url-detection";
 import { processScriptComponents } from "@/hooks/use-script-analytics";
 import { useScriptGeneration } from "@/hooks/use-script-generation";
@@ -208,6 +210,7 @@ export function ClaudeChat({
     null,
   );
   const [selectedPersona, setSelectedPersona] = useState<string | null>(null);
+  const [personas, setPersonas] = useState<any[]>([]);
   // Replace old state management with atomic video action state
   const videoActionState = useVideoActionState();
   const mountedRef = useRef(true);
@@ -240,6 +243,43 @@ export function ClaudeChat({
 
   // Add transition state for FLIP animation
   const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // Load personas and set default on mount
+  useEffect(() => {
+    const loadPersonas = async () => {
+      const unsubscribe = onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          try {
+            const token = await user.getIdToken();
+            const response = await fetch("/api/personas/list", {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+
+            const data = await response.json();
+            
+            if (response.ok && data.success && data.personas?.length > 0) {
+              setPersonas(data.personas);
+              // Set the first persona as default if none is selected
+              if (!selectedPersona) {
+                setSelectedPersona(data.personas[0].id);
+              }
+            }
+          } catch (error) {
+            console.error("Error loading personas:", error);
+          }
+        }
+      });
+
+      return unsubscribe;
+    };
+
+    const unsubscribe = loadPersonas();
+    return () => {
+      unsubscribe.then(unsub => unsub());
+    };
+  }, [selectedPersona]); // Include selectedPersona dependency
 
   // Handle hero to chat expansion with transform
   const handleHeroExpansion = useCallback(() => {
@@ -349,7 +389,7 @@ export function ClaudeChat({
         let convId = conversationId;
         if (!convId) {
           try {
-            convId = await createConversation(selectedAssistant ?? "MiniBuddy", initialPrompt ?? undefined);
+            convId = await createConversation(selectedPersona ?? selectedAssistant ?? "MiniBuddy", initialPrompt ?? undefined);
             if (convId) {
               setConversationId(convId);
               console.log("✅ [executeAction] Created conversation:", convId);
@@ -458,7 +498,7 @@ export function ClaudeChat({
     try {
       let convIdLocal = conversationId;
       if (!convIdLocal) {
-        const createdId = await createConversation(selectedAssistant ?? "MiniBuddy", initialPrompt ?? undefined);
+        const createdId = await createConversation(selectedPersona ?? selectedAssistant ?? "MiniBuddy", initialPrompt ?? undefined);
         if (createdId) {
           convIdLocal = createdId;
           setConversationId(createdId);
@@ -737,7 +777,7 @@ export function ClaudeChat({
           // Ensure conversation exists
           let convId = conversationId;
           if (!convId) {
-            convId = await createConversation(selectedAssistant ?? "MiniBuddy", initialPrompt ?? undefined);
+            convId = await createConversation(selectedPersona ?? selectedAssistant ?? "MiniBuddy", initialPrompt ?? undefined);
             if (convId) {
               setConversationId(convId);
               console.log("✅ [handleSend] Created conversation for video URL:", convId);
@@ -834,7 +874,9 @@ export function ClaudeChat({
     if (!selectedAssistant) {
       try {
         const ensuredConvId = await ensureConversationAndSaveUserMessage(trimmed);
-        const res = await generateScript(trimmed, "60");
+        // Get the persona data if selected
+        const personaData = selectedPersona ? personas.find(p => p.id === selectedPersona) : null;
+        const res = await generateScript(trimmed, "60", personaData);
         await delay(ACK_BEFORE_SLIDE_MS);
         if (res.success && res.script) {
           const scriptData = convertToScriptData(res.script, trimmed);
@@ -887,7 +929,9 @@ export function ClaudeChat({
 
       try {
         const ensuredConvId = await ensureConversationAndSaveUserMessage(trimmed);
-        const res = await generateScript(idea, "60");
+        // Get the persona data if selected
+        const personaData = selectedPersona ? personas.find(p => p.id === selectedPersona) : null;
+        const res = await generateScript(idea, "60", personaData);
         await delay(ACK_BEFORE_SLIDE_MS);
         if (res.success && res.script) {
           const scriptData = convertToScriptData(res.script, idea);

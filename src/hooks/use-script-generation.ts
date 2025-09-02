@@ -21,7 +21,7 @@ export function useScriptGeneration() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const generateScript = useCallback(async (idea: string, length: "15" | "20" | "30" | "45" | "60" | "90" = "60") => {
+  const generateScript = useCallback(async (idea: string, length: "15" | "20" | "30" | "45" | "60" | "90" = "60", persona?: any) => {
     setIsLoading(true);
     setError(null);
     try {
@@ -29,7 +29,7 @@ export function useScriptGeneration() {
       const res = await fetch("/api/script/generate", {
         method: "POST",
         headers,
-        body: JSON.stringify({ idea, length }),
+        body: JSON.stringify({ idea, length, persona }),
       });
       const data: GenerateScriptResponse = await res.json();
       if (!res.ok || !data.success || !data.script) {

@@ -3,12 +3,20 @@
 // Data Table Header Component
 // Provides title, search, filters, and view mode controls
 
-import React from "react";
+import React, { useState } from "react";
 
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, Check, ChevronDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
 import { DataTableTemplateConfig, BaseItem, ViewMode } from "../types";
@@ -79,24 +87,104 @@ export function DataTableHeader<T extends BaseItem>({
               </div>
             )}
 
-            {/* Filter Buttons */}
-            {config.filters?.map((filter) => (
+            {/* Filter Dropdowns */}
+            {config.filters?.map((filter) => {
+              const selectedValues = filters[filter.key] || [];
+              const hasSelection = selectedValues.length > 0;
+              const allSelected = selectedValues.length === filter.options?.length;
+              
+              return (
+                <DropdownMenu key={filter.key}>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="xs"
+                      className={cn(
+                        "h-8 border-neutral-300 bg-gradient-to-b from-neutral-50 to-neutral-100 px-3 text-xs",
+                        "hover:-translate-y-px hover:border-neutral-400 hover:from-neutral-100 hover:to-neutral-200",
+                        "hover:shadow-[0_0.25rem_0.75rem_rgba(0,0,0,0.05),0_0_0_1px_rgba(0,0,0,0.08)]",
+                        hasSelection && "border-primary-300 bg-primary-50 text-primary-700",
+                      )}
+                    >
+                      {filter.icon}
+                      {filter.label}
+                      {hasSelection && !allSelected && (
+                        <span className="ml-1 rounded-full bg-primary-200 px-1.5 py-0.5 text-xs">
+                          {selectedValues.length}
+                        </span>
+                      )}
+                      {allSelected && (
+                        <span className="ml-1 text-xs text-primary-600">All</span>
+                      )}
+                      <ChevronDown className="ml-1 h-3 w-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-56">
+                    {filter.type === "multiselect" && filter.options && (
+                      <>
+                        {/* Select All option */}
+                        <DropdownMenuCheckboxItem
+                          checked={allSelected || !hasSelection}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              // Clear filter to show all
+                              onFilterChange(filter.key, []);
+                            } else {
+                              // If unchecking "All", don't do anything
+                              return;
+                            }
+                          }}
+                          className="font-medium"
+                        >
+                          All
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuSeparator />
+                        
+                        {/* Individual options */}
+                        {filter.options.map((option) => {
+                          const isSelected = selectedValues.includes(option.value);
+                          return (
+                            <DropdownMenuCheckboxItem
+                              key={option.value}
+                              checked={isSelected}
+                              onCheckedChange={(checked) => {
+                                const newValues = checked
+                                  ? [...selectedValues, option.value]
+                                  : selectedValues.filter((v: string) => v !== option.value);
+                                onFilterChange(filter.key, newValues.length > 0 ? newValues : []);
+                              }}
+                            >
+                              {option.label}
+                            </DropdownMenuCheckboxItem>
+                          );
+                        })}
+                      </>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              );
+            })}
+            
+            {/* Reset Filters Button */}
+            {config.filters && config.filters.length > 0 && (
               <Button
-                key={filter.key}
-                variant="outline"
+                variant="ghost"
                 size="xs"
+                onClick={() => {
+                  // Clear all filters
+                  config.filters?.forEach(filter => {
+                    onFilterChange(filter.key, []);
+                  });
+                }}
                 className={cn(
-                  "h-8 border-neutral-300 bg-gradient-to-b from-neutral-50 to-neutral-100 px-3 text-xs",
-                  "hover:-translate-y-px hover:border-neutral-400 hover:from-neutral-100 hover:to-neutral-200",
-                  "hover:shadow-[0_0.25rem_0.75rem_rgba(0,0,0,0.05),0_0_0_1px_rgba(0,0,0,0.08)]",
-                  filters[filter.key] && "border-primary-300 bg-primary-50",
+                  "h-8 px-3 text-xs text-neutral-600 hover:text-neutral-900",
+                  "hover:bg-neutral-100",
+                  Object.keys(filters).some(key => filters[key]?.length > 0) ? "visible" : "invisible"
                 )}
-                onClick={() => onFilterChange(filter.key, null)}
               >
-                {filter.icon}
-                {filter.label}
+                Reset filters
               </Button>
-            ))}
+            )}
 
             {/* View Mode Switcher */}
             {config.viewModes && config.viewModes.length > 1 && (
