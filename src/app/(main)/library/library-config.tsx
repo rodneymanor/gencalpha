@@ -272,27 +272,6 @@ export const getLibraryConfig = (): DataTableTemplateConfig<LibraryItem> => ({
   description: "All your content in one place - chats, inspiration, and resources",
   icon: <BookOpen className="h-6 w-6" />,
   
-  pageActions: [
-    {
-      label: "New Script",
-      icon: <Sparkles className="h-4 w-4" />,
-      variant: "default" as const,
-      onClick: () => {
-        // Navigation will be handled in the page component
-        window.location.href = '/write';
-      },
-    },
-    {
-      label: "New Idea",
-      icon: <Plus className="h-4 w-4" />,
-      variant: "outline" as const,
-      onClick: () => {
-        // This will be overridden in the page component to open the panel
-        console.log('New Idea clicked - override in page');
-      },
-    },
-  ],
-  
   columns,
   
   filters: [

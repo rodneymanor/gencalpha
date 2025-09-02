@@ -15,7 +15,6 @@ import { useContentItems } from "@/components/content-inbox/hooks/use-content-in
 import { type ContentItem } from "@/components/content-inbox/types";
 import { NotionPanel } from '@/components/panels/notion';
 import type { PageProperty, TabData } from '@/components/panels/notion';
-import { AddIdeaPanel } from "@/components/content-inbox/components/AddIdeaPanel";
 
 import { getLibraryConfig } from "./library-config";
 import { generateMockData } from "./types";
@@ -44,9 +43,6 @@ export default function LibraryPage() {
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [panelMode, setPanelMode] = useState<'view' | 'notes'>('view');
   const [notes, setNotes] = useState('');
-  
-  // AddIdeaPanel state
-  const [isAddIdeaPanelOpen, setIsAddIdeaPanelOpen] = useState(false);
   
   // Properties for the selected item
   const [properties, setProperties] = useState<PageProperty[]>([
@@ -433,25 +429,6 @@ export default function LibraryPage() {
         // Open in panel for detailed view
         handleItemSelect(item);
       },
-      pageActions: baseConfig.pageActions?.map(action => {
-        if (action.label === "New Script") {
-          return {
-            ...action,
-            onClick: () => {
-              router.push('/write');
-            },
-          };
-        }
-        if (action.label === "New Idea") {
-          return {
-            ...action,
-            onClick: () => {
-              setIsAddIdeaPanelOpen(true);
-            },
-          };
-        }
-        return action;
-      }),
       itemActions: [
         ...(baseConfig.itemActions ?? []).map(action => {
           if (action.key === "edit") {
@@ -691,18 +668,6 @@ export default function LibraryPage() {
           </div>
         </div>
       </div>
-      
-      {/* Add Idea Panel */}
-      <AddIdeaPanel
-        isOpen={isAddIdeaPanelOpen}
-        onClose={() => setIsAddIdeaPanelOpen(false)}
-        onSuccess={() => {
-          setIsAddIdeaPanelOpen(false);
-          // Refetch content to show the new idea
-          refetchContent();
-          toast.success("Idea saved successfully!");
-        }}
-      />
     </div>
   );
 }
