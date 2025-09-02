@@ -13,7 +13,7 @@ import { useInlineVideoActions } from "@/components/write-chat/hooks/use-inline-
 import { useVideoActionState, type VideoAction } from "@/components/write-chat/hooks/use-video-action-state";
 import { useVoiceRecorder } from "@/components/write-chat/hooks/use-voice-recorder";
 import { MessageList } from "@/components/write-chat/messages/message-list";
-import { type AssistantType } from "@/components/write-chat/persona-selector";
+import { type AssistantType, type ActionType, CONTENT_ACTIONS } from "@/components/write-chat/assistant-selector";
 import { FixedChatInput } from "@/components/write-chat/presentation/fixed-chat-input";
 import { HeroSection } from "@/components/write-chat/presentation/hero-section";
 import {
@@ -177,6 +177,9 @@ type ClaudeChatProps = {
   initialPrompt?: string;
   initialAssistant?: AssistantType;
   conversationIdToLoad?: string | null;
+  // New props for action system
+  useActionSystem?: boolean;
+  onActionTrigger?: (action: ActionType, prompt: string) => void;
 };
 
 export function ClaudeChat({
@@ -188,6 +191,8 @@ export function ClaudeChat({
   initialPrompt,
   initialAssistant,
   conversationIdToLoad,
+  useActionSystem = true,
+  onActionTrigger,
 }: ClaudeChatProps) {
   // Chat renders conversational text; structured results (scripts, analysis, hooks) are sent to the
   // BlockNote slideout via a global event. The slideout listens for `write:editor-set-content` and
@@ -211,6 +216,8 @@ export function ClaudeChat({
   );
   const [selectedPersona, setSelectedPersona] = useState<string | null>(null);
   const [personas, setPersonas] = useState<any[]>([]);
+  // New state for action system
+  const [selectedAction, setSelectedAction] = useState<ActionType | null>(null);
   // Replace old state management with atomic video action state
   const videoActionState = useVideoActionState();
   const mountedRef = useRef(true);
@@ -243,6 +250,27 @@ export function ClaudeChat({
 
   // Add transition state for FLIP animation
   const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // New action trigger handler
+  const handleActionTrigger = useCallback((action: ActionType, prompt: string) => {
+    console.log(`🎯 Action triggered: ${action} with prompt: ${prompt}`);
+    
+    if (onActionTrigger) {
+      onActionTrigger(action, prompt);
+    }
+    
+    // Build the enhanced prompt with user input and action context
+    const userInput = inputValue.trim();
+    const enhancedPrompt = userInput 
+      ? `${prompt}\n\nTopic/Idea: ${userInput}`
+      : prompt;
+    
+    // Clear selected action after triggering
+    setSelectedAction(null);
+    
+    // Process the action prompt through the regular chat flow
+    handleSend(enhancedPrompt);
+  }, [onActionTrigger, inputValue]);
 
   // Load personas and set default on mount
   useEffect(() => {
@@ -660,6 +688,147 @@ export function ClaudeChat({
   const handleSend = async (value: string) => {
     const trimmed = value.trim();
     if (!trimmed) return;
+
+    // Check if we have a selected action and should trigger it with the input
+    if (selectedAction && isHeroState) {
+      const actionData = CONTENT_ACTIONS.find(a => a.key === selectedAction);
+      if (actionData) {
+        const enhancedPrompt = `${actionData.prompt}\n\nTopic/Idea: ${trimmed}`;
+        setSelectedAction(null);
+        
+        // Trigger hero expansion
+        handleHeroExpansion();
+        
+        // Process as enhanced prompt
+        const userMessageId = crypto.randomUUID();
+        const ackMessageId = crypto.randomUUID();
+        const ackText = `I'll ${actionData.label.toLowerCase()} for "${trimmed}".`;
+        
+        setMessages((prev) => [
+          ...prev,
+          { id: userMessageId, role: "user", content: trimmed },
+          { id: ackMessageId, role: "assistant", content: ackText },
+          { id: crypto.randomUUID(), role: "assistant", content: ACK_LOADING },
+        ]);
+        
+        setInputValue("");
+        setIsHeroState(false);
+        onSend?.(enhancedPrompt, selectedAssistant ?? "MiniBuddy");
+        
+        // Continue with enhanced prompt processing
+        const lower = enhancedPrompt.toLowerCase();
+        const isScriptCommand = lower.startsWith("/script ") || lower.includes("generate script");
+        const shouldUseScriptFlow = !selectedAssistant || isScriptCommand;
+
+        if (!shouldUseScriptFlow) {
+          (async () => {
+            try {
+              const headers = await buildAuthHeaders();
+              let convId: string | null = conversationId;
+              if (!convId) {
+                const res = await fetch("/api/chat/conversations", {
+                  method: "POST",
+                  headers,
+                  body: JSON.stringify({
+                    assistant: selectedAssistant ?? "MiniBuddy",
+                    initialPrompt: initialPrompt ?? null,
+                  }),
+                });
+                if (res.ok) {
+                  const json = (await res.json()) as { success: boolean; conversationId?: string };
+                  if (json.success && json.conversationId) {
+                    convId = json.conversationId;
+                    setConversationId(json.conversationId);
+                  }
+                }
+              }
+              if (!convId) {
+                console.warn("⚠️ [ClaudeChat] No conversation id available; skipping message persistence");
+                return;
+              }
+              await saveMessageToDb(convId, "user", trimmed);
+            } catch (e) {
+              console.warn("⚠️ [ClaudeChat] Failed to persist user message:", e);
+            }
+          })();
+        }
+
+        // Continue with regular chatbot processing using enhancedPrompt
+        try {
+          const authHeaders = await buildAuthHeaders();
+          const response = await fetch("/api/chatbot", {
+            method: "POST",
+            headers: authHeaders,
+            body: JSON.stringify({
+              message: enhancedPrompt,
+              assistant: selectedAssistant,
+              conversationHistory: messages.map((m) => ({ role: m.role, content: m.content })),
+            }),
+          });
+
+          if (!response.ok) {
+            const errorData = (await response.json().catch(() => ({}))) as { error?: string };
+            throw new Error(errorData.error ?? `HTTP error ${response.status}`);
+          }
+          const data = await response.json();
+          const assistantText = data.response ?? "I'm sorry, I didn't receive a proper response.";
+          
+          await delay(ACK_BEFORE_SLIDE_MS);
+          await delay(SLIDE_DURATION_MS);
+          setMessages((prev): ChatMessage[] => {
+            const filtered = prev.filter((m) => m.content !== ACK_LOADING);
+            const next: ChatMessage[] = [
+              ...filtered,
+              { id: crypto.randomUUID(), role: "assistant", content: assistantText },
+            ];
+            return next;
+          });
+
+          // Persist assistant message and generate title on first response
+          (async () => {
+            try {
+              const convId = conversationId;
+              if (!convId) {
+                console.warn("⚠️ [ClaudeChat] No conversation id available; skipping assistant message persistence");
+                return;
+              }
+
+              await saveMessageToDb(convId, "assistant", assistantText);
+
+              if (isFirstResponse && !conversationTitle) {
+                const messagesForTitle = [
+                  { role: "user" as const, content: trimmed },
+                  { role: "assistant" as const, content: assistantText },
+                ];
+                const generatedTitle = await generateTitle(convId, messagesForTitle);
+                if (generatedTitle) {
+                  setConversationTitle(generatedTitle);
+                  setIsFirstResponse(false);
+                  console.log("✅ [ClaudeChat] Generated title:", generatedTitle);
+                }
+              }
+            } catch (e) {
+              console.warn("⚠️ [ClaudeChat] Failed to persist assistant message or generate title:", e);
+            }
+          })();
+        } catch (err: unknown) {
+          await delay(ACK_BEFORE_SLIDE_MS);
+          await delay(SLIDE_DURATION_MS);
+          setMessages((prev): ChatMessage[] => {
+            const filtered = prev.filter((m) => m.content !== ACK_LOADING);
+            return [
+              ...filtered,
+              {
+                id: crypto.randomUUID(),
+                role: "assistant",
+                content: `Error: ${typeof err === "object" && err && "message" in err ? String((err as { message?: unknown }).message) : "Failed to get response"}`,
+              },
+            ];
+          });
+        }
+        return;
+      }
+    }
 
     // Trigger hero expansion if in hero state
     if (isHeroState) {
@@ -1088,6 +1257,11 @@ export function ClaudeChat({
           setIdeasOpen={setIdeasOpen}
           isIdeaInboxEnabled={isIdeaInboxEnabled}
           onVoiceClick={toggleRecording}
+          // New action system props
+          onActionTrigger={handleActionTrigger}
+          useActionSystem={useActionSystem}
+          selectedAction={selectedAction}
+          setSelectedAction={setSelectedAction}
         />
       </div>
 
@@ -1113,6 +1287,7 @@ export function ClaudeChat({
               onVideoAction={handleVideoAction}
               messagesEndRef={messagesEndRef}
               isProcessingVideoAction={videoActionState.isProcessing}
+              onActionTrigger={handleActionTrigger}
             />
           </ScrollArea>
 

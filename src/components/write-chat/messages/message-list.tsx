@@ -6,6 +6,8 @@ import { ACK_LOADING } from "@/components/write-chat/constants";
 import { AckLoader } from "@/components/write-chat/messages/ack-loader";
 import type { ChatMessage } from "@/components/write-chat/types";
 import VideoActionSelector from "@/components/write-chat/video-action-selector";
+import { ContextualQuickActions } from "@/components/write-chat/contextual-quick-actions";
+import type { ActionType } from "@/components/write-chat/assistant-selector";
 
 type MessageListProps = {
   messages: ChatMessage[];
@@ -15,10 +17,72 @@ type MessageListProps = {
   onVideoAction: (action: "transcribe" | "ideas" | "hooks") => void;
   messagesEndRef: React.RefObject<HTMLDivElement>;
   isProcessingVideoAction?: boolean;
+  // New prop for contextual actions
+  onActionTrigger?: (action: ActionType, prompt: string) => void;
 };
 
+// Helper function to detect content type from assistant message
+function detectContentType(content: string): "hooks" | "ideas" | "script" | "tips" | "general" | null {
+  const lowerContent = content.toLowerCase();
+  
+  // Check for hooks content
+  if (/\bhooks?\b/i.test(content) || /hook.*:/.test(content) || (content.match(/^\d+\./gm) && content.includes("hook"))) {
+    return "hooks";
+  }
+  
+  // Check for content ideas
+  if (/\bideas?\b/i.test(content) || /content.*ideas?/i.test(content) || (/^\d+\./gm.test(content) && lowerContent.includes("idea"))) {
+    return "ideas";
+  }
+  
+  // Check for scripts (Hook, Bridge, CTA pattern)
+  if ((/\bhook\b.*\bbridge\b.*\bcall.to.action\b/i.test(content) || 
+       /\bhook\b.*\bgolden.nugget\b/i.test(content)) &&
+      content.length > 200) {
+    return "script";
+  }
+  
+  // Check for tips/value content
+  if (/\btips?\b/i.test(content) || /\bvalue\b/i.test(content) || 
+      (/^\d+\./gm.test(content) && (lowerContent.includes("tip") || lowerContent.includes("actionable")))) {
+    return "tips";
+  }
+  
+  return null;
+}
+
+// Helper function to determine if we should show quick actions
+function shouldShowQuickActions(message: ChatMessage, index: number, messages: ChatMessage[]): boolean {
+  // Only show for assistant messages
+  if (message.role !== "assistant") return false;
+  
+  // Don't show for loading or special messages
+  if (message.content === ACK_LOADING || message.content === "<video-actions>") return false;
+  
+  // Don't show for very short messages
+  if (message.content.length < 50) return false;
+  
+  // Don't show for error messages
+  if (message.content.toLowerCase().startsWith("error:")) return false;
+  
+  // Only show for the last assistant message or recent ones with detected content types
+  const isLastMessage = index === messages.length - 1;
+  const isRecentMessage = index >= messages.length - 3; // Last 3 messages
+  const hasContentType = detectContentType(message.content) !== null;
+  
+  return (isLastMessage || (isRecentMessage && hasContentType));
+}
+
 function MessageListComponent(props: MessageListProps) {
-  const { messages, resolvedName, activeAction, onVideoAction, messagesEndRef, isProcessingVideoAction } = props;
+  const { 
+    messages, 
+    resolvedName, 
+    activeAction, 
+    onVideoAction, 
+    messagesEndRef, 
+    isProcessingVideoAction,
+    onActionTrigger 
+  } = props;
 
   return (
     // Main chat container with centered max-width layout
@@ -56,7 +120,7 @@ function MessageListComponent(props: MessageListProps) {
                 <>
                   {/* Empty avatar space for assistant messages (left-aligned) */}
                   <div aria-hidden className="h-8 w-8" />
-                  <div className="col-start-2">
+                  <div className="col-start-2 space-y-3">
                     {/* Assistant message content with conditional rendering */}
                     {m.content === ACK_LOADING ? (
                       // Show loading animation for acknowledgment
@@ -70,10 +134,27 @@ function MessageListComponent(props: MessageListProps) {
                         />
                       </div>
                     ) : (
-                      // Regular assistant message with subtle hover state
-                      <div className="prose text-foreground interactive-element hover:bg-accent/5 -m-2 max-w-none rounded-[var(--radius-button)] p-2 transition-all duration-200">
-                        <p className="text-base leading-relaxed break-words whitespace-pre-wrap">{m.content}</p>
-                      </div>
+                      <>
+                        {/* Regular assistant message with subtle hover state */}
+                        <div className="prose text-foreground interactive-element hover:bg-accent/5 -m-2 max-w-none rounded-[var(--radius-button)] p-2 transition-all duration-200">
+                          <p className="text-base leading-relaxed break-words whitespace-pre-wrap">{m.content}</p>
+                        </div>
+                        
+                        {/* Contextual Quick Actions - shown for relevant content */}
+                        {onActionTrigger && shouldShowQuickActions(m, index, messages) && (() => {
+                          const contentType = detectContentType(m.content);
+                          if (contentType) {
+                            return (
+                              <ContextualQuickActions
+                                contentType={contentType}
+                                onActionTrigger={onActionTrigger}
+                                className="mt-3 opacity-80 hover:opacity-100 transition-opacity duration-200"
+                              />
+                            );
+                          }
+                          return null;
+                        })()}
+                      </>
                     )}
                   </div>
                 </>

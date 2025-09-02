@@ -10,7 +10,7 @@ import { AdvancedSlidingSwitch, type ModeType, type SwitchOption } from "@/compo
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ClarityLoader } from "@/components/ui/loading";
-import { AssistantSelector, AssistantType } from "@/components/write-chat/persona-selector";
+import { AssistantSelector, AssistantType } from "@/components/write-chat/assistant-selector";
 import { PromptComposer } from "@/components/write-chat/prompt-composer";
 import { useAuth } from "@/contexts/auth-context";
 import { auth } from "@/lib/firebase";

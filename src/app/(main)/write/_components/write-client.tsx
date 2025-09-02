@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import ClaudeChat from "@/components/write-chat/claude-chat";
-import { type AssistantType } from "@/components/write-chat/persona-selector";
+import { type AssistantType } from "@/components/write-chat/assistant-selector";
 
 export function WriteClient({
   initialPrompt,

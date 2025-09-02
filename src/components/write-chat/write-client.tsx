@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import ClaudeChat from "@/components/write-chat/claude-chat";
-import { type AssistantType } from "@/components/write-chat/persona-selector";
+import { type AssistantType } from "@/components/write-chat/assistant-selector";
 
 export function WriteClient({
   initialPrompt,

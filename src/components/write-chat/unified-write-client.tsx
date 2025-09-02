@@ -10,17 +10,21 @@ import { Button } from "@/components/ui/button";
 //
 import { UnifiedSlideout, ClaudeArtifactConfig } from "@/components/ui/unified-slideout";
 import ClaudeChat from "@/components/write-chat/claude-chat";
-import { type AssistantType } from "@/components/write-chat/persona-selector";
+import { type AssistantType, type ActionType } from "@/components/write-chat/assistant-selector";
 import { ScriptData } from "@/types/script-panel";
 
 export function UnifiedWriteClient({
   initialPrompt,
   initialAssistant,
   conversationIdToLoad,
+  useActionSystem = true,
+  onActionTrigger,
 }: {
   initialPrompt?: string;
   initialAssistant?: AssistantType;
   conversationIdToLoad?: string;
+  useActionSystem?: boolean;
+  onActionTrigger?: (action: ActionType, prompt: string) => void;
 }) {
   // State management
   const [_isHeroState, setIsHeroState] = useState(true);
@@ -37,6 +41,19 @@ export function UnifiedWriteClient({
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   //
+
+  // Handle action triggers from the new system
+  const handleActionTrigger = useCallback((action: ActionType, prompt: string) => {
+    console.log(`🎯 [UnifiedWriteClient] Action triggered: ${action} with prompt: ${prompt}`);
+    
+    // Call the external handler if provided
+    if (onActionTrigger) {
+      onActionTrigger(action, prompt);
+    }
+
+    // The action will be processed through the normal chat flow in ClaudeChat
+    // This handler is mainly for tracking and external integration
+  }, [onActionTrigger]);
 
   // Handle slideout opening with content adjustment
   const handleSlideoutOpen = useCallback(() => {
@@ -118,6 +135,8 @@ export function UnifiedWriteClient({
           initialPrompt={initialPrompt}
           initialAssistant={initialAssistant}
           conversationIdToLoad={conversationIdToLoad}
+          useActionSystem={useActionSystem}
+          onActionTrigger={handleActionTrigger}
           onHeroStateChange={(isHero: boolean) => {
             setIsHeroState(isHero);
           }}
