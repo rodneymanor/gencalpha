@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Plus, Video, AlertCircle, Check, ExternalLink, Clock, Loader2 } from 'lucide-react';
 
@@ -52,6 +52,13 @@ export function VideoManagementPanel({
   // Panel state
   const [panelWidth, setPanelWidth] = useState(650);
   const [isFullScreen, setIsFullScreen] = useState(false);
+
+  // Update selected collection when panel opens with a new collection
+  useEffect(() => {
+    if (isOpen && initialCollectionId) {
+      setSelectedCollectionId(initialCollectionId);
+    }
+  }, [isOpen, initialCollectionId]);
 
   // URL validation
   const validateVideoUrl = useCallback((url: string): ValidationResult => {
@@ -183,10 +190,9 @@ export function VideoManagementPanel({
         
         toast.success('Video added to collection');
         
-        // Reset form
+        // Reset form but keep the selected collection
         setVideoUrl('');
         setUrlError('');
-        setSelectedCollectionId(initialCollectionId);
         
         // Callback
         onVideoAdded?.(result.videoId || '', selectedCollectionId);
