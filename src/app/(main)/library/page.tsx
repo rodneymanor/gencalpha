@@ -7,7 +7,9 @@ import React, { useMemo, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import dynamic from 'next/dynamic';
-import { ChevronsRight, Maximize, Minimize, Copy, Download } from 'lucide-react';
+import { ChevronsRight, Maximize, Minimize, Copy, Download, PenTool, Lightbulb } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { generateTitleFromContent } from "@/lib/transcript-title-generator";
 
 import { DataTableTemplate } from "@/components/templates/data-table-template";
 import { listConversations, type ChatConversation } from "@/components/write-chat/services/chat-service";
@@ -61,6 +63,39 @@ export default function LibraryPage() {
       icon: 'burst' 
     }
   ]);
+
+  // Handler functions for new buttons
+  const handleNewScript = () => {
+    router.push('/write');
+  };
+
+  const handleNewIdea = () => {
+    // Reset properties to default URL input
+    setProperties([
+      { 
+        id: '1', 
+        type: 'url' as const, 
+        name: 'URL', 
+        value: '',
+        icon: 'link' 
+      },
+      { 
+        id: '2', 
+        type: 'status' as const, 
+        name: 'Generation', 
+        value: { label: 'Pending', color: 'default' }, 
+        icon: 'burst' 
+      }
+    ]);
+    
+    // Clear any existing notes and set to new idea mode
+    setNotes('');
+    setPanelMode('notes');
+    setSelectedItem(null);
+    
+    // Open the panel
+    setIsPanelOpen(true);
+  };
   
   // Parse URL parameters for default filters
   const urlSource = searchParams.get('source');
@@ -425,6 +460,31 @@ export default function LibraryPage() {
     // Override item click and edit actions for chats
     return {
       ...baseConfig,
+      // Remove the default addAction to replace it with custom buttons
+      addAction: undefined,
+      // Add custom header content that replaces the add button area
+      customHeaderActions: (
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={handleNewScript}
+            variant="outline"
+            size="sm"
+            className="border border-neutral-200 bg-neutral-100 text-neutral-900 shadow-[0_0_0_1px_rgba(0,0,0,0.04)] hover:-translate-y-px hover:border-neutral-300 hover:bg-neutral-200 hover:shadow-[var(--shadow-soft-drop)]"
+          >
+            <PenTool className="h-4 w-4 mr-2" />
+            New Script
+          </Button>
+          <Button
+            onClick={handleNewIdea}
+            variant="outline"
+            size="sm"
+            className="border border-neutral-200 bg-neutral-100 text-neutral-900 shadow-[0_0_0_1px_rgba(0,0,0,0.04)] hover:-translate-y-px hover:border-neutral-300 hover:bg-neutral-200 hover:shadow-[var(--shadow-soft-drop)]"
+          >
+            <Lightbulb className="h-4 w-4 mr-2" />
+            New Idea
+          </Button>
+        </div>
+      ),
       onItemClick: (item) => {
         // Open in panel for detailed view
         handleItemSelect(item);
@@ -450,7 +510,7 @@ export default function LibraryPage() {
         }),
       ],
     };
-  }, [router]);
+  }, [router, handleNewScript, handleNewIdea]);
 
   // Data result for the template
   const dataResult = {

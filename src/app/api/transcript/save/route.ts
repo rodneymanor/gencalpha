@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { authenticateApiKey } from "@/lib/api-key-auth";
 import { getAdminDb, isAdminInitialized } from "@/lib/firebase-admin";
+import { generateTikTokTitleFromTranscript, generateInstagramTitleFromTranscript } from "@/lib/transcript-title-generator";
 
 interface SaveBody {
   transcript?: string;
@@ -25,11 +26,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Admin SDK not configured" }, { status: 500 });
     }
 
+    // Generate title based on platform
+    let title: string;
+    switch (platform) {
+      case "TikTok":
+        title = generateTikTokTitleFromTranscript(transcript);
+        break;
+      case "Instagram":
+        title = generateInstagramTitleFromTranscript(transcript);
+        break;
+      default:
+        title = `${platform} Transcript`;
+        break;
+    }
+
     const ref = await adminDb.collection("transcripts").add({
       userId,
       sourceUrl: sourceUrl ?? null,
       platform,
       transcript,
+      title,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });

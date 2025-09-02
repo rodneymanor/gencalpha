@@ -23,6 +23,8 @@ import { CollectionsService, type Collection, type Video } from "@/lib/collectio
 import { VideoInsights } from "@/types/video-insights";
 
 import { AddVideoDialog } from "./_components/add-video-dialog";
+import { CollectionManagementPanel } from "./_components/collection-management-panel";
+import { VideoManagementPanel } from "./_components/video-management-panel";
 import { CollectionsProvider, useCollections } from "./_components/collections-context";
 import { CollectionsTabs } from "./_components/collections-tabs";
 import { VideoGrid } from "./_components/video-grid";
@@ -145,6 +147,8 @@ function CollectionsHeader({
   handleEditTitle,
   handleEditDescription,
   setIsAddVideoDialogOpen,
+  onOpenCollectionPanel,
+  onOpenVideoPanel,
 }: {
   selectedCollectionId: string;
   selectedCollection: Collection | null;
@@ -152,6 +156,8 @@ function CollectionsHeader({
   handleEditTitle: () => void;
   handleEditDescription: () => void;
   setIsAddVideoDialogOpen: (open: boolean) => void;
+  onOpenCollectionPanel: () => void;
+  onOpenVideoPanel: () => void;
 }) {
   return (
     <div className="mb-6 flex items-center justify-between">
@@ -184,7 +190,11 @@ function CollectionsHeader({
         )}
       </div>
       <div className="flex gap-3">
-        <Button onClick={() => setIsAddVideoDialogOpen(true)} variant="soft" className="gap-2">
+        <Button onClick={onOpenCollectionPanel} variant="outline" className="gap-2">
+          <Plus className="h-4 w-4" />
+          Add Collection
+        </Button>
+        <Button onClick={onOpenVideoPanel} variant="soft" className="gap-2">
           <Plus className="h-4 w-4" />
           Add Video
         </Button>
@@ -541,6 +551,11 @@ function CollectionsContent() {
   const [selectedCollectionId, setSelectedCollectionId] = useState<string>("all-videos");
   const [isAddVideoDialogOpen, setIsAddVideoDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("collections");
+  
+  // Panel management state
+  const [isCollectionPanelOpen, setIsCollectionPanelOpen] = useState(false);
+  const [isVideoPanelOpen, setIsVideoPanelOpen] = useState(false);
+  
   // Filter replaced by explicit collection picker
   const { state, dispatch } = useCollections();
   const { user } = useAuth();
@@ -562,9 +577,59 @@ function CollectionsContent() {
     dispatch,
   );
 
+  // Handle collection creation
+  const handleCollectionCreated = useCallback(
+    async (collectionId: string) => {
+      console.log("🎉 [Collections] New collection created:", collectionId);
+      // Refresh collections list
+      if (user?.uid) {
+        dispatch({ type: "SET_LOADING", payload: true });
+        try {
+          const result = await RBACClientService.getUserCollections(user.uid);
+          const sortedCollections = [...result.collections].sort((a, b) => {
+            if (a.favorite && !b.favorite) return -1;
+            if (!a.favorite && b.favorite) return 1;
+            return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+          });
+          dispatch({ type: "SET_COLLECTIONS", payload: sortedCollections });
+          
+          // Auto-select the new collection
+          setSelectedCollectionId(collectionId);
+        } catch (error) {
+          console.error("Failed to refresh collections:", error);
+        } finally {
+          dispatch({ type: "SET_LOADING", payload: false });
+        }
+      }
+    },
+    [user?.uid, dispatch],
+  );
+
+  // Handle video addition
+  const handleVideoAdded = useCallback(
+    async (videoId: string, collectionId: string) => {
+      console.log("🎥 [Collections] Video added:", videoId, "to collection:", collectionId);
+      // Refresh collections to update video counts
+      if (user?.uid) {
+        try {
+          const result = await RBACClientService.getUserCollections(user.uid);
+          const sortedCollections = [...result.collections].sort((a, b) => {
+            if (a.favorite && !b.favorite) return -1;
+            if (!a.favorite && b.favorite) return 1;
+            return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+          });
+          dispatch({ type: "SET_COLLECTIONS", payload: sortedCollections });
+        } catch (error) {
+          console.error("Failed to refresh collections after video addition:", error);
+        }
+      }
+    },
+    [user?.uid, dispatch],
+  );
+
   return (
     <div className="bg-background min-h-screen" id="collections-main-content">
-      <div className="mx-auto max-w-4xl px-3 py-4 sm:px-4 sm:py-6 lg:px-8">
+      <div className="container mx-auto p-6">
         {/* Header */}
         <CollectionsHeader
           selectedCollectionId={selectedCollectionId}
@@ -573,6 +638,8 @@ function CollectionsContent() {
           handleEditTitle={handleEditTitle}
           handleEditDescription={handleEditDescription}
           setIsAddVideoDialogOpen={setIsAddVideoDialogOpen}
+          onOpenCollectionPanel={() => setIsCollectionPanelOpen(true)}
+          onOpenVideoPanel={() => setIsVideoPanelOpen(true)}
         />
 
         {/* Collections Tabs */}
@@ -602,6 +669,21 @@ function CollectionsContent() {
         open={isAddVideoDialogOpen}
         onOpenChange={setIsAddVideoDialogOpen}
         selectedCollectionId={selectedCollectionId}
+      />
+
+      {/* Collection Management Panel */}
+      <CollectionManagementPanel
+        isOpen={isCollectionPanelOpen}
+        onClose={() => setIsCollectionPanelOpen(false)}
+        onCollectionCreated={handleCollectionCreated}
+      />
+
+      {/* Video Management Panel */}
+      <VideoManagementPanel
+        isOpen={isVideoPanelOpen}
+        onClose={() => setIsVideoPanelOpen(false)}
+        initialCollectionId={selectedCollectionId !== "all-videos" ? selectedCollectionId : ""}
+        onVideoAdded={handleVideoAdded}
       />
     </div>
   );

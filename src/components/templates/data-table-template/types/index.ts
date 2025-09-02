@@ -122,6 +122,9 @@ export interface DataTableTemplateConfig<T extends BaseItem> {
     handler: () => void;
   };
 
+  // Custom header actions (replaces addAction when provided)
+  customHeaderActions?: ReactNode;
+
   // Item click behavior
   onItemClick?: (item: T) => void;
 

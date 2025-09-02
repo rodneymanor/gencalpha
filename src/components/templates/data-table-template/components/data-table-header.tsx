@@ -58,7 +58,7 @@ export function DataTableHeader<T extends BaseItem>({
           </div>
         </div>
 
-        {config.addAction && (
+{config.customHeaderActions || (config.addAction && (
           <Button
             onClick={onAddClick}
             className="border border-neutral-200 bg-neutral-100 text-neutral-900 shadow-[0_0_0_1px_rgba(0,0,0,0.04)] hover:-translate-y-px hover:border-neutral-300 hover:bg-neutral-200 hover:shadow-[var(--shadow-soft-drop)]"
@@ -67,7 +67,7 @@ export function DataTableHeader<T extends BaseItem>({
             {config.addAction.icon || <Plus className="h-4 w-4" />}
             {config.addAction.label}
           </Button>
-        )}
+        ))}
       </div>
 
       {/* Filters & Search Row */}

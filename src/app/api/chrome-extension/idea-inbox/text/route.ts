@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { authenticateApiKey } from "@/lib/api-key-auth";
 import { notesService } from "@/lib/services/notes-service";
 import { NoteType } from "@/app/(main)/dashboard/idea-inbox/_components/types";
+import { generateTitleFromContent } from "@/lib/transcript-title-generator";
 
 interface TextIdeaBody {
   title?: string;
@@ -29,7 +30,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const finalTitle = incomingTitle || "Saved from Extension";
+    // Auto-generate title if not provided
+    let finalTitle = incomingTitle;
+    if (!finalTitle && resolvedContent) {
+      finalTitle = generateTitleFromContent(resolvedContent);
+    }
+    
+    // Fallback if content is too short or meaningless
+    if (!finalTitle || finalTitle === "Untitled Idea") {
+      finalTitle = "Saved from Extension";
+    }
 
     const noteId = await notesService.createNote(userId, {
       title: finalTitle,

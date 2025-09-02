@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 
 import { detectPlatform, useAddContent } from "../hooks/use-content-inbox";
 import { Platform } from "../types";
+import { generateTitleFromContent } from "@/lib/transcript-title-generator";
 
 interface AddIdeaPanelProps {
   isOpen: boolean;
@@ -124,20 +125,37 @@ export const AddIdeaPanel: React.FC<AddIdeaPanelProps> = ({ isOpen, onClose, onS
 
   // Handle save
   const handleSave = async () => {
-    if (!title.trim()) {
-      toast.error("Please enter a title for your idea");
-      titleRef.current?.focus();
+    // Get editor content as JSON
+    const blocks = editor?.document ?? [];
+    const noteContent = JSON.stringify(blocks);
+
+    // Auto-generate title if not provided
+    let finalTitle = title.trim();
+    if (!finalTitle) {
+      // Generate title from editor content
+      finalTitle = generateTitleFromContent(noteContent);
+      
+      // If we generated a title, update the input field
+      if (finalTitle !== "Untitled Idea") {
+        setTitle(finalTitle);
+      }
+    }
+
+    // Check if we have any content to save
+    const hasContent = finalTitle !== "Untitled Idea" || blocks.some(block => 
+      block.content && Array.isArray(block.content) && 
+      block.content.some(item => item.text && item.text.trim())
+    );
+
+    if (!hasContent) {
+      toast.error("Please add some content to your idea");
       return;
     }
 
     try {
-      // Get editor content as JSON
-      const blocks = editor?.document ?? [];
-      const noteContent = JSON.stringify(blocks);
-
       await addContentMutation.mutateAsync({
         url: url || undefined,
-        title: title,
+        title: finalTitle,
         description: undefined, // Can be added if needed
         category: "inspiration", // Default category
         tags: [], // Can be extended later
@@ -196,12 +214,11 @@ export const AddIdeaPanel: React.FC<AddIdeaPanelProps> = ({ isOpen, onClose, onS
         rightActions={
           <button
             onClick={handleSave}
-            disabled={!title.trim() || addContentMutation.isPending}
+            disabled={addContentMutation.isPending}
             className={cn(
               "rounded-[var(--radius-button)] px-3 py-1.5 text-sm font-medium transition-all",
-              title.trim()
-                ? "bg-neutral-900 text-white hover:bg-neutral-800"
-                : "cursor-not-allowed bg-neutral-100 text-neutral-400",
+              "bg-neutral-900 text-white hover:bg-neutral-800",
+              addContentMutation.isPending && "opacity-50 cursor-not-allowed"
             )}
           >
             {addContentMutation.isPending ? "Saving..." : "Save"}

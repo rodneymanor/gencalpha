@@ -146,3 +146,116 @@ export function generateTikTokTitleFromTranscript(transcript: string): string {
 export function generateInstagramTitleFromTranscript(transcript: string): string {
   return generateTitleFromTranscript(transcript, 6, "Instagram");
 }
+
+/**
+ * Generate a title from general idea content (not necessarily transcripts)
+ * @param content - The idea content (could be text, notes, etc.)
+ * @param maxWords - Maximum number of words to include (default: 8)
+ * @returns Generated title
+ */
+export function generateTitleFromContent(content: string, maxWords: number = 8): string {
+  if (!content || typeof content !== "string") {
+    return "Untitled Idea";
+  }
+
+  // Handle JSON content (like BlockNote editor content)
+  let textContent = content;
+  try {
+    const parsed = JSON.parse(content);
+    if (Array.isArray(parsed)) {
+      // Extract text from BlockNote blocks
+      textContent = parsed
+        .map(block => {
+          if (block.content) {
+            if (Array.isArray(block.content)) {
+              return block.content
+                .filter(item => item.type === 'text')
+                .map(item => item.text)
+                .join(' ');
+            } else if (typeof block.content === 'string') {
+              return block.content;
+            }
+          }
+          return '';
+        })
+        .filter(Boolean)
+        .join(' ');
+    }
+  } catch {
+    // Not JSON, use as-is
+  }
+
+  // Clean up the content
+  const cleanedContent = textContent
+    .replace(/\[[^\]]*\]/g, "") // Remove timestamp markers
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!cleanedContent) {
+    return "Untitled Idea";
+  }
+
+  // Split into words and filter out common filler words/interjections
+  const fillerWords = new Set([
+    "um", "uh", "ah", "eh", "like", "you know", "so", "well", "okay", "ok",
+    "actually", "basically", "literally", "obviously", "definitely", "totally",
+    "hey", "hi", "hello", "welcome", "thanks", "thank you", "please",
+    "i", "me", "my", "myself", "we", "our", "ours", "ourselves",
+    "a", "an", "the", "and", "but", "if", "or", "because", "as", "until", 
+    "while", "of", "at", "by", "for", "with", "about", "into", "through", "during"
+  ]);
+
+  const words = cleanedContent
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((word) => {
+      // Remove punctuation for filtering
+      const cleanWord = word.replace(/[^\w]/g, "");
+      return cleanWord.length > 1 && !fillerWords.has(cleanWord);
+    });
+
+  if (words.length === 0) {
+    return "Untitled Idea";
+  }
+
+  // Get the first meaningful words, but preserve original capitalization
+  const originalWords = cleanedContent.split(/\s+/);
+  const meaningfulOriginalWords = [];
+  let meaningfulCount = 0;
+
+  for (const originalWord of originalWords) {
+    const cleanWord = originalWord.toLowerCase().replace(/[^\w]/g, "");
+
+    if (cleanWord.length > 1 && !fillerWords.has(cleanWord)) {
+      meaningfulOriginalWords.push(originalWord);
+      meaningfulCount++;
+
+      if (meaningfulCount >= maxWords) {
+        break;
+      }
+    }
+  }
+
+  if (meaningfulOriginalWords.length === 0) {
+    return "Untitled Idea";
+  }
+
+  // Join the words and clean up punctuation
+  let title = meaningfulOriginalWords.join(" ");
+
+  // Remove trailing punctuation except for question marks and exclamation points
+  title = title.replace(/[.,;:]+$/, "");
+
+  // Ensure the first letter is capitalized
+  title = title.charAt(0).toUpperCase() + title.slice(1);
+
+  // Add ellipsis if we truncated the content
+  if (originalWords.length > meaningfulOriginalWords.length) {
+    // Don't add ellipsis if title already ends with punctuation
+    if (!/[.!?]$/.test(title)) {
+      title += "...";
+    }
+  }
+
+  return title;
+}
