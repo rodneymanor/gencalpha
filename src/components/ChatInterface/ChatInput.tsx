@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PersonasDropdown } from "@/components/write-chat/personas-dropdown";
 import { useTrendingTopics } from "@/hooks/use-trending-topics";
+import { TypewriterPlaceholder } from "@/components/ui/typewriter-placeholder";
 
 interface ChatInputProps {
   value: string;
@@ -29,7 +30,7 @@ export default function ChatInput({
   value,
   onChange,
   onSubmit,
-  placeholder = "Write a script about...?",
+  placeholder: _placeholder = "Write a script about...?",
   disabled = false,
   showTimeLimit = true,
   showSettings = true,
@@ -41,8 +42,21 @@ export default function ChatInput({
 }: ChatInputProps) {
   const [timeLimit, setTimeLimit] = useState("20s");
   const [showTrendingDropdown, setShowTrendingDropdown] = useState(false);
+  const [showTypewriter, setShowTypewriter] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const placeholderRef = useRef<HTMLDivElement>(null);
+
+  // Typewriter phrases
+  const typewriterPhrases = [
+    "a compelling script about your next big idea",
+    "10 scroll-stopping hooks for your content",
+    "a step-by-step software tutorial",
+    "5 viral-worthy content ideas",
+    "a problem-solving guide that actually works",
+    "a captivating short story in minutes",
+    "content that matches your favorite creator's style",
+  ];
 
   // Use the optimized trending topics hook
   const {
@@ -64,7 +78,12 @@ export default function ChatInput({
     }
     // Auto-focus the input field on mount
     inputRef.current?.focus();
-  }, [showTrending]);
+  }, [showTrending, loadTopics]);
+
+  // Hide typewriter when user starts typing
+  useEffect(() => {
+    setShowTypewriter(!value);
+  }, [value]);
 
   // Handle clicking outside to close trending dropdown
   useEffect(() => {
@@ -144,17 +163,35 @@ export default function ChatInput({
           </Button>
         )}
 
-        {/* Main message input field */}
-        <Input
-          ref={inputRef}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          onFocus={handleInputFocus}
-          placeholder={placeholder}
-          disabled={disabled}
-          className="flex-1 border-0 bg-transparent px-4 text-base text-neutral-900 caret-neutral-900 shadow-none ring-0 outline-none placeholder:text-neutral-500 hover:shadow-none focus:border-0 focus:shadow-none focus:ring-0 focus:outline-none focus-visible:border-0 focus-visible:shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none"
-          autoFocus
-        />
+        {/* Main message input field with typewriter placeholder */}
+        <div className="relative flex-1">
+          <Input
+            ref={inputRef}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            onFocus={handleInputFocus}
+            placeholder=""
+            disabled={disabled}
+            className="flex-1 w-full border-0 bg-transparent px-4 text-base text-neutral-900 caret-neutral-900 shadow-none ring-0 outline-none placeholder:text-neutral-500 hover:shadow-none focus:border-0 focus:shadow-none focus:ring-0 focus:outline-none focus-visible:border-0 focus-visible:shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none"
+            autoFocus
+          />
+          {/* Typewriter placeholder overlay */}
+          {showTypewriter && !value && (
+            <div 
+              ref={placeholderRef}
+              className="absolute inset-0 flex items-center px-4 pointer-events-none"
+              onClick={() => inputRef.current?.focus()}
+            >
+              <TypewriterPlaceholder
+                prefix="Ask Gen.C to write:"
+                phrases={typewriterPhrases}
+                typingSpeed={40}
+                deletingSpeed={25}
+                pauseTime={1500}
+              />
+            </div>
+          )}
+        </div>
 
         {/* Time limit selector and submit button */}
         <div className="flex flex-shrink-0 items-center gap-1">
