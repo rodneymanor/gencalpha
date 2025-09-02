@@ -1,6 +1,7 @@
 // Main exports
 export { default as NotionPanel } from './NotionPanel';
 export { default as NotionPanelWrapper } from './NotionPanelWrapper';
+export { default as VideoNotionPanel } from './VideoNotionPanel';
 
 // Sub-components (for advanced use cases)
 export { default as NotionPanelHeader } from './NotionPanelHeader';

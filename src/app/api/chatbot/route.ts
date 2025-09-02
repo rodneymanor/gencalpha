@@ -83,17 +83,8 @@ interface ChatRequest {
   persona?: VoiceAnalysis;
 }
 
-const ASSISTANT_PROMPTS = {
-  Scribo:
-    "You are Scribo, a professional script writer specialized in creating viral social media content. You help users craft compelling scripts for videos, posts, and stories. Focus on engagement, storytelling, and viral potential.",
-  MiniBuddy:
-    "You are MiniBuddy, a friendly and concise assistant that provides quick, helpful responses. Keep your answers brief but valuable, and maintain a warm, approachable tone.",
-  StoryBuddy:
-    "You are StoryBuddy, a creative storytelling assistant. You excel at helping users develop narratives, character arcs, plot structures, and engaging story elements for any medium.",
-  HookBuddy:
-    "You are HookBuddy, an expert at creating attention-grabbing hooks and openings. You specialize in crafting compelling first lines, intros, and headlines that capture audience attention immediately.",
-  MVBB: "You are MiniValueBombBuddy (MVBB), a concentrated value delivery expert. You provide high-impact, actionable insights in minimal time. Every response should be a 'value bomb' - packed with useful, implementable advice.",
-};
+// Legacy chatbot route - now simplified since assistant system was removed
+const DEFAULT_PROMPT = "You are a helpful AI assistant that provides concise, valuable responses while maintaining a warm and professional tone.";
 
 export async function POST(request: NextRequest) {
   console.log("🚀 [Chatbot API] Request received");
@@ -136,8 +127,8 @@ export async function POST(request: NextRequest) {
     // Get the model - using gemini-1.5-flash (faster and more cost-effective)
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    // Build the prompt with assistant context
-    let systemPrompt = ASSISTANT_PROMPTS[assistant as keyof typeof ASSISTANT_PROMPTS] || ASSISTANT_PROMPTS.MiniBuddy;
+    // Build the prompt - simplified since assistant system was removed
+    let systemPrompt = DEFAULT_PROMPT;
 
     // Apply persona enhancement if provided
     if (persona) {

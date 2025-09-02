@@ -61,7 +61,7 @@ const CustomDailyButton = ({ url }: { url: string }) => {
       asChild
       isActive={false}
       tooltip="New Script"
-      className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground data-[active=true]:bg-transparent data-[active=true]:font-normal"
+      className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground data-[active=true]:bg-transparent data-[active=true]:font-normal pl-[8px]"
     >
       <Link href={url} onClick={handleClick}>
         <div className="-ml-1 flex size-6 shrink-0 items-center justify-center rounded-[var(--radius-pill)] bg-neutral-200 border border-neutral-200 shadow-[var(--shadow-soft-drop)] transition-all duration-200 ease-linear hover:bg-neutral-300 hover:border-neutral-400 hover:scale-110">
@@ -84,7 +84,7 @@ const NavItemExpanded = ({
 }) => {
   return (
     <Collapsible key={item.title} asChild defaultOpen={isSubmenuOpen(item.subItems)} className="group/collapsible">
-      <SidebarMenuItem>
+      <SidebarMenuItem className={item.isCustomButton && item.title === "Daily" ? "pl-[3px]" : ""}>
         <CollapsibleTrigger asChild>
           {item.subItems ? (
             <SidebarMenuButton
@@ -232,7 +232,7 @@ export function NavMain({ items }: NavMainProps) {
                   if (!item.subItems) {
                     return item.isCustomButton && item.title === "Daily" ? (
                       // Render custom Daily button with standard SidebarMenuItem structure
-                      <SidebarMenuItem key={item.title}>
+                      <SidebarMenuItem key={item.title} className="pl-[3px]">
                         <CustomDailyButton url={item.url} />
                       </SidebarMenuItem>
                     ) : (

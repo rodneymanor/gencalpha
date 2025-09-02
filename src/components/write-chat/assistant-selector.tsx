@@ -268,10 +268,11 @@ export function AssistantSelector({
   className,
   showCallout = false,
 }: AssistantSelectorProps) {
-  const selectedAssistantData = selectedAssistant ? ASSISTANTS.find((p) => p.key === selectedAssistant) : null;
+  // Legacy - deprecated functionality
+  const selectedAssistantData = null;
 
   // Show callout when assistant is selected and showCallout is true
-  if (showCallout && selectedAssistantData) {
+  if (false) { // Disabled - use PersonaSelector instead
     return (
       <div className={cn("space-y-4", className)}>
         <div className="bg-card border-border rounded-[var(--radius-card)] border p-6 shadow-[var(--shadow-soft-drop)]">
@@ -291,9 +292,9 @@ export function AssistantSelector({
             </div>
             <div className="flex-1">
               <div className="mb-2 flex items-center space-x-2">
-                <h3 className="text-foreground font-semibold">{selectedAssistantData.label} Assistant Active</h3>
+                <h3 className="text-foreground font-semibold">Legacy Assistant (Deprecated)</h3>
               </div>
-              <p className="text-muted-foreground text-sm">{selectedAssistantData.description}</p>
+              <p className="text-muted-foreground text-sm">AssistantSelector is deprecated. Use PersonaSelector instead.</p>
             </div>
           </div>
         </div>
@@ -308,13 +309,12 @@ export function AssistantSelector({
           key={key}
           variant="soft"
           size="sm"
-          onClick={() => onAssistantChange(key)}
+          onClick={() => console.warn('AssistantSelector is deprecated')}
           className={cn(
             "gap-1.5 rounded-[var(--radius-button)] !bg-transparent px-4 py-1 text-xs font-medium transition-all",
-            selectedAssistant === key
-              ? "border-primary-500 text-primary-700 bg-primary-50 hover:bg-primary-100"
-              : "border-neutral-200 text-neutral-600 hover:bg-neutral-100 hover:text-neutral-800",
+            "border-neutral-200 text-neutral-600 hover:bg-neutral-100 hover:text-neutral-800 opacity-50",
           )}
+          disabled
           title={tooltip}
         >
           {icon}

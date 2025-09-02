@@ -13,7 +13,7 @@ import { useInlineVideoActions } from "@/components/write-chat/hooks/use-inline-
 import { useVideoActionState, type VideoAction } from "@/components/write-chat/hooks/use-video-action-state";
 import { useVoiceRecorder } from "@/components/write-chat/hooks/use-voice-recorder";
 import { MessageList } from "@/components/write-chat/messages/message-list";
-import { type AssistantType, type ActionType, CONTENT_ACTIONS } from "@/components/write-chat/assistant-selector";
+import { type ActionType, CONTENT_ACTIONS, type PersonaOption } from "@/components/write-chat/persona-selector";
 import { FixedChatInput } from "@/components/write-chat/presentation/fixed-chat-input";
 import { HeroSection } from "@/components/write-chat/presentation/hero-section";
 import {
@@ -27,8 +27,7 @@ import { type ChatMessage } from "@/components/write-chat/types";
 import { sendScriptToSlideout, delay } from "@/components/write-chat/utils";
 import { useAuth } from "@/contexts/auth-context";
 import { useIdeaInboxFlag } from "@/hooks/use-feature-flag";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+
 import { useLightweightUrlDetection, type LightweightDetectionResult } from "@/hooks/use-lightweight-url-detection";
 import { processScriptComponents } from "@/hooks/use-script-analytics";
 import { useScriptGeneration } from "@/hooks/use-script-generation";
@@ -171,11 +170,11 @@ Call to Action: ${script.wta}`;
 type ClaudeChatProps = {
   className?: string;
   placeholder?: string;
-  onSend?: (message: string, assistant: AssistantType) => void;
+  onSend?: (message: string, persona: PersonaOption | null) => void;
   onAnswerReady?: () => void;
   onHeroStateChange?: (isHero: boolean) => void;
   initialPrompt?: string;
-  initialAssistant?: AssistantType;
+  initialPersona?: PersonaOption;
   conversationIdToLoad?: string | null;
   // New props for action system
   useActionSystem?: boolean;
@@ -189,7 +188,7 @@ export function ClaudeChat({
   onAnswerReady,
   onHeroStateChange,
   initialPrompt,
-  initialAssistant,
+  initialPersona,
   conversationIdToLoad,
   useActionSystem = true,
   onActionTrigger,
@@ -203,7 +202,7 @@ export function ClaudeChat({
   const [inputValue, setInputValue] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   // Processing UI is represented via ACK_LOADING messages
-  const [selectedAssistant, setSelectedAssistant] = useState<AssistantType | null>(initialAssistant ?? null);
+  const [selectedPersona, setSelectedPersona] = useState<PersonaOption | null>(initialPersona ?? null);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [conversationTitle, setConversationTitle] = useState<string | null>(null);
   const [isFirstResponse, setIsFirstResponse] = useState(true);
@@ -214,10 +213,11 @@ export function ClaudeChat({
   const [pendingVideoUrl, setPendingVideoUrl] = useState<{ url: string; platform: "instagram" | "tiktok" } | null>(
     null,
   );
-  const [selectedPersona, setSelectedPersona] = useState<string | null>(null);
-  const [personas, setPersonas] = useState<any[]>([]);
   // New state for action system
   const [selectedAction, setSelectedAction] = useState<ActionType | null>(null);
+  // New selection state for cards
+  const [selectedQuickGenerator, setSelectedQuickGenerator] = useState<string | undefined>(undefined);
+  const [selectedTemplate, setSelectedTemplate] = useState<string | undefined>(undefined);
   // Replace old state management with atomic video action state
   const videoActionState = useVideoActionState();
   const mountedRef = useRef(true);
@@ -267,47 +267,16 @@ export function ClaudeChat({
     
     // Clear selected action after triggering
     setSelectedAction(null);
+    // Clear card selections after triggering
+    setSelectedQuickGenerator(undefined);
+    setSelectedTemplate(undefined);
     
     // Process the action prompt through the regular chat flow
     handleSend(enhancedPrompt);
   }, [onActionTrigger, inputValue]);
 
   // Load personas and set default on mount
-  useEffect(() => {
-    const loadPersonas = async () => {
-      const unsubscribe = onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          try {
-            const token = await user.getIdToken();
-            const response = await fetch("/api/personas/list", {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            });
-
-            const data = await response.json();
-            
-            if (response.ok && data.success && data.personas?.length > 0) {
-              setPersonas(data.personas);
-              // Set the first persona as default if none is selected
-              if (!selectedPersona) {
-                setSelectedPersona(data.personas[0].id);
-              }
-            }
-          } catch (error) {
-            console.error("Error loading personas:", error);
-          }
-        }
-      });
-
-      return unsubscribe;
-    };
-
-    const unsubscribe = loadPersonas();
-    return () => {
-      unsubscribe.then(unsub => unsub());
-    };
-  }, [selectedPersona]); // Include selectedPersona dependency
+  // Personas are now loaded within PersonaSelector component
 
   // Handle hero to chat expansion with transform
   const handleHeroExpansion = useCallback(() => {
@@ -332,10 +301,7 @@ export function ClaudeChat({
       setConversationTitle(conversation.title);
       setIsFirstResponse(false); // Already has messages, so not first response
 
-      // Set assistant if available
-      if (conversation.persona) {
-        setSelectedAssistant(conversation.persona as AssistantType);
-      }
+      // Persona selection is now handled within PersonaSelector component
 
       // Load messages into chat
       const chatMessages: ChatMessage[] = conversation.messages.map((msg) => ({
@@ -417,7 +383,7 @@ export function ClaudeChat({
         let convId = conversationId;
         if (!convId) {
           try {
-            convId = await createConversation(selectedPersona ?? selectedAssistant ?? "MiniBuddy", initialPrompt ?? undefined);
+            convId = await createConversation(selectedPersona?.name ?? "Default", initialPrompt ?? undefined);
             if (convId) {
               setConversationId(convId);
               console.log("✅ [executeAction] Created conversation:", convId);
@@ -510,7 +476,7 @@ export function ClaudeChat({
       handleHooks,
       setMessages,
       conversationId,
-      selectedAssistant,
+      selectedPersona?.name ?? "Default",
       initialPrompt,
       isFirstResponse,
       conversationTitle,
@@ -526,7 +492,7 @@ export function ClaudeChat({
     try {
       let convIdLocal = conversationId;
       if (!convIdLocal) {
-        const createdId = await createConversation(selectedPersona ?? selectedAssistant ?? "MiniBuddy", initialPrompt ?? undefined);
+        const createdId = await createConversation(selectedPersona?.name ?? "Default", initialPrompt ?? undefined);
         if (createdId) {
           convIdLocal = createdId;
           setConversationId(createdId);
@@ -623,8 +589,8 @@ export function ClaudeChat({
   // Initialize from props
   useEffect(() => {
     if (initialPrompt) setInputValue(initialPrompt);
-    setSelectedAssistant(initialAssistant ?? null);
-  }, [initialPrompt, initialAssistant]);
+    // Persona initialization is handled within PersonaSelector component
+  }, [initialPrompt]);
 
   // Load conversation if ID provided
   useEffect(() => {
@@ -689,12 +655,17 @@ export function ClaudeChat({
     const trimmed = value.trim();
     if (!trimmed) return;
 
-    // Check if we have a selected action and should trigger it with the input
-    if (selectedAction && isHeroState) {
-      const actionData = CONTENT_ACTIONS.find(a => a.key === selectedAction);
+    // Check if we have a selected action/generator/template and should trigger it with the input
+    const selectedActionKey = selectedAction || selectedQuickGenerator || selectedTemplate;
+    if (selectedActionKey && isHeroState) {
+      const actionData = CONTENT_ACTIONS.find(a => a.key === selectedActionKey);
       if (actionData) {
         const enhancedPrompt = `${actionData.prompt}\n\nTopic/Idea: ${trimmed}`;
+        
+        // Clear all selections after triggering
         setSelectedAction(null);
+        setSelectedQuickGenerator(undefined);
+        setSelectedTemplate(undefined);
         
         // Trigger hero expansion
         handleHeroExpansion();
@@ -713,12 +684,12 @@ export function ClaudeChat({
         
         setInputValue("");
         setIsHeroState(false);
-        onSend?.(enhancedPrompt, selectedAssistant ?? "MiniBuddy");
+        onSend?.(enhancedPrompt, selectedPersona);
         
         // Continue with enhanced prompt processing
         const lower = enhancedPrompt.toLowerCase();
         const isScriptCommand = lower.startsWith("/script ") || lower.includes("generate script");
-        const shouldUseScriptFlow = !selectedAssistant || isScriptCommand;
+        const shouldUseScriptFlow = true; // Always use script flow for action system
 
         if (!shouldUseScriptFlow) {
           (async () => {
@@ -730,7 +701,7 @@ export function ClaudeChat({
                   method: "POST",
                   headers,
                   body: JSON.stringify({
-                    assistant: selectedAssistant ?? "MiniBuddy",
+                    assistant: selectedPersona?.name ?? "Default",
                     initialPrompt: initialPrompt ?? null,
                   }),
                 });
@@ -761,7 +732,7 @@ export function ClaudeChat({
             headers: authHeaders,
             body: JSON.stringify({
               message: enhancedPrompt,
-              assistant: selectedAssistant,
+              assistant: selectedPersona?.name ?? "Default",
               conversationHistory: messages.map((m) => ({ role: m.role, content: m.content })),
             }),
           });
@@ -946,7 +917,7 @@ export function ClaudeChat({
           // Ensure conversation exists
           let convId = conversationId;
           if (!convId) {
-            convId = await createConversation(selectedPersona ?? selectedAssistant ?? "MiniBuddy", initialPrompt ?? undefined);
+            convId = await createConversation(selectedPersona?.name ?? "Default", initialPrompt ?? undefined);
             if (convId) {
               setConversationId(convId);
               console.log("✅ [handleSend] Created conversation for video URL:", convId);
@@ -992,7 +963,7 @@ export function ClaudeChat({
     }
     setInputValue("");
     setIsHeroState(false);
-    onSend?.(trimmed, selectedAssistant ?? "MiniBuddy");
+    onSend?.(trimmed, selectedPersona);
 
     // If this is a video URL submission, stop here and wait for user to select an action
     if (isVideoUrlSubmission) {
@@ -1001,7 +972,7 @@ export function ClaudeChat({
     // Determine if this input will trigger the script flow
     const lower = trimmed.toLowerCase();
     const isScriptCommand = lower.startsWith("/script ") || lower.includes("generate script");
-    const shouldUseScriptFlow = !selectedAssistant || isScriptCommand;
+    const shouldUseScriptFlow = true; // Always use script flow - no separate assistant chat
 
     // Persist user message only for non-script flows; script flows handle it synchronously
     if (!shouldUseScriptFlow) {
@@ -1014,7 +985,7 @@ export function ClaudeChat({
               method: "POST",
               headers,
               body: JSON.stringify({
-                assistant: selectedAssistant ?? "MiniBuddy",
+                assistant: selectedPersona?.name ?? "Default",
                 initialPrompt: initialPrompt ?? null,
               }),
             });
@@ -1039,12 +1010,12 @@ export function ClaudeChat({
 
     // Helper: route structured content to slideout BlockNote editor
 
-    // If no assistant selected, treat the input as a script idea and run Speed Write
-    if (!selectedAssistant) {
+    // Generate script with optional persona voice styling
+    if (shouldUseScriptFlow) {
       try {
         const ensuredConvId = await ensureConversationAndSaveUserMessage(trimmed);
         // Get the persona data if selected
-        const personaData = selectedPersona ? personas.find(p => p.id === selectedPersona) : null;
+        const personaData = selectedPersona;
         const res = await generateScript(trimmed, "60", personaData);
         await delay(ACK_BEFORE_SLIDE_MS);
         if (res.success && res.script) {
@@ -1099,7 +1070,7 @@ export function ClaudeChat({
       try {
         const ensuredConvId = await ensureConversationAndSaveUserMessage(trimmed);
         // Get the persona data if selected
-        const personaData = selectedPersona ? personas.find(p => p.id === selectedPersona) : null;
+        const personaData = selectedPersona;
         const res = await generateScript(idea, "60", personaData);
         await delay(ACK_BEFORE_SLIDE_MS);
         if (res.success && res.script) {
@@ -1154,7 +1125,7 @@ export function ClaudeChat({
         headers: authHeaders,
         body: JSON.stringify({
           message: trimmed,
-          assistant: selectedAssistant,
+          assistant: selectedPersona?.name ?? "Default",
           conversationHistory: messages.map((m) => ({ role: m.role, content: m.content })),
         }),
       });
@@ -1245,10 +1216,8 @@ export function ClaudeChat({
           hasValidVideoUrl={hasValidVideoUrl}
           handleSend={handleSend}
           heroInputRef={heroInputRef}
-          selectedAssistant={selectedAssistant}
-          setSelectedAssistant={setSelectedAssistant}
-          selectedPersona={selectedPersona ?? undefined}
-          onPersonaSelect={(persona) => setSelectedPersona(persona)}
+          selectedPersona={selectedPersona}
+          onPersonaSelect={setSelectedPersona}
           isIdeaMode={isIdeaMode}
           setIsIdeaMode={setIsIdeaMode}
           ideaSaveMessage={ideaSaveMessage}
@@ -1262,6 +1231,11 @@ export function ClaudeChat({
           useActionSystem={useActionSystem}
           selectedAction={selectedAction}
           setSelectedAction={setSelectedAction}
+          // New selection state for cards
+          selectedQuickGenerator={selectedQuickGenerator}
+          setSelectedQuickGenerator={(id) => setSelectedQuickGenerator(id ?? undefined)}
+          selectedTemplate={selectedTemplate}
+          setSelectedTemplate={(id) => setSelectedTemplate(id ?? undefined)}
         />
       </div>
 
@@ -1297,8 +1271,7 @@ export function ClaudeChat({
             setInputValue={setInputValue}
             onSubmit={() => handleSend(inputValue)}
             textareaRef={textareaRef}
-            selectedPersona={selectedPersona ?? undefined}
-            onPersonaSelect={(persona) => setSelectedPersona(persona)}
+            showPersonas={false}
           />
         </div>
       </div>

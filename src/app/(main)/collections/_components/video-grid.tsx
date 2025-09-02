@@ -6,10 +6,10 @@ import { Play } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { CardSkeleton, LoadingBoundary, useAsyncOperation, useIsLoading } from "@/components/ui/loading";
-import { UnifiedSlideout, ClaudeArtifactConfig } from "@/components/ui/unified-slideout";
 import { VideoGridProcessingPlaceholder } from "@/components/ui/video-grid-processing-placeholder";
 import { VideoGrid as NewVideoGrid, type VideoData } from "@/components/video/video-grid";
-import { VideoInsightsPanel } from "@/components/video-insights-panel/video-insights-panel";
+import { VideoNotionPanel } from "@/components/panels/notion";
+import { videoToNotionData } from "@/lib/video-to-notion-adapter";
 import { useAuth } from "@/contexts/auth-context";
 import { useVideoProcessing } from "@/contexts/video-processing-context";
 import { RBACClientService } from "@/core/auth/rbac-client";
@@ -24,9 +24,11 @@ import { MoveVideoDialog } from "./move-video-dialog";
 
 interface VideoGridProps {
   collectionId: string;
+  onVideoClick?: (video: Video) => void;
+  forceColumns?: 1 | 2 | 3 | 4 | 5 | 6;
 }
 
-export function VideoGrid({ collectionId }: VideoGridProps) {
+export function VideoGrid({ collectionId, onVideoClick, forceColumns }: VideoGridProps) {
   const { state, dispatch } = useCollections();
   const { user } = useAuth();
   const { canWrite: _canWrite, canDelete: _canDelete } = useRBAC();
@@ -35,7 +37,7 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
   const [deletingVideo, setDeletingVideo] = useState<Video | null>(null);
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
 
-  // Transform Video to VideoData for the new grid component
+  // Shared utility: Transform Video to VideoData for grid display
   const transformVideoToVideoData = useCallback((video: Video): VideoData => {
     return {
       id: video.id || "",
@@ -55,10 +57,15 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
       // Find the original Video object by ID to preserve all metadata
       const originalVideo = state.videos.find((v) => v.id === videoData.id);
       if (originalVideo) {
-        setSelectedVideo(originalVideo);
+        // Use parent callback if provided, otherwise fall back to local state
+        if (onVideoClick) {
+          onVideoClick(originalVideo);
+        } else {
+          setSelectedVideo(originalVideo);
+        }
       }
     },
-    [state.videos],
+    [state.videos, onVideoClick],
   );
 
   // Handle keyboard selection (auto-change video when panel is open)
@@ -67,16 +74,21 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
       // Find the original Video object by ID to preserve all metadata
       const originalVideo = state.videos.find((v) => v.id === videoData.id);
 
-      // If panel is open (selectedVideo is not null), auto-change the video
-      if (selectedVideo && originalVideo) {
-        setSelectedVideo(originalVideo);
-        console.log("Auto-changed video via keyboard:", videoData.title);
-      } else {
-        // Panel is closed, just log the selection for visual feedback
-        console.log("Video selected via keyboard (panel closed):", videoData.title);
+      if (originalVideo) {
+        // Use parent callback if provided, otherwise fall back to local state
+        if (onVideoClick) {
+          onVideoClick(originalVideo);
+          console.log("Auto-changed video via keyboard (parent callback):", videoData.title);
+        } else if (selectedVideo) {
+          setSelectedVideo(originalVideo);
+          console.log("Auto-changed video via keyboard (local state):", videoData.title);
+        } else {
+          // Panel is closed, just log the selection for visual feedback
+          console.log("Video selected via keyboard (panel closed):", videoData.title);
+        }
       }
     },
-    [state.videos, selectedVideo],
+    [state.videos, selectedVideo, onVideoClick],
   );
 
   const loadVideosFn = useCallback(async () => {
@@ -356,7 +368,7 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
             {state.videos.length > 0 && (
               <NewVideoGrid
                 videos={state.videos.map(transformVideoToVideoData)}
-                columns={4}
+                columns={forceColumns || 4}
                 onVideoClick={handleNewVideoGridClick}
                 onVideoSelect={handleVideoSelection}
                 enableKeyboardNavigation={true}
@@ -402,41 +414,53 @@ export function VideoGrid({ collectionId }: VideoGridProps) {
         }}
       />
 
-      {selectedVideo && (
-        <UnifiedSlideout
-          isOpen={!!selectedVideo}
-          onClose={() => setSelectedVideo(null)}
-          config={{
-            ...ClaudeArtifactConfig,
-            showHeader: false, // Let VideoInsightsPanel handle its own header
-            showCloseButton: true, // VideoInsightsPanel has its own close button
-            adjustsContent: true, // Ensure content adjustment works
-            backdrop: false,
-            modal: false,
-            animationType: "claude",
-            position: "right",
-            width: "lg",
-          }}
+      {/* Only show internal panel if no parent callback provided */}
+      {selectedVideo && !onVideoClick && (
+        <div 
+          className="fixed top-0 right-0 h-full z-50"
+          style={{ width: '600px' }}
         >
-          <VideoInsightsPanel
-            videoInsights={transformToVideoInsights(selectedVideo)}
-            onCopy={(content: string, componentType?: string) => {
-              console.log(`Copied ${componentType ?? "content"}:`, content);
-            }}
-            onDownload={(videoInsights: VideoInsights) => {
-              console.log("Downloaded video insights:", videoInsights.title);
-            }}
-            onVideoPlay={() => {
-              console.log("Video started playing");
-            }}
-            onVideoPause={() => {
-              console.log("Video paused");
-            }}
+          <VideoNotionPanel
+            {...videoToNotionData(
+              selectedVideo,
+              transformToVideoInsights(selectedVideo),
+              {
+                onCopy: (content: string, componentType?: string) => {
+                  console.log(`Copied ${componentType ?? "content"}:`, content);
+                  // Copy to clipboard
+                  navigator.clipboard.writeText(content).then(() => {
+                    console.log('Successfully copied to clipboard');
+                  }).catch(err => {
+                    console.error('Failed to copy to clipboard:', err);
+                  });
+                },
+                onDownload: () => {
+                  console.log("Downloaded video insights:", selectedVideo.title);
+                  // TODO: Implement actual download functionality
+                },
+                onVideoPlay: () => {
+                  console.log("Video started playing");
+                },
+                onVideoPause: () => {
+                  console.log("Video paused");
+                }
+              }
+            )}
+            isOpen={!!selectedVideo}
             onClose={() => setSelectedVideo(null)}
-            showDownload={true}
-            showMetrics={true}
+            showPageControls={true}
+            width={600}
+            minWidth={400}
+            maxWidth={800}
+            defaultTab="video"
           />
-        </UnifiedSlideout>
+          
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/20 -z-10"
+            onClick={() => setSelectedVideo(null)}
+          />
+        </div>
       )}
     </>
   );

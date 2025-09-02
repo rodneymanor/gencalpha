@@ -7,7 +7,7 @@ import { AckLoader } from "@/components/write-chat/messages/ack-loader";
 import type { ChatMessage } from "@/components/write-chat/types";
 import VideoActionSelector from "@/components/write-chat/video-action-selector";
 import { ContextualQuickActions } from "@/components/write-chat/contextual-quick-actions";
-import type { ActionType } from "@/components/write-chat/assistant-selector";
+import type { ActionType } from "@/components/write-chat/persona-selector";
 
 type MessageListProps = {
   messages: ChatMessage[];

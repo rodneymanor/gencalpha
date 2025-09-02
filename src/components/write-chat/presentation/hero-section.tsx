@@ -1,12 +1,12 @@
 "use client";
 import ChatInput from "@/components/ChatInterface/ChatInput";
 import { 
-  type AssistantType, 
-  AssistantSelector,
-  ContentActionSelector,
-  type ActionType 
-} from "@/components/write-chat/assistant-selector";
-import { PlaybookCards } from "@/components/write-chat/playbook-cards";
+  PersonaSelector,
+  type ActionType,
+  CONTENT_ACTIONS,
+  type PersonaOption
+} from "@/components/write-chat/persona-selector";
+import { ContentGeneratorCards } from "@/components/content-generator-cards";
 
 export function HeroSection(props: {
   resolvedName?: string | null;
@@ -20,10 +20,8 @@ export function HeroSection(props: {
   hasValidVideoUrl?: boolean;
   handleSend: (value: string) => void;
   heroInputRef?: React.RefObject<HTMLTextAreaElement>;
-  selectedAssistant: AssistantType | null;
-  setSelectedAssistant: (p: AssistantType | null) => void;
-  selectedPersona?: string;
-  onPersonaSelect?: (persona: string) => void;
+  selectedPersona?: PersonaOption | null;
+  onPersonaSelect?: (persona: PersonaOption | null) => void;
   isIdeaMode?: boolean;
   setIsIdeaMode?: (v: boolean) => void;
   ideaSaveMessage?: string | null;
@@ -37,6 +35,11 @@ export function HeroSection(props: {
   useActionSystem?: boolean;
   selectedAction?: ActionType | null;
   setSelectedAction?: (action: ActionType | null) => void;
+  // New selection state for cards
+  selectedQuickGenerator?: string;
+  setSelectedQuickGenerator?: (id: string | null) => void;
+  selectedTemplate?: string;
+  setSelectedTemplate?: (id: string | null) => void;
 }) {
   const {
     resolvedName,
@@ -47,14 +50,16 @@ export function HeroSection(props: {
     showListening,
     isUrlProcessing,
     handleSend,
-    selectedAssistant,
-    setSelectedAssistant,
     selectedPersona,
     onPersonaSelect,
     onActionTrigger,
     useActionSystem = true, // Default to new system
     selectedAction,
     setSelectedAction,
+    selectedQuickGenerator,
+    setSelectedQuickGenerator,
+    selectedTemplate,
+    setSelectedTemplate,
     heroInputRef,
     // We don't need to destructure all the other props since they're not used in this component
     // but they need to be in the interface for TypeScript compatibility
@@ -77,18 +82,74 @@ export function HeroSection(props: {
     setSelectedAction?.(action);
   };
 
-  return (
-    <div className="flex max-h-screen min-h-screen flex-col items-center justify-center overflow-y-auto px-4 py-8 transition-all duration-300">
-      <div className="mx-auto flex w-full max-w-3xl flex-col items-center gap-3 px-5">
-        <div className="text-center">
-          <h1 className="text-neutral-900 text-4xl leading-10 font-bold tracking-tight">
-            {`Hello${resolvedName ? ", " + resolvedName : ""}`}
-            <br />
-            <span className="text-neutral-600 text-4xl font-bold">What will you create today?</span>
-          </h1>
-        </div>
+  // Map CONTENT_ACTIONS to ContentGeneratorCards format
+  const quickGenerators = CONTENT_ACTIONS
+    .filter(action => action.category === "generators")
+    .map(action => ({
+      id: action.key,
+      title: action.label,
+      description: action.description,
+      icon: action.key === "generate-hooks" ? "send" as const : 
+            action.key === "content-ideas" ? "sparkles" as const : "heart" as const,
+      label: action.key === "generate-hooks" ? "Hook Generator" :
+             action.key === "content-ideas" ? "Ideation" : "Value Content"
+    }));
 
-        <div className="w-full max-w-3xl">
+  const templates = CONTENT_ACTIONS
+    .filter(action => action.category === "templates")
+    .map(action => ({
+      id: action.key,
+      title: action.label,
+      description: action.description,
+      icon: action.key === "if-then-script" ? "power" as const :
+            action.key === "problem-solution" ? "check-circle" as const : "layers" as const,
+      label: action.key === "if-then-script" ? "Conditional" :
+             action.key === "problem-solution" ? "Solution-Based" : "Tutorial",
+      duration: action.key === "if-then-script" ? "2 min" :
+                action.key === "problem-solution" ? "3 min" : "5 min"
+    }));
+
+  const handleQuickGeneratorSelect = (generator: any) => {
+    // Toggle selection - if already selected, deselect
+    if (selectedQuickGenerator === generator.id) {
+      setSelectedQuickGenerator?.(null);
+      setSelectedTemplate?.(null); // Clear template selection when generator changes
+    } else {
+      setSelectedQuickGenerator?.(generator.id);
+      setSelectedTemplate?.(null); // Clear template selection when generator changes
+    }
+  };
+
+  const handleTemplateSelect = (template: any) => {
+    // Toggle selection - if already selected, deselect
+    if (selectedTemplate === template.id) {
+      setSelectedTemplate?.(null);
+      setSelectedQuickGenerator?.(null); // Clear generator selection when template changes
+    } else {
+      setSelectedTemplate?.(template.id);
+      setSelectedQuickGenerator?.(null); // Clear generator selection when template changes
+    }
+  };
+
+  const handleCreateCustomTemplate = () => {
+    // For now, we'll just focus the input - this could be extended with a modal
+    handleInputFocus();
+  };
+
+  return (
+    <div className="flex max-h-screen min-h-screen flex-col overflow-y-auto px-4 py-8 transition-all duration-300">
+      {/* Header section with headline */}
+      <div className="flex-shrink-0 text-center pt-16 pb-12">
+        <h1 className="text-neutral-900 text-4xl leading-10 font-bold tracking-tight">
+          {`Hello${resolvedName ? ", " + resolvedName : ""}`}
+          <br />
+          <span className="text-neutral-600 text-4xl font-bold">What will you create today?</span>
+        </h1>
+      </div>
+
+      {/* Vertically centered input section */}
+      <div className="flex-1 flex items-center justify-center">
+        <div className="w-full max-w-3xl px-5">
           <ChatInput
             value={inputValue}
             onChange={setInputValue}
@@ -103,29 +164,34 @@ export function HeroSection(props: {
             onPersonaSelect={onPersonaSelect}
           />
         </div>
+      </div>
 
-        <div className="mx-auto w-full max-w-3xl">
+      {/* Bottom section with content generator cards */}
+      <div className="flex-shrink-0 pt-12 pb-16">
+        <div className="mx-auto w-full max-w-5xl px-5">
           {useActionSystem ? (
-            <ContentActionSelector
-              onActionTrigger={handleActionTrigger}
-              inputValue={inputValue}
-              onInputFocus={handleInputFocus}
-              selectedAction={selectedAction}
-              onActionSelect={handleActionSelect}
-              className="justify-center"
+            <ContentGeneratorCards
+              quickGenerators={quickGenerators}
+              templates={templates}
+              selectedQuickGenerator={selectedQuickGenerator}
+              selectedTemplate={selectedTemplate}
+              onQuickGeneratorSelect={handleQuickGeneratorSelect}
+              onTemplateSelect={handleTemplateSelect}
+              onCreateCustomTemplate={handleCreateCustomTemplate}
             />
           ) : (
-            <AssistantSelector
-              selectedAssistant={selectedAssistant}
-              onAssistantChange={setSelectedAssistant}
+            <PersonaSelector
+              selectedPersona={selectedPersona}
+              onPersonaSelect={onPersonaSelect}
+              selectedAction={selectedAction}
+              onActionSelect={setSelectedAction}
+              onActionTrigger={onActionTrigger || (() => {})}
+              inputValue={inputValue}
+              onInputFocus={() => heroInputRef?.current?.focus()}
               className="justify-center"
-              showCallout={Boolean(selectedAssistant)}
+              showCallout={true}
             />
           )}
-        </div>
-
-        <div className="mt-6 w-full">
-          <PlaybookCards />
         </div>
       </div>
     </div>

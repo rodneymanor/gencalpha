@@ -13,7 +13,7 @@ import {
   ArrowDown 
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { ActionType } from "./assistant-selector";
+import type { ActionType } from "./persona-selector";
 
 export interface ContextualAction {
   id: string;

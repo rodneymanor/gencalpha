@@ -1,17 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-
-import { getAdminDb, isAdminInitialized } from "@/lib/firebase-admin";
 import { authenticateWithFirebaseToken } from "@/lib/firebase-auth-helpers";
+import { getAdminDb, isAdminInitialized } from "@/lib/firebase-admin";
 
 export async function GET(request: NextRequest) {
-  console.log("📋 [List Personas API] Request received");
-
   try {
-    // Authenticate with Firebase token like other pages
+    // Authenticate with Firebase token
     const authHeader = request.headers.get("authorization");
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized - No token provided" }, { status: 401 });
+      return NextResponse.json({ success: false, error: "Unauthorized - No token provided" }, { status: 401 });
     }
 
     const token = authHeader.substring(7);
@@ -22,42 +19,41 @@ export async function GET(request: NextRequest) {
     }
 
     if (!isAdminInitialized) {
-      return NextResponse.json({ error: "Firebase Admin not initialized" }, { status: 500 });
+      return NextResponse.json({ success: false, error: "Firebase Admin not initialized" }, { status: 500 });
     }
 
     const adminDb = getAdminDb();
+    
+    // Get user's personas
+    const personasRef = adminDb
+      .collection("personas")
+      .where("userId", "==", authResult.user.uid)
+      .where("status", "==", "active")
+      .orderBy("lastUsedAt", "desc")
+      .limit(20);
 
-    // Query personas for the authenticated user
-    // Note: Removing orderBy to avoid index requirement
-    const personasSnapshot = await adminDb.collection("personas").where("userId", "==", authResult.user.uid).get();
-
-    // Sort in memory instead
-    const sortedDocs = personasSnapshot.docs.sort((a: any, b: any) => {
-      const aDate = a.data().createdAt ?? "";
-      const bDate = b.data().createdAt ?? "";
-      return bDate.localeCompare(aDate);
-    });
-
-    const personas = sortedDocs.map((doc: any) => ({
+    const snapshot = await personasRef.get();
+    
+    const personas = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     }));
 
-    console.log(`✅ [List Personas API] Found ${personas.length} personas for user ${authResult.user.uid}`);
+    console.log(`📋 [List Personas API] Retrieved ${personas.length} personas for user`);
 
     return NextResponse.json({
       success: true,
       personas,
-      count: personas.length,
     });
+
   } catch (error) {
     console.error("❌ [List Personas API] Error:", error);
     return NextResponse.json(
-      {
-        error: "Failed to fetch personas",
-        details: error instanceof Error ? error.message : "Unknown error",
+      { 
+        success: false, 
+        error: "Failed to load personas" 
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

@@ -9,10 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CollectionCombobox } from "@/components/ui/collection-combobox";
 import { EditableText } from "@/components/ui/edit-button";
 import { CardSkeleton } from "@/components/ui/loading";
-import { UnifiedSlideout, ClaudeArtifactConfig } from "@/components/ui/unified-slideout";
 import { VideoGrid as NewVideoGrid, type VideoData } from "@/components/video/video-grid";
-import { VideoInsightsWrapper } from "@/components/video-insights";
-import { VideoInsightsPanel } from "@/components/video-insights-panel/video-insights-panel";
+import { VideoNotionPanel } from "@/components/panels/notion";
+import { videoToNotionData } from "@/lib/video-to-notion-adapter";
 import { useAuth } from "@/contexts/auth-context";
 import { VideoInsightsProvider } from "@/contexts/video-insights-context";
 import { VideoProcessingProvider } from "@/contexts/video-processing-context";
@@ -96,7 +95,7 @@ const useCollectionEditing = (
 type LoadCollectionsAction =
   | { type: "SET_LOADING"; payload: boolean }
   | { type: "SET_COLLECTIONS"; payload: Collection[] };
-const useLoadCollections = (user: { uid?: string } | null, dispatch: (action: LoadCollectionsAction) => void) => {
+const useLoadCollections = (user: { uid?: string } | null, dispatch: (action: any) => void) => {
   const loadCollections = useCallback(async () => {
     if (!user?.uid) return;
 
@@ -127,13 +126,25 @@ const useLoadCollections = (user: { uid?: string } | null, dispatch: (action: Lo
 };
 
 // Collections tab content component
-function CollectionsTabContent({ selectedCollectionId }: { selectedCollectionId: string }) {
+function CollectionsTabContent({ 
+  selectedCollectionId,
+  onVideoClick,
+  isPanelOpen 
+}: { 
+  selectedCollectionId: string;
+  onVideoClick: (video: Video) => void;
+  isPanelOpen?: boolean;
+}) {
   return (
     <>
       {/* Main Content */}
       <div className="mt-6">
         {/* Video Grid */}
-        <VideoGrid collectionId={selectedCollectionId} />
+        <VideoGrid 
+          collectionId={selectedCollectionId} 
+          onVideoClick={onVideoClick}
+          forceColumns={isPanelOpen ? 1 : undefined}
+        />
       </div>
     </>
   );
@@ -203,11 +214,198 @@ function CollectionsHeader({
   );
 }
 
+// Shared utility: Transform Video to VideoData for grid display
+const transformVideoToVideoData = (video: Video): VideoData => {
+  return {
+    id: video.id || "",
+    title: video.title || "Untitled Video",
+    creator: video.metadata?.author || "Unknown Creator",
+    thumbnail: video.thumbnailUrl || "/api/placeholder/300/400",
+    platform: video.platform as "instagram" | "tiktok" | "youtube" | undefined,
+    views: video.metrics?.views,
+    likes: video.metrics?.likes,
+    duration: video.metadata?.duration?.toString(),
+  };
+};
+
+// Transform Video to VideoInsights format helper function
+const transformToVideoInsights = (video: Video): VideoInsights => {
+  const transcript = video.transcript || "No transcript available";
+
+  // Create script components from transcript if available
+  const scriptComponents =
+    transcript !== "No transcript available"
+      ? processScriptComponents([
+          {
+            id: `${video.id}-hook`,
+            type: "hook",
+            label: "Hook",
+            content: transcript.split(".")[0] + "." || "Opening statement to grab attention",
+            icon: "H",
+          },
+          {
+            id: `${video.id}-bridge`,
+            type: "bridge",
+            label: "Bridge",
+            content: transcript.split(".").slice(1, 3).join(".") || "Transition element connecting ideas",
+            icon: "B",
+          },
+          {
+            id: `${video.id}-nugget`,
+            type: "nugget",
+            label: "Golden Nugget",
+            content: transcript.split(".").slice(3, 6).join(".") || "Key value proposition or insight",
+            icon: "G",
+          },
+          {
+            id: `${video.id}-cta`,
+            type: "cta",
+            label: "Call to Action",
+            content: transcript.split(".").slice(-2).join(".") || "Clear call to action",
+            icon: "C",
+          },
+        ])
+      : [];
+
+  const resolvedVideoUrl = video.iframeUrl || video.directUrl || video.originalUrl || "";
+  
+  console.log('🎬 transformToVideoInsights - Video URL resolution:', {
+    videoId: video.id,
+    iframeUrl: video.iframeUrl,
+    directUrl: video.directUrl, 
+    originalUrl: video.originalUrl,
+    resolvedVideoUrl,
+    hasVideoUrl: !!resolvedVideoUrl
+  });
+
+  return {
+    id: video.id || "",
+    videoUrl: resolvedVideoUrl,
+    thumbnailUrl: video.thumbnailUrl || "/api/placeholder/300/400",
+    title: video.title || "Untitled Video",
+    scriptData: {
+      id: video.id || "",
+      title: video.title || "Untitled Video",
+      fullScript: transcript,
+      components: scriptComponents,
+      metrics: {
+        totalWords: transcript.split(" ").length,
+        totalDuration: video.metadata?.duration || 30,
+        avgWordsPerSecond: transcript.split(" ").length / (video.metadata?.duration || 30),
+        readabilityScore: 75 + Math.floor(Math.random() * 20),
+        engagementScore: 70 + Math.floor(Math.random() * 25),
+      },
+      createdAt: video.addedAt || new Date().toISOString(),
+      updatedAt: video.addedAt || new Date().toISOString(),
+      tags: video.hashtags || [],
+      metadata: {
+        platform: video.platform || "unknown",
+        genre: "educational",
+        targetAudience: "general",
+      },
+    },
+    metadata: {
+      title: video.title ?? "Untitled Video",
+      duration: video.metadata?.duration ?? 30,
+      resolution: "1080x1920",
+      format: "mp4",
+      platform: video.platform ?? "unknown",
+      viewCount: video.metrics?.views ?? 0,
+      likeCount: video.metrics?.likes ?? 0,
+      commentCount: video.metrics?.comments ?? 0,
+      shareCount: video.metrics?.shares ?? 0,
+      uploadDate: video.addedAt ?? new Date().toISOString(),
+      tags: video.hashtags ?? [],
+      description: video.metadata?.description ?? "No description available",
+      author: {
+        name: video.metadata?.author ?? "Unknown Creator",
+        verified: false,
+      },
+    },
+    suggestions: {
+      hooks: [
+        {
+          id: `${video.id}-hook-question`,
+          type: "question",
+          content: "What if one simple change could transform your content?",
+          strength: "high",
+          rationale: "Questions create curiosity gaps that viewers want filled",
+          estimatedEngagement: 85,
+        },
+      ],
+      content: [
+        {
+          id: `${video.id}-improve-hook`,
+          type: "improvement",
+          target: "opening",
+          suggestion: "Add a visual pattern interrupt in the first 2 seconds",
+          impact: "high",
+          effort: "medium",
+        },
+      ],
+    },
+    analysis: {
+      readability: {
+        score: 75 + Math.floor(Math.random() * 20),
+        grade: "8th Grade",
+        complexity: "medium",
+        sentenceLength: {
+          average: 12,
+          longest: 25,
+          shortest: 3,
+        },
+        wordComplexity: {
+          simple: transcript.split(" ").length * 0.8,
+          complex: transcript.split(" ").length * 0.2,
+          percentage: 80,
+        },
+        recommendations: ["Use shorter sentences for better flow", "Include more emotional language"],
+      },
+      engagement: {
+        hookStrength: 70 + Math.floor(Math.random() * 25),
+        paceVariation: 65 + Math.floor(Math.random() * 30),
+        emotionalTone: {
+          positive: 70,
+          negative: 5,
+          neutral: 25,
+        },
+        callToActionStrength: 75 + Math.floor(Math.random() * 20),
+        retentionPotential: 70 + Math.floor(Math.random() * 25),
+        predictedDropoffPoints: [],
+      },
+      seo: {
+        keywordDensity: [
+          { word: "content", count: 5, density: 3.2 },
+          { word: "video", count: 4, density: 2.8 },
+        ],
+        titleOptimization: {
+          score: 80,
+          suggestions: ["Add power words for emotional impact"],
+        },
+        descriptionOptimization: {
+          score: 75,
+          suggestions: ["Add relevant hashtags"],
+        },
+        hashtagSuggestions: video.hashtags?.slice(0, 6) || ["viral", "content"],
+      },
+    },
+    createdAt: video.addedAt || new Date().toISOString(),
+    updatedAt: video.addedAt || new Date().toISOString(),
+  };
+};
+
 // Saved videos tab content component with improved responsive design
-function SavedCollectionsTabContent() {
+function SavedCollectionsTabContent({ 
+  selectedVideo, 
+  setSelectedVideo,
+  isPanelOpen
+}: { 
+  selectedVideo: Video | null; 
+  setSelectedVideo: (video: Video | null) => void; 
+  isPanelOpen?: boolean;
+}) {
   const [savedVideos, setSavedVideos] = useState<Video[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const { user } = useAuth();
 
   const loadSavedVideos = useCallback(async () => {
@@ -218,6 +416,16 @@ function SavedCollectionsTabContent() {
       const result = await RBACClientService.getCollectionVideos(user.uid);
       // Filter for videos marked as favorite
       const favoriteVideos = result.videos.filter((video) => video.favorite === true);
+      
+      // Debug: Log video data to check metadata
+      console.log('Loaded saved videos:', favoriteVideos.map(v => ({
+        id: v.id,
+        title: v.title,
+        hasMetadata: !!v.metadata,
+        author: v.metadata?.author,
+        platform: v.platform
+      })));
+      
       setSavedVideos(favoriteVideos);
     } catch (error) {
       console.error("Failed to load saved videos:", error);
@@ -232,31 +440,68 @@ function SavedCollectionsTabContent() {
     }
   }, [user?.uid, loadSavedVideos]);
 
-  // Transform Video to VideoData for the new grid component
-  const transformVideoToVideoData = useCallback((video: Video): VideoData => {
-    return {
-      id: video.id || "",
-      title: video.title || "Untitled Video",
-      creator: video.metadata?.author || "Unknown Creator",
-      thumbnail: video.thumbnailUrl || "/api/placeholder/300/400",
-      platform: video.platform as "instagram" | "tiktok" | "youtube" | undefined,
-      views: video.metrics?.views,
-      likes: video.metrics?.likes,
-      duration: video.metadata?.duration?.toString(),
-    };
+  // Use shared transformation function with debug logging
+  const transformVideoToVideoDataWithLogging = useCallback((video: Video): VideoData => {
+    const transformed = transformVideoToVideoData(video);
+    console.log('🔄 transformVideoToVideoData:', {
+      input_video_id: video.id,
+      input_has_metadata: !!video.metadata,
+      input_author: video.metadata?.author,
+      output_creator: transformed.creator,
+      full_input: video
+    });
+    return transformed;
   }, []);
 
   // Handle click/activation from new VideoGrid component (opens panel)
   const handleNewVideoGridClick = useCallback(
     (videoData: VideoData) => {
+      console.log('🖱️ VIDEO CLICKED - VideoData received:', {
+        id: videoData.id,
+        title: videoData.title,
+        creator: videoData.creator,
+        platform: videoData.platform
+      });
+      
+      console.log('📚 savedVideos array:', savedVideos.map(v => ({
+        id: v.id,
+        title: v.title,
+        hasMetadata: !!v.metadata,
+        author: v.metadata?.author
+      })));
+      
       // Find the original Video object by ID to preserve all metadata
       const originalVideo = savedVideos.find((v) => v.id === videoData.id);
+      
       if (originalVideo) {
+        console.log('✅ Found original video:', {
+          id: originalVideo.id,
+          title: originalVideo.title,
+          hasMetadata: !!originalVideo.metadata,
+          author: originalVideo.metadata?.author,
+          fullMetadata: originalVideo.metadata,
+          fullVideo: originalVideo
+        });
         setSelectedVideo(originalVideo);
+      } else {
+        console.error('❌ Could not find original video with ID:', videoData.id);
+        console.log('Available IDs:', savedVideos.map(v => v.id));
       }
     },
     [savedVideos],
   );
+
+  // Track selectedVideo changes
+  useEffect(() => {
+    console.log('📌 selectedVideo state changed:', {
+      hasVideo: !!selectedVideo,
+      id: selectedVideo?.id,
+      title: selectedVideo?.title,
+      hasMetadata: !!selectedVideo?.metadata,
+      author: selectedVideo?.metadata?.author,
+      fullVideo: selectedVideo
+    });
+  }, [selectedVideo]);
 
   // Handle keyboard selection (auto-change video when panel is open)
   const handleVideoSelection = useCallback(
@@ -276,160 +521,7 @@ function SavedCollectionsTabContent() {
     [savedVideos, selectedVideo],
   );
 
-  // Transform Video to VideoInsights format
-  const transformToVideoInsights = useCallback((video: Video): VideoInsights => {
-    const transcript = video.transcript || "No transcript available";
 
-    // Create script components from transcript if available
-    const scriptComponents =
-      transcript !== "No transcript available"
-        ? processScriptComponents([
-            {
-              id: `${video.id}-hook`,
-              type: "hook",
-              label: "Hook",
-              content: transcript.split(".")[0] + "." || "Opening statement to grab attention",
-              icon: "H",
-            },
-            {
-              id: `${video.id}-bridge`,
-              type: "bridge",
-              label: "Bridge",
-              content: transcript.split(".").slice(1, 3).join(".") || "Transition element connecting ideas",
-              icon: "B",
-            },
-            {
-              id: `${video.id}-nugget`,
-              type: "nugget",
-              label: "Golden Nugget",
-              content: transcript.split(".").slice(3, 6).join(".") || "Key value proposition or insight",
-              icon: "G",
-            },
-            {
-              id: `${video.id}-cta`,
-              type: "cta",
-              label: "Call to Action",
-              content: transcript.split(".").slice(-2).join(".") || "Clear call to action",
-              icon: "C",
-            },
-          ])
-        : [];
-
-    return {
-      id: video.id || "",
-      videoUrl: video.iframeUrl || video.directUrl || video.originalUrl || "",
-      thumbnailUrl: video.thumbnailUrl || "/api/placeholder/300/400",
-      title: video.title || "Untitled Video",
-      scriptData: {
-        id: video.id || "",
-        title: video.title || "Untitled Video",
-        fullScript: transcript,
-        components: scriptComponents,
-        metrics: {
-          totalWords: transcript.split(" ").length,
-          totalDuration: video.metadata?.duration || 30,
-          avgWordsPerSecond: transcript.split(" ").length / (video.metadata?.duration || 30),
-          readabilityScore: 75 + Math.floor(Math.random() * 20),
-          engagementScore: 70 + Math.floor(Math.random() * 25),
-        },
-        createdAt: video.addedAt || new Date().toISOString(),
-        updatedAt: video.addedAt || new Date().toISOString(),
-        tags: video.hashtags || [],
-        metadata: {
-          platform: video.platform || "unknown",
-          genre: "educational",
-          targetAudience: "general",
-        },
-      },
-      metadata: {
-        title: video.title || "Untitled Video",
-        duration: video.metadata?.duration || 30,
-        resolution: "1080x1920",
-        format: "mp4",
-        platform: video.platform || "unknown",
-        viewCount: video.metrics?.views || 0,
-        likeCount: video.metrics?.likes || 0,
-        commentCount: video.metrics?.comments || 0,
-        shareCount: video.metrics?.shares || 0,
-        uploadDate: video.addedAt || new Date().toISOString(),
-        tags: video.hashtags || [],
-        description: video.metadata?.description || "No description available",
-        author: {
-          name: video.metadata?.author || "Unknown Creator",
-          verified: false,
-        },
-      },
-      suggestions: {
-        hooks: [
-          {
-            id: `${video.id}-hook-question`,
-            type: "question",
-            content: "What if one simple change could transform your content?",
-            strength: "high",
-            rationale: "Questions create curiosity gaps that viewers want filled",
-            estimatedEngagement: 85,
-          },
-        ],
-        content: [
-          {
-            id: `${video.id}-improve-hook`,
-            type: "improvement",
-            target: "opening",
-            suggestion: "Add a visual pattern interrupt in the first 2 seconds",
-            impact: "high",
-            effort: "medium",
-          },
-        ],
-      },
-      analysis: {
-        readability: {
-          score: 75 + Math.floor(Math.random() * 20),
-          grade: "8th Grade",
-          complexity: "medium",
-          sentenceLength: {
-            average: 12,
-            longest: 25,
-            shortest: 3,
-          },
-          wordComplexity: {
-            simple: transcript.split(" ").length * 0.8,
-            complex: transcript.split(" ").length * 0.2,
-            percentage: 80,
-          },
-          recommendations: ["Use shorter sentences for better flow", "Include more emotional language"],
-        },
-        engagement: {
-          hookStrength: 70 + Math.floor(Math.random() * 25),
-          paceVariation: 65 + Math.floor(Math.random() * 30),
-          emotionalTone: {
-            positive: 70,
-            negative: 5,
-            neutral: 25,
-          },
-          callToActionStrength: 75 + Math.floor(Math.random() * 20),
-          retentionPotential: 70 + Math.floor(Math.random() * 25),
-          predictedDropoffPoints: [],
-        },
-        seo: {
-          keywordDensity: [
-            { word: "content", count: 5, density: 3.2 },
-            { word: "video", count: 4, density: 2.8 },
-          ],
-          titleOptimization: {
-            score: 80,
-            suggestions: ["Add power words for emotional impact"],
-          },
-          descriptionOptimization: {
-            score: 75,
-            suggestions: ["Add relevant hashtags"],
-          },
-          hashtagSuggestions: video.hashtags?.slice(0, 6) || ["viral", "content"],
-        },
-      },
-      createdAt: video.addedAt || new Date().toISOString(),
-      updatedAt: video.addedAt || new Date().toISOString(),
-    };
-  }, []);
 
   return (
     <>
@@ -455,8 +547,8 @@ function SavedCollectionsTabContent() {
                 <div className="@container">
                   <div className="relative">
                     <NewVideoGrid
-                      videos={savedVideos.map(transformVideoToVideoData)}
-                      columns={4}
+                      videos={savedVideos.map(transformVideoToVideoDataWithLogging)}
+                      columns={isPanelOpen ? 1 : 4}
                       onVideoClick={handleNewVideoGridClick}
                       onVideoSelect={handleVideoSelection}
                       enableKeyboardNavigation={true}
@@ -477,72 +569,6 @@ function SavedCollectionsTabContent() {
         </div>
       </div>
 
-      {selectedVideo && (
-        <UnifiedSlideout
-          isOpen={!!selectedVideo}
-          onClose={() => setSelectedVideo(null)}
-          config={{
-            ...ClaudeArtifactConfig,
-            showHeader: false,
-            showCloseButton: true,
-            adjustsContent: true,
-            backdrop: false,
-            modal: false,
-            animationType: "claude",
-            position: "right",
-            width: "lg",
-          }}
-        >
-          {/* Add custom styles to override the video container's min-height and add proper padding */}
-          <div className="h-full overflow-y-auto">
-            <style jsx global>{`
-              /* Override the video container styles */
-              .relative.overflow-hidden[style*="aspect-ratio"] {
-                min-height: unset !important;
-                max-height: calc(100vh - 280px) !important; /* Account for headers and tabs */
-              }
-
-              /* Add padding to the video container parent */
-              .flex.h-full.items-center.justify-center.bg-neutral-50.p-6 {
-                padding-top: 2rem !important;
-                align-items: flex-start !important;
-              }
-
-              /* Ensure proper sizing on different screens */
-              @media (max-width: 768px) {
-                .relative.overflow-hidden[style*="aspect-ratio"] {
-                  max-height: calc(100vh - 320px) !important;
-                }
-              }
-
-              @media (min-width: 1024px) {
-                .relative.overflow-hidden[style*="aspect-ratio"] {
-                  max-height: calc(100vh - 240px) !important;
-                }
-              }
-            `}</style>
-
-            <VideoInsightsPanel
-              videoInsights={transformToVideoInsights(selectedVideo)}
-              onCopy={(content: string, componentType?: string) => {
-                console.log(`Copied ${componentType ?? "content"}:`, content);
-              }}
-              onDownload={(videoInsights: VideoInsights) => {
-                console.log("Downloaded video insights:", videoInsights.title);
-              }}
-              onVideoPlay={() => {
-                console.log("Video started playing");
-              }}
-              onVideoPause={() => {
-                console.log("Video paused");
-              }}
-              onClose={() => setSelectedVideo(null)}
-              showDownload={true}
-              showMetrics={true}
-            />
-          </div>
-        </UnifiedSlideout>
-      )}
     </>
   );
 }
@@ -555,6 +581,10 @@ function CollectionsContent() {
   // Panel management state
   const [isCollectionPanelOpen, setIsCollectionPanelOpen] = useState(false);
   const [isVideoPanelOpen, setIsVideoPanelOpen] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
+  
+  // Derive panel open state
+  const isPanelOpen = !!selectedVideo;
   
   // Filter replaced by explicit collection picker
   const { state, dispatch } = useCollections();
@@ -627,20 +657,90 @@ function CollectionsContent() {
     [user?.uid, dispatch],
   );
 
+  // Keyboard navigation for video switching when panel is open
+  useEffect(() => {
+    if (!isPanelOpen || !selectedVideo) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Only handle if no input element is focused
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      let currentVideos: Video[] = [];
+      
+      // Get the appropriate video list based on active tab
+      if (activeTab === "collections") {
+        currentVideos = state.videos || [];
+      } else {
+        // For saved videos tab, we need to get the saved videos
+        // This is a simplified approach - in a real app you might want to lift this state up
+        return; // For now, only support collections tab
+      }
+
+      if (currentVideos.length === 0) return;
+
+      const currentIndex = currentVideos.findIndex(v => v.id === selectedVideo.id);
+      if (currentIndex === -1) return;
+
+      let newIndex = currentIndex;
+
+      switch (event.key) {
+        case 'ArrowUp':
+          event.preventDefault();
+          newIndex = currentIndex > 0 ? currentIndex - 1 : currentVideos.length - 1;
+          break;
+        case 'ArrowDown':
+          event.preventDefault();
+          newIndex = currentIndex < currentVideos.length - 1 ? currentIndex + 1 : 0;
+          break;
+        case 'Escape':
+          event.preventDefault();
+          setSelectedVideo(null);
+          return;
+        default:
+          return;
+      }
+
+      const newVideo = currentVideos[newIndex];
+      if (newVideo) {
+        setSelectedVideo(newVideo);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isPanelOpen, selectedVideo, activeTab, state.videos]);
+
   return (
-    <div className="bg-background min-h-screen" id="collections-main-content">
-      <div className="container mx-auto p-6">
+    <div className="bg-background flex min-h-screen w-full transition-all duration-300" id="collections-main-content">
+      {/* Main Content Area */}
+      <div 
+        className="flex flex-1 justify-center overflow-x-hidden overflow-y-scroll transition-all duration-300"
+        style={{
+          marginRight: selectedVideo ? '600px' : '0',
+          transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)'
+        }}
+      >
+        <div 
+          className="container mx-auto px-6"
+          style={{
+            maxWidth: '1200px'
+          }}
+        >
         {/* Header */}
-        <CollectionsHeader
-          selectedCollectionId={selectedCollectionId}
-          selectedCollection={selectedCollection ?? null}
-          canWrite={canWrite}
-          handleEditTitle={handleEditTitle}
-          handleEditDescription={handleEditDescription}
-          setIsAddVideoDialogOpen={setIsAddVideoDialogOpen}
-          onOpenCollectionPanel={() => setIsCollectionPanelOpen(true)}
-          onOpenVideoPanel={() => setIsVideoPanelOpen(true)}
-        />
+        <div className="pt-6">
+          <CollectionsHeader
+            selectedCollectionId={selectedCollectionId}
+            selectedCollection={selectedCollection ?? null}
+            canWrite={canWrite}
+            handleEditTitle={handleEditTitle}
+            handleEditDescription={handleEditDescription}
+            setIsAddVideoDialogOpen={setIsAddVideoDialogOpen}
+            onOpenCollectionPanel={() => setIsCollectionPanelOpen(true)}
+            onOpenVideoPanel={() => setIsVideoPanelOpen(true)}
+          />
+        </div>
 
         {/* Collections Tabs */}
         <CollectionsTabs
@@ -658,11 +758,94 @@ function CollectionsContent() {
 
         {/* Tab Content */}
         {activeTab === "collections" ? (
-          <CollectionsTabContent selectedCollectionId={selectedCollectionId} />
+          <CollectionsTabContent 
+            selectedCollectionId={selectedCollectionId}
+            onVideoClick={setSelectedVideo}
+            isPanelOpen={isPanelOpen}
+          />
         ) : (
-          <SavedCollectionsTabContent />
+          <SavedCollectionsTabContent 
+            selectedVideo={selectedVideo} 
+            setSelectedVideo={setSelectedVideo} 
+            isPanelOpen={isPanelOpen}
+          />
         )}
+        
+        {/* Bottom margin for spacing */}
+        <div className="mb-6"></div>
+        </div>
       </div>
+
+      {/* Notion-style Video Panel - Fixed position, doesn't scroll with page */}
+      {selectedVideo && (
+        <div 
+          className="fixed top-0 right-0 h-full z-50 flex-shrink-0" 
+          style={{ width: '600px' }}
+        >
+          {(() => {
+            console.log('🎯 RENDERING PANEL - selectedVideo:', {
+              id: selectedVideo.id,
+              title: selectedVideo.title,
+              hasMetadata: !!selectedVideo.metadata,
+              author: selectedVideo.metadata?.author,
+              fullMetadata: selectedVideo.metadata
+            });
+            
+            const notionData = videoToNotionData(
+              selectedVideo,
+              transformToVideoInsights(selectedVideo),
+              {
+                onCopy: (content: string, componentType?: string) => {
+                  console.log(`Copied ${componentType ?? "content"}:`, content);
+                  // Copy to clipboard
+                  navigator.clipboard.writeText(content).then(() => {
+                    console.log('Successfully copied to clipboard');
+                  }).catch(err => {
+                    console.error('Failed to copy to clipboard:', err);
+                  });
+                },
+                onDownload: () => {
+                  console.log("Downloaded video insights:", selectedVideo.title);
+                  // TODO: Implement actual download functionality
+                },
+                onVideoPlay: () => {
+                  console.log("Video started playing");
+                },
+                onVideoPause: () => {
+                  console.log("Video paused");
+                }
+              }
+            );
+            console.log('VideoNotionData generated:', {
+              hasVideo: 'video' in notionData,
+              videoInNotionData: notionData.video,
+              allKeys: Object.keys(notionData),
+              notionData,
+            });
+            // Explicitly pass all required props including video
+            return (
+              <VideoNotionPanel
+                title={notionData.title}
+                properties={notionData.properties}
+                tabData={notionData.tabData}
+                video={notionData.video}
+                platform={notionData.platform}
+                onCopy={notionData.onCopy}
+                onDownload={notionData.onDownload}
+                onVideoPlay={notionData.onVideoPlay}
+                onVideoPause={notionData.onVideoPause}
+                isOpen={!!selectedVideo}
+                onClose={() => setSelectedVideo(null)}
+                showPageControls={true}
+                width={600}
+                minWidth={400}
+                maxWidth={800}
+                defaultTab="video"
+              />
+            );
+          })()}
+        </div>
+      )}
 
       {/* Dialogs */}
       <AddVideoDialog
@@ -695,7 +878,6 @@ export default function CollectionsPage() {
       <VideoInsightsProvider>
         <CollectionsProvider>
           <CollectionsContent />
-          <VideoInsightsWrapper />
         </CollectionsProvider>
       </VideoInsightsProvider>
     </VideoProcessingProvider>

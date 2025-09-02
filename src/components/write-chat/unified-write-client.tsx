@@ -10,18 +10,16 @@ import { Button } from "@/components/ui/button";
 //
 import { UnifiedSlideout, ClaudeArtifactConfig } from "@/components/ui/unified-slideout";
 import ClaudeChat from "@/components/write-chat/claude-chat";
-import { type AssistantType, type ActionType } from "@/components/write-chat/assistant-selector";
+import { type ActionType, type PersonaOption } from "@/components/write-chat/persona-selector";
 import { ScriptData } from "@/types/script-panel";
 
 export function UnifiedWriteClient({
   initialPrompt,
-  initialAssistant,
   conversationIdToLoad,
   useActionSystem = true,
   onActionTrigger,
 }: {
   initialPrompt?: string;
-  initialAssistant?: AssistantType;
   conversationIdToLoad?: string;
   useActionSystem?: boolean;
   onActionTrigger?: (action: ActionType, prompt: string) => void;
@@ -133,7 +131,6 @@ export function UnifiedWriteClient({
         {/* Claude Chat with built-in transitions */}
         <ClaudeChat
           initialPrompt={initialPrompt}
-          initialAssistant={initialAssistant}
           conversationIdToLoad={conversationIdToLoad}
           useActionSystem={useActionSystem}
           onActionTrigger={handleActionTrigger}

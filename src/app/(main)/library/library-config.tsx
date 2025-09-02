@@ -270,7 +270,6 @@ export const statusConfig: StatusConfig[] = [
 export const getLibraryConfig = (): DataTableTemplateConfig<LibraryItem> => ({
   title: "Library",
   description: "All your content in one place - chats, inspiration, and resources",
-  icon: <BookOpen className="h-6 w-6" />,
   
   columns,
   

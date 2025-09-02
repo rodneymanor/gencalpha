@@ -406,18 +406,18 @@ export function VideoManagementPanel({
         </div>
 
         {/* Supported Platforms */}
-        <div className="p-4 bg-neutral-50 rounded-[var(--radius-card)] border border-neutral-200">
+        <div className="p-4 bg-neutral-50 rounded-[var(--radius-card)] border border-neutral-200 shadow-[var(--shadow-soft-drop)]">
           <div className="flex items-center gap-2 mb-2">
             <Video className="w-4 h-4 text-neutral-600" />
             <span className="text-sm font-medium text-neutral-900">Supported Platforms</span>
           </div>
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div className="flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full bg-pink-500" />
+              <div className="w-2 h-2 rounded-pill bg-neutral-900" />
               <span>TikTok Videos</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full bg-purple-500" />
+              <div className="w-2 h-2 rounded-pill bg-primary-500" />
               <span>Instagram Reels/Posts</span>
             </div>
           </div>
@@ -425,31 +425,31 @@ export function VideoManagementPanel({
 
         {/* Processing Status */}
         {isProcessing && (
-          <div className="p-4 bg-blue-50 rounded-[var(--radius-card)] border border-blue-200">
+          <div className="p-4 bg-primary-50 rounded-[var(--radius-card)] border border-primary-200 shadow-[var(--shadow-soft-drop)]">
             <div className="flex items-center gap-2 mb-2">
-              <Clock className="w-4 h-4 text-blue-600 animate-pulse" />
-              <span className="text-sm font-medium text-blue-900">Processing Video</span>
+              <Clock className="w-4 h-4 text-primary-600 animate-pulse" />
+              <span className="text-sm font-medium text-primary-900">Processing Video</span>
             </div>
-            <div className="text-xs text-blue-700">
+            <div className="text-xs text-primary-700">
               {status.message}
             </div>
             <div className="mt-2 flex items-center gap-2">
-              <div className="flex-1 bg-blue-200 rounded-full h-1">
-                <div className="bg-blue-600 h-1 rounded-full animate-pulse" style={{ width: '60%' }} />
+              <div className="flex-1 bg-primary-200 rounded-pill h-1">
+                <div className="bg-primary-600 h-1 rounded-pill animate-pulse" style={{ width: '60%' }} />
               </div>
-              <span className="text-xs text-blue-600">{status.label}</span>
+              <span className="text-xs text-primary-600">{status.label}</span>
             </div>
           </div>
         )}
 
         {/* Success State */}
         {processingStage === 'complete' && (
-          <div className="p-4 bg-green-50 rounded-[var(--radius-card)] border border-green-200">
+          <div className="p-4 bg-success-50 rounded-[var(--radius-card)] border border-success-200 shadow-[var(--shadow-soft-drop)]">
             <div className="flex items-center gap-2 mb-2">
-              <Check className="w-4 h-4 text-green-600" />
-              <span className="text-sm font-medium text-green-900">Video Added Successfully!</span>
+              <Check className="w-4 h-4 text-success-600" />
+              <span className="text-sm font-medium text-success-900">Video Added Successfully!</span>
             </div>
-            <div className="text-xs text-green-700">
+            <div className="text-xs text-success-700">
               The video has been added to your collection and is ready to use.
             </div>
           </div>

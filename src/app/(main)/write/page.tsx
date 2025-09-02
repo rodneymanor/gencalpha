@@ -1,4 +1,4 @@
-import { type AssistantType } from "@/components/write-chat/assistant-selector";
+// PersonaOption type is no longer needed for URL parameters
 import { UnifiedWriteClient } from "@/components/write-chat/unified-write-client";
 
 export default async function WritePage({
@@ -8,7 +8,7 @@ export default async function WritePage({
 }) {
   const params = await searchParams;
   const initialPrompt = typeof params.prompt === "string" ? params.prompt : undefined;
-  const initialAssistant = typeof params.assistant === "string" ? (params.assistant as AssistantType) : undefined;
+  // Personas are now selected within the UI rather than passed via URL
   const chatId = typeof params.chatId === "string" ? params.chatId : undefined;
   const remountKey = typeof params.new === "string" ? params.new : undefined;
   return (
@@ -16,7 +16,6 @@ export default async function WritePage({
       <UnifiedWriteClient
         key={remountKey}
         initialPrompt={initialPrompt}
-        initialAssistant={initialAssistant}
         conversationIdToLoad={chatId}
       />
     </div>

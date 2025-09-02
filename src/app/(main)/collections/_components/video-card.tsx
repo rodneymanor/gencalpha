@@ -34,9 +34,10 @@ const formatViewCount = (views: number) => {
 
 const getPlatformStyle = (platform: string) => {
   const styles = {
-    tiktok: "bg-black text-white",
-    instagram: "bg-[var(--pill-bg)] text-muted-foreground",
-    default: "bg-muted text-muted-foreground",
+    tiktok: "bg-neutral-900 text-neutral-50",
+    instagram: "bg-primary-100 text-primary-700", 
+    youtube: "bg-destructive-100 text-destructive-700",
+    default: "bg-neutral-100 text-neutral-700",
   };
   return styles[platform.toLowerCase() as keyof typeof styles] || styles.default;
 };
@@ -52,7 +53,7 @@ export function VideoCard({
 }: VideoCardProps) {
   return (
     <div
-      className="group bg-muted relative aspect-[9/16] cursor-pointer overflow-hidden rounded-[var(--radius-card)]"
+      className="group bg-neutral-100 hover:bg-neutral-200 relative aspect-[9/16] cursor-pointer overflow-hidden rounded-[var(--radius-card)] transition-colors duration-150 shadow-[var(--shadow-soft-drop)]"
       onClick={() => onVideoClick(video)}
     >
       {video.thumbnailUrl && (
@@ -64,17 +65,17 @@ export function VideoCard({
         />
       )}
 
-      <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/50">
+      <div className="absolute inset-0 bg-neutral-900/0 transition-colors group-hover:bg-neutral-900/50">
         <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
-          <Button size="icon" className="rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30">
-            <Play className="h-6 w-6 fill-white text-white" />
+          <Button size="icon" className="rounded-pill bg-neutral-50/90 backdrop-blur-sm hover:bg-neutral-50 transition-all duration-150">
+            <Play className="h-6 w-6 fill-neutral-900 text-neutral-900" />
           </Button>
         </div>
 
         <div className="absolute top-2 right-2 left-2 flex items-start justify-between">
           <div className="flex flex-col gap-2">
             <Badge className={cn("text-xs", getPlatformStyle(video.platform))}>{video.platform}</Badge>
-            {video.favorite && <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />}
+            {video.favorite && <Star className="h-4 w-4 fill-warning-500 text-warning-500" />}
           </div>
 
           <DropdownMenu>
@@ -82,10 +83,10 @@ export function VideoCard({
               <Button
                 size="icon"
                 variant="ghost"
-                className="h-8 w-8 bg-white/20 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100 hover:bg-white/30"
+                className="h-8 w-8 bg-neutral-50/20 opacity-0 backdrop-blur-sm transition-all duration-150 group-hover:opacity-100 hover:bg-neutral-50/30"
                 onClick={(e) => e.stopPropagation()}
               >
-                <MoreHorizontal className="h-4 w-4 text-white" />
+                <MoreHorizontal className="h-4 w-4 text-neutral-50" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -160,9 +161,9 @@ export function VideoCard({
           </DropdownMenu>
         </div>
 
-        <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/80 to-transparent p-3">
+        <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-neutral-900/80 to-transparent p-3">
           {video.metrics && video.metrics.views > 0 && (
-            <div className="flex items-center gap-3 text-xs text-white/80">
+            <div className="flex items-center gap-3 text-xs text-neutral-100">
               <span className="flex items-center gap-1">
                 <Eye className="h-3 w-3" />
                 {formatViewCount(video.metrics.views)}

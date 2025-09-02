@@ -10,7 +10,7 @@ import { AdvancedSlidingSwitch, type ModeType, type SwitchOption } from "@/compo
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ClarityLoader } from "@/components/ui/loading";
-import { AssistantSelector, AssistantType } from "@/components/write-chat/assistant-selector";
+import { PersonaSelector, type PersonaOption } from "@/components/write-chat/persona-selector";
 import { PromptComposer } from "@/components/write-chat/prompt-composer";
 import { useAuth } from "@/contexts/auth-context";
 import { auth } from "@/lib/firebase";
@@ -23,7 +23,7 @@ interface ManusPromptProps {
   subtitle?: string;
   placeholder?: string;
   className?: string;
-  onSubmit?: (prompt: string, assistant: AssistantType) => void;
+  onSubmit?: (prompt: string, persona: PersonaOption | null) => void;
 }
 
 // eslint-disable-next-line complexity
@@ -36,8 +36,8 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
 }) => {
   const { user, userProfile } = useAuth();
   const [prompt, setPrompt] = useState("");
-  const [selectedAssistant, setSelectedAssistant] = useState<AssistantType | null>(null);
-  const [assistantSelected, setAssistantSelected] = useState(false);
+  const [selectedPersona, setSelectedPersona] = useState<PersonaOption | null>(null);
+  const [assistantSelected, setAssistantSelected] = useState(false); // Legacy naming - now tracks persona
   const [urlDetection, setUrlDetection] = useState<URLDetectionResult | null>(null);
   const [isProcessingVideo, setIsProcessingVideo] = useState(false);
   const [activeMode, setActiveMode] = useState<ModeType>("ghost-write");
@@ -96,14 +96,14 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
     }
   };
 
-  const handleAssistantChange = (assistant: AssistantType) => {
-    setSelectedAssistant(assistant);
-    setAssistantSelected(true);
+  const handlePersonaChange = (persona: PersonaOption | null) => {
+    setSelectedPersona(persona);
+    setAssistantSelected(Boolean(persona));
   };
 
   const handleRemoveAssistant = () => {
     setAssistantSelected(false);
-    setSelectedAssistant(null); // Reset to no selection
+    setSelectedPersona(null); // Reset to no selection
   };
 
   const handleToggleIdeaInbox = () => {
@@ -247,13 +247,13 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
         // Redirect to /write with the transcription and selected assistant
         const params = new URLSearchParams({
           prompt: message,
-          assistant: (selectedAssistant ?? "MiniBuddy") as string,
+          assistant: selectedPersona?.name ?? "Default",
         });
         router.push(`/write?${params.toString()}`);
 
         // Call the optional onSubmit callback
         if (onSubmit) {
-          onSubmit(message, selectedAssistant ?? "MiniBuddy");
+          onSubmit(message, selectedPersona);
         }
 
         // Clear the input and detection
@@ -268,11 +268,11 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
       // Redirect to /write with error message
       const params = new URLSearchParams({
         prompt: errorMessage,
-        assistant: (selectedAssistant ?? "MiniBuddy") as string,
+        assistant: selectedPersona?.name ?? "Default",
       });
       router.push(`/write?${params.toString()}`);
       if (onSubmit) {
-        onSubmit(errorMessage, selectedAssistant ?? "MiniBuddy");
+        onSubmit(errorMessage, selectedPersona);
       }
     } finally {
       setIsProcessingVideo(false);
@@ -291,13 +291,13 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
     // Redirect to /write with the initial prompt and assistant
     const params = new URLSearchParams({
       prompt: prompt.trim(),
-      assistant: (selectedAssistant ?? "MiniBuddy") as string,
+      assistant: selectedPersona?.name ?? "Default",
     });
     router.push(`/write?${params.toString()}`);
 
     // Call the optional onSubmit callback with the prompt and assistant
     if (onSubmit) {
-      onSubmit(prompt.trim(), selectedAssistant ?? "MiniBuddy");
+      onSubmit(prompt.trim(), selectedPersona);
     }
 
     // Clear the input and detection
@@ -397,8 +397,8 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
                 variant="secondary"
                 className="bg-secondary/10 text-secondary border-secondary/20 hover:bg-secondary/20 ml-2 flex h-8 items-center rounded-[var(--radius-pill)] px-3 text-xs font-medium"
               >
-                <span className="mr-2">{selectedAssistant ? getAssistantData(selectedAssistant)?.icon : ""}</span>
-                {selectedAssistant ? getAssistantData(selectedAssistant)?.label : ""}
+                <span className="mr-2">{selectedPersona ? "🎭" : ""}</span>
+                {selectedPersona ? selectedPersona.name : ""}
                 <Button
                   variant="ghost"
                   size="sm"
@@ -489,9 +489,12 @@ export const ManusPrompt: React.FC<ManusPromptProps> = ({
             </div>
           </div>
         ) : (
-          <AssistantSelector
-            selectedAssistant={selectedAssistant}
-            onAssistantChange={handleAssistantChange}
+          <PersonaSelector
+            selectedPersona={selectedPersona}
+            onPersonaSelect={handlePersonaChange}
+            selectedAction={null}
+            onActionSelect={() => {}}
+            onActionTrigger={() => {}}
             className="justify-center"
             showCallout={assistantSelected}
           />

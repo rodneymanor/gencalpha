@@ -2,17 +2,10 @@
 
 import React from "react";
 
-import { type AssistantType } from "@/components/write-chat/assistant-selector";
 import { UnifiedWriteClient } from "@/components/write-chat/unified-write-client";
 
-export function WriteShell({
-  initialPrompt,
-  initialAssistant,
-}: {
-  initialPrompt?: string;
-  initialAssistant?: AssistantType;
-}) {
-  return <UnifiedWriteClient initialPrompt={initialPrompt} initialAssistant={initialAssistant} />;
+export function WriteShell({ initialPrompt }: { initialPrompt?: string }) {
+  return <UnifiedWriteClient initialPrompt={initialPrompt} />;
 }
 
 export default WriteShell;
