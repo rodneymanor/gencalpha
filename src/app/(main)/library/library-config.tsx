@@ -1,5 +1,5 @@
 // Library Configuration
-// Separated configuration for the Library2 page to maintain clean code organization
+// Separated configuration for the Library page to maintain clean code organization
 
 import React from "react";
 import {
@@ -25,6 +25,12 @@ import {
   CheckCircle,
   Eye,
   MessageSquare,
+  Zap,
+  Sparkles,
+  Globe,
+  Play,
+  Camera,
+  Music,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
@@ -40,6 +46,29 @@ import { Progress } from "@/components/ui/progress";
 
 import { LibraryItem, TypeIcon, formatFileSize, formatDuration } from "./types";
 
+// Platform icon mapping
+const PlatformIcon: Record<string, React.ReactNode> = {
+  chat: <MessageSquare className="h-3 w-3" />,
+  tiktok: <Music className="h-3 w-3" />,
+  instagram: <Camera className="h-3 w-3" />,
+  youtube: <Play className="h-3 w-3" />,
+  twitter: <Globe className="h-3 w-3" />,
+  manual: <Edit className="h-3 w-3" />,
+};
+
+// Platform badge component
+const PlatformBadge: React.FC<{ platform: string; className?: string }> = ({ platform, className = "" }) => {
+  const icon = PlatformIcon[platform] ?? <Globe className="h-3 w-3" />;
+  const label = platform.charAt(0).toUpperCase() + platform.slice(1);
+  
+  return (
+    <div className={`inline-flex items-center gap-1 rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-600 ${className}`}>
+      {icon}
+      <span>{label}</span>
+    </div>
+  );
+};
+
 // Column configuration
 export const columns: ColumnConfig<LibraryItem>[] = [
   {
@@ -51,7 +80,7 @@ export const columns: ColumnConfig<LibraryItem>[] = [
     render: (item) => (
       <div className="flex items-start gap-3">
         <div className="mt-1 flex h-10 w-10 items-center justify-center rounded-[var(--radius-card)] bg-neutral-100 text-neutral-600">
-          {item.tags?.includes('chat') ? <MessageSquare className="h-4 w-4" /> : TypeIcon[item.type]}
+          {item.tags.includes('chat') ? <MessageSquare className="h-4 w-4" /> : TypeIcon[item.type]}
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
@@ -73,14 +102,24 @@ export const columns: ColumnConfig<LibraryItem>[] = [
           )}
           {item.tags.length > 0 && (
             <div className="mt-1 flex flex-wrap gap-1">
-              {item.tags.slice(0, 3).map((tag) => (
-                <span
-                  key={tag}
-                  className="inline-flex items-center rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-600"
-                >
-                  {tag}
-                </span>
-              ))}
+              {/* Show platform badge first if it exists */}
+              {item.tags.find(tag => ['tiktok', 'instagram', 'youtube', 'twitter', 'chat', 'manual'].includes(tag)) && (
+                <PlatformBadge 
+                  platform={item.tags.find(tag => ['tiktok', 'instagram', 'youtube', 'twitter', 'chat', 'manual'].includes(tag))!}
+                />
+              )}
+              {/* Show other tags */}
+              {item.tags
+                .filter(tag => !['captured', 'generated', 'tiktok', 'instagram', 'youtube', 'twitter', 'chat', 'manual'].includes(tag))
+                .slice(0, 2)
+                .map((tag) => (
+                  <span
+                    key={tag}
+                    className="inline-flex items-center rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-600"
+                  >
+                    {tag}
+                  </span>
+                ))}
               {item.tags.length > 3 && (
                 <span className="text-xs text-neutral-500">+{item.tags.length - 3}</span>
               )}
@@ -95,14 +134,18 @@ export const columns: ColumnConfig<LibraryItem>[] = [
     header: "Type",
     width: "w-[100px]",
     sortable: true,
-    render: (item) => (
-      <div className="flex items-center gap-1.5">
-        {item.tags?.includes('chat') ? <MessageSquare className="h-4 w-4" /> : TypeIcon[item.type]}
-        <span className="text-sm capitalize text-neutral-700">
-          {item.tags?.includes('chat') ? 'Chat' : item.type}
-        </span>
-      </div>
-    ),
+    render: (item) => {
+      const platformTag = item.tags.find(tag => ['tiktok', 'instagram', 'youtube', 'twitter', 'chat', 'manual'].includes(tag));
+      const icon = platformTag ? PlatformIcon[platformTag] : TypeIcon[item.type];
+      const label = platformTag === 'chat' ? 'Chat' : item.type;
+      
+      return (
+        <div className="flex items-center gap-1.5">
+          {icon}
+          <span className="text-sm capitalize text-neutral-700">{label}</span>
+        </div>
+      );
+    },
   },
   {
     key: "category",
@@ -116,47 +159,21 @@ export const columns: ColumnConfig<LibraryItem>[] = [
     ),
   },
   {
-    key: "author",
-    header: "Author",
-    width: "w-[150px]",
-    sortable: true,
-    searchable: true,
-    render: (item) => (
-      <div className="flex items-center gap-2">
-        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary-100 text-xs font-medium text-primary-700">
-          {item.author.name.charAt(0)}
-        </div>
-        <span className="text-sm text-neutral-700">{item.author.name}</span>
-      </div>
-    ),
-  },
-  {
-    key: "size",
-    header: "Size",
-    width: "w-[100px]",
-    sortable: true,
-    render: (item) => (
-      <span className="text-sm text-neutral-600">
-        {item.duration ? formatDuration(item.duration) : formatFileSize(item.size)}
-      </span>
-    ),
-  },
-  {
-    key: "viewCount",
-    header: "Views",
-    width: "w-[100px]",
-    sortable: true,
-    render: (item) => (
-      <div className="flex items-center gap-1">
-        <Eye className="h-3 w-3 text-neutral-400" />
-        <span className="text-sm text-neutral-600">{item.viewCount}</span>
-      </div>
-    ),
-  },
-  {
     key: "status",
     header: "Status",
     width: "w-[120px]",
+  },
+  {
+    key: "createdAt",
+    header: "Created Date",
+    width: "w-[150px]",
+    sortable: true,
+    render: (item) => (
+      <div className="flex items-center gap-1 text-xs text-neutral-600">
+        <Calendar className="h-3 w-3" />
+        {formatDistanceToNow(item.createdAt, { addSuffix: true })}
+      </div>
+    ),
   },
   {
     key: "updatedAt",
@@ -252,24 +269,44 @@ export const statusConfig: StatusConfig[] = [
 // Main template configuration
 export const getLibraryConfig = (): DataTableTemplateConfig<LibraryItem> => ({
   title: "Library",
-  description: "Manage and organize your digital resources",
+  description: "All your content in one place - chats, inspiration, and resources",
   icon: <BookOpen className="h-6 w-6" />,
   
   columns,
   
   filters: [
     {
+      key: "contentSource",
+      label: "Source",
+      type: "multiselect",
+      icon: <Zap className="mr-2 h-4 w-4" />,
+      options: [
+        { value: "chat", label: "Chat Conversations" },
+        { value: "captured", label: "Captured Content" },
+      ],
+    },
+    {
       key: "type",
       label: "Type",
       type: "multiselect",
       icon: <Filter className="mr-2 h-4 w-4" />,
       options: [
-        { value: "document", label: "Document" },
-        { value: "video", label: "Video" },
-        { value: "audio", label: "Audio" },
-        { value: "image", label: "Image" },
-        { value: "link", label: "Link" },
-        { value: "note", label: "Note / Chat" },
+        { value: "chat", label: "Chat" },
+        { value: "tiktok", label: "TikTok" },
+        { value: "instagram", label: "Instagram" },
+        { value: "note", label: "Note" },
+      ],
+    },
+    {
+      key: "platform",
+      label: "Platform",
+      type: "multiselect",
+      icon: <Globe className="mr-2 h-4 w-4" />,
+      options: [
+        { value: "tiktok", label: "TikTok" },
+        { value: "instagram", label: "Instagram" },
+        { value: "youtube", label: "YouTube" },
+        { value: "twitter", label: "Twitter/X" },
       ],
     },
     {
@@ -278,45 +315,10 @@ export const getLibraryConfig = (): DataTableTemplateConfig<LibraryItem> => ({
       type: "multiselect",
       icon: <FolderOpen className="mr-2 h-4 w-4" />,
       options: [
-        { value: "research", label: "Research" },
-        { value: "reference", label: "Reference" },
-        { value: "tutorial", label: "Tutorial" },
-        { value: "inspiration", label: "Inspiration" },
-        { value: "archive", label: "Archive" },
+        { value: "idea", label: "Idea" },
+        { value: "script", label: "Script" },
+        { value: "hooks", label: "Hooks" },
       ],
-    },
-    {
-      key: "status",
-      label: "Status",
-      type: "multiselect",
-      options: [
-        { value: "draft", label: "Draft" },
-        { value: "reviewing", label: "Reviewing" },
-        { value: "published", label: "Published" },
-        { value: "archived", label: "Archived" },
-      ],
-    },
-    {
-      key: "author",
-      label: "Author",
-      type: "multiselect",
-      icon: <User className="mr-2 h-4 w-4" />,
-      options: [
-        { value: "user-1", label: "Alex Johnson" },
-        { value: "user-2", label: "Sarah Chen" },
-        { value: "user-3", label: "Mike Williams" },
-      ],
-    },
-    {
-      key: "dateRange",
-      label: "Date Range",
-      type: "daterange",
-      icon: <Calendar className="mr-2 h-4 w-4" />,
-    },
-    {
-      key: "hasRating",
-      label: "Has Rating",
-      type: "boolean",
     },
   ],
   
@@ -324,7 +326,7 @@ export const getLibraryConfig = (): DataTableTemplateConfig<LibraryItem> => ({
   statusField: "status",
   
   enableSearch: true,
-  searchPlaceholder: "Search library items and chat conversations...",
+  searchPlaceholder: "Search all your content - chats, videos, ideas, and resources...",
   searchFields: ["title", "description"],
   
   defaultSort: { field: "updatedAt", direction: "desc" },
@@ -332,12 +334,8 @@ export const getLibraryConfig = (): DataTableTemplateConfig<LibraryItem> => ({
     { field: "title", label: "Title" },
     { field: "updatedAt", label: "Last Modified" },
     { field: "createdAt", label: "Date Created" },
-    { field: "viewCount", label: "Most Viewed" },
-    { field: "size", label: "File Size" },
   ],
   
-  viewModes: ["table", "grid", "list"],
-  defaultViewMode: "table",
   
   bulkActions,
   
@@ -390,13 +388,13 @@ export const getLibraryConfig = (): DataTableTemplateConfig<LibraryItem> => ({
   enableDragAndDrop: true,
   
   emptyState: {
-    title: "No library items or chats yet",
-    description: "Start building your knowledge base by adding documents, videos, chats, and other resources.",
-    icon: <BookOpen className="h-16 w-16" />,
+    title: "Your unified library awaits",
+    description: "All your content will appear here - chat conversations, captured inspiration from social media, and saved resources.",
+    icon: <Sparkles className="h-16 w-16" />,
     action: {
-      label: "Add First Item",
+      label: "Start Creating",
       handler: () => {
-        toast.info("Add item dialog would open");
+        window.location.href = "/write";
       },
     },
   },

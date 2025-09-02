@@ -1,5 +1,5 @@
-// Library Types and Utilities
-// Type definitions and helper functions for the Library2 page
+// Library Types and Utilities  
+// Type definitions and helper functions for the Library page
 
 import React from "react";
 import {
@@ -19,7 +19,7 @@ export interface LibraryItem extends BaseItem {
   title: string;
   description?: string;
   type: "document" | "video" | "audio" | "image" | "link" | "note";
-  category: "research" | "reference" | "tutorial" | "inspiration" | "archive";
+  category: "idea" | "script" | "hooks";
   status: "draft" | "published" | "reviewing" | "archived";
   author: {
     id: string;
@@ -86,30 +86,42 @@ export const formatDuration = (seconds?: number): string => {
 // Generate mock data
 export const generateMockData = (): LibraryItem[] => {
   const types: LibraryItem["type"][] = ["document", "video", "audio", "image", "link", "note"];
-  const categories: LibraryItem["category"][] = ["research", "reference", "tutorial", "inspiration", "archive"];
+  const categories: LibraryItem["category"][] = ["idea", "script", "hooks"];
   const statuses: LibraryItem["status"][] = ["draft", "published", "reviewing", "archived"];
   
   const mockTitles = [
-    "Design System Documentation",
-    "User Research Findings Q4 2024",
-    "Component Architecture Guide",
-    "Brand Guidelines v3.0",
-    "Sprint Planning Template",
-    "Customer Journey Map",
-    "API Integration Tutorial",
-    "Performance Optimization Tips",
-    "Accessibility Best Practices",
-    "Mobile Design Patterns",
-    "Data Visualization Handbook",
-    "Content Strategy Framework",
-    "Development Workflow Guide",
-    "Security Audit Report",
-    "Marketing Campaign Analysis",
+    "Hook: Start with a shocking statistic",
+    "Script: Product review framework",
+    "Idea: Behind-the-scenes content",
+    "Hook: Question that makes viewers think",
+    "Script: Tutorial breakdown format",
+    "Idea: Day in the life series",
+    "Hook: Before and after transformation",
+    "Script: Storytelling with conflict resolution",
+    "Idea: Common mistakes to avoid",
+    "Hook: Controversial opinion starter",
+    "Script: Educational carousel post",
+    "Idea: Trending challenge adaptation",
+    "Hook: Problem + solution format",
+    "Script: User-generated content remix",
+    "Idea: Industry trend commentary",
   ];
 
   return mockTitles.map((title, index) => {
     const type = types[index % types.length];
-    const category = categories[index % categories.length];
+    
+    // Assign category based on title prefix
+    let category: LibraryItem["category"];
+    if (title.startsWith("Hook:")) {
+      category = "hooks";
+    } else if (title.startsWith("Script:")) {
+      category = "script";
+    } else if (title.startsWith("Idea:")) {
+      category = "idea";
+    } else {
+      category = categories[index % categories.length];
+    }
+    
     const status = statuses[index % statuses.length];
     const createdDate = new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000);
     

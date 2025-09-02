@@ -6,7 +6,7 @@ import { LibraryItem } from "./types";
 
 /**
  * Transforms a ChatConversation to a LibraryItem
- * This adapter allows us to display chat history in the Library2 table
+ * This adapter allows us to display chat history in the Library table
  */
 export function chatToLibraryItem(chat: ChatConversation): LibraryItem {
   const createdDate = new Date(chat.createdAt);
@@ -21,10 +21,10 @@ export function chatToLibraryItem(chat: ChatConversation): LibraryItem {
   
   return {
     id: chat.id,
-    title: chat.title || "Untitled Chat",
+    title: chat.title ?? "Untitled Chat",
     description: `Chat conversation with ${chat.messagesCount} messages`,
     type: "note", // Chats are treated as notes
-    category: "reference", // Default category for chats
+    category: "script", // Chats are typically used for script generation
     status,
     author: {
       id: "current-user", // In a real app, this would come from auth context

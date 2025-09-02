@@ -43,11 +43,12 @@ export interface NavGroup {
 export function useDynamicSidebarItems(): NavGroup[] {
   const isCreatorsPageEnabled = useCreatorsPageFlag();
   const isGhostWriterEnabled = useGhostWriterFlag();
-  const isIdeaInboxEnabled = useIdeaInboxFlag();
+  useIdeaInboxFlag(); // Hook must be called but result not currently used
 
   const baseItems: NavGroup[] = [
     {
       id: 1,
+      label: "CREATE",
       items: [
         {
           title: "Daily",
@@ -55,6 +56,18 @@ export function useDynamicSidebarItems(): NavGroup[] {
           icon: Calendar,
           isCustomButton: true,
         },
+        {
+          title: "Personas",
+          url: "/personas",
+          icon: VenetianMask,
+          isNew: true,
+        },
+      ],
+    },
+    {
+      id: 2,
+      label: "ORGANIZE",
+      items: [
         {
           title: "Library",
           url: "/library",
@@ -66,57 +79,37 @@ export function useDynamicSidebarItems(): NavGroup[] {
           icon: GalleryVerticalEnd,
           isNew: true,
         },
-        {
-          title: "Personas",
-          url: "/personas",
-          icon: VenetianMask,
-          isNew: true,
-        },
       ],
     },
   ];
 
-  // Build Ideas section items based on feature flags
-  const ideasSectionItems = [];
-
-  // Idea Inbox (formerly Content Inbox) - using new route
-  ideasSectionItems.push({
-    title: "Idea Inbox",
-    url: "/idea-inbox",
-    icon: Archive,
-    isNew: true,
-  });
+  // Build DISCOVER section items based on feature flags (advanced tools only)
+  const discoverSectionItems = [];
 
   if (isCreatorsPageEnabled) {
-    ideasSectionItems.push({
+    discoverSectionItems.push({
       title: "Creators",
       url: "/dashboard/ideas/creators",
       icon: Users,
     });
   }
 
-  if (isIdeaInboxEnabled) {
-    ideasSectionItems.push({
-      title: "Idea inbox",
-      url: "/dashboard/ideas/idea-inbox",
-      icon: Inbox,
-    });
-  }
-
   if (isGhostWriterEnabled) {
-    ideasSectionItems.push({
+    discoverSectionItems.push({
       title: "Ghostwriter",
       url: "/dashboard/ideas/ghostwriter",
       icon: PenLine,
     });
   }
 
-  // Always add Ideas section since Content Inbox is always included
-  baseItems.push({
-    id: 2,
-    label: "Ideas",
-    items: ideasSectionItems,
-  });
+  // Only add DISCOVER section if there are feature-flagged items
+  if (discoverSectionItems.length > 0) {
+    baseItems.push({
+      id: 3,
+      label: "DISCOVER",
+      items: discoverSectionItems,
+    });
+  }
 
   return baseItems;
 }

@@ -1,4 +1,4 @@
-import { Calendar, GalleryVerticalEnd, LibraryBig, Inbox, PenLine, Users, type LucideIcon } from "lucide-react";
+import { Calendar, GalleryVerticalEnd, LibraryBig, Inbox, PenLine, Users, VenetianMask, type LucideIcon } from "lucide-react";
 
 export interface NavSubItem {
   title: string;
@@ -29,6 +29,7 @@ export interface NavGroup {
 export const sidebarItems: NavGroup[] = [
   {
     id: 1,
+    label: "CREATE",
     items: [
       {
         title: "Daily",
@@ -36,6 +37,18 @@ export const sidebarItems: NavGroup[] = [
         icon: Calendar,
         isCustomButton: true,
       },
+      {
+        title: "Personas",
+        url: "/personas",
+        icon: VenetianMask,
+        isNew: true,
+      },
+    ],
+  },
+  {
+    id: 2,
+    label: "ORGANIZE",
+    items: [
       {
         title: "Library",
         url: "/library",
@@ -50,18 +63,13 @@ export const sidebarItems: NavGroup[] = [
     ],
   },
   {
-    id: 2,
-    label: "Ideas",
+    id: 3,
+    label: "DISCOVER",
     items: [
       {
         title: "Creators",
         url: "/dashboard/ideas/creators",
         icon: Users,
-      },
-      {
-        title: "Idea inbox",
-        url: "/dashboard/ideas/idea-inbox",
-        icon: Inbox,
       },
       {
         title: "Ghostwriter",
