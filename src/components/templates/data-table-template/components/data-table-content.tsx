@@ -260,7 +260,7 @@ export function DataTableContent<T extends BaseItem>({
                 <TableHead className="w-[50px]">
                   <Checkbox
                     checked={allSelected}
-                    indeterminate={!allSelected && someSelected}
+                    indeterminate={!allSelected && someSelected ? true : undefined}
                     onCheckedChange={onSelectAll}
                     className="border-neutral-300"
                   />
