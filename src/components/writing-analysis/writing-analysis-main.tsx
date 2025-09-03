@@ -92,6 +92,7 @@ export function WritingAnalysisMain({
             <InteractiveScript
               script={sampleScript}
               onScriptUpdate={onScriptUpdate}
+              scriptAnalysis={scriptAnalysis}
               className="min-h-[300px]"
             />
             

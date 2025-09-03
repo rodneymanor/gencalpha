@@ -10,10 +10,24 @@ interface ScriptSection {
   content: string
 }
 
+interface ScriptComponent {
+  component: string
+  text: string
+  complexity: string
+  gradeLevel: string
+  suggestions: string[]
+}
+
 interface InteractiveScriptProps {
   script: string
   onScriptUpdate: (updatedScript: string) => void
   className?: string
+  scriptAnalysis?: {
+    hasComponentAnalysis: boolean
+    componentAnalysis?: {
+      components: ScriptComponent[]
+    }
+  }
 }
 
 // Parse script sections from markdown format
@@ -80,10 +94,55 @@ const buildScriptFromSections = (sections: ScriptSection[]): string => {
     .join('\n\n')
 }
 
+// Get complexity-based background color
+const getComplexityBackgroundColor = (complexity: string) => {
+  switch (complexity) {
+    case "graduate":
+      return "rgba(239, 68, 68, 0.1)";
+    case "college":
+      return "rgba(249, 115, 22, 0.1)";
+    case "high-school":
+      return "rgba(245, 158, 11, 0.1)";
+    case "middle-school":
+      return "rgba(59, 130, 246, 0.08)";
+    case "elementary":
+      return "transparent";
+    default:
+      return "transparent";
+  }
+}
+
+// Apply complexity highlighting to text
+const applyComplexityHighlighting = (
+  text: string, 
+  components: ScriptComponent[]
+): string => {
+  let result = text;
+  
+  // Apply complexity-based highlighting to each component's content
+  components.forEach((component) => {
+    if (component.text.trim()) {
+      const bgColor = getComplexityBackgroundColor(component.complexity);
+      if (bgColor !== "transparent") {
+        const escapedText = component.text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const regex = new RegExp(escapedText, "gi");
+        
+        result = result.replace(
+          regex,
+          `<span style="background-color: ${bgColor}; padding: 4px 2px; border-radius: 4px; display: inline-block; margin: 1px 0;">${component.text}</span>`,
+        );
+      }
+    }
+  });
+
+  return result;
+}
+
 export function InteractiveScript({ 
   script, 
   onScriptUpdate, 
-  className = '' 
+  className = '',
+  scriptAnalysis
 }: InteractiveScriptProps) {
   const [sections, setSections] = useState<ScriptSection[]>(() => parseScriptSections(script))
   const [showPopup, setShowPopup] = useState(false)
@@ -127,17 +186,17 @@ export function InteractiveScript({
   const getSectionColor = (type: ScriptSection['type']) => {
     switch (type) {
       case 'hook':
-        return 'border-red-200 hover:border-red-300 hover:bg-red-50'
+        return 'border-2 border-red-200 bg-red-50'
       case 'micro-hook':
-        return 'border-orange-200 hover:border-orange-300 hover:bg-orange-50'
+        return 'border-2 border-orange-200 bg-orange-50'
       case 'bridge':
-        return 'border-yellow-200 hover:border-yellow-300 hover:bg-yellow-50'
+        return 'border-2 border-yellow-200 bg-yellow-50'
       case 'nugget':
-        return 'border-green-200 hover:border-green-300 hover:bg-green-50'
+        return 'border-2 border-green-200 bg-green-50'
       case 'cta':
-        return 'border-blue-200 hover:border-blue-300 hover:bg-blue-50'
+        return 'border-2 border-blue-200 bg-blue-50'
       default:
-        return 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+        return 'border-2 border-gray-200 bg-gray-50'
     }
   }
 
@@ -155,9 +214,8 @@ export function InteractiveScript({
             <div
               ref={el => sectionRefs.current[index] = el}
               className={`
-                relative p-4 rounded-[var(--radius-button)] border-2 cursor-pointer transition-all duration-200
-                ${getSectionColor(section.type)}
-                ${hoveredSection === index ? 'shadow-sm' : ''}
+                relative p-4 rounded-[var(--radius-button)] cursor-pointer transition-all duration-200
+                ${hoveredSection === index ? getSectionColor(section.type) + ' shadow-sm' : 'hover:bg-background-hover'}
               `}
               onClick={(e) => handleSectionClick(section, index, e)}
               onMouseEnter={() => setHoveredSection(index)}
@@ -178,9 +236,14 @@ export function InteractiveScript({
               )}
               
               {/* Section Content */}
-              <div className="text-base leading-relaxed whitespace-pre-wrap">
-                {section.content}
-              </div>
+              <div 
+                className="text-base leading-relaxed"
+                dangerouslySetInnerHTML={{ 
+                  __html: scriptAnalysis?.hasComponentAnalysis && scriptAnalysis?.componentAnalysis?.components 
+                    ? applyComplexityHighlighting(section.content, scriptAnalysis.componentAnalysis.components)
+                    : section.content.replace(/\n/g, '<br />')
+                }}
+              />
             </div>
           </div>
         ))}

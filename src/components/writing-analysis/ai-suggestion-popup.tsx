@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { 
   Wand2, 
   Fish, 
@@ -101,6 +101,23 @@ export function AISuggestionPopup({
   const [suggestions, setSuggestions] = useState<AISuggestion[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const popupRef = useRef<HTMLDivElement>(null)
+
+  // Handle click outside to close popup
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
+        onClose()
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside)
+      }
+    }
+  }, [isOpen, onClose])
 
   if (!isOpen) return null
 
@@ -214,6 +231,7 @@ export function AISuggestionPopup({
 
   return (
     <div
+      ref={popupRef}
       className="fixed z-50 bg-card border border-border rounded-[var(--radius-card)] shadow-[var(--shadow-soft-drop)] min-w-80 max-w-md"
       style={{
         left: `${Math.min(position.x, window.innerWidth - 350)}px`,

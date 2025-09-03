@@ -216,7 +216,7 @@ export function EnhancedToolbar({
                 <ChevronDown className="w-3 h-3 ml-1 font-semibold" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="center" className="w-56">
+            <DropdownMenuContent align="start" className="w-56">
               <DropdownMenuItem onClick={onHumanize}>
                 <Wand2 className="w-4 h-4 mr-2 font-semibold" />
                 Humanize

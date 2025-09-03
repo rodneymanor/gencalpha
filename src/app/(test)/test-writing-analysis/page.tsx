@@ -9,6 +9,22 @@ import { WritingAnalysisMain } from "@/components/writing-analysis/writing-analy
 import { useEnhancedScriptAnalytics } from "@/hooks/use-script-analytics";
 
 export default function TestWritingAnalysisPage() {
+  // Sample script for component analysis
+  const sampleScript = `**Hook:**
+Is life sciences research progressing too slowly? We can do better.
+
+**Micro Hook:**
+What if we could cure cancer in half the time?
+
+**Bridge:**
+The key lies in leveraging technology and collaboration to accelerate discovery and development.
+
+**Golden Nugget:**
+Imagine AI-powered drug design, high-throughput screening, and global data sharing initiatives dramatically reducing research timelines. This translates to faster cures for diseases like cancer and Alzheimer's. For example, AI algorithms are already analyzing vast genomic datasets to identify potential drug targets far more efficiently than traditional methods. Simultaneously, collaborative platforms allow researchers across the globe to share data and insights in real-time, eliminating redundancies and accelerating breakthroughs.
+
+**Call to Action:**
+Learn more about the future of accelerated life sciences research and how you can contribute. Visit our website today!`;
+
   const [sidebarTab, setSidebarTab] = useState<"analysis" | "metrics" | "suggestions">("analysis");
   const [title, setTitle] = useState("Life Sciences Research Acceleration Script");
   const [_editorContent, setEditorContent] = useState<any>(null);
@@ -33,22 +49,6 @@ export default function TestWritingAnalysisPage() {
     console.log("Triggered action:", action, "with prompt:", prompt);
     setRecentActions((prev) => [action, ...prev.slice(0, 4)]);
   };
-
-  // Sample script for component analysis
-  const sampleScript = `**Hook:**
-Is life sciences research progressing too slowly? We can do better.
-
-**Micro Hook:**
-What if we could cure cancer in half the time?
-
-**Bridge:**
-The key lies in leveraging technology and collaboration to accelerate discovery and development.
-
-**Golden Nugget:**
-Imagine AI-powered drug design, high-throughput screening, and global data sharing initiatives dramatically reducing research timelines. This translates to faster cures for diseases like cancer and Alzheimer's. For example, AI algorithms are already analyzing vast genomic datasets to identify potential drug targets far more efficiently than traditional methods. Simultaneously, collaborative platforms allow researchers across the globe to share data and insights in real-time, eliminating redundancies and accelerating breakthroughs.
-
-**Call to Action:**
-Learn more about the future of accelerated life sciences research and how you can contribute. Visit our website today!`;
 
   // Analyze the sample script for component readability
   const scriptAnalysis = useEnhancedScriptAnalytics(sampleScript);
