@@ -14,7 +14,8 @@ import { FloatingVideoPlayer, useFloatingVideo } from "@/components/video/video-
 import { useCreatorsPageFlag } from "@/hooks/use-feature-flag";
 import { transformVideoDataToVideo } from "@/lib/video-player-helpers";
 
-import CreatorVideosGrid, { type VideoData } from "@/app/(main)/dashboard/daily/_components/creator-videos-grid";
+// import CreatorVideosGrid, { type VideoData } from "@/app/(main)/dashboard/daily/_components/creator-videos-grid";
+import { CreatorGrid, type CreatorData } from "@/components/video/video-grid";
 
 export default function IdeasCreatorsPage() {
   const router = useRouter();

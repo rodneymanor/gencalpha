@@ -138,18 +138,25 @@ export function HeroSection(props: {
 
   return (
     <div className="flex max-h-screen min-h-screen flex-col overflow-y-auto px-4 py-8 transition-all duration-300">
-      {/* Header section with headline */}
-      <div className="flex-shrink-0 text-center pt-16 pb-12">
-        <h1 className="text-neutral-900 text-4xl leading-10 font-bold tracking-tight">
-          {`Hello${resolvedName ? ", " + resolvedName : ""}`}
-          <br />
-          <span className="text-neutral-600 text-4xl font-bold">What will you create today?</span>
-        </h1>
-      </div>
-
-      {/* Vertically centered input section */}
-      <div className="flex-1 flex items-center justify-center">
-        <div className="w-full max-w-3xl px-5">
+      {/* Flex spacer to center the hero content */}
+      <div className="flex-1"></div>
+      
+      {/* Anchored hero content - text and input grouped together */}
+      <div className="flex-shrink-0 text-center">
+        {/* Hero headline */}
+        <div className="pb-8">
+          <h1 className="text-4xl leading-10 font-bold tracking-tight">
+            <span className="text-foreground">
+              {`Hello${resolvedName ? ", " + resolvedName : ""}`}
+              {resolvedName && <span className="ml-2">👋</span>}
+            </span>
+            <br />
+            <span className="text-brand">What will you create today?</span>
+          </h1>
+        </div>
+        
+        {/* Input field - anchored close to hero text */}
+        <div className="w-full max-w-3xl mx-auto px-5">
           <ChatInput
             value={inputValue}
             onChange={setInputValue}
@@ -166,8 +173,11 @@ export function HeroSection(props: {
         </div>
       </div>
 
+      {/* Spacer between input and bottom cards */}
+      <div className="flex-shrink-0 h-16"></div>
+
       {/* Bottom section with content generator cards */}
-      <div className="flex-shrink-0 pt-12 pb-16">
+      <div className="flex-shrink-0 pb-16">
         <div className="mx-auto w-full max-w-5xl px-5">
           {useActionSystem ? (
             <ContentGeneratorCards

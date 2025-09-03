@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 
 import { ScriptComponent, ScriptMetrics } from "@/types/script-panel";
+import { ComponentReadabilityService, type ScriptReadabilityAnalysis } from "@/lib/component-readability-service";
 
 /**
  * Custom hook for calculating script analytics and metrics
@@ -11,6 +12,32 @@ export function useScriptAnalytics(content: string) {
   return useMemo(() => {
     return calculateScriptMetrics(content);
   }, [content]);
+}
+
+/**
+ * Enhanced hook for calculating script analytics with component-level readability analysis
+ */
+export function useEnhancedScriptAnalytics(scriptContent: string) {
+  return useMemo(() => {
+    const basicMetrics = calculateScriptMetrics(scriptContent);
+    
+    // Only run component analysis if script has markdown headings
+    const hasHeadings = /\*\*[^:]+:\*\*/.test(scriptContent);
+    let componentAnalysis: ScriptReadabilityAnalysis | null = null;
+    
+    if (hasHeadings && scriptContent.trim()) {
+      const readabilityService = new ComponentReadabilityService();
+      componentAnalysis = readabilityService.analyzeScriptComponents(scriptContent);
+    }
+
+    return {
+      ...basicMetrics,
+      componentAnalysis,
+      hasComponentAnalysis: componentAnalysis !== null,
+      overallGradeLevel: componentAnalysis?.averageGradeLevel || 'N/A',
+      passesThirdGradeTest: componentAnalysis?.passesThirdGradeTest || false,
+    };
+  }, [scriptContent]);
 }
 
 /**

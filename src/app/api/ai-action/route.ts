@@ -118,6 +118,49 @@ ${text}
 Please provide only the enhanced text with evidence in your response, no explanations or commentary.`;
           break;
 
+        case "simplify":
+          prompt = `Simplify this text to make it easier to understand. Use simpler words, shorter sentences, and clearer language while maintaining the core message.
+
+Current text:
+${text}
+
+Please provide only the simplified text in your response, no explanations or commentary.`;
+          break;
+
+        case "generate_variations":
+          prompt = `Generate 10 different variations of this text. Each variation should maintain the core message but use different wording, structure, or approach. Number each variation.
+
+Current text:
+${text}
+
+Please provide only the 10 numbered variations in your response, no explanations or commentary.`;
+          break;
+
+        case "convert_hook_type":
+          const hookTypes = {
+            problem: "Convert this to a problem hook that identifies a pain point or challenge the audience faces.",
+            benefit: "Convert this to a benefit hook that promises a reward or positive outcome.",
+            curiosity: "Convert this to a curiosity hook that creates intrigue and makes viewers want to know more.",
+            question: "Convert this to a question hook that engages viewers by asking something relevant.",
+            story: "Convert this to a story hook that starts with a brief narrative or anecdote.",
+          };
+          prompt = `${hookTypes[option as keyof typeof hookTypes] || hookTypes.problem}
+
+Current hook:
+${text}
+
+Please provide only the converted hook in your response, no explanations or commentary.`;
+          break;
+
+        case "strengthen_connection":
+          prompt = `Strengthen the connection in this bridge text to better link the previous section to what comes next. Make the transition smoother and more logical.
+
+Current bridge:
+${text}
+
+Please provide only the improved bridge text in your response, no explanations or commentary.`;
+          break;
+
         default:
           return NextResponse.json({ error: "Unknown action type" }, { status: 400 });
       }

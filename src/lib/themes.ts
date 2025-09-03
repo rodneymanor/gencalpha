@@ -61,94 +61,94 @@ export interface Theme {
 export const themes: Theme[] = [
   {
     name: "default",
-    label: "Default",
+    label: "Zoom Design System",
     light: {
-      // Using generated numbered variants for systematic relationships
-      background: "#F5F5F5", // neutral-100
-      foreground: "#1A1A1A", // neutral-900
-      card: "#FAFAFA", // neutral-50
-      cardForeground: "#1A1A1A", // neutral-900
-      popover: "#FAFAFA", // neutral-50
-      popoverForeground: "#1A1A1A", // neutral-900
-      primary: "#1A1A19", // primary-500
-      primaryForeground: "#FFFFFF",
+      // Zoom Design System - Light Theme
+      background: "#FFFFFF", // White - preserved
+      foreground: "#00053D", // Midnight - dark text
+      card: "#FFFFFF", // White - preserved  
+      cardForeground: "#00053D", // Midnight - dark text
+      popover: "#FFFFFF", // White - preserved
+      popoverForeground: "#00053D", // Midnight - dark text
+      primary: "#0B5CFF", // Bloom - primary brand blue
+      primaryForeground: "#FFFFFF", // White on blue
       secondary: "transparent",
-      secondaryForeground: "#1A1A1A", // neutral-900
-      brand: "#FACC15", // brand-500
-      brandForeground: "#322801", // brand-900
-      muted: "#F5F5F5", // neutral-100
-      mutedForeground: "#737373", // neutral-500
-      accent: "#E8E8E8", // neutral-200
-      accentForeground: "#525252", // neutral-600
-      destructive: "#EF4444", // destructive-500
+      secondaryForeground: "#00053D", // Midnight - dark text
+      brand: "#0B5CFF", // Bloom - primary brand blue
+      brandForeground: "#FFFFFF", // White on blue
+      muted: "#F7F2E3", // Noon - neutral background
+      mutedForeground: "#00053D", // Midnight - readable text
+      accent: "#B4D0F8", // Dawn - light background, subtle elements
+      accentForeground: "#00053D", // Midnight - dark text
+      destructive: "#FB327E", // Rose - error states, alerts
       destructiveForeground: "#FFFFFF",
-      border: "#E8E8E8", // neutral-200
-      input: "#E8E8E8", // neutral-200
-      ring: "#1A1A19", // primary-500
-      borderSubtle: "#F5F5F5", // neutral-100
-      borderHover: "#D6D6D6", // neutral-300
-      borderFocus: "#A3A3A3", // neutral-400
-      backgroundElevated: "#FFFFFF",
-      backgroundOverlay: "rgba(250, 250, 250, 0.8)",
-      backgroundHover: "#FAFAFA", // neutral-50
-      contentBg: "#F5F5F5", // neutral-100
-      chart1: "#1A1A19", // primary-500
-      chart2: "#525252", // neutral-600
-      chart3: "#737373", // neutral-500
-      chart4: "#A3A3A3", // neutral-400
-      chart5: "#D6D6D6", // neutral-300
-      sidebar: "#F5F5F5", // neutral-100
-      sidebarForeground: "#1A1A1A", // neutral-900
-      sidebarPrimary: "#1A1A19", // primary-500
-      sidebarPrimaryForeground: "#FFFFFF",
-      sidebarAccent: "#E8E8E8", // neutral-200
-      sidebarAccentForeground: "#525252", // neutral-600
-      sidebarBorder: "#E8E8E8", // neutral-200
-      sidebarRing: "#1A1A19", // primary-500
+      border: "#B4D0F8", // Dawn - subtle borders
+      input: "#F7F2E3", // Noon - input backgrounds
+      ring: "#0B5CFF", // Bloom - focus rings
+      borderSubtle: "rgba(180, 208, 248, 0.5)", // Dawn with opacity
+      borderHover: "rgba(180, 208, 248, 0.8)", // Dawn with more opacity
+      borderFocus: "rgba(11, 92, 255, 0.3)", // Bloom with opacity
+      backgroundElevated: "#FFFFFF", // White - preserved
+      backgroundOverlay: "rgba(247, 242, 227, 0.8)", // Noon with opacity
+      backgroundHover: "rgba(180, 208, 248, 0.1)", // Dawn with low opacity
+      contentBg: "#F7F2E3", // Noon - content areas
+      chart1: "#0B5CFF", // Bloom
+      chart2: "#00DEEF", // Agave
+      chart3: "#00EF9D", // Spearmint
+      chart4: "#FFCD00", // Gold  
+      chart5: "#9A67FB", // Lavender
+      sidebar: "#FFFFFF", // White - preserved
+      sidebarForeground: "#00053D", // Midnight - dark text
+      sidebarPrimary: "#0B5CFF", // Bloom - primary actions
+      sidebarPrimaryForeground: "#FFFFFF", // White on blue
+      sidebarAccent: "#B4D0F8", // Dawn - light hover
+      sidebarAccentForeground: "#00053D", // Midnight - dark text
+      sidebarBorder: "#B4D0F8", // Dawn - subtle borders
+      sidebarRing: "#0B5CFF", // Bloom - focus rings
     },
     dark: {
-      // Using generated numbered variants for systematic relationships
-      background: "#1A1A1A", // neutral-900
-      foreground: "#F5F5F5", // neutral-100
-      card: "#262626", // neutral-800
-      cardForeground: "#F5F5F5", // neutral-100
-      popover: "#262626", // neutral-800
-      popoverForeground: "#F5F5F5", // neutral-100
-      primary: "#E6E6E5", // primary-100 (inverted for dark)
-      primaryForeground: "#1A1A19", // primary-500
-      secondary: "#404040", // neutral-700
-      secondaryForeground: "#F5F5F5", // neutral-100
-      brand: "#FACC15",
-      brandForeground: "#322801", // brand-900
-      muted: "#262626", // neutral-800
-      mutedForeground: "#A3A3A3", // neutral-400
-      accent: "#404040", // neutral-700
-      accentForeground: "#F5F5F5", // neutral-100
-      destructive: "#EF4444", // destructive-500
-      destructiveForeground: "#FFFFFF",
-      border: "#404040", // neutral-700
-      input: "#404040", // neutral-700
-      ring: "#E6E6E5", // primary-100
-      borderSubtle: "#262626", // neutral-800
-      borderHover: "#525252", // neutral-600
-      borderFocus: "#737373", // neutral-500
-      backgroundElevated: "#404040", // neutral-700
-      backgroundOverlay: "rgba(26, 26, 26, 0.8)",
-      backgroundHover: "#262626", // neutral-800
-      contentBg: "#262626", // neutral-800
-      chart1: "#F5F5F5", // neutral-100
-      chart2: "#A3A3A3", // neutral-400
-      chart3: "#737373", // neutral-500
-      chart4: "#525252", // neutral-600
-      chart5: "#404040", // neutral-700
-      sidebar: "#1A1A1A", // neutral-900
-      sidebarForeground: "#F5F5F5", // neutral-100
-      sidebarPrimary: "#E6E6E5", // primary-100
-      sidebarPrimaryForeground: "#1A1A19", // primary-500
-      sidebarAccent: "#404040", // neutral-700
-      sidebarAccentForeground: "#F5F5F5", // neutral-100
-      sidebarBorder: "#404040", // neutral-700
-      sidebarRing: "#E6E6E5", // primary-100
+      // Zoom Design System - Dark Theme
+      background: "#00053D", // Midnight - dark backgrounds
+      foreground: "#FFFFFF", // White - light text
+      card: "rgba(180, 208, 248, 0.1)", // Dawn with opacity - subtle cards
+      cardForeground: "#FFFFFF", // White - light text
+      popover: "rgba(180, 208, 248, 0.1)", // Dawn with opacity - subtle popovers
+      popoverForeground: "#FFFFFF", // White - light text
+      primary: "#0B5CFF", // Bloom - primary brand blue (same in dark)
+      primaryForeground: "#FFFFFF", // White on blue
+      secondary: "transparent",
+      secondaryForeground: "#FFFFFF", // White - light text
+      brand: "#0B5CFF", // Bloom - primary brand blue (same in dark)
+      brandForeground: "#FFFFFF", // White on blue
+      muted: "rgba(247, 242, 227, 0.1)", // Noon with opacity
+      mutedForeground: "rgba(255, 255, 255, 0.7)", // Semi-transparent white
+      accent: "rgba(180, 208, 248, 0.15)", // Dawn with opacity - hover states
+      accentForeground: "#FFFFFF", // White - light text
+      destructive: "#FB327E", // Rose - error states (same in dark)
+      destructiveForeground: "#FFFFFF", // White on rose
+      border: "rgba(180, 208, 248, 0.2)", // Dawn with opacity - borders
+      input: "rgba(247, 242, 227, 0.1)", // Noon with opacity - inputs
+      ring: "#0B5CFF", // Bloom - focus rings
+      borderSubtle: "rgba(180, 208, 248, 0.1)", // Dawn with low opacity
+      borderHover: "rgba(180, 208, 248, 0.25)", // Dawn with more opacity
+      borderFocus: "rgba(11, 92, 255, 0.4)", // Bloom with opacity
+      backgroundElevated: "rgba(180, 208, 248, 0.05)", // Dawn with very low opacity
+      backgroundOverlay: "rgba(0, 5, 61, 0.9)", // Midnight with opacity
+      backgroundHover: "rgba(180, 208, 248, 0.05)", // Dawn with very low opacity
+      contentBg: "rgba(247, 242, 227, 0.05)", // Noon with very low opacity
+      chart1: "#0B5CFF", // Bloom
+      chart2: "#00DEEF", // Agave
+      chart3: "#00EF9D", // Spearmint
+      chart4: "#FFCD00", // Gold
+      chart5: "#9A67FB", // Lavender
+      sidebar: "#00053D", // Midnight - dark sidebar
+      sidebarForeground: "#FFFFFF", // White - light text
+      sidebarPrimary: "#0B5CFF", // Bloom - primary actions (same in dark)
+      sidebarPrimaryForeground: "#FFFFFF", // White on blue
+      sidebarAccent: "rgba(180, 208, 248, 0.15)", // Dawn with opacity - hover
+      sidebarAccentForeground: "#FFFFFF", // White - light text
+      sidebarBorder: "rgba(180, 208, 248, 0.2)", // Dawn with opacity - borders
+      sidebarRing: "#0B5CFF", // Bloom - focus rings
     },
   },
   {

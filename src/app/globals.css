@@ -57,7 +57,7 @@
   /* ========================================
      HYBRID NUMBERED VARIANTS (New - Precision Usage)
      ======================================== */
-  
+
   /* Primary Scale - Based on --primary base color */
   --color-primary-50: var(--primary-50);
   --color-primary-100: var(--primary-100);
@@ -83,6 +83,19 @@
   --color-brand-800: var(--brand-800);
   --color-brand-900: var(--brand-900);
   --color-brand-950: var(--brand-950);
+
+  /* Accent Blue Scale - AI/Tech accent color (#0d9feb) */
+  --color-accent-blue-50: var(--accent-blue-50);
+  --color-accent-blue-100: var(--accent-blue-100);
+  --color-accent-blue-200: var(--accent-blue-200);
+  --color-accent-blue-300: var(--accent-blue-300);
+  --color-accent-blue-400: var(--accent-blue-400);
+  --color-accent-blue-500: var(--accent-blue-500); /* Base #0d9feb */
+  --color-accent-blue-600: var(--accent-blue-600);
+  --color-accent-blue-700: var(--accent-blue-700);
+  --color-accent-blue-800: var(--accent-blue-800);
+  --color-accent-blue-900: var(--accent-blue-900);
+  --color-accent-blue-950: var(--accent-blue-950);
 
   /* Neutral Scale - For precise grays */
   --color-neutral-50: var(--neutral-50);
@@ -167,68 +180,93 @@
   --shadow-lg: var(--shadow-lg);
   --shadow-xl: var(--shadow-lg);
   --shadow-2xl: var(--shadow-lg);
-  
+
   /* Soft UI Shadow Additions */
   --shadow-hover: var(--shadow-hover);
   --shadow-active: var(--shadow-active);
   --shadow-inset-subtle: var(--shadow-inset-subtle);
   --shadow-glow: var(--shadow-glow);
+  --animate-shine: shine var(--duration) infinite linear;
+  @keyframes shine {
+  0% {
+    background-position: 0% 0%;
+    }
+  50% {
+    background-position: 100% 100%;
+    }
+  to {
+    background-position: 0% 0%;
+    }
+  }
 }
 
-/* Clarity Design System - Light Theme */
+/* Zoom Design System - Light Theme */
 :root {
-  /* Core Semantic Colors (Updated) */
-  --background: #FFFFFF; /* Pure white app background */
-  --foreground: #191B1F; /* Headlines - custom palette */
-  --card: #FFFFFF;
-  --card-foreground: #19283A; /* Body text - custom palette */
-  --popover: #FFFFFF;
-  --popover-foreground: #19283A; /* Body text - custom palette */
-  --primary: #313131; /* Submit buttons - custom palette */
-  --primary-foreground: #FFFFFF; /* Button text */
+  /* Core Semantic Colors - Zoom Palette */
+  --background: #FFFFFF; /* White - preserved */
+  --foreground: #00053D; /* Midnight - dark text */
+  --card: #FFFFFF; /* White - preserved */
+  --card-foreground: #00053D; /* Midnight - dark text */
+  --popover: #FFFFFF; /* White - preserved */
+  --popover-foreground: #00053D; /* Midnight - dark text */
+  --primary: #0B5CFF; /* Bloom - primary brand blue */
+  --primary-foreground: #FFFFFF; /* White on blue */
   --secondary: transparent;
-  --secondary-foreground: #19283A; /* Body text - custom palette */
-  --brand: var(--brand-500); /* Your accent color */
-  --brand-foreground: var(--neutral-900);
-  --muted: #F8F8F8;
-  --muted-foreground: #737373;
-  --accent: #EEEEEE; /* Hover for sidebar - custom palette */
-  --accent-foreground: #19283A; /* Body text - custom palette */
-  --destructive: #EF4444;
+  --secondary-foreground: #00053D; /* Midnight - dark text */
+  --brand: #0B5CFF; /* Bloom - primary brand blue */
+  --brand-foreground: #FFFFFF;
+  --muted: #F7F2E3; /* Noon - neutral background */
+  --muted-foreground: #00053D; /* Midnight - readable text */
+  --accent: #B4D0F8; /* Dawn - light background, subtle elements */
+  --accent-foreground: #00053D; /* Midnight - dark text */
+  --destructive: #FB327E; /* Rose - error states, alerts */
   --destructive-foreground: #FFFFFF;
-  --border: #E5E5E5;
-  --input: #F8F8F8;
-  --ring: #313131; /* Submit buttons - custom palette */
+  --border: #B4D0F8; /* Dawn - subtle borders */
+  --input: #F7F2E3; /* Noon - input backgrounds */
+  --ring: #0B5CFF; /* Bloom - focus rings */
 
   /* ========================================
      HYBRID NUMBERED SCALES (Light Theme)
      ======================================== */
-  
-  /* Primary Scale - Neutral blacks/grays based on --primary (#1A1A19) */
-  --primary-50: #F8F8F7;
-  --primary-100: #EEEEE9;
-  --primary-200: #DDDDD6;
-  --primary-300: #BFBFB6;
-  --primary-400: #9A9A8F;
-  --primary-500: #1A1A19; /* Base --primary */
-  --primary-600: #171715;
-  --primary-700: #141412;
-  --primary-800: #11110F;
-  --primary-900: #0D0D0C;
-  --primary-950: #080808;
 
-  /* Brand Scale - Updated to your accent color (#F0F209) */
-  --brand-50: #FFFEF0;
-  --brand-100: #FEFCE0;
-  --brand-200: #FEF9B8;
-  --brand-300: #FDF685;
-  --brand-400: #FBF347;
-  --brand-500: #F0F209; /* Your accent color */
-  --brand-600: #D4D404;
-  --brand-700: #B8B803;
-  --brand-800: #9C9C02;
-  --brand-900: #808002;
-  --brand-950: #4A4A01;
+  /* Primary Scale - Bloom blue (#0B5CFF) */
+  --primary-50: #EEF4FF;
+  --primary-100: #DFEAFF;
+  --primary-200: #C6DAFF;
+  --primary-300: #A3C1FF;
+  --primary-400: #7E9EFF;
+  --primary-500: #0B5CFF; /* Base --primary (Bloom) */
+  --primary-600: #0A52E6;
+  --primary-700: #0946CC;
+  --primary-800: #073BB3;
+  --primary-900: #062F99;
+  --primary-950: #041F66;
+
+  /* Brand Scale - Bloom blue (#0B5CFF) - same as primary */
+  --brand-50: #EEF4FF;
+  --brand-100: #DFEAFF;
+  --brand-200: #C6DAFF;
+  --brand-300: #A3C1FF;
+  --brand-400: #7E9EFF;
+  --brand-500: #0B5CFF; /* Bloom - primary brand blue */
+  --brand-600: #0A52E6;
+  --brand-700: #0946CC;
+  --brand-800: #073BB3;
+  --brand-900: #062F99;
+  --brand-950: #041F66;
+
+  /* Agave Scale - Zoom accent color (#00DEEF) for differentiation */
+  --accent-blue-50: #E6FDFF;
+  --accent-blue-100: #CCFAFF;
+  --accent-blue-200: #99F5FF;
+  --accent-blue-300: #66F0FF;
+  --accent-blue-400: #33EBFF;
+  --accent-blue-500: #00DEEF; /* Agave - accent color */
+  --accent-blue-600: #00B8CC;
+  --accent-blue-700: #009199;
+  --accent-blue-800: #006B66;
+  --accent-blue-900: #004533;
+  --accent-blue-950: #002219;
 
   /* Neutral Scale - Updated to match your design system */
   --neutral-50: #FFFFFF; /* App background, button text */
@@ -243,57 +281,57 @@
   --neutral-900: #191B1F; /* Headlines */
   --neutral-950: #0A0A0A;
 
-  /* Destructive Scale - Red based on --destructive (#EF4444) */
-  --destructive-50: #FEF2F2;
-  --destructive-100: #FEE2E2;
-  --destructive-200: #FECACA;
-  --destructive-300: #FCA5A5;
-  --destructive-400: #F87171;
-  --destructive-500: #EF4444; /* Base --destructive */
-  --destructive-600: #DC2626;
-  --destructive-700: #B91C1C;
-  --destructive-800: #991B1B;
-  --destructive-900: #7F1D1D;
-  --destructive-950: #450A0A;
+  /* Destructive Scale - Rose (#FB327E) for error states, alerts */
+  --destructive-50: #FEF0F5;
+  --destructive-100: #FDE0EB;
+  --destructive-200: #FCC1D7;
+  --destructive-300: #FAA1C3;
+  --destructive-400: #F862AF;
+  --destructive-500: #FB327E; /* Rose - error states, alerts */
+  --destructive-600: #E22E71;
+  --destructive-700: #C92964;
+  --destructive-800: #B02457;
+  --destructive-900: #971F4A;
+  --destructive-950: #641537;
 
-  /* Success Scale - Green for positive states */
-  --success-50: #F0FDF4;
-  --success-100: #DCFCE7;
-  --success-200: #BBF7D0;
-  --success-300: #86EFAC;
-  --success-400: #4ADE80;
-  --success-500: #22C55E;
-  --success-600: #16A34A;
-  --success-700: #15803D;
-  --success-800: #166534;
-  --success-900: #14532D;
-  --success-950: #052E16;
+  /* Success Scale - Spearmint (#00EF9D) for positive states */
+  --success-50: #E6FFF7;
+  --success-100: #CCFFEF;
+  --success-200: #99FFDF;
+  --success-300: #66FFCF;
+  --success-400: #33FFBF;
+  --success-500: #00EF9D; /* Spearmint - success states */
+  --success-600: #00CC86;
+  --success-700: #009966;
+  --success-800: #006644;
+  --success-900: #003322;
+  --success-950: #001910;
 
-  /* Warning Scale - Orange for caution states */
-  --warning-50: #FFFBEB;
-  --warning-100: #FEF3C7;
-  --warning-200: #FDE68A;
-  --warning-300: #FCD34D;
-  --warning-400: #FBBF24;
-  --warning-500: #F59E0B;
-  --warning-600: #D97706;
-  --warning-700: #B45309;
-  --warning-800: #92400E;
-  --warning-900: #78350F;
-  --warning-950: #451A03;
+  /* Warning Scale - Gold (#FFCD00) for caution states */
+  --warning-50: #FFFAEB;
+  --warning-100: #FFF5CC;
+  --warning-200: #FFEB99;
+  --warning-300: #FFE066;
+  --warning-400: #FFD633;
+  --warning-500: #FFCD00; /* Gold - warning states */
+  --warning-600: #E6B800;
+  --warning-700: #CC9900;
+  --warning-800: #B37A00;
+  --warning-900: #994D00;
+  --warning-950: #662F00;
 
-  /* Special Scale - Purple based on your special button color (#823efc) */
+  /* Special Scale - Lavender (#9A67FB) for creative highlights */
   --special-50: #F4F0FF;
-  --special-100: #EBE0FF;
-  --special-200: #D9C7FF;
-  --special-300: #BFA3FF;
-  --special-400: #9B70FF;
-  --special-500: #823EFC; /* Your special button color */
-  --special-600: #7030E6;
-  --special-700: #5F26CC;
-  --special-800: #4E1FA6;
-  --special-900: #421B87;
-  --special-950: #2A0E5A;
+  --special-100: #EAE0FF;
+  --special-200: #D6C2FF;
+  --special-300: #C19EFF;
+  --special-400: #AC85FF;
+  --special-500: #9A67FB; /* Lavender - creative elements */
+  --special-600: #8854E8;
+  --special-700: #7641D4;
+  --special-800: #642EC1;
+  --special-900: #521BAD;
+  --special-950: #3E1483;
 
   /* Enhanced Border System - More Subtle */
   --border-transparent: transparent;
@@ -316,18 +354,18 @@
   --chart-4: #34322D;
   --chart-5: #1A1A19;
 
-  /* Sidebar Colors */
-  --sidebar: #FFFFFF; /* Pure white sidebar - custom palette */
-  --sidebar-foreground: #19283A; /* Body text - custom palette */
-  --sidebar-primary: var(--special-500); /* Special buttons in sidebar */
-  --sidebar-primary-foreground: #FFFFFF; /* Button text */
-  --sidebar-accent: #EEEEEE; /* Hover for sidebar - custom palette */
-  --sidebar-accent-foreground: #19283A; /* Body text - custom palette */
-  --sidebar-border: #D4D4D4;
-  --sidebar-ring: var(--special-600);
+  /* Sidebar Colors - Zoom Palette */
+  --sidebar: #FFFFFF; /* White - preserved */
+  --sidebar-foreground: #00053D; /* Midnight - dark text */
+  --sidebar-primary: #0B5CFF; /* Bloom - primary actions */
+  --sidebar-primary-foreground: #FFFFFF; /* White on blue */
+  --sidebar-accent: #B4D0F8; /* Dawn - light hover */
+  --sidebar-accent-foreground: #00053D; /* Midnight - dark text */
+  --sidebar-border: #B4D0F8; /* Dawn - subtle borders */
+  --sidebar-ring: #0B5CFF; /* Bloom - focus rings */
 
-  /* Native Font Stacks */
-  --font-sans: -apple-system, "system-ui", "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+  /* Zoom Design System Typography Stack */
+  --font-sans: var(--font-lato), var(--font-roboto), -apple-system, "system-ui", "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
   --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
   --font-mono: 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', "Liberation Mono", "Courier New", monospace;
 
@@ -342,27 +380,27 @@
   --shadow-soft-drop: 
     0 0.25rem 1.25rem rgba(0, 0, 0, 0.035),
     0 0 0 0.5px rgba(0, 0, 0, 0.05);
-    
+
   --shadow-input: 
     0 0.125rem 0.5rem rgba(0, 0, 0, 0.025),
     0 0 0 0.5px rgba(0, 0, 0, 0.04);
-    
+
   --shadow-hover: 
     0 0.25rem 1.25rem rgba(0, 0, 0, 0.075),
     0 0 0 0.5px rgba(0, 0, 0, 0.08);
-    
+
   --shadow-active: 
     0 0.125rem 0.5rem rgba(0, 0, 0, 0.03),
     0 0 0 0.5px rgba(0, 0, 0, 0.06);
-    
+
   --shadow-lg: 
     0 0.5rem 2rem rgba(0, 0, 0, 0.08),
     0 0 0 0.5px rgba(0, 0, 0, 0.06);
-    
+
   --shadow-inset-subtle: 
     inset 0 1px 2px rgba(0, 0, 0, 0.04),
     0 0 0 0.5px rgba(0, 0, 0, 0.03);
-    
+
   --shadow-glow: 
     0 0 0 3px rgba(29, 41, 63, 0.08),
     0 0 0 0.5px rgba(29, 41, 63, 0.15);
@@ -379,60 +417,73 @@
   --spacing: 0.25rem;
 }
 
-/* Clarity Design System - Dark Theme */
+/* Zoom Design System - Dark Theme */
 .dark {
-  /* Core Semantic Colors (Preserved) */
-  --background: var(--neutral-100);
-  --foreground: #EAEAE9;
-  --card: #262625;
-  --card-foreground: #EAEAE9;
-  --popover: #262625;
-  --popover-foreground: #EAEAE9;
-  --primary: #FFFFFF;
-  --primary-foreground: #1A1A19;
+  /* Core Semantic Colors - Zoom Dark Palette */
+  --background: #00053D; /* Midnight - dark backgrounds */
+  --foreground: #FFFFFF; /* White - light text */
+  --card: rgba(180, 208, 248, 0.1); /* Dawn with opacity - subtle cards */
+  --card-foreground: #FFFFFF; /* White - light text */
+  --popover: rgba(180, 208, 248, 0.1); /* Dawn with opacity - subtle popovers */
+  --popover-foreground: #FFFFFF; /* White - light text */
+  --primary: #0B5CFF; /* Bloom - primary brand blue (same in dark) */
+  --primary-foreground: #FFFFFF; /* White on blue */
   --secondary: transparent;
-  --secondary-foreground: #EAEAE9;
-  --brand: #FACC15;
-  --brand-foreground: #1A1A19;
-  --muted: #1A1A19;
-  --muted-foreground: #858481;
-  --accent: rgba(255,255,255,0.1);
-  --accent-foreground: #EAEAE9;
-  --destructive: #EF4444;
-  --destructive-foreground: #FFFFFF;
-  --border: rgba(255,255,255,0.08);
-  --input: rgba(255,255,255,0.1);
-  --ring: #1d293f;
+  --secondary-foreground: #FFFFFF; /* White - light text */
+  --brand: #0B5CFF; /* Bloom - primary brand blue (same in dark) */
+  --brand-foreground: #FFFFFF; /* White on blue */
+  --muted: rgba(247, 242, 227, 0.1); /* Noon with opacity */
+  --muted-foreground: rgba(255, 255, 255, 0.7); /* Semi-transparent white */
+  --accent: rgba(180, 208, 248, 0.15); /* Dawn with opacity - hover states */
+  --accent-foreground: #FFFFFF; /* White - light text */
+  --destructive: #FB327E; /* Rose - error states (same in dark) */
+  --destructive-foreground: #FFFFFF; /* White on rose */
+  --border: rgba(180, 208, 248, 0.2); /* Dawn with opacity - borders */
+  --input: rgba(247, 242, 227, 0.1); /* Noon with opacity - inputs */
+  --ring: #0B5CFF; /* Bloom - focus rings */
 
   /* ========================================
      HYBRID NUMBERED SCALES (Dark Theme)
      ======================================== */
-  
-  /* Primary Scale - Light whites/grays based on --primary (#FFFFFF in dark) */
-  --primary-50: #0A0A0A;
-  --primary-100: #171717;
-  --primary-200: #262626;
-  --primary-300: #404040;
-  --primary-400: #525252;
-  --primary-500: #FFFFFF; /* Base --primary in dark */
-  --primary-600: #F5F5F5;
-  --primary-700: #E5E5E5;
-  --primary-800: #D4D4D4;
-  --primary-900: #A3A3A3;
-  --primary-950: #737373;
 
-  /* Brand Scale - Yellow based on --brand (#FACC15) - same in both themes */
-  --brand-50: #422006;
-  --brand-100: #713F12;
-  --brand-200: #854D0E;
-  --brand-300: #A16207;
-  --brand-400: #CA8A04;
-  --brand-500: #FACC15; /* Base --brand */
-  --brand-600: #FDE047;
-  --brand-700: #FEF08A;
-  --brand-800: #FEF9C3;
-  --brand-900: #FEFCE8;
-  --brand-950: #FFFEF7;
+  /* Primary Scale - Bloom blue (#0B5CFF) - same in dark theme */
+  --primary-50: #041F66;
+  --primary-100: #062F99;
+  --primary-200: #073BB3;
+  --primary-300: #0946CC;
+  --primary-400: #0A52E6;
+  --primary-500: #0B5CFF; /* Base --primary (Bloom) - same in dark */
+  --primary-600: #7E9EFF;
+  --primary-700: #A3C1FF;
+  --primary-800: #C6DAFF;
+  --primary-900: #DFEAFF;
+  --primary-950: #EEF4FF;
+
+  /* Brand Scale - Bloom blue (#0B5CFF) - same in dark theme */
+  --brand-50: #041F66;
+  --brand-100: #062F99;
+  --brand-200: #073BB3;
+  --brand-300: #0946CC;
+  --brand-400: #0A52E6;
+  --brand-500: #0B5CFF; /* Bloom - primary brand blue (same in dark) */
+  --brand-600: #7E9EFF;
+  --brand-700: #A3C1FF;
+  --brand-800: #C6DAFF;
+  --brand-900: #DFEAFF;
+  --brand-950: #EEF4FF;
+
+  /* Agave Scale - Zoom accent color (darker values for dark mode) */
+  --accent-blue-50: #002219;
+  --accent-blue-100: #004533;
+  --accent-blue-200: #006B66;
+  --accent-blue-300: #009199;
+  --accent-blue-400: #00B8CC;
+  --accent-blue-500: #00DEEF; /* Agave - accent color (same in dark) */
+  --accent-blue-600: #33EBFF;
+  --accent-blue-700: #66F0FF;
+  --accent-blue-800: #99F5FF;
+  --accent-blue-900: #CCFAFF;
+  --accent-blue-950: #E6FDFF;
 
   /* Neutral Scale - Dark theme grays */
   --neutral-50: #0A0A0A;
@@ -447,56 +498,56 @@
   --neutral-900: #F5F5F5;
   --neutral-950: #FAFAFA;
 
-  /* Destructive Scale - Red based on --destructive (#EF4444) - same in both themes */
-  --destructive-50: #450A0A;
-  --destructive-100: #7F1D1D;
-  --destructive-200: #991B1B;
-  --destructive-300: #B91C1C;
-  --destructive-400: #DC2626;
-  --destructive-500: #EF4444; /* Base --destructive */
-  --destructive-600: #F87171;
-  --destructive-700: #FCA5A5;
-  --destructive-800: #FECACA;
-  --destructive-900: #FEE2E2;
-  --destructive-950: #FEF2F2;
+  /* Destructive Scale - Rose (darker values for dark mode) */
+  --destructive-50: #641537;
+  --destructive-100: #971F4A;
+  --destructive-200: #B02457;
+  --destructive-300: #C92964;
+  --destructive-400: #E22E71;
+  --destructive-500: #FB327E; /* Rose - error states, alerts (same in dark) */
+  --destructive-600: #F862AF;
+  --destructive-700: #FAA1C3;
+  --destructive-800: #FCC1D7;
+  --destructive-900: #FDE0EB;
+  --destructive-950: #FEF0F5;
 
-  /* Success Scale - Green for positive states */
-  --success-50: #052E16;
-  --success-100: #14532D;
-  --success-200: #166534;
-  --success-300: #15803D;
-  --success-400: #16A34A;
-  --success-500: #22C55E;
-  --success-600: #4ADE80;
-  --success-700: #86EFAC;
-  --success-800: #BBF7D0;
-  --success-900: #DCFCE7;
-  --success-950: #F0FDF4;
+  /* Success Scale - Spearmint (darker values for dark mode) */
+  --success-50: #001910;
+  --success-100: #003322;
+  --success-200: #006644;
+  --success-300: #009966;
+  --success-400: #00CC86;
+  --success-500: #00EF9D; /* Spearmint - success states (same in dark) */
+  --success-600: #33FFBF;
+  --success-700: #66FFCF;
+  --success-800: #99FFDF;
+  --success-900: #CCFFEF;
+  --success-950: #E6FFF7;
 
-  /* Warning Scale - Orange for caution states */
-  --warning-50: #451A03;
-  --warning-100: #78350F;
-  --warning-200: #92400E;
-  --warning-300: #B45309;
-  --warning-400: #D97706;
-  --warning-500: #F59E0B;
-  --warning-600: #FBBF24;
-  --warning-700: #FCD34D;
-  --warning-800: #FDE68A;
-  --warning-900: #FEF3C7;
-  --warning-950: #FFFBEB;
+  /* Warning Scale - Gold (darker values for dark mode) */
+  --warning-50: #662F00;
+  --warning-100: #994D00;
+  --warning-200: #B37A00;
+  --warning-300: #CC9900;
+  --warning-400: #E6B800;
+  --warning-500: #FFCD00; /* Gold - warning states (same in dark) */
+  --warning-600: #FFD633;
+  --warning-700: #FFE066;
+  --warning-800: #FFEB99;
+  --warning-900: #FFF5CC;
+  --warning-950: #FFFAEB;
 
-  /* Special Scale - Purple (same in both themes) */
-  --special-50: #2A0E5A;
-  --special-100: #421B87;
-  --special-200: #4E1FA6;
-  --special-300: #5F26CC;
-  --special-400: #7030E6;
-  --special-500: #823EFC; /* Your special button color */
-  --special-600: #9B70FF;
-  --special-700: #BFA3FF;
-  --special-800: #D9C7FF;
-  --special-900: #EBE0FF;
+  /* Special Scale - Lavender (darker values for dark mode) */
+  --special-50: #3E1483;
+  --special-100: #521BAD;
+  --special-200: #642EC1;
+  --special-300: #7641D4;
+  --special-400: #8854E8;
+  --special-500: #9A67FB; /* Lavender - creative elements (same in dark) */
+  --special-600: #AC85FF;
+  --special-700: #C19EFF;
+  --special-800: #D6C2FF;
+  --special-900: #EAE0FF;
   --special-950: #F4F0FF;
 
   /* Enhanced Border System - Dark - More Subtle */
@@ -520,18 +571,18 @@
   --chart-4: #FFFFFF;
   --chart-5: #262625;
 
-  /* Sidebar Colors */
-  --sidebar: #0A0A0A; /* Deep black sidebar - custom palette */
-  --sidebar-foreground: #EEEEEE;
-  --sidebar-primary: #9B70FF; /* Lighter purple for dark mode */
-  --sidebar-primary-foreground: #0A0A0A;
-  --sidebar-accent: #262626; /* Dark accent */
-  --sidebar-accent-foreground: #EEEEEE;
-  --sidebar-border: #404040;
-  --sidebar-ring: #9B70FF;
+  /* Sidebar Colors - Zoom Dark Palette */
+  --sidebar: #00053D; /* Midnight - dark sidebar */
+  --sidebar-foreground: #FFFFFF; /* White - light text */
+  --sidebar-primary: #0B5CFF; /* Bloom - primary actions (same in dark) */
+  --sidebar-primary-foreground: #FFFFFF; /* White on blue */
+  --sidebar-accent: rgba(180, 208, 248, 0.15); /* Dawn with opacity - hover */
+  --sidebar-accent-foreground: #FFFFFF; /* White - light text */
+  --sidebar-border: rgba(180, 208, 248, 0.2); /* Dawn with opacity - borders */
+  --sidebar-ring: #0B5CFF; /* Bloom - focus rings */
 
-  /* Native Font Stacks */
-  --font-sans: -apple-system, "system-ui", "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+  /* Zoom Design System Typography Stack */
+  --font-sans: var(--font-lato), var(--font-roboto), -apple-system, "system-ui", "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
   --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
   --font-mono: 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', "Liberation Mono", "Courier New", monospace;
 
@@ -546,27 +597,27 @@
   --shadow-soft-drop: 
     0 0.25rem 1.25rem rgba(0, 0, 0, 0.2),
     0 0 0 0.5px rgba(255, 255, 255, 0.05);
-    
+
   --shadow-input: 
     0 0.125rem 0.5rem rgba(0, 0, 0, 0.15),
     0 0 0 0.5px rgba(255, 255, 255, 0.04);
-    
+
   --shadow-hover: 
     0 0.25rem 1.25rem rgba(0, 0, 0, 0.3),
     0 0 0 0.5px rgba(255, 255, 255, 0.08);
-    
+
   --shadow-active: 
     0 0.125rem 0.5rem rgba(0, 0, 0, 0.15),
     0 0 0 0.5px rgba(255, 255, 255, 0.06);
-    
+
   --shadow-lg: 
     0 0.5rem 2rem rgba(0, 0, 0, 0.35),
     0 0 0 0.5px rgba(255, 255, 255, 0.06);
-    
+
   --shadow-inset-subtle: 
     inset 0 1px 2px rgba(0, 0, 0, 0.2),
     0 0 0 0.5px rgba(255, 255, 255, 0.03);
-    
+
   --shadow-glow: 
     0 0 0 3px rgba(29, 41, 63, 0.15),
     0 0 0 0.5px rgba(29, 41, 63, 0.2);
@@ -608,27 +659,27 @@
   .interactive {
     transition: all var(--transition-fast);
   }
-  
+
   .interactive:hover {
     transform: translateY(-1px);
     box-shadow: var(--shadow-hover);
   }
-  
+
   .interactive:active {
     transform: translateY(0);
     box-shadow: var(--shadow-active);
   }
-  
+
   /* Subtle focus state that aligns with your no-outline approach */
   .soft-focus:focus-visible {
     box-shadow: var(--shadow-glow) !important;
   }
-  
+
   /* Card hover effect */
   .card-interactive {
     transition: all var(--transition-base);
   }
-  
+
   .card-interactive:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-sm);
@@ -702,7 +753,7 @@
   .slideout-open[data-slideout-width="lg"] {
     margin-right: 480px;
   }
-  
+
   .slideout-open[data-slideout-width="xl"] {
     margin-right: 600px;
   }
@@ -726,7 +777,6 @@
     max-height: 400px !important;
   }
 }
-
 
 /* ========================================
    CLAUDE-STYLE SKELETON SCREENS
@@ -793,12 +843,12 @@
   .slideout-open .lg\:grid-cols-4 {
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   }
-  
+
   /* 5-column grid becomes 3-column when slideout is open */
   .slideout-open .lg\:grid-cols-5 {
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   }
-  
+
   /* 6-column grid becomes 4-column when slideout is open */
   .slideout-open .lg\:grid-cols-6 {
     grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
@@ -824,8 +874,17 @@
   .slideout-open .md\:grid-cols-3 {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
-  
+
   .slideout-open .md\:grid-cols-4 {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
   }
 }

@@ -5,6 +5,8 @@ import Link from "next/link";
 import { EllipsisVertical, CircleUser, CreditCard, MessageSquareDot, LogOut, Building2, Moon, Sun } from "lucide-react";
 import { toast } from "sonner";
 
+import { ThemeSwitcher } from "@/components/theme/theme-switcher";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -123,6 +125,11 @@ export function NavUser() {
               {themeMode === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               {themeMode === "dark" ? "Light Mode" : "Dark Mode"}
             </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <div className="px-2 py-1">
+              <div className="text-xs font-medium text-muted-foreground mb-1">Color Theme</div>
+              <ThemeSwitcher />
+            </div>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout} disabled={loading}>
               <LogOut />

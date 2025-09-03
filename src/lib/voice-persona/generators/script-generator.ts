@@ -267,7 +267,8 @@ export class ScriptGenerator {
 
     // Add personal reference if available
     const personalReferences = profile.speechPatterns.emotionalStates.explaining.transitionWords.filter((word) =>
-      word.toLowerCase().includes("i "),
+      word.toLowerCase().includes("i ")
+    );
 
     if (personalReferences.length > 0) {
       coreMessage += `${personalReferences[0]} this changed everything for me. `;

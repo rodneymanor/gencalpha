@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 
 import { Settings, ArrowUp, Zap, Loader2, Clock, Database } from "lucide-react";
 
+import { ShineBorder } from "@/components/magicui/shine-border";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -43,6 +44,8 @@ export default function ChatInput({
   const [timeLimit, setTimeLimit] = useState("20s");
   const [showTrendingDropdown, setShowTrendingDropdown] = useState(false);
   const [showTypewriter, setShowTypewriter] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const placeholderRef = useRef<HTMLDivElement>(null);
@@ -113,10 +116,15 @@ export default function ChatInput({
 
   // Show trending topics when input is focused
   const handleInputFocus = () => {
+    setIsFocused(true);
     if (showTrending) {
       setShowTrendingDropdown(true);
       // Topics are already preloaded or will load from cache
     }
+  };
+  
+  const handleInputBlur = () => {
+    setIsFocused(false);
   };
 
   // Select a trending topic and focus input
@@ -145,7 +153,21 @@ export default function ChatInput({
 
   return (
     <form onSubmit={handleSubmit} className={`relative ${className}`}>
-      <div className="flex items-center gap-2 rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-50 p-2 shadow-[var(--shadow-input)] transition-all duration-200 hover:border-neutral-300">
+      <div 
+        className="relative flex items-center gap-2 rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-50 p-2 shadow-[var(--shadow-input)] transition-all duration-200 hover:border-neutral-300"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        {/* Shine border - only visible on hover or focus */}
+        {(isHovered || isFocused) && (
+          <ShineBorder
+            borderWidth={2}
+            duration={8}
+            shineColor={["#3186FF", "#FFF114", "#FF4641", "#3186FF"]}
+            className="opacity-70"
+          />
+        )}
+        
         {/* Personas dropdown on far left */}
         {showPersonas && (
           <PersonasDropdown selectedPersona={selectedPersona} onPersonaSelect={onPersonaSelect} disabled={disabled} />
@@ -170,6 +192,7 @@ export default function ChatInput({
             value={value}
             onChange={(e) => onChange(e.target.value)}
             onFocus={handleInputFocus}
+            onBlur={handleInputBlur}
             placeholder=""
             disabled={disabled}
             className="flex-1 w-full border-0 bg-transparent px-4 text-base text-neutral-900 caret-neutral-900 shadow-none ring-0 outline-none placeholder:text-neutral-500 hover:shadow-none focus:border-0 focus:shadow-none focus:ring-0 focus:outline-none focus-visible:border-0 focus-visible:shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none"

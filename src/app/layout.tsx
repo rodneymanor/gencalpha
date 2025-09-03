@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Lato, Roboto } from "next/font/google";
 
 import { LoadingProvider } from "@/components/ui/loading";
 import { Toaster } from "@/components/ui/sonner";
@@ -14,7 +14,22 @@ import { THEME_MODE_VALUES, THEME_PRESET_VALUES, type ThemePreset, type ThemeMod
 
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+// Zoom Design System Typography
+// Primary: Lato for excellent readability and professional look
+const lato = Lato({ 
+  subsets: ["latin"],
+  weight: ["400", "700", "900"],
+  variable: "--font-lato",
+  display: "swap"
+});
+
+// Fallback: Roboto for natural reading rhythm  
+const roboto = Roboto({ 
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  variable: "--font-roboto", 
+  display: "swap"
+});
 
 export const metadata: Metadata = {
   title: APP_CONFIG.meta.title,
@@ -29,7 +44,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     <html
       lang="en"
       className={themeMode === "dark" ? "dark" : ""}
-      data-theme-preset={themePreset}
+      data-theme-preset="default"
       suppressHydrationWarning
     >
       <head>
@@ -39,7 +54,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <link rel="dns-prefetch" href="https://firebaseapp.com" />
         <link rel="dns-prefetch" href="https://firebaseio.com" />
       </head>
-      <body className={`${inter.className} min-h-screen antialiased`}>
+      <body className={`${lato.variable} ${roboto.variable} font-sans min-h-screen antialiased`}>
         <PostHogProvider>
           <QueryProvider>
             <LoadingProvider>

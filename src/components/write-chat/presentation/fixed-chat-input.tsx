@@ -1,7 +1,9 @@
 "use client";
 
 import { ArrowUp, SlidersHorizontal } from "lucide-react";
+import { useState } from "react";
 
+import { ShineBorder } from "@/components/magicui/shine-border";
 import { Button } from "@/components/ui/button";
 import { PersonasDropdown } from "@/components/write-chat/personas-dropdown";
 
@@ -23,10 +25,28 @@ export function FixedChatInput(props: {
     onPersonaSelect,
     showPersonas = true,
   } = props;
+  
+  // Track hover and focus states for shine border
+  const [isHovered, setIsHovered] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  
   return (
     <div className="chat-input-fixed">
       <div className="mx-auto w-full max-w-3xl">
-        <div className="bg-card border-border-subtle rounded-[var(--radius-card)] border shadow-[var(--shadow-input)]">
+        <div 
+          className="relative bg-card border-border-subtle rounded-[var(--radius-card)] border shadow-[var(--shadow-input)]"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          {/* Shine border - only visible on hover or focus */}
+          {(isHovered || isFocused) && (
+            <ShineBorder
+              borderWidth={2}
+              duration={8}
+              shineColor={["#3186FF", "#FFF114", "#FF4641", "#3186FF"]}
+              className="opacity-70"
+            />
+          )}
           <div className="flex items-center gap-3 p-3">
             {/* Personas dropdown on far left */}
             {showPersonas && <PersonasDropdown selectedPersona={selectedPersona} onPersonaSelect={onPersonaSelect} />}
@@ -36,6 +56,8 @@ export function FixedChatInput(props: {
                 ref={textareaRef}
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
                 placeholder="Reply to Gen.C..."
                 className="w-full resize-none border-0 bg-transparent font-sans text-sm shadow-none ring-0 outline-none placeholder:text-neutral-500 focus:shadow-none focus:ring-0 focus:outline-none"
                 rows={1}

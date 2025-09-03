@@ -90,7 +90,8 @@ export class RulesEngine {
 
     const isValid = violations.length === 0;
     console.log(
-      `${isValid ? "✅" : "❌"} [RULES_ENGINE] Parameter validation ${isValid ? "passed" : "failed"} with ${violations.length} violations`,
+      `${isValid ? "✅" : "❌"} [RULES_ENGINE] Parameter validation ${isValid ? "passed" : "failed"} with ${violations.length} violations`
+    );
 
     return { valid: isValid, violations };
   }
@@ -122,7 +123,8 @@ export class RulesEngine {
 
     const isValid = violations.length === 0;
     console.log(
-      `${isValid ? "✅" : "❌"} [RULES_ENGINE] Content validation ${isValid ? "passed" : "failed"} with ${violations.length} violations`,
+      `${isValid ? "✅" : "❌"} [RULES_ENGINE] Content validation ${isValid ? "passed" : "failed"} with ${violations.length} violations`
+    );
 
     return { valid: isValid, violations };
   }
