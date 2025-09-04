@@ -97,7 +97,7 @@ export function AISuggestionPopup({
 }: AISuggestionPopupProps) {
   const [currentStep, setCurrentStep] = useState<'actions' | 'options' | 'suggestions'>('actions')
   const [selectedAction, setSelectedAction] = useState<string | null>(null)
-  const [selectedOption, setSelectedOption] = useState<string | null>(null)
+  const [_selectedOption, setSelectedOption] = useState<string | null>(null)
   const [suggestions, setSuggestions] = useState<AISuggestion[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -171,7 +171,7 @@ export function AISuggestionPopup({
 
       if (data.success) {
         // Handle multiple variations for generate_variations
-        if (actionId === 'generate_variations' && data.modifiedText.includes('\n')) {
+        if (actionId === 'generate_variations' && data.modifiedText?.includes('\n')) {
           const variations = data.modifiedText
             .split('\n')
             .filter((line: string) => line.trim())

@@ -32,7 +32,7 @@ interface ScriptAnalysisData {
     components: ComponentAnalysis[]
     mostComplex?: ComponentAnalysis
     recommendations: string[]
-  }
+  } | null
 }
 
 interface AnalysisSidebarProps {

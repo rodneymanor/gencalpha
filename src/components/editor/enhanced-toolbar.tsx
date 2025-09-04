@@ -119,12 +119,12 @@ export function EnhancedToolbar({
   // View options
   onTogglePreview,
   isPreviewMode = false,
-  onToggleFocus,
-  isFocusMode = false,
+  onToggleFocus: _onToggleFocus,
+  isFocusMode: _isFocusMode = false,
   
   // Other actions
   onShare,
-  onSettings,
+  onSettings: _onSettings,
   
   // State
   isSaving = false,
@@ -132,7 +132,7 @@ export function EnhancedToolbar({
   className,
 }: EnhancedToolbarProps) {
   
-  const [isVisible, setIsVisible] = useState(true)
+  const [_isVisible, _setIsVisible] = useState(true)
 
   return (
     <div className={cn(

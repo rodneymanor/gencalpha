@@ -30,7 +30,7 @@ interface InteractiveScriptProps {
   }
 }
 
-// Parse script sections from markdown format
+// Parse script sections from markdown format  
 const parseScriptSections = (script: string): ScriptSection[] => {
   const sections: ScriptSection[] = []
   const lines = script.split('\n')
@@ -42,37 +42,15 @@ const parseScriptSections = (script: string): ScriptSection[] => {
     // Check for section headers
     if (trimmedLine.startsWith('**') && trimmedLine.endsWith(':**')) {
       // Save previous section if exists
-      if (currentSection && currentSection.content.trim()) {
+      if (currentSection?.content.trim()) {
         sections.push(currentSection)
       }
       
       // Start new section
       const title = trimmedLine.replace(/\*\*/g, '').replace(':', '')
-      let type: ScriptSection['type'] = 'nugget' // default
+      const type = getSectionType(title.toLowerCase())
       
-      switch (title.toLowerCase()) {
-        case 'hook':
-          type = 'hook'
-          break
-        case 'micro hook':
-          type = 'micro-hook'
-          break
-        case 'bridge':
-          type = 'bridge'
-          break
-        case 'golden nugget':
-          type = 'nugget'
-          break
-        case 'call to action':
-          type = 'cta'
-          break
-      }
-      
-      currentSection = {
-        type,
-        title,
-        content: ''
-      }
+      currentSection = { type, title, content: '' }
     } else if (currentSection && trimmedLine) {
       // Add content to current section
       currentSection.content += (currentSection.content ? '\n' : '') + trimmedLine
@@ -80,11 +58,23 @@ const parseScriptSections = (script: string): ScriptSection[] => {
   }
   
   // Don't forget the last section
-  if (currentSection && currentSection.content.trim()) {
+  if (currentSection?.content.trim()) {
     sections.push(currentSection)
   }
   
   return sections
+}
+
+// Helper function to determine section type
+const getSectionType = (title: string): ScriptSection['type'] => {
+  switch (title) {
+    case 'hook': return 'hook'
+    case 'micro hook': return 'micro-hook' 
+    case 'bridge': return 'bridge'
+    case 'golden nugget': return 'nugget'
+    case 'call to action': return 'cta'
+    default: return 'nugget'
+  }
 }
 
 // Rebuild script from sections
@@ -204,7 +194,7 @@ export function InteractiveScript({
     <>
       <div className={`prose max-w-none text-foreground leading-relaxed min-h-[300px] ${className}`}>
         {sections.map((section, index) => (
-          <div key={index} className="mb-6">
+          <div key={`section-${section.type}-${index}`} className="mb-6">
             {/* Section Title */}
             <h4 className="text-lg font-semibold text-foreground mt-6 mb-3 first:mt-0">
               {section.title}:
@@ -215,7 +205,7 @@ export function InteractiveScript({
               ref={el => sectionRefs.current[index] = el}
               className={`
                 relative p-4 rounded-[var(--radius-button)] cursor-pointer transition-all duration-200
-                ${hoveredSection === index ? getSectionColor(section.type) + ' shadow-sm' : 'hover:bg-background-hover'}
+                ${hoveredSection === index ? `${getSectionColor(section.type)} shadow-sm` : 'hover:bg-background-hover'}
               `}
               onClick={(e) => handleSectionClick(section, index, e)}
               onMouseEnter={() => setHoveredSection(index)}
@@ -239,7 +229,7 @@ export function InteractiveScript({
               <div 
                 className="text-base leading-relaxed"
                 dangerouslySetInnerHTML={{ 
-                  __html: scriptAnalysis?.hasComponentAnalysis && scriptAnalysis?.componentAnalysis?.components 
+                  __html: scriptAnalysis?.hasComponentAnalysis && scriptAnalysis.componentAnalysis?.components 
                     ? applyComplexityHighlighting(section.content, scriptAnalysis.componentAnalysis.components)
                     : section.content.replace(/\n/g, '<br />')
                 }}

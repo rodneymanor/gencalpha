@@ -1,5 +1,4 @@
-// PersonaOption type is no longer needed for URL parameters
-import { UnifiedWriteClient } from "@/components/write-chat/unified-write-client";
+import { StreamlinedScriptWriter } from "@/components/script-generation/streamlined-script-writer";
 
 export default async function WritePage({
   searchParams,
@@ -8,15 +7,13 @@ export default async function WritePage({
 }) {
   const params = await searchParams;
   const initialPrompt = typeof params.prompt === "string" ? params.prompt : undefined;
-  // Personas are now selected within the UI rather than passed via URL
-  const chatId = typeof params.chatId === "string" ? params.chatId : undefined;
   const remountKey = typeof params.new === "string" ? params.new : undefined;
   return (
-    <div className="font-sans bg-neutral-50 min-h-screen">
-      <UnifiedWriteClient
+    <div className="min-h-screen bg-neutral-50 font-sans">
+      <StreamlinedScriptWriter
         key={remountKey}
         initialPrompt={initialPrompt}
-        conversationIdToLoad={chatId}
+        className="from-background to-background-muted bg-gradient-to-b"
       />
     </div>
   );

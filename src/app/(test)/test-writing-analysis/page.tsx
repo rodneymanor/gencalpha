@@ -51,7 +51,33 @@ Learn more about the future of accelerated life sciences research and how you ca
   };
 
   // Analyze the sample script for component readability
-  const scriptAnalysis = useEnhancedScriptAnalytics(sampleScript);
+  const rawScriptAnalysis = useEnhancedScriptAnalytics(sampleScript);
+
+  // Transform the analysis data to match the expected interface
+  const scriptAnalysis = {
+    ...rawScriptAnalysis,
+    componentAnalysis: rawScriptAnalysis.componentAnalysis
+      ? {
+          components: rawScriptAnalysis.componentAnalysis.components.map((comp) => ({
+            component: comp.component,
+            text: comp.text,
+            complexity: comp.complexity,
+            gradeLevel: comp.gradeLevel,
+            suggestions: comp.suggestions,
+          })),
+          mostComplex: rawScriptAnalysis.componentAnalysis.mostComplex
+            ? {
+                component: rawScriptAnalysis.componentAnalysis.mostComplex.component,
+                text: rawScriptAnalysis.componentAnalysis.mostComplex.text,
+                complexity: rawScriptAnalysis.componentAnalysis.mostComplex.complexity,
+                gradeLevel: rawScriptAnalysis.componentAnalysis.mostComplex.gradeLevel,
+                suggestions: rawScriptAnalysis.componentAnalysis.mostComplex.suggestions,
+              }
+            : undefined,
+          recommendations: rawScriptAnalysis.componentAnalysis.recommendations,
+        }
+      : null,
+  };
 
   // Get complexity-based background color (transparent versions)
   const getComplexityBackgroundColor = (complexity: string) => {

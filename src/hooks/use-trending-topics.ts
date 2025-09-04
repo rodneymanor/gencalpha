@@ -1,9 +1,20 @@
 // Custom hook for managing trending topics with optimized caching
 import { useState, useEffect, useCallback } from "react";
 
-import { useAuth } from "@/contexts/auth-context";
 import { buildAuthHeaders } from "@/lib/http/auth-headers";
 import type { TrendingTopic } from "@/lib/rss-service";
+
+// Safe auth hook that returns null if not in auth context
+function useSafeAuth() {
+  try {
+    // Dynamic import to avoid compile-time errors
+    const { useAuth } = require("@/contexts/auth-context");
+    return useAuth();
+  } catch {
+    // Not in auth context, return null
+    return null;
+  }
+}
 
 interface UseTrendingTopicsOptions {
   autoLoad?: boolean; // Whether to load topics immediately
@@ -34,7 +45,8 @@ const SESSION_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 export function useTrendingTopics(options: UseTrendingTopicsOptions = {}): UseTrendingTopicsReturn {
   const { autoLoad = false, limit = 8, refreshInterval } = options;
-  const { user } = useAuth();
+  const auth = useSafeAuth();
+  const user = auth?.user;
 
   const [topics, setTopics] = useState<TrendingTopic[]>([]);
   const [isLoading, setIsLoading] = useState(false);

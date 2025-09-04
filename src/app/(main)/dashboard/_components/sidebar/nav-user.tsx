@@ -16,7 +16,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/auth-context";
 import { usePreferencesStore } from "@/lib/stores/preferences/preferences-provider";
 import { updateThemeMode } from "@/lib/theme-utils";
@@ -30,7 +29,6 @@ function getDisplayName(userProfile: any, user: any): string {
 
 export function NavUser() {
   const { user, userProfile, logout, loading } = useAuth();
-  const { isMobile } = useSidebar();
   const themeMode = usePreferencesStore((s) => s.themeMode);
   const setThemeMode = usePreferencesStore((s) => s.setThemeMode);
 
@@ -61,24 +59,23 @@ export function NavUser() {
     typeof displayName === "string" && displayName.trim() ? displayName.trim().charAt(0).toUpperCase() : "U";
 
   return (
-    <SidebarMenu>
-      <SidebarMenuItem>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-              <div className="text-foreground flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-pill)] bg-gray-200 text-sm leading-none font-medium group-data-[collapsible=icon]:-ml-2">
-                {firstInitial}
-              </div>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{displayName}</span>
-                <span className="text-muted-foreground truncate text-xs">{email}</span>
-              </div>
-              <EllipsisVertical className="ml-auto size-4" />
-            </SidebarMenuButton>
-          </DropdownMenuTrigger>
+    <div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button className="flex w-full items-center gap-3 rounded-md p-2.5 text-left transition-all duration-200 ease-out hover:bg-gray-50 data-[state=open]:bg-gray-100">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-200 text-sm font-medium leading-none text-foreground">
+              {firstInitial}
+            </div>
+            <div className="grid flex-1 text-left text-sm leading-tight">
+              <span className="truncate font-medium">{displayName}</span>
+              <span className="truncate text-xs text-muted-foreground">{email}</span>
+            </div>
+            <EllipsisVertical className="ml-auto h-4 w-4" />
+          </button>
+        </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-            side={isMobile ? "bottom" : "right"}
+            side="right"
             align="end"
             sideOffset={4}
           >
@@ -137,7 +134,6 @@ export function NavUser() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      </SidebarMenuItem>
-    </SidebarMenu>
+    </div>
   );
 }

@@ -28,7 +28,12 @@ interface ScriptAnalysisData {
       gradeLevel: string
       suggestions: string[]
     }>
-  }
+  } | null
+  overallGradeLevel?: string
+  passesThirdGradeTest?: boolean
+  wordCount?: number
+  estimatedDuration?: number
+  readabilityScore?: number
 }
 
 interface WritingAnalysisMainProps {
@@ -50,7 +55,7 @@ export function WritingAnalysisMain({
   setShowComplexityView,
   scriptAnalysis,
   sampleScript,
-  renderHighlightedScript,
+  renderHighlightedScript: _renderHighlightedScript,
   handleContentChange,
   onScriptUpdate
 }: WritingAnalysisMainProps) {
