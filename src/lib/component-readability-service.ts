@@ -83,13 +83,17 @@ export class ComponentReadabilityService {
       ? gradeNumbers.reduce((sum, grade) => sum + grade, 0) / gradeNumbers.length
       : 0;
 
-    const mostComplex = componentAnalyses.reduce((prev, current) => 
-      (current.gradeNumeric > prev.gradeNumeric) ? current : prev
-    );
+    const mostComplex = componentAnalyses.length > 0 
+      ? componentAnalyses.reduce((prev, current) => 
+          (current.gradeNumeric > prev.gradeNumeric) ? current : prev
+        )
+      : overallAnalysis;
 
-    const leastComplex = componentAnalyses.reduce((prev, current) => 
-      (current.gradeNumeric < prev.gradeNumeric && current.gradeNumeric > 0) ? current : prev
-    );
+    const leastComplex = componentAnalyses.length > 0
+      ? componentAnalyses.reduce((prev, current) => 
+          (current.gradeNumeric < prev.gradeNumeric && current.gradeNumeric > 0) ? current : prev
+        )
+      : overallAnalysis;
 
     // Component complexity distribution
     const componentStats = {
@@ -364,7 +368,9 @@ export class ComponentReadabilityService {
   private generateScriptRecommendations(components: ComponentReadabilityAnalysis[]): string[] {
     const recommendations: string[] = [];
 
-    const avgGrade = components.reduce((sum, c) => sum + c.gradeNumeric, 0) / components.length;
+    const avgGrade = components.length > 0 
+      ? components.reduce((sum, c) => sum + c.gradeNumeric, 0) / components.length
+      : 0;
 
     if (avgGrade > 8) {
       recommendations.push("Overall script complexity is high - consider simplifying language");
