@@ -27,6 +27,10 @@ import {
 import { APP_CONFIG } from "@/config/app-config";
 import { cn } from "@/lib/utils";
 import { type SidebarVariant, type SidebarCollapsible, type ContentLayout } from "@/types/preferences/layout";
+import { CollectionsService } from "@/lib/collections";
+import { useAuth } from "@/contexts/auth-context";
+import { listConversations } from "@/components/write-chat/services/chat-service";
+import { useContentItems } from "@/components/content-inbox/hooks/use-content-inbox";
 
 import { NavUser } from "./nav-user";
 
@@ -64,6 +68,7 @@ interface SidebarSection {
 export function AppSidebar({ className }: AppSidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const { user } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isAIActive, setIsAIActive] = useState(true);
@@ -71,6 +76,11 @@ export function AppSidebar({ className }: AppSidebarProps) {
     organize: false,
     recent: false,
   });
+  const [collectionsCount, setCollectionsCount] = useState(0);
+  const [recentItems, setRecentItems] = useState<SidebarItem[]>([]);
+  
+  // Use content items hook for fetching library items
+  const { data: contentData } = useContentItems({}, { field: "savedAt", direction: "desc" });
 
   const quickGenerators: QuickGenerator[] = [
     { id: "hook-gen", title: "Hook Generator", uses: 24, icon: Hash },
@@ -84,9 +94,9 @@ export function AppSidebar({ className }: AppSidebarProps) {
       id: "organize",
       title: "Organize",
       items: [
-        { id: "collections", title: "Collections", icon: FolderOpen, badge: 12 },
+        { id: "collections", title: "Collections", icon: FolderOpen, badge: collectionsCount > 0 ? collectionsCount : undefined },
         { id: "personas", title: "Personas", icon: Users },
-        { id: "recent-videos", title: "Recent Videos", icon: PlayCircle, badge: 5 },
+        { id: "library", title: "Library", icon: PlayCircle },
         { id: "drafts", title: "Drafts", icon: Clock, comingSoon: true },
       ],
       defaultOpen: true,
@@ -94,10 +104,8 @@ export function AppSidebar({ className }: AppSidebarProps) {
     {
       id: "recent",
       title: "Recent Activity",
-      items: [
-        { id: "project-alpha", title: "Project Alpha Script", icon: FileText },
-        { id: "viral-hooks", title: "Viral Hooks Analysis", icon: TrendingUp },
-        { id: "brand-scripts", title: "Brand Scripts Collection", icon: Database },
+      items: recentItems.length > 0 ? recentItems : [
+        { id: "no-recent", title: "No recent items", icon: FileText },
       ],
       defaultOpen: false,
     },
@@ -111,18 +119,17 @@ export function AppSidebar({ className }: AppSidebarProps) {
   };
 
   const handleItemClick = (id: string) => {
-    // Map test sidebar item IDs to actual URLs
+    // Map sidebar item IDs to actual URLs
     const urlMap: Record<string, string> = {
       collections: "/collections",
       personas: "/personas",
-      "recent-videos": "/library",
+      library: "/library",
       drafts: "/drafts",
-      "project-alpha": "/library",
-      "viral-hooks": "/library",
-      "brand-scripts": "/library",
+      "no-recent": "/library", // Navigate to library when clicking "No recent items"
     };
 
-    const url = urlMap[id] || `/${id}`;
+    // For dynamic recent items (from database), navigate to library
+    const url = urlMap[id] || "/library";
 
     // Close slideout wrapper by dispatching a global event
     if (typeof window !== "undefined") {
@@ -154,6 +161,55 @@ export function AppSidebar({ className }: AppSidebarProps) {
       router.push(homePage);
     }
   };
+
+  // Fetch collections count and recent items from library
+  useEffect(() => {
+    const fetchSidebarData = async () => {
+      if (!user?.uid) return;
+
+      try {
+        // Fetch collections count
+        const collections = await CollectionsService.getUserCollections(user.uid);
+        setCollectionsCount(collections.length);
+
+        // Fetch recent chat conversations
+        const conversations = await listConversations();
+        
+        // Combine different library items (chats and content)
+        const libraryItems: SidebarItem[] = [];
+        
+        // Add recent chat conversations (scripts)
+        const recentChats = conversations.slice(0, 2).map((chat) => ({
+          id: chat.id,
+          title: chat.title || "Untitled Script",
+          icon: PenTool, // Script icon for chats
+        }));
+        libraryItems.push(...recentChats);
+        
+        // Add recent content items if available
+        if (contentData?.pages) {
+          const contentItems = contentData.pages
+            .flatMap(page => page.items ?? [])
+            .slice(0, 3 - recentChats.length) // Fill up to 3 total items
+            .map((item) => ({
+              id: item.id,
+              title: item.title || "Untitled Content",
+              icon: item.platform.toLowerCase() === 'tiktok' || item.platform.toLowerCase() === 'instagram' 
+                ? PlayCircle // Video icon for social media content
+                : FileText, // Document icon for other content
+            }));
+          libraryItems.push(...contentItems);
+        }
+
+        // If still less than 3 items, show what we have or a placeholder
+        setRecentItems(libraryItems.length > 0 ? libraryItems.slice(0, 3) : []);
+      } catch (error) {
+        console.error("Error fetching sidebar data:", error);
+      }
+    };
+
+    fetchSidebarData();
+  }, [user, contentData]);
 
   useEffect(() => {
     // Simulate AI activity indicator
@@ -339,7 +395,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
                       disabled={item.comingSoon}
                       className={cn(
                         "group flex w-full items-center gap-3 rounded-md p-2.5 text-left transition-all duration-200 ease-out",
-                        pathname === `/${item.id}` || (item.id === "recent-videos" && pathname === "/library")
+                        pathname === `/${item.id}` || (item.id === "library" && pathname === "/library")
                           ? "bg-gray-100 font-medium text-gray-900"
                           : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
                         item.comingSoon && "cursor-not-allowed opacity-50",

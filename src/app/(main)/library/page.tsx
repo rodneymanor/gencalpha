@@ -17,6 +17,11 @@ import { useContentItems } from "@/components/content-inbox/hooks/use-content-in
 import { type ContentItem } from "@/components/content-inbox/types";
 import { NotionPanel } from '@/components/panels/notion';
 import type { PageProperty, TabData } from '@/components/panels/notion';
+import { useScriptsApi } from "@/hooks/use-scripts-api";
+import { Script } from "@/types/script";
+import { Hook } from "@/app/api/hooks/route";
+import { ContentIdea } from "@/app/api/content/ideas/route";
+import { useAuth } from "@/contexts/auth-context";
 
 import { getLibraryConfig } from "./library-config";
 import { generateMockData } from "./types";
@@ -31,12 +36,20 @@ const BlockNoteEditor = dynamic(() => import('@/components/editor/block-note-edi
 export default function LibraryPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user } = useAuth();
   const [conversations, setConversations] = useState<ChatConversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
   // Add ContentInbox data
   const [contentItems, setContentItems] = useState<ContentItem[]>([]);
+  
+  // Add generated content data
+  const { scripts, fetchScripts, loading: scriptsLoading } = useScriptsApi();
+  const [hooks, setHooks] = useState<Hook[]>([]);
+  const [contentIdeas, setContentIdeas] = useState<ContentIdea[]>([]);
+  const [hooksLoading, setHooksLoading] = useState(false);
+  const [ideasLoading, setIdeasLoading] = useState(false);
   
   // NotionPanel state
   const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -50,13 +63,6 @@ export default function LibraryPage() {
   const [properties, setProperties] = useState<PageProperty[]>([
     { 
       id: '1', 
-      type: 'url' as const, 
-      name: 'URL', 
-      value: '',
-      icon: 'link' 
-    },
-    { 
-      id: '2', 
       type: 'status' as const, 
       name: 'Generation', 
       value: { label: 'Pending', color: 'default' }, 
@@ -70,17 +76,10 @@ export default function LibraryPage() {
   };
 
   const handleNewIdea = () => {
-    // Reset properties to default URL input
+    // Reset properties to default without URL field
     setProperties([
       { 
         id: '1', 
-        type: 'url' as const, 
-        name: 'URL', 
-        value: '',
-        icon: 'link' 
-      },
-      { 
-        id: '2', 
         type: 'status' as const, 
         name: 'Generation', 
         value: { label: 'Pending', color: 'default' }, 
@@ -129,24 +128,74 @@ export default function LibraryPage() {
     refetch: refetchContent 
   } = useContentItems({}, { field: "savedAt", direction: "desc" });
   
-  // Load chat conversations on mount
+  // Load all data on mount
   useEffect(() => {
-    const loadConversations = async () => {
+    const loadAllData = async () => {
       setLoading(true);
       setError(null);
+      
+      // Load conversations
       try {
         const chats = await listConversations();
         setConversations(chats);
       } catch (err) {
-        setError("Failed to load conversations");
         console.error("Failed to load conversations:", err);
         toast.error("Failed to load chat conversations");
-      } finally {
-        setLoading(false);
       }
+      
+      // Load scripts
+      try {
+        await fetchScripts();
+      } catch (err) {
+        console.error("Failed to load scripts:", err);
+        toast.error("Failed to load scripts");
+      }
+      
+      // Load hooks
+      if (user) {
+        setHooksLoading(true);
+        try {
+          const idToken = await user.getIdToken();
+          const response = await fetch("/api/hooks", {
+            headers: {
+              Authorization: `Bearer ${idToken}`,
+            },
+          });
+          const data = await response.json();
+          if (data.success) {
+            setHooks(data.hooks);
+          }
+        } catch (err) {
+          console.error("Failed to load hooks:", err);
+        } finally {
+          setHooksLoading(false);
+        }
+        
+        // Load content ideas
+        setIdeasLoading(true);
+        try {
+          const idToken = await user.getIdToken();
+          const response = await fetch("/api/content/ideas", {
+            headers: {
+              Authorization: `Bearer ${idToken}`,
+            },
+          });
+          const data = await response.json();
+          if (data.success) {
+            setContentIdeas(data.ideas);
+          }
+        } catch (err) {
+          console.error("Failed to load content ideas:", err);
+        } finally {
+          setIdeasLoading(false);
+        }
+      }
+      
+      setLoading(false);
     };
-    loadConversations();
-  }, []);
+    
+    loadAllData();
+  }, [user, fetchScripts]);
   
   // Extract content items from paginated data
   useEffect(() => {
@@ -159,10 +208,10 @@ export default function LibraryPage() {
   // Generate mock data for demo (other library items)
   const mockData = useMemo(() => generateMockData(), []);
   
-  // Combine all data sources: chats + content + mock data
+  // Combine all data sources: chats + content + scripts + hooks + ideas + mock data
   const combinedData = useMemo(
-    () => combineAllDataSources(conversations, contentItems, mockData),
-    [conversations, contentItems, mockData]
+    () => combineAllDataSources(conversations, contentItems, scripts, hooks, contentIdeas, mockData),
+    [conversations, contentItems, scripts, hooks, contentIdeas, mockData]
   );
   
   // State for active filters
@@ -297,23 +346,50 @@ export default function LibraryPage() {
   
   // Handle item selection for the panel
   const handleItemSelect = (item: any) => {
+    // Route generated content (scripts, hooks, ideas) to script editor
+    if (item.category === 'script' || item.category === 'hooks' || item.category === 'idea') {
+      // Store the content in localStorage for the script editor to use
+      let content = item.description || '';
+      
+      // For hooks, use the formatted description which contains all the hooks
+      if (item.category === 'hooks' && item.description) {
+        content = item.description;
+      }
+      // For scripts, try to get the actual script content if available
+      else if (item.category === 'script') {
+        // First try to get actual script content from metadata, then fallback to description
+        content = item.metadata?.scriptContent || item.content || item.description || '';
+      }
+      // For ideas, use the description as-is
+      else if (item.category === 'idea') {
+        content = item.description || '';
+      }
+      
+      const contentData = {
+        title: item.title,
+        content: content,
+        category: item.category,
+        metadata: item.metadata || {}
+      };
+      
+      console.log('📦 [Library] Storing content for editor:', contentData);
+      localStorage.setItem('libraryContent', JSON.stringify(contentData));
+      
+      // Navigate to script editor
+      router.push('/write?from=library');
+      return;
+    }
+    
+    // For other items (notes, etc.), open in NotionPanel
     setSelectedItem(item);
     
-    // Update properties based on item
-    const newProperties: PageProperty[] = [
-      { 
-        id: '1', 
-        type: 'url' as const, 
-        name: 'URL', 
-        value: item.url || '',
-        icon: 'link' 
-      }
-    ];
+    // Update properties without URL field
+    const newProperties: PageProperty[] = [];
     
     // Add generation status for appropriate items
     if (item.tags?.includes('captured') || item.tags?.includes('chat')) {
       newProperties.push({ 
-        id: '2', 
+        id: '1', 
         type: 'status' as const, 
         name: 'Generation', 
         value: { label: 'Pending', color: 'default' }, 
@@ -515,16 +591,35 @@ export default function LibraryPage() {
   // Data result for the template
   const dataResult = {
     items: filteredData,
-    isLoading: loading || contentLoading,
+    isLoading: loading || contentLoading || scriptsLoading || hooksLoading || ideasLoading,
     isError: !!error || contentError,
     hasMore: false,
     totalCount: filteredData.length,
     refetch: async () => {
       setLoading(true);
       try {
+        // Reload all data sources
         const chats = await listConversations();
         setConversations(chats);
         await refetchContent();
+        await fetchScripts();
+        
+        // Reload hooks
+        if (user) {
+          const idToken = await user.getIdToken();
+          const [hooksRes, ideasRes] = await Promise.all([
+            fetch("/api/hooks", { headers: { Authorization: `Bearer ${idToken}` } }),
+            fetch("/api/content/ideas", { headers: { Authorization: `Bearer ${idToken}` } })
+          ]);
+          
+          const [hooksData, ideasData] = await Promise.all([
+            hooksRes.json(),
+            ideasRes.json()
+          ]);
+          
+          if (hooksData.success) setHooks(hooksData.hooks);
+          if (ideasData.success) setContentIdeas(ideasData.ideas);
+        }
       } catch (err) {
         console.error("Failed to reload data:", err);
         toast.error("Failed to reload data");

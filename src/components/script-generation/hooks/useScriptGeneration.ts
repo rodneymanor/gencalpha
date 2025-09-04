@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { useEnhancedScriptAnalytics } from "@/hooks/use-script-analytics";
 import { detectSocialUrl } from "@/lib/utils/lightweight-url-detector";
 import { TranscriptionService } from "../services/transcription-service";
@@ -18,15 +18,61 @@ import { useScriptSave } from "./useScriptSave";
 interface UseScriptGenerationProps {
   initialPrompt?: string;
   onScriptComplete?: (script: string) => void;
+  fromLibrary?: boolean;
 }
 
 export function useScriptGeneration({ 
   initialPrompt = "", 
-  onScriptComplete 
+  onScriptComplete,
+  fromLibrary = false
 }: UseScriptGenerationProps) {
   // State management
   const scriptState = useScriptState(initialPrompt);
   const templateSelection = useTemplateSelection();
+  
+  // Load library content when coming from library
+  useEffect(() => {
+    if (fromLibrary) {
+      try {
+        const libraryContent = localStorage.getItem('libraryContent');
+        if (libraryContent) {
+          const content = JSON.parse(libraryContent);
+          console.log('📚 [useScriptGeneration] Loading library content:', content);
+          
+          // Set the script content and title
+          scriptState.setGeneratedScript(content.content || '');
+          scriptState.setScriptTitle(content.title || 'Library Content');
+          
+          // Set the appropriate quick generator based on category or metadata
+          if (content.category === 'hooks') {
+            templateSelection.handleQuickGeneratorSelect('generate-hooks');
+            console.log('🎣 [useScriptGeneration] Set generator to generate-hooks for hook content');
+          } else if (content.category === 'idea') {
+            templateSelection.handleQuickGeneratorSelect('content-ideas');
+            console.log('💡 [useScriptGeneration] Set generator to content-ideas for idea content');
+          } else if (content.category === 'script') {
+            // Check if this script was generated from hooks by looking at tags or content patterns
+            const isHookScript = content.metadata?.scriptContent?.includes('## 10 Hooks') || 
+                               content.metadata?.scriptContent?.includes('1.') && content.metadata?.scriptContent?.includes('2.') &&
+                               content.title?.toLowerCase().includes('hook');
+            
+            if (isHookScript) {
+              templateSelection.handleQuickGeneratorSelect('generate-hooks');
+              console.log('🎣 [useScriptGeneration] Detected hook-generated script, setting generator to generate-hooks');
+            }
+          }
+          
+          // Go directly to editing mode for all library content
+          scriptState.setFlowState('editing');
+          
+          // Clear the localStorage after loading
+          localStorage.removeItem('libraryContent');
+        }
+      } catch (error) {
+        console.error('❌ [useScriptGeneration] Failed to load library content:', error);
+      }
+    }
+  }, [fromLibrary, scriptState, templateSelection]);
   
   // Script analytics
   const scriptAnalysis = useEnhancedScriptAnalytics(scriptState.generatedScript);

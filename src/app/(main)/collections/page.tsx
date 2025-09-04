@@ -10,8 +10,7 @@ import { CollectionCombobox } from "@/components/ui/collection-combobox";
 import { EditableText } from "@/components/ui/edit-button";
 import { CardSkeleton } from "@/components/ui/loading";
 import { VideoGrid as NewVideoGrid, type VideoData } from "@/components/video/video-grid";
-import { VideoNotionPanel } from "@/components/panels/notion";
-import { videoToNotionData } from "@/lib/video-to-notion-adapter";
+import { VideoModalOverlay } from "@/components/modals/video-modal-overlay";
 import { useAuth } from "@/contexts/auth-context";
 import { VideoInsightsProvider } from "@/contexts/video-insights-context";
 import { VideoProcessingProvider } from "@/contexts/video-processing-context";
@@ -604,7 +603,7 @@ function CollectionsContent() {
     selectedCollectionId,
     selectedCollection ?? null,
     canWrite,
-    dispatch,
+    dispatch as (action: { type: string; payload: any }) => void,
   );
 
   // Handle collection creation
@@ -657,77 +656,55 @@ function CollectionsContent() {
     [user?.uid, dispatch],
   );
 
-  // Keyboard navigation for video switching when panel is open
-  useEffect(() => {
-    if (!isPanelOpen || !selectedVideo) return;
+  // Get current video list for navigation
+  const getCurrentVideos = (): Video[] => {
+    if (activeTab === "collections") {
+      return state.videos || [];
+    }
+    // For saved videos tab, this would need to be lifted up or handled differently
+    return [];
+  };
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-      // Only handle if no input element is focused
-      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
-        return;
-      }
+  // Navigation handlers for modal
+  const handleVideoNavigation = (direction: 'prev' | 'next') => {
+    const currentVideos = getCurrentVideos();
+    if (currentVideos.length === 0 || !selectedVideo) return;
 
-      let currentVideos: Video[] = [];
-      
-      // Get the appropriate video list based on active tab
-      if (activeTab === "collections") {
-        currentVideos = state.videos || [];
-      } else {
-        // For saved videos tab, we need to get the saved videos
-        // This is a simplified approach - in a real app you might want to lift this state up
-        return; // For now, only support collections tab
-      }
+    const currentIndex = currentVideos.findIndex(v => v.id === selectedVideo.id);
+    if (currentIndex === -1) return;
 
-      if (currentVideos.length === 0) return;
+    let newIndex = currentIndex;
+    if (direction === 'prev') {
+      newIndex = currentIndex > 0 ? currentIndex - 1 : currentVideos.length - 1;
+    } else {
+      newIndex = currentIndex < currentVideos.length - 1 ? currentIndex + 1 : 0;
+    }
 
-      const currentIndex = currentVideos.findIndex(v => v.id === selectedVideo.id);
-      if (currentIndex === -1) return;
+    const newVideo = currentVideos[newIndex];
+    if (newVideo) {
+      setSelectedVideo(newVideo);
+    }
+  };
 
-      let newIndex = currentIndex;
+  // Check if navigation is available
+  const getNavigationState = () => {
+    const currentVideos = getCurrentVideos();
+    if (currentVideos.length === 0 || !selectedVideo) {
+      return { canNavigatePrev: false, canNavigateNext: false };
+    }
 
-      switch (event.key) {
-        case 'ArrowUp':
-          event.preventDefault();
-          newIndex = currentIndex > 0 ? currentIndex - 1 : currentVideos.length - 1;
-          break;
-        case 'ArrowDown':
-          event.preventDefault();
-          newIndex = currentIndex < currentVideos.length - 1 ? currentIndex + 1 : 0;
-          break;
-        case 'Escape':
-          event.preventDefault();
-          setSelectedVideo(null);
-          return;
-        default:
-          return;
-      }
-
-      const newVideo = currentVideos[newIndex];
-      if (newVideo) {
-        setSelectedVideo(newVideo);
-      }
+    const currentIndex = currentVideos.findIndex(v => v.id === selectedVideo.id);
+    return {
+      canNavigatePrev: currentVideos.length > 1,
+      canNavigateNext: currentVideos.length > 1
     };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isPanelOpen, selectedVideo, activeTab, state.videos]);
+  };
 
   return (
-    <div className="bg-background flex min-h-screen w-full transition-all duration-300" id="collections-main-content">
-      {/* Main Content Area */}
-      <div 
-        className="flex flex-1 justify-center overflow-x-hidden overflow-y-scroll transition-all duration-300"
-        style={{
-          marginRight: selectedVideo ? '600px' : '0',
-          transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)'
-        }}
-      >
-        <div 
-          className="container mx-auto px-6"
-          style={{
-            maxWidth: '1200px'
-          }}
-        >
+    <div className="bg-background flex min-h-screen w-full" id="collections-main-content">
+      {/* Main Content Area - No longer needs margin adjustment */}
+      <div className="flex flex-1 justify-center overflow-x-hidden overflow-y-scroll">
+        <div className="container mx-auto px-6" style={{ maxWidth: '1200px' }}>
         {/* Header */}
         <div className="pt-6">
           <CollectionsHeader
@@ -776,76 +753,35 @@ function CollectionsContent() {
         </div>
       </div>
 
-      {/* Notion-style Video Panel - Fixed position, doesn't scroll with page */}
-      {selectedVideo && (
-        <div 
-          className="fixed top-0 right-0 h-full z-50 flex-shrink-0" 
-          style={{ width: '600px' }}
-        >
-          {(() => {
-            console.log('🎯 RENDERING PANEL - selectedVideo:', {
-              id: selectedVideo.id,
-              title: selectedVideo.title,
-              hasMetadata: !!selectedVideo.metadata,
-              author: selectedVideo.metadata?.author,
-              fullMetadata: selectedVideo.metadata
+      {/* Video Modal Overlay - Instagram-style modal */}
+      <VideoModalOverlay
+        video={selectedVideo}
+        onClose={() => setSelectedVideo(null)}
+        onVideoChange={handleVideoNavigation}
+        {...getNavigationState()}
+        transformToVideoInsights={transformToVideoInsights}
+        callbacks={{
+          onCopy: (content: string, componentType?: string) => {
+            console.log(`Copied ${componentType ?? "content"}:`, content);
+            // Copy to clipboard
+            navigator.clipboard.writeText(content).then(() => {
+              console.log('Successfully copied to clipboard');
+            }).catch(err => {
+              console.error('Failed to copy to clipboard:', err);
             });
-            
-            const notionData = videoToNotionData(
-              selectedVideo,
-              transformToVideoInsights(selectedVideo),
-              {
-                onCopy: (content: string, componentType?: string) => {
-                  console.log(`Copied ${componentType ?? "content"}:`, content);
-                  // Copy to clipboard
-                  navigator.clipboard.writeText(content).then(() => {
-                    console.log('Successfully copied to clipboard');
-                  }).catch(err => {
-                    console.error('Failed to copy to clipboard:', err);
-                  });
-                },
-                onDownload: () => {
-                  console.log("Downloaded video insights:", selectedVideo.title);
-                  // TODO: Implement actual download functionality
-                },
-                onVideoPlay: () => {
-                  console.log("Video started playing");
-                },
-                onVideoPause: () => {
-                  console.log("Video paused");
-                }
-              }
-            );
-            console.log('VideoNotionData generated:', {
-              hasVideo: 'video' in notionData,
-              videoInNotionData: notionData.video,
-              allKeys: Object.keys(notionData),
-              notionData,
-            });
-            // Explicitly pass all required props including video
-            return (
-              <VideoNotionPanel
-                title={notionData.title}
-                properties={notionData.properties}
-                tabData={notionData.tabData}
-                video={notionData.video}
-                platform={notionData.platform}
-                onCopy={notionData.onCopy}
-                onDownload={notionData.onDownload}
-                onVideoPlay={notionData.onVideoPlay}
-                onVideoPause={notionData.onVideoPause}
-                isOpen={!!selectedVideo}
-                onClose={() => setSelectedVideo(null)}
-                showPageControls={true}
-                width={600}
-                minWidth={400}
-                maxWidth={800}
-                defaultTab="video"
-              />
-            );
-          })()}
-        </div>
-      )}
+          },
+          onDownload: () => {
+            console.log("Downloaded video insights:", selectedVideo?.title);
+            // TODO: Implement actual download functionality
+          },
+          onVideoPlay: () => {
+            console.log("Video started playing");
+          },
+          onVideoPause: () => {
+            console.log("Video paused");
+          }
+        }}
+      />
 
       {/* Dialogs */}
       <AddVideoDialog

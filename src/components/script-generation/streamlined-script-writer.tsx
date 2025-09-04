@@ -13,6 +13,7 @@ export function StreamlinedScriptWriter({
   initialPrompt = "",
   onScriptComplete,
   className = "",
+  fromLibrary = false,
 }: StreamlinedScriptWriterProps) {
   // Use the main orchestrator hook that manages all state and logic
   const {
@@ -53,7 +54,7 @@ export function StreamlinedScriptWriter({
     handleScriptUpdate,
     showFullTranscript,
     setShowFullTranscript,
-  } = useScriptGeneration({ initialPrompt, onScriptComplete });
+  } = useScriptGeneration({ initialPrompt, onScriptComplete, fromLibrary });
 
   // Render the appropriate view based on flow state
   if (flowState === "input") {

@@ -2,8 +2,12 @@
 // Transforms ContentInbox items to LibraryItem format for the unified Library
 
 import { ContentItem } from "@/components/content-inbox/types";
+import { Script } from "@/types/script";
+import { Hook } from "@/app/api/hooks/route";
+import { ContentIdea } from "@/app/api/content/ideas/route";
 
 import { LibraryItem } from "./types";
+import { scriptsToLibraryItems, hooksToLibraryItems, contentIdeasToLibraryItems } from "./generated-content-adapter";
 
 /**
  * Maps ContentInbox Platform to LibraryItem type
@@ -171,11 +175,14 @@ export function contentsToLibraryItems(contents: ContentItem[]): LibraryItem[] {
 }
 
 /**
- * Enhanced data combiner that includes ContentInbox items
+ * Enhanced data combiner that includes all content sources
  */
 export function combineAllDataSources(
   chats: unknown[], // ChatConversation[]
   contents: ContentItem[],
+  scripts: Script[],
+  hooks: Hook[],
+  contentIdeas: ContentIdea[],
   mockData: LibraryItem[],
 ): LibraryItem[] {
   // Import the existing chat adapter
@@ -186,9 +193,12 @@ export function combineAllDataSources(
 
   const chatItems = chatsToLibraryItems(chats);
   const contentItems = contentsToLibraryItems(contents);
+  const scriptItems = scriptsToLibraryItems(scripts);
+  const hookItems = hooksToLibraryItems(hooks);
+  const ideaItems = contentIdeasToLibraryItems(contentIdeas);
 
   // Combine and sort by updatedAt date, with pinned items first
-  return [...chatItems, ...contentItems, ...mockData].sort((a, b) => {
+  return [...chatItems, ...contentItems, ...scriptItems, ...hookItems, ...ideaItems, ...mockData].sort((a, b) => {
     // Pinned items first
     const aPinned = a.tags.includes("pinned");
     const bPinned = b.tags.includes("pinned");

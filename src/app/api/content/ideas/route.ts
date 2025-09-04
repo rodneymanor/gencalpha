@@ -10,6 +10,94 @@ interface IdeasBody {
   sourceUrl?: string;
 }
 
+export interface ContentIdea {
+  id: string;
+  userId: string;
+  sourceUrl: string | null;
+  transcript: string;
+  ideas: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ContentIdeasResponse {
+  success: boolean;
+  ideas: ContentIdea[];
+  error?: string;
+}
+
+// GET: Fetch user's content ideas
+export async function GET(request: NextRequest): Promise<NextResponse<ContentIdeasResponse>> {
+  try {
+    console.log("📚 [Content Ideas API] GET request received");
+
+    // Authenticate API key
+    const authResult = await authenticateApiKey(request);
+    if (authResult instanceof NextResponse) {
+      return authResult;
+    }
+
+    const userId = authResult.user.uid;
+    console.log("👤 [Content Ideas API] Fetching ideas for user:", userId);
+
+    // Check if admin is initialized
+    if (!isAdminInitialized) {
+      return NextResponse.json(
+        {
+          success: false,
+          ideas: [],
+          error: "Admin SDK not configured",
+        },
+        { status: 500 }
+      );
+    }
+
+    const adminDb = getAdminDb();
+    if (!adminDb) {
+      return NextResponse.json(
+        {
+          success: false,
+          ideas: [],
+          error: "Database not available",
+        },
+        { status: 500 }
+      );
+    }
+
+    // Fetch content ideas from Firestore - remove orderBy to avoid index requirement
+    const ideasSnapshot = await adminDb
+      .collection("contentIdeas")
+      .where("userId", "==", userId)
+      .limit(100) // Limit to last 100 content ideas
+      .get();
+
+    // Map documents and sort by createdAt in JavaScript since we can't use orderBy in Firestore
+    const ideas: ContentIdea[] = ideasSnapshot.docs
+      .map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      } as ContentIdea))
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    console.log(`✅ [Content Ideas API] Found ${ideas.length} content ideas for user`);
+
+    return NextResponse.json({
+      success: true,
+      ideas,
+    });
+  } catch (error) {
+    console.error("❌ [Content Ideas API] GET error:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        ideas: [],
+        error: "Failed to fetch content ideas",
+      },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const authResult = await authenticateApiKey(request);

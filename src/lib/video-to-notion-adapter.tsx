@@ -377,7 +377,184 @@ export function createVideoTabData(videoInsights: VideoInsights, callbacks: {
     );
   }
 
-  // Note: Analysis is now integrated into the Video tab
+  // Analysis tab - Extract the analysis content from the video tab for modal use
+  tabData.analysis = (
+    <div className="space-y-6">
+      {/* Video Stats - Compact horizontal layout */}
+      <div className="flex items-center justify-center gap-1">
+        {videoInsights.metadata.viewCount && (
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-[var(--radius-button)] transition-all duration-150">
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+            <span className="font-medium">{formatNumber(videoInsights.metadata.viewCount)}</span>
+          </div>
+        )}
+        
+        {videoInsights.metadata.likeCount && (
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-[var(--radius-button)] transition-all duration-150">
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+            <span className="font-medium">{formatNumber(videoInsights.metadata.likeCount)}</span>
+          </div>
+        )}
+        
+        {videoInsights.metadata.commentCount && (
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-[var(--radius-button)] transition-all duration-150">
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            <span className="font-medium">{formatNumber(videoInsights.metadata.commentCount)}</span>
+          </div>
+        )}
+        
+        {videoInsights.metadata.shareCount && (
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-[var(--radius-button)] transition-all duration-150">
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+              <polyline points="16,6 12,2 8,6"/>
+              <line x1="12" y1="2" x2="12" y2="15"/>
+            </svg>
+            <span className="font-medium">{formatNumber(videoInsights.metadata.shareCount)}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Content Analysis Section */}
+      <div className="bg-neutral-50 border border-neutral-200 rounded-[var(--radius-card)] p-4 shadow-[var(--shadow-soft-drop)]">
+        <h3 className="font-medium text-neutral-900 mb-4">Content Analysis</h3>
+        
+        {/* Engagement Metrics */}
+        <div className="mb-6">
+          <h4 className="text-sm font-medium mb-3 text-neutral-800">Engagement Metrics</h4>
+          <div className="space-y-3">
+            {[
+              { label: 'Hook Strength', value: videoInsights.analysis.engagement.hookStrength },
+              { label: 'Retention Potential', value: videoInsights.analysis.engagement.retentionPotential },
+              { label: 'CTA Strength', value: videoInsights.analysis.engagement.callToActionStrength }
+            ].map(metric => (
+              <div key={metric.label} className="flex items-center gap-3">
+                <span className="text-sm text-neutral-600 w-32">{metric.label}</span>
+                <div className="flex-1 bg-neutral-200 rounded-full h-2">
+                  <div 
+                    className="bg-primary-500 h-2 rounded-full transition-all duration-500" 
+                    style={{ width: `${metric.value}%` }}
+                  />
+                </div>
+                <span className="text-sm font-medium text-neutral-900 w-12 text-right">{metric.value}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Readability */}
+        <div>
+          <h4 className="text-sm font-medium mb-3 text-neutral-800">Readability</h4>
+          <div className="p-3 bg-neutral-100 rounded-[var(--radius-card)] border border-neutral-200">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-neutral-600">Score</span>
+              <span className="text-lg font-semibold text-primary-700">{videoInsights.analysis.readability.score}/100</span>
+            </div>
+            <div className="text-xs text-neutral-600 mb-3">
+              Grade Level: {videoInsights.analysis.readability.grade} • Complexity: {videoInsights.analysis.readability.complexity}
+            </div>
+            {videoInsights.analysis.readability.recommendations.length > 0 && (
+              <div>
+                <div className="text-xs text-neutral-600 mb-2">Recommendations:</div>
+                <ul className="text-xs text-neutral-700 space-y-1">
+                  {videoInsights.analysis.readability.recommendations.map((rec, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <span className="text-primary-500">•</span>
+                      <span>{rec}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+      
+      {/* Expandable Video Metadata */}
+      <ExpandableVideoMetadata videoInsights={videoInsights} />
+
+      {/* Additional Analysis Sections */}
+      {videoInsights.analysis.seo && (
+        <div className="bg-neutral-50 border border-neutral-200 rounded-[var(--radius-card)] p-4 shadow-[var(--shadow-soft-drop)]">
+          <h3 className="font-medium text-neutral-900 mb-4">SEO Analysis</h3>
+          
+          {/* Title Optimization */}
+          <div className="mb-4">
+            <h4 className="text-sm font-medium mb-2 text-neutral-800">Title Optimization</h4>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-neutral-600">Score</span>
+              <span className="text-sm font-medium text-neutral-900">{videoInsights.analysis.seo.titleOptimization.score}/100</span>
+            </div>
+            {videoInsights.analysis.seo.titleOptimization.suggestions.length > 0 && (
+              <ul className="text-xs text-neutral-700 space-y-1">
+                {videoInsights.analysis.seo.titleOptimization.suggestions.map((suggestion, index) => (
+                  <li key={index} className="flex items-start gap-2">
+                    <span className="text-primary-500">•</span>
+                    <span>{suggestion}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {/* Description Optimization */}
+          <div className="mb-4">
+            <h4 className="text-sm font-medium mb-2 text-neutral-800">Description Optimization</h4>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-neutral-600">Score</span>
+              <span className="text-sm font-medium text-neutral-900">{videoInsights.analysis.seo.descriptionOptimization.score}/100</span>
+            </div>
+            {videoInsights.analysis.seo.descriptionOptimization.suggestions.length > 0 && (
+              <ul className="text-xs text-neutral-700 space-y-1">
+                {videoInsights.analysis.seo.descriptionOptimization.suggestions.map((suggestion, index) => (
+                  <li key={index} className="flex items-start gap-2">
+                    <span className="text-primary-500">•</span>
+                    <span>{suggestion}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {/* Keyword Density */}
+          {videoInsights.analysis.seo.keywordDensity.length > 0 && (
+            <div className="mb-4">
+              <h4 className="text-sm font-medium mb-2 text-neutral-800">Top Keywords</h4>
+              <div className="grid grid-cols-2 gap-2">
+                {videoInsights.analysis.seo.keywordDensity.slice(0, 6).map((keyword, index) => (
+                  <div key={index} className="flex justify-between text-xs">
+                    <span className="text-neutral-600">{keyword.word}</span>
+                    <span className="font-medium text-neutral-900">{keyword.density}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Hashtag Suggestions */}
+          {videoInsights.analysis.seo.hashtagSuggestions.length > 0 && (
+            <div>
+              <h4 className="text-sm font-medium mb-2 text-neutral-800">Suggested Hashtags</h4>
+              <div className="flex flex-wrap gap-2">
+                {videoInsights.analysis.seo.hashtagSuggestions.slice(0, 8).map((hashtag, index) => (
+                  <span key={index} className="px-2 py-1 bg-primary-100 text-primary-700 text-xs rounded-full">
+                    #{hashtag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 
   return tabData;
 }
