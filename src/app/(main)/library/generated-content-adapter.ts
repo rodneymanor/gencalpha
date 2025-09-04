@@ -110,6 +110,9 @@ export function hookToLibraryItem(hook: Hook): LibraryItem {
       topRating: hook.topHook?.rating,
       averageRating: hook.hooks?.reduce((sum, h) => sum + h.rating, 0) / (hook.hooks?.length || 1),
       focusTypes: [...new Set(hook.hooks?.map(h => h.focus))],
+      // Store the full hooks array for retrieval
+      hooks: hook.hooks,
+      topHook: hook.topHook,
     },
   };
 }

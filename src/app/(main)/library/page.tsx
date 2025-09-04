@@ -351,9 +351,16 @@ export default function LibraryPage() {
       // Store the content in localStorage for the script editor to use
       let content = item.description || '';
       
-      // For hooks, use the formatted description which contains all the hooks
-      if (item.category === 'hooks' && item.description) {
-        content = item.description;
+      // For hooks, check if we have structured hook data in metadata
+      if (item.category === 'hooks') {
+        // If we have structured hooks data, pass it through metadata
+        // The editor will format it properly
+        if (item.metadata?.hooks) {
+          content = ''; // Will be formatted from metadata.hooks
+        } else {
+          // Fallback to description if no structured data
+          content = item.description || '';
+        }
       }
       // For scripts, try to get the actual script content if available
       else if (item.category === 'script') {
