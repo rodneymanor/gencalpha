@@ -21,6 +21,41 @@ interface UseScriptGenerationProps {
   fromLibrary?: boolean;
 }
 
+/**
+ * Parses hook content from library format back to proper numbered list format
+ * Library format: "1. Hook text (focus, rating/100)\n2. Another hook (focus, rating/100)"
+ * Target format: Clean numbered list suitable for script editor display
+ */
+function parseHookContent(content: string): string {
+  try {
+    // Split the content by lines and process each hook
+    const lines = content.split('\n').filter(line => line.trim());
+    const parsedHooks: string[] = [];
+    
+    lines.forEach(line => {
+      // Match pattern: "1. Hook text (focus, rating/100)"
+      const hookMatch = line.match(/^(\d+)\.\s*(.+?)\s*\([^)]+\)$/);
+      if (hookMatch) {
+        const [, number, hookText] = hookMatch;
+        parsedHooks.push(`${number}. ${hookText.trim()}`);
+      } else if (line.match(/^\d+\./)) {
+        // Fallback for simpler numbered format
+        parsedHooks.push(line.trim());
+      }
+    });
+    
+    // If we successfully parsed hooks, return them as a clean numbered list
+    if (parsedHooks.length > 0) {
+      return parsedHooks.join('\n\n');
+    }
+  } catch (error) {
+    console.warn('⚠️ [parseHookContent] Failed to parse hook content:', error);
+  }
+  
+  // Fallback: return original content if parsing fails
+  return content;
+}
+
 export function useScriptGeneration({ 
   initialPrompt = "", 
   onScriptComplete,
@@ -39,8 +74,15 @@ export function useScriptGeneration({
           const content = JSON.parse(libraryContent);
           console.log('📚 [useScriptGeneration] Loading library content:', content);
           
+          // Process hook content to restore proper formatting
+          let processedContent = content.content || '';
+          if (content.category === 'hooks' && processedContent) {
+            processedContent = parseHookContent(processedContent);
+            console.log('🎣 [useScriptGeneration] Processed hook content for proper display');
+          }
+          
           // Set the script content and title
-          scriptState.setGeneratedScript(content.content || '');
+          scriptState.setGeneratedScript(processedContent);
           scriptState.setScriptTitle(content.title || 'Library Content');
           
           // Set the appropriate quick generator based on category or metadata
