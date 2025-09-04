@@ -1,15 +1,114 @@
 // Generated Content Adapter
 // Transforms scripts, hooks, and content ideas from Firestore to LibraryItem format
 
-import { Script } from "@/types/script";
-import { Hook } from "@/app/api/hooks/route";
 import { ContentIdea } from "@/app/api/content/ideas/route";
+import { Hook } from "@/app/api/hooks/route";
+import { Script } from "@/types/script";
 
 import { LibraryItem } from "./types";
 
 /**
+ * Helper function to detect if content contains numbered hooks pattern
+ */
+function detectHooksPattern(content: string): boolean {
+  if (!content) return false;
+
+  // Check if content has multiple numbered items (at least 3 to be considered hooks)
+  const numberedPattern = /^\d+[.)]\s+.+$/gm;
+  const matches = content.match(numberedPattern);
+  return matches ? matches.length >= 3 : false;
+}
+
+/**
+ * Helper function to parse numbered content into structured items
+ */
+function parseNumberedContent(content: string): Array<{ number: number; text: string }> | null {
+  if (!content) return null;
+
+  const lines = content.split("\n").filter((line) => line.trim());
+  const items: Array<{ number: number; text: string }> = [];
+
+  lines.forEach((line) => {
+    // Match patterns: "1. Text" or "1) Text" or just numbered lines
+    const match = line.match(/^(\d+)[.)\s]+(.+)$/);
+    if (match) {
+      const [, numberStr, text] = match;
+      items.push({
+        number: parseInt(numberStr, 10),
+        text: text.trim(),
+      });
+    }
+  });
+
+  return items.length > 0 ? items : null;
+}
+
+/**
+ * Check if script is a hooks type based on various indicators
+ */
+function isHooksScript(script: Script): boolean {
+  // Check explicit category/type
+  if (script.category === "generate-hooks" || script.elements?.type === "generate-hooks") {
+    return true;
+  }
+  // Check tags
+  if (script.tags?.some((tag) => tag === "generator:generate-hooks")) {
+    return true;
+  }
+  // Check title and content pattern
+  const titleHasHook = script.title?.toLowerCase().includes("hook") || script.title?.toLowerCase().includes("10 ");
+  return titleHasHook && detectHooksPattern(script.content);
+}
+
+/**
+ * Check if script is an ideas type based on various indicators
+ */
+function isIdeasScript(script: Script): boolean {
+  // Check explicit category/type
+  if (script.category === "content-ideas" || script.elements?.type === "content-ideas") {
+    return true;
+  }
+  if (script.category === "value-bombs" || script.elements?.type === "value-bombs") {
+    return true;
+  }
+  // Check tags
+  if (script.tags?.some((tag) => tag === "generator:content-ideas" || tag === "generator:value-bombs")) {
+    return true;
+  }
+  // Check title and content pattern
+  const titleHasIdea = script.title?.toLowerCase().includes("idea") || script.title?.toLowerCase().includes("content");
+  return titleHasIdea && detectHooksPattern(script.content);
+}
+
+/**
+ * Determine category and parse items for a script
+ */
+function determineScriptCategoryAndItems(script: Script): {
+  category: LibraryItem["category"];
+  parsedItems: Array<{ number: number; text: string }> | null | undefined;
+} {
+  let category: LibraryItem["category"] = "script";
+  let parsedItems = script.elements?.items;
+
+  // Determine category
+  if (isHooksScript(script)) {
+    category = "hooks";
+  } else if (isIdeasScript(script)) {
+    category = "idea";
+  }
+
+  // Parse content if no structured items exist and we detected a generator type
+  if (!parsedItems && script.content && category !== "script") {
+    parsedItems = parseNumberedContent(script.content);
+  }
+
+  return { category, parsedItems };
+}
+
+/**
  * Transforms a Script to a LibraryItem
  */
+// eslint-disable-next-line complexity
 export function scriptToLibraryItem(script: Script): LibraryItem {
   // Determine status based on script status
   const statusMap: Record<string, LibraryItem["status"]> = {
@@ -18,22 +117,9 @@ export function scriptToLibraryItem(script: Script): LibraryItem {
     scheduled: "reviewing",
     archived: "archived",
   };
-  
-  // Check if this is a generator type (hooks, ideas, tips) by looking at category or elements
-  const isGeneratorType = script.category === "generate-hooks" || 
-                         script.category === "content-ideas" || 
-                         script.category === "value-bombs" ||
-                         script.elements?.type;
-  
-  // Determine the correct category based on script data
-  let category: LibraryItem["category"] = "script";
-  if (script.category === "generate-hooks" || script.elements?.type === "generate-hooks") {
-    category = "hooks";
-  } else if (script.category === "content-ideas" || script.elements?.type === "content-ideas") {
-    category = "idea";
-  } else if (script.category === "value-bombs" || script.elements?.type === "value-bombs") {
-    category = "idea"; // Value tips are treated as ideas
-  }
+
+  // Determine category and parse items
+  const { category, parsedItems } = determineScriptCategoryAndItems(script);
 
   return {
     id: `script-${script.id}`,
@@ -77,10 +163,28 @@ export function scriptToLibraryItem(script: Script): LibraryItem {
       scheduledDate: script.scheduledDate,
       // Store actual script content in metadata for library access
       scriptContent: script.content,
-      // Include structured items if available (for generators)
-      items: script.elements?.items,
-      generatorType: script.elements?.type || script.category,
+      // Include structured items if available (for generators) - use parsed items for legacy records
+      items: parsedItems ?? script.elements?.items,
+      generatorType:
+        script.elements?.type ??
+        script.category ??
+        (category === "hooks" ? "generate-hooks" : category === "idea" ? "content-ideas" : undefined),
     },
+  };
+}
+
+/**
+ * Create hook metadata from Hook object
+ */
+function createHookMetadata(hook: Hook) {
+  const hooksArray = hook.hooks || [];
+  return {
+    hookCount: hooksArray.length,
+    topRating: hook.topHook?.rating,
+    averageRating: hooksArray.length > 0 ? hooksArray.reduce((sum, h) => sum + h.rating, 0) / hooksArray.length : 0,
+    focusTypes: [...new Set(hooksArray.map((h) => h.focus))],
+    hooks: hook.hooks,
+    topHook: hook.topHook,
   };
 }
 
@@ -90,7 +194,7 @@ export function scriptToLibraryItem(script: Script): LibraryItem {
 export function hookToLibraryItem(hook: Hook): LibraryItem {
   // Get the best hook from the generation
   const bestHook = hook.topHook?.text || hook.hooks?.[0]?.text || "Generated Hooks";
-  
+
   // Create a description from the hooks
   const description = hook.hooks
     ?.map((h, i) => `${i + 1}. ${h.text} (${h.focus}, ${h.rating}/100)`)
@@ -108,11 +212,7 @@ export function hookToLibraryItem(hook: Hook): LibraryItem {
       id: hook.userId,
       name: "AI Generated",
     },
-    tags: [
-      "generated",
-      "hooks",
-      ...hook.hooks.map(h => h.focus),
-    ].filter(Boolean),
+    tags: ["generated", "hooks", ...hook.hooks.map((h) => h.focus)].filter(Boolean),
     createdAt: new Date(hook.createdAt),
     updatedAt: new Date(hook.createdAt),
     lastAccessedAt: undefined,
@@ -124,15 +224,7 @@ export function hookToLibraryItem(hook: Hook): LibraryItem {
     url: `/hooks/${hook.id}`,
     thumbnail: undefined,
     collaborators: [],
-    metadata: {
-      hookCount: hook.hooks?.length || 0,
-      topRating: hook.topHook?.rating,
-      averageRating: hook.hooks?.reduce((sum, h) => sum + h.rating, 0) / (hook.hooks?.length || 1),
-      focusTypes: [...new Set(hook.hooks?.map(h => h.focus))],
-      // Store the full hooks array for retrieval
-      hooks: hook.hooks,
-      topHook: hook.topHook,
-    },
+    metadata: createHookMetadata(hook),
   };
 }
 
@@ -155,11 +247,7 @@ export function contentIdeaToLibraryItem(idea: ContentIdea): LibraryItem {
       id: idea.userId,
       name: "AI Generated",
     },
-    tags: [
-      "generated",
-      "content-ideas",
-      ...(idea.sourceUrl ? ["from-url"] : []),
-    ].filter(Boolean),
+    tags: ["generated", "content-ideas", ...(idea.sourceUrl ? ["from-url"] : [])].filter(Boolean),
     createdAt: new Date(idea.createdAt),
     updatedAt: new Date(idea.updatedAt),
     lastAccessedAt: undefined,
