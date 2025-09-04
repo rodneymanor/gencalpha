@@ -22,65 +22,181 @@ interface ScriptGenerationTimelineProps {
   onComplete: (script: string) => void
   userPrompt: string
   selectedPersona?: any
+  selectedQuickGenerator?: string | null
 }
 
 // AI Script Generation Steps - Mimics the actual process
-const GENERATION_STEPS = [
-  {
-    time: "Step 1",
-    steps: [
-      { 
-        icon: <Brain className="w-4 h-4" />, 
-        content: "Analyzing your idea and intent" 
-      }
-    ]
-  },
-  {
-    time: "Step 2", 
-    steps: [
-      { 
-        icon: <Sparkles className="w-4 h-4" />, 
-        content: "Crafting compelling hook" 
+const getGenerationSteps = (generatorType?: string | null) => {
+  if (generatorType === "generate-hooks") {
+    return [
+      {
+        time: "Step 1",
+        steps: [
+          { 
+            icon: <Brain className="w-4 h-4" />, 
+            content: "Analyzing your topic and audience" 
+          }
+        ]
       },
       {
-        icon: <Wand2 className="w-4 h-4" />,
-        content: "Building narrative bridge"
-      }
-    ]
-  },
-  {
-    time: "Step 3",
-    steps: [
-      {
-        icon: <FileText className="w-4 h-4" />,
-        content: "Developing golden nugget content"
+        time: "Step 2", 
+        steps: [
+          { 
+            icon: <Sparkles className="w-4 h-4" />, 
+            content: "Generating hook variations" 
+          },
+          {
+            icon: <Wand2 className="w-4 h-4" />,
+            content: "Testing different angles"
+          }
+        ]
       },
       {
-        icon: <CheckCircle2 className="w-4 h-4" />,
-        content: "Creating call-to-action"
-      }
-    ]
-  },
-  {
-    time: "Final",
-    steps: [
-      {
-        icon: <CheckCircle2 className="w-4 h-4" />,
-        content: "Polishing and optimizing script"
+        time: "Final",
+        steps: [
+          {
+            icon: <CheckCircle2 className="w-4 h-4" />,
+            content: "Selecting 10 best hooks"
+          }
+        ]
       }
     ]
   }
-]
+  
+  if (generatorType === "content-ideas") {
+    return [
+      {
+        time: "Step 1",
+        steps: [
+          { 
+            icon: <Brain className="w-4 h-4" />, 
+            content: "Researching your topic" 
+          }
+        ]
+      },
+      {
+        time: "Step 2", 
+        steps: [
+          { 
+            icon: <Sparkles className="w-4 h-4" />, 
+            content: "Brainstorming unique angles" 
+          },
+          {
+            icon: <FileText className="w-4 h-4" />,
+            content: "Creating content concepts"
+          }
+        ]
+      },
+      {
+        time: "Final",
+        steps: [
+          {
+            icon: <CheckCircle2 className="w-4 h-4" />,
+            content: "Organizing ideas by impact"
+          }
+        ]
+      }
+    ]
+  }
+  
+  if (generatorType === "value-bombs") {
+    return [
+      {
+        time: "Step 1",
+        steps: [
+          { 
+            icon: <Brain className="w-4 h-4" />, 
+            content: "Analyzing topic expertise" 
+          }
+        ]
+      },
+      {
+        time: "Step 2", 
+        steps: [
+          { 
+            icon: <Sparkles className="w-4 h-4" />, 
+            content: "Extracting actionable insights" 
+          },
+          {
+            icon: <Wand2 className="w-4 h-4" />,
+            content: "Crafting practical tips"
+          }
+        ]
+      },
+      {
+        time: "Final",
+        steps: [
+          {
+            icon: <CheckCircle2 className="w-4 h-4" />,
+            content: "Selecting 10 highest-value tips"
+          }
+        ]
+      }
+    ]
+  }
+  
+  // Default full script steps
+  return [
+    {
+      time: "Step 1",
+      steps: [
+        { 
+          icon: <Brain className="w-4 h-4" />, 
+          content: "Analyzing your idea and intent" 
+        }
+      ]
+    },
+    {
+      time: "Step 2", 
+      steps: [
+        { 
+          icon: <Sparkles className="w-4 h-4" />, 
+          content: "Crafting compelling hook" 
+        },
+        {
+          icon: <Wand2 className="w-4 h-4" />,
+          content: "Building narrative bridge"
+        }
+      ]
+    },
+    {
+      time: "Step 3",
+      steps: [
+        {
+          icon: <FileText className="w-4 h-4" />,
+          content: "Developing golden nugget content"
+        },
+        {
+          icon: <CheckCircle2 className="w-4 h-4" />,
+          content: "Creating call-to-action"
+        }
+      ]
+    },
+    {
+      time: "Final",
+      steps: [
+        {
+          icon: <CheckCircle2 className="w-4 h-4" />,
+          content: "Polishing and optimizing script"
+        }
+      ]
+    }
+  ]
+}
 
 export function ScriptGenerationTimeline({ 
   isActive, 
   onComplete, 
   userPrompt,
-  selectedPersona 
+  selectedPersona,
+  selectedQuickGenerator 
 }: ScriptGenerationTimelineProps) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
   const [currentSubStepIndex, setCurrentSubStepIndex] = useState(0)
   const [isGenerating, setIsGenerating] = useState(false)
+  
+  // Get the appropriate generation steps based on the generator type
+  const generationSteps = getGenerationSteps(selectedQuickGenerator)
 
   // Generate script when timeline becomes active
   useEffect(() => {
@@ -105,6 +221,12 @@ export function ScriptGenerationTimeline({
 
       const token = await auth.currentUser.getIdToken()
 
+      console.log('🚀 [Script Generation] Making API call with:', {
+        idea: userPrompt.substring(0, 50),
+        generatorType: selectedQuickGenerator,
+        hasPersona: !!selectedPersona,
+      });
+
       const response = await fetch('/api/script/generate', {
         method: 'POST',
         headers: {
@@ -115,20 +237,36 @@ export function ScriptGenerationTimeline({
           idea: userPrompt,
           length: '60',
           persona: selectedPersona,
+          generatorType: selectedQuickGenerator,
         }),
       })
 
+      console.log('🌐 [Script Generation] Response status:', response.status);
+
       if (response.ok) {
         const result = await response.json()
+        console.log('✅ [Script Generation] API response:', {
+          success: result.success,
+          hasScript: !!result.script,
+          scriptType: typeof result.script,
+        });
+
         if (result.success && result.script) {
           // Convert to our expected format
           const scriptMarkdown = formatScriptForEditor(result.script)
+          console.log('📝 [Script Generation] Formatted script:', scriptMarkdown.substring(0, 100));
           onComplete(scriptMarkdown)
         } else {
           throw new Error(result.error || 'Script generation failed')
         }
       } else {
-        throw new Error('Network error during script generation')
+        const errorText = await response.text();
+        console.error('❌ [Script Generation] API error:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorBody: errorText.substring(0, 500),
+        });
+        throw new Error(`API error (${response.status}): ${response.statusText}`)
       }
     } catch (error) {
       console.error('Script generation error:', error)
@@ -145,9 +283,9 @@ export function ScriptGenerationTimeline({
 
   const simulateGenerationSteps = async () => {
     // Step through each major step
-    for (let stepIndex = 0; stepIndex < GENERATION_STEPS.length; stepIndex++) {
+    for (let stepIndex = 0; stepIndex < generationSteps.length; stepIndex++) {
       setCurrentStepIndex(stepIndex)
-      const step = GENERATION_STEPS[stepIndex]
+      const step = generationSteps[stepIndex]
       
       // Step through substeps within each major step
       for (let subStepIndex = 0; subStepIndex < step.steps.length; subStepIndex++) {
@@ -172,6 +310,41 @@ export function ScriptGenerationTimeline({
   }
 
   const formatScriptForEditor = (script: any) => {
+    // Check if we're generating specific content types
+    if (selectedQuickGenerator === "generate-hooks") {
+      // Format hooks only
+      return `## 10 Hooks for Your Content
+
+${script.hook || script.content || "Generated hooks will appear here"}
+
+---
+
+> **💡 Tip:** Each hook is designed to grab attention immediately. Pick the ones that resonate with your style and adapt them to your voice!`
+    }
+    
+    if (selectedQuickGenerator === "content-ideas") {
+      // Format content ideas
+      return `## Content Ideas
+
+${script.hook || script.content || "Generated content ideas will appear here"}
+
+---
+
+> **💡 Tip:** These ideas are starting points. Expand on the ones that excite you most and make them your own!`
+    }
+    
+    if (selectedQuickGenerator === "value-bombs") {
+      // Format value tips
+      return `## 10 Value Tips
+
+${script.hook || script.content || "Generated value tips will appear here"}
+
+---
+
+> **💡 Tip:** These are actionable tips your audience can implement immediately. Use them as standalone posts or combine them into comprehensive content!`
+    }
+    
+    // Format full script (default)
     return `**Hook:**
 ${script.hook}
 
@@ -182,10 +355,10 @@ Now here's what's interesting...
 ${script.bridge}
 
 **Golden Nugget:**
-${script.goldenNugget}
+${script.goldenNugget || script.content}
 
 **Call to Action:**
-${script.wta}`
+${script.wta || script.callToAction}`
   }
 
   const createFallbackScript = (prompt: string, errorMessage?: string) => {
@@ -232,10 +405,22 @@ What's your experience with this approach? Let me know in the comments below!
             </div>
             <div>
               <h2 className="text-2xl font-bold text-foreground">
-                Crafting Your Script
+                {selectedQuickGenerator === "generate-hooks" 
+                  ? "Generating Hooks" 
+                  : selectedQuickGenerator === "content-ideas"
+                  ? "Creating Content Ideas"
+                  : selectedQuickGenerator === "value-bombs"
+                  ? "Generating Value Tips"
+                  : "Crafting Your Script"}
               </h2>
               <p className="text-muted-foreground">
-                AI is analyzing and creating your content...
+                {selectedQuickGenerator === "generate-hooks" 
+                  ? "AI is creating 10 compelling hooks for your content..."
+                  : selectedQuickGenerator === "content-ideas"
+                  ? "AI is brainstorming content ideas for your topic..."
+                  : selectedQuickGenerator === "value-bombs"
+                  ? "AI is generating high-value actionable tips..."
+                  : "AI is analyzing and creating your content..."}
               </p>
             </div>
           </div>
@@ -243,7 +428,7 @@ What's your experience with this approach? Let me know in the comments below!
 
         {/* Arc Timeline */}
         <div className="space-y-8">
-          {GENERATION_STEPS.map((step, stepIndex) => (
+          {generationSteps.map((step, stepIndex) => (
             <div key={step.time} className="relative">
               {/* Step Time Label */}
               <div className="text-sm font-semibold text-muted-foreground mb-4 text-center">
@@ -301,7 +486,7 @@ What's your experience with this approach? Let me know in the comments below!
               </div>
               
               {/* Connecting Line */}
-              {stepIndex < GENERATION_STEPS.length - 1 && (
+              {stepIndex < generationSteps.length - 1 && (
                 <div className="flex justify-center mt-6">
                   <div className={`
                     w-px h-8 transition-colors duration-500
@@ -316,7 +501,7 @@ What's your experience with this approach? Let me know in the comments below!
         {/* Progress Indicator */}
         <div className="mt-8 text-center">
           <div className="text-xs text-muted-foreground">
-            Step {Math.min(currentStepIndex + 1, GENERATION_STEPS.length)} of {GENERATION_STEPS.length}
+            Step {Math.min(currentStepIndex + 1, generationSteps.length)} of {generationSteps.length}
           </div>
         </div>
       </div>

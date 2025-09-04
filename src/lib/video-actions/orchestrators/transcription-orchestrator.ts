@@ -78,7 +78,7 @@ export class TranscriptionOrchestrator {
 
       const transcript = await transcribeVideo({
         url: scraperResult.videoUrl,
-        platform: scraperResult.platform,
+        platform: scraperResult.platform as "tiktok" | "instagram",
       });
 
       if (this.config.enableLogging) {
@@ -99,7 +99,7 @@ export class TranscriptionOrchestrator {
         },
         metadata: {
           originalUrl: input.url,
-          platform: scraperResult.platform,
+          platform: scraperResult.platform as "tiktok" | "instagram",
           processedAt: new Date(),
           duration,
         },
@@ -142,7 +142,7 @@ export class TranscriptionOrchestrator {
         error: errorDetails.message,
         metadata: {
           originalUrl: input.url,
-          platform: input.platform ?? "unknown",
+          platform: input.platform ?? "instagram",
           processedAt: new Date(),
           duration,
         },
@@ -190,24 +190,14 @@ export class TranscriptionOrchestrator {
   private async convertTranscriptToScriptData(transcript: string, url: string): Promise<ScriptData> {
     let components: ScriptComponent[];
 
-    // Try to use AI analysis if enabled and available
-    if (this.config.useAiAnalysis ?? true) {
-      try {
-        components = await this.analyzeTranscriptWithAI(transcript, url);
-        if (this.config.enableLogging) {
-          console.log("✅ [TRANSCRIPTION_ORCHESTRATOR] AI analysis successful");
-        }
-      } catch (error) {
-        if (this.config.enableLogging) {
-          console.warn("⚠️ [TRANSCRIPTION_ORCHESTRATOR] AI analysis failed, falling back to basic extraction:", error);
-        }
-        // Fallback to basic extraction
-        components = this.extractScriptComponents(transcript);
-      }
-    } else {
-      // Use basic extraction
-      components = this.extractScriptComponents(transcript);
+    // DISABLE AI analysis for transcription - use raw transcript content
+    // The AI analysis was generating creative content instead of using actual transcript
+    if (this.config.enableLogging) {
+      console.log("📝 [TRANSCRIPTION_ORCHESTRATOR] Using raw transcript content (AI analysis disabled)");
     }
+    
+    // Always use basic extraction to preserve the actual transcript
+    components = this.extractScriptComponents(transcript);
 
     // Process all components to add metrics
     const processedComponents = processScriptComponents(components);
@@ -277,7 +267,7 @@ export class TranscriptionOrchestrator {
       components.push({
         id: "hook-extracted",
         type: "hook",
-        label: "Hook (Opening)",
+        label: "Hook",
         content: hookContent,
         icon: "H",
         metadata: {
@@ -293,7 +283,7 @@ export class TranscriptionOrchestrator {
       components.push({
         id: "bridge-extracted",
         type: "bridge",
-        label: "Bridge (Context)",
+        label: "Bridge",
         content: bridgeContent,
         icon: "B",
         metadata: {
@@ -309,7 +299,7 @@ export class TranscriptionOrchestrator {
       components.push({
         id: "nugget-extracted",
         type: "nugget",
-        label: "Golden Nugget (Main Content)",
+        label: "Golden Nugget",
         content: nuggetContent,
         icon: "G",
         metadata: {

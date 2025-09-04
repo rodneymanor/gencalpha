@@ -39,15 +39,20 @@ const parseScriptSections = (script: string): ScriptSection[] => {
   for (const line of lines) {
     const trimmedLine = line.trim()
     
-    // Check for section headers
-    if (trimmedLine.startsWith('**') && trimmedLine.endsWith(':**')) {
+    // Check for section headers (support both ## Header and **Header:** formats)
+    if (trimmedLine.startsWith('##') || (trimmedLine.startsWith('**') && trimmedLine.endsWith(':**'))) {
       // Save previous section if exists
       if (currentSection?.content.trim()) {
         sections.push(currentSection)
       }
       
-      // Start new section
-      const title = trimmedLine.replace(/\*\*/g, '').replace(':', '')
+      // Start new section - extract title from either format
+      let title = ''
+      if (trimmedLine.startsWith('##')) {
+        title = trimmedLine.replace('##', '').trim()
+      } else {
+        title = trimmedLine.replace(/\*\*/g, '').replace(':', '')
+      }
       const type = getSectionType(title.toLowerCase())
       
       currentSection = { type, title, content: '' }

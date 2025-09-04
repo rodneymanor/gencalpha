@@ -6,6 +6,7 @@ import { parseStructuredResponse, createScriptElements } from "@/lib/json-extrac
 import { ensurePromptLibraryInitialized } from "@/lib/prompts";
 import { executePrompt } from "@/lib/prompts/prompt-manager";
 import { createSpeedWriteVariables, type SpeedWriteResult } from "@/lib/prompts/script-generation";
+import { geminiService } from "@/lib/gemini";
 
 type VoiceAnalysis = {
   voiceProfile: {
@@ -78,6 +79,7 @@ type GenerateRequestBody = {
   idea: string;
   length?: "15" | "20" | "30" | "45" | "60" | "90";
   persona?: VoiceAnalysis;
+  generatorType?: string | null;
 };
 
 type GenerateResponseBody = {
@@ -101,17 +103,75 @@ export async function POST(request: NextRequest): Promise<NextResponse<GenerateR
     const idea = (body?.idea ?? "").trim();
     const length = body?.length ?? "60";
     const persona = body?.persona;
+    const generatorType = body?.generatorType;
 
     if (!idea) {
       return NextResponse.json({ success: false, error: "Idea is required" }, { status: 400 });
     }
 
     console.log(
-      `🎭 [Script Generate] ${persona ? "Using persona" : "No persona"} for idea: "${idea.substring(0, 50)}..."`,
+      `🎭 [Script Generate] ${persona ? "Using persona" : "No persona"} | Generator: ${generatorType ?? "full-script"} | Idea: "${idea.substring(0, 50)}..."`,
     );
 
     ensurePromptLibraryInitialized();
 
+    // Handle quick generator types with simple, direct prompts
+    if (generatorType === "generate-hooks" || generatorType === "content-ideas" || generatorType === "value-bombs") {
+      // Create a simple prompt that doesn't require complex speed-write variables
+      let simplePrompt = "";
+      
+      if (generatorType === "generate-hooks") {
+        simplePrompt = `Generate 10 compelling hooks for the following topic. Each hook should be attention-grabbing and make the reader want to continue. 
+        
+Topic: ${idea}
+
+Return ONLY a numbered list (1-10) with each hook on its own line. Keep each hook concise (1-2 sentences max).`;
+      } else if (generatorType === "content-ideas") {
+        simplePrompt = `Generate 10 creative content ideas for the following topic. Each idea should be unique and actionable.
+        
+Topic: ${idea}
+
+Return ONLY a numbered list (1-10) with each content idea on its own line. Keep each idea clear and specific.`;
+      } else if (generatorType === "value-bombs") {
+        simplePrompt = `Generate 10 high-value actionable tips for the following topic. Each tip should provide immediate practical value.
+        
+Topic: ${idea}
+
+Return ONLY a numbered list (1-10) with each tip on its own line. Keep each tip concise and actionable.`;
+      }
+
+      // Use Gemini service directly for simple prompt execution
+      const result = await geminiService.generateContent<string>({
+        prompt: simplePrompt,
+        temperature: 0.7,
+        maxTokens: 1000,
+      });
+      
+      if (!result.success) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: result.error ?? `Failed to generate ${generatorType.replace("generate-", "").replace("-", " ")}`,
+          },
+          { status: 500 },
+        );
+      }
+
+      // Format the response as a simple string in the hook field
+      const content = result.content as string;
+      
+      return NextResponse.json({
+        success: true,
+        script: {
+          hook: content || `Generated ${generatorType.replace("generate-", "").replace("-", " ")} based on your topic`,
+          bridge: "",
+          content: "",
+          callToAction: "",
+        },
+      });
+    }
+
+    // Default: Generate full script
     const variables = createSpeedWriteVariables(idea, length);
 
     // If persona is provided, enhance the prompt with voice cloning instructions
