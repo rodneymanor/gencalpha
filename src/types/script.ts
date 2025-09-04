@@ -31,6 +31,17 @@ export interface Script {
   isThread?: boolean;
   threadParts?: string[];
   characterCount?: number;
+  // For quick generators (hooks, ideas, tips)
+  elements?: {
+    items?: Array<{ number: number; text: string }>;
+    rawContent?: string;
+    type?: string;
+    // Legacy fields for backward compatibility
+    hook?: string;
+    bridge?: string;
+    goldenNugget?: string;
+    wta?: string;
+  };
 }
 
 export interface CreateScriptRequest {

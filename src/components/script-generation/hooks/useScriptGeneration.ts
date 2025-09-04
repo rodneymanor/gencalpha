@@ -29,7 +29,7 @@ interface UseScriptGenerationProps {
  * Handles both structured hook objects and flat text format
  */
 function formatHookContent(content: string, metadata: any): string {
-  // First, check if we have structured hooks data in metadata
+  // First, check if we have structured hooks data in metadata (from hook_generations)
   if (metadata?.hooks && Array.isArray(metadata.hooks)) {
     try {
       // Format structured hooks data into a clean numbered list
@@ -43,6 +43,25 @@ function formatHookContent(content: string, metadata: any): string {
       }
     } catch (error) {
       console.warn("⚠️ [formatHookContent] Failed to format structured hooks:", error);
+    }
+  }
+  
+  // Check for items array from scripts collection (new structure)
+  if (metadata?.items && Array.isArray(metadata.items)) {
+    try {
+      // Format items from scripts collection
+      const formattedItems = metadata.items.map((item: any) => {
+        // Handle both {number, text} and {text} formats
+        const number = item.number || (metadata.items.indexOf(item) + 1);
+        return `${number}. ${item.text}`;
+      });
+      
+      if (formattedItems.length > 0) {
+        console.log('📝 [formatHookContent] Formatted structured items:', formattedItems.length);
+        return formattedItems.join("\n\n");
+      }
+    } catch (error) {
+      console.warn("⚠️ [formatHookContent] Failed to format structured items:", error);
     }
   }
   

@@ -92,6 +92,31 @@ type GenerateResponseBody = {
   };
 };
 
+/**
+ * Parses numbered list content into structured items
+ * Handles formats like "1. Item text" or "1) Item text"
+ */
+function parseNumberedItems(content: string): Array<{ number: number; text: string }> {
+  if (!content) return [];
+  
+  const lines = content.split('\n').filter(line => line.trim());
+  const items: Array<{ number: number; text: string }> = [];
+  
+  lines.forEach(line => {
+    // Match patterns: "1. Text" or "1) Text" or just numbered lines
+    const match = line.match(/^(\d+)[.)\s]+(.+)$/);
+    if (match) {
+      const [, numberStr, text] = match;
+      items.push({
+        number: parseInt(numberStr, 10),
+        text: text.trim()
+      });
+    }
+  });
+  
+  return items;
+}
+
 export async function POST(request: NextRequest): Promise<NextResponse<GenerateResponseBody>> {
   try {
     const authResult = await authenticateApiKey(request);
@@ -157,17 +182,61 @@ Return ONLY a numbered list (1-10) with each tip on its own line. Keep each tip 
         );
       }
 
-      // Format the response as a simple string in the hook field
+      // Parse the generated content into structured items
       const content = result.content as string;
+      const parsedItems = parseNumberedItems(content);
+      
+      // Create the script response
+      const scriptResponse = {
+        hook: content || `Generated ${generatorType.replace("generate-", "").replace("-", " ")} based on your topic`,
+        bridge: "",
+        content: "",
+        callToAction: "",
+      };
+      
+      // Save to database with structured elements
+      try {
+        if (isAdminInitialized) {
+          const adminDb = getAdminDb();
+          const now = new Date().toISOString();
+          
+          await adminDb.collection("scripts").add({
+            userId: authResult.user.uid,
+            title: content.split('\n')[0]?.substring(0, 100) || `Generated ${generatorType.replace("generate-", "").replace("-", " ")}`,
+            content: content,
+            authors: authResult.user.email || "Unknown",
+            status: "draft",
+            performance: { views: 0, engagement: 0 },
+            category: generatorType, // Store the generator type for retrieval
+            createdAt: now,
+            updatedAt: now,
+            viewedAt: now,
+            duration: "",
+            tags: [`generator:${generatorType}`],
+            fileType: "Script",
+            summary: "Script generated with default persona",
+            approach: "ai-voice",
+            wordCount: content.split(/\s+/).filter(Boolean).length,
+            characterCount: content.length,
+            // Store structured items in elements
+            elements: {
+              items: parsedItems, // Structured items array
+              rawContent: content, // Keep raw content for backward compatibility
+              type: generatorType,
+            },
+            originalIdea: idea,
+            source: "scripting",
+          });
+          
+          console.log(`✅ [Script Generate] Saved ${generatorType} with ${parsedItems.length} structured items`);
+        }
+      } catch (persistErr) {
+        console.warn(`⚠️ [Script Generate] Failed to persist ${generatorType}:`, persistErr);
+      }
       
       return NextResponse.json({
         success: true,
-        script: {
-          hook: content || `Generated ${generatorType.replace("generate-", "").replace("-", " ")} based on your topic`,
-          bridge: "",
-          content: "",
-          callToAction: "",
-        },
+        script: scriptResponse,
       });
     }
 

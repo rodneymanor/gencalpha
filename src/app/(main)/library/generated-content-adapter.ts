@@ -18,13 +18,29 @@ export function scriptToLibraryItem(script: Script): LibraryItem {
     scheduled: "reviewing",
     archived: "archived",
   };
+  
+  // Check if this is a generator type (hooks, ideas, tips) by looking at category or elements
+  const isGeneratorType = script.category === "generate-hooks" || 
+                         script.category === "content-ideas" || 
+                         script.category === "value-bombs" ||
+                         script.elements?.type;
+  
+  // Determine the correct category based on script data
+  let category: LibraryItem["category"] = "script";
+  if (script.category === "generate-hooks" || script.elements?.type === "generate-hooks") {
+    category = "hooks";
+  } else if (script.category === "content-ideas" || script.elements?.type === "content-ideas") {
+    category = "idea";
+  } else if (script.category === "value-bombs" || script.elements?.type === "value-bombs") {
+    category = "idea"; // Value tips are treated as ideas
+  }
 
   return {
     id: `script-${script.id}`,
     title: script.title || "Untitled Script",
     description: script.summary || script.content?.substring(0, 200) + "...",
     type: "document",
-    category: "script",
+    category: category,
     status: statusMap[script.status] || "draft",
     author: {
       id: script.userId,
@@ -61,6 +77,9 @@ export function scriptToLibraryItem(script: Script): LibraryItem {
       scheduledDate: script.scheduledDate,
       // Store actual script content in metadata for library access
       scriptContent: script.content,
+      // Include structured items if available (for generators)
+      items: script.elements?.items,
+      generatorType: script.elements?.type || script.category,
     },
   };
 }
