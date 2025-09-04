@@ -6,7 +6,7 @@ import { parseStructuredResponse, createScriptElements } from "@/lib/json-extrac
 import { ensurePromptLibraryInitialized } from "@/lib/prompts";
 import { executePrompt } from "@/lib/prompts/prompt-manager";
 import { createSpeedWriteVariables, type SpeedWriteResult } from "@/lib/prompts/script-generation";
-import { geminiService } from "@/lib/gemini";
+import { geminiService } from "@/lib/services/gemini-service";
 
 type VoiceAnalysis = {
   voiceProfile: {
