@@ -126,6 +126,14 @@ export function useScriptGeneration({
           // Set the script content and title
           scriptState.setGeneratedScript(processedContent);
           scriptState.setScriptTitle(content.title ?? "Library Content");
+          
+          console.log("🔍 [useScriptGeneration] After setting content:", {
+            processedContentLength: processedContent.length,
+            processedContentPreview: processedContent.substring(0, 200),
+            category: content.category,
+            hasMetadataItems: !!content.metadata?.items,
+            itemsCount: content.metadata?.items?.length
+          });
 
           // Set the appropriate quick generator based on category or metadata
           if (content.category === "hooks") {

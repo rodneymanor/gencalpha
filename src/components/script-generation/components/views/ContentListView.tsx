@@ -16,6 +16,13 @@ interface ContentListViewProps {
 }
 
 export function ContentListView({ contentType, content, onContentUpdate }: ContentListViewProps) {
+  console.log("📋 [ContentListView] Received:", {
+    contentType,
+    contentLength: content?.length,
+    contentPreview: content?.substring(0, 200),
+    hasContent: !!content
+  });
+  
   // Parse the content into individual items
   const parseContent = (rawContent: string): ContentItem[] => {
     const lines = rawContent.split("\n").filter(line => line.trim());
@@ -66,6 +73,12 @@ export function ContentListView({ contentType, content, onContentUpdate }: Conte
       }));
     }
 
+    console.log("🎯 [ContentListView] Parsed items:", {
+      itemCount: items.length,
+      firstItem: items[0]?.content?.substring(0, 50),
+      allItemsPreview: items.slice(0, 3).map(item => item.content.substring(0, 30))
+    });
+    
     return items;
   };
 

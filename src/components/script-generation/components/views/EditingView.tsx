@@ -231,6 +231,15 @@ export function EditingView({
 
             <div className="mx-auto max-w-4xl">
               <div className="bg-card border-border rounded-[var(--radius-card)] border p-8 shadow-[var(--shadow-soft-minimal)]">
+                {/* Debug logging for content rendering */}
+                {console.log("🎯 [EditingView] Rendering decision:", {
+                  selectedQuickGenerator,
+                  isHooks: selectedQuickGenerator === "generate-hooks",
+                  isIdeas: selectedQuickGenerator === "content-ideas",
+                  isTips: selectedQuickGenerator === "value-bombs",
+                  displayScriptLength: displayScript?.length,
+                  displayScriptPreview: displayScript?.substring(0, 100)
+                })}
                 {/* Conditional Content Rendering */}
                 {selectedQuickGenerator === "generate-hooks" ||
                  selectedQuickGenerator === "content-ideas" ||
