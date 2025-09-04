@@ -116,11 +116,11 @@ export function useScriptGeneration({
           const content = JSON.parse(libraryContent);
           console.log("📚 [useScriptGeneration] Loading library content:", content);
 
-          // Process hook content to restore proper formatting
+          // Process content to restore proper formatting for hooks and ideas
           let processedContent = content.content ?? "";
-          if (content.category === "hooks") {
+          if (content.category === "hooks" || content.category === "idea") {
             processedContent = formatHookContent(processedContent, content.metadata);
-            console.log("🎣 [useScriptGeneration] Processed hook content for proper display");
+            console.log(`📝 [useScriptGeneration] Processed ${content.category} content for proper display`);
           }
 
           // Set the script content and title

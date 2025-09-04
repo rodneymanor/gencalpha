@@ -351,25 +351,21 @@ export default function LibraryPage() {
       // Store the content in localStorage for the script editor to use
       let content = item.description || '';
       
-      // For hooks, check if we have structured hook data in metadata
+      // For hooks, get the actual content from metadata or content field
       if (item.category === 'hooks') {
-        // If we have structured hooks data, pass it through metadata
-        // The editor will format it properly
-        if (item.metadata?.hooks) {
-          content = ''; // Will be formatted from metadata.hooks
-        } else {
-          // Fallback to description if no structured data
-          content = item.description || '';
-        }
+        // Try to get content from metadata first (where script content is stored), then content field, then description
+        // The editor will format it properly from metadata.items or metadata.hooks
+        content = item.metadata?.scriptContent || item.content || item.description || '';
       }
       // For scripts, try to get the actual script content if available
       else if (item.category === 'script') {
         // First try to get actual script content from metadata, then fallback to description
         content = item.metadata?.scriptContent || item.content || item.description || '';
       }
-      // For ideas, use the description as-is
+      // For ideas, get the actual content from metadata or content field
       else if (item.category === 'idea') {
-        content = item.description || '';
+        // Try to get content from metadata first (where structured items are), then content field, then description
+        content = item.metadata?.scriptContent || item.content || item.description || '';
       }
       
       const contentData = {
