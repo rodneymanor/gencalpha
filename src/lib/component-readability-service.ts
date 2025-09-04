@@ -87,13 +87,13 @@ export class ComponentReadabilityService {
       ? componentAnalyses.reduce((prev, current) => 
           (current.gradeNumeric > prev.gradeNumeric) ? current : prev
         )
-      : overallAnalysis;
+      : overall;
 
     const leastComplex = componentAnalyses.length > 0
       ? componentAnalyses.reduce((prev, current) => 
           (current.gradeNumeric < prev.gradeNumeric && current.gradeNumeric > 0) ? current : prev
         )
-      : overallAnalysis;
+      : overall;
 
     // Component complexity distribution
     const componentStats = {
