@@ -19,7 +19,7 @@ export function AuthRedirectGuard({ children, fallback }: AuthRedirectGuardProps
 
   useEffect(() => {
     if (!initializing && user) {
-      router.push("/dashboard/daily");
+      router.push("/write");
     }
   }, [initializing, user, router]);
 

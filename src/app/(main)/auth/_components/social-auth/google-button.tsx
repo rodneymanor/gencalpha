@@ -20,7 +20,7 @@ export function GoogleButton({ className, ...props }: React.ComponentProps<typeo
     setIsSubmitting(true);
     try {
       await signInWithGoogle();
-      router.push("/dashboard/daily");
+      router.push("/write");
     } catch (error) {
       console.error("Google sign-in error:", error);
     } finally {

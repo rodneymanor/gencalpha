@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-import { EllipsisVertical, CircleUser, CreditCard, MessageSquareDot, LogOut, Building2, Moon, Sun } from "lucide-react";
+import { EllipsisVertical, CircleUser, CreditCard, MessageSquareDot, LogOut, Building2, Moon, Sun, Settings, HelpCircle } from "lucide-react";
 import { toast } from "sonner";
 
 import { ThemeSwitcher } from "@/components/theme/theme-switcher";
@@ -90,6 +90,21 @@ export function NavUser() {
                 </div>
               </div>
             </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuItem asChild>
+                <Link href="/settings" className="flex items-center gap-2">
+                  <Settings className="h-4 w-4" />
+                  Settings
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/help" className="flex items-center gap-2">
+                  <HelpCircle className="h-4 w-4" />
+                  Help & Support
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem asChild>

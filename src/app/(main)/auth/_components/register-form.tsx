@@ -46,7 +46,7 @@ export function RegisterForm() {
     try {
       await signUp(data.email, data.password, data.displayName, "creator");
       toast.success("Account created successfully!");
-      router.push("/collections");
+      router.push("/write");
     } catch (error) {
       console.error("Registration error:", error);
       toast.error(error instanceof Error ? error.message : "Registration failed. Please try again.");
