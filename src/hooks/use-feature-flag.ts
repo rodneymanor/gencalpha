@@ -1,17 +1,14 @@
 "use client";
 
-import { useFeatureFlagEnabled } from "posthog-js/react";
-
 /**
  * Custom hook to check if a feature flag is enabled
- * @param flagKey - The feature flag key from PostHog
- * @returns boolean indicating if the flag is enabled
+ * PostHog disabled - all feature flags return false
+ * @param flagKey - The feature flag key (unused)
+ * @returns always false since PostHog is disabled
  */
 export function useFeatureFlag(flagKey: string): boolean {
-  const isEnabled = useFeatureFlagEnabled(flagKey);
-
-  // Default to false if PostHog is not initialized or flag is undefined
-  return isEnabled ?? false;
+  // PostHog disabled - return false for all feature flags
+  return false;
 }
 
 /**
