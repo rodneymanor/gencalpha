@@ -3,9 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCachedRSSData } from "@/lib/db/rss-cache";
 import { rssParser, type Category, RSS_FEEDS } from "@/lib/rss-service";
 
-export async function GET(request: NextRequest, { params }: { params: { category: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ category: string }> }) {
   try {
-    const category = params.category as Category;
+    const { category: categoryParam } = await params;
+    const category = categoryParam as Category;
 
     // Validate category
     if (!RSS_FEEDS[category]) {
