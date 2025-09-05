@@ -197,8 +197,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             } else {
               setUserProfile({
                 uid: firebaseUser.uid,
-                email: firebaseUser.email || "",
-                displayName: firebaseUser.displayName || "",
+                email: firebaseUser.email ?? "",
+                displayName: firebaseUser.displayName ?? "",
                 role: "creator",
                 createdAt: new Date(),
                 updatedAt: new Date()

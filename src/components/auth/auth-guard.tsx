@@ -20,7 +20,7 @@ export function AuthGuard({ children, fallback }: AuthGuardProps) {
   useEffect(() => {
     const ready = !initializing && !isBackgroundVerifying;
     if (ready && !user) {
-      router.push("/auth/v2/login");
+      router.push("/auth/v1/login");
     }
   }, [initializing, isBackgroundVerifying, user, router]);
 
