@@ -45,12 +45,12 @@ export function InputView({
         <div className="w-full max-w-4xl text-center">
           {/* Hero headline */}
           <div className="mb-8">
-            <h1 className="mb-6 text-4xl leading-10 font-bold tracking-tight">
+            <h1 className="mb-6 md:text-4xl text-2xl md:leading-10 leading-8 font-bold tracking-tight">
               <span className="text-foreground">Ready to create something amazing?</span>
               <br />
               <span className="text-brand">Let&apos;s write your script.</span>
             </h1>
-            <p className="text-muted-foreground mx-auto max-w-2xl text-lg">
+            <p className="text-muted-foreground mx-auto max-w-2xl md:text-lg text-base">
               Tell me what you want to create, and I&apos;ll help you craft the perfect script.
             </p>
           </div>

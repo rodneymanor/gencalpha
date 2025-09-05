@@ -2,9 +2,9 @@
 
 import React from "react";
 
-import { EditingView } from "./components/views/EditingView";
-import { GeneratingView } from "./components/views/GeneratingView";
-import { InputView } from "./components/views/InputView";
+import { EditingView } from "./components/views/editing-view";
+import { GeneratingView } from "./components/views/generating-view";
+import { InputView } from "./components/views/input-view";
 import { TranscribingView } from "./components/views/transcribing-view";
 import { useScriptGeneration } from "./hooks/useScriptGeneration";
 import type { StreamlinedScriptWriterProps } from "./types";

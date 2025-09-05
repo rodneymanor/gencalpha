@@ -5,8 +5,8 @@ import { EnhancedToolbar } from "@/components/editor/enhanced-toolbar";
 import { AnalysisSidebar } from "@/components/writing-analysis/analysis-sidebar";
 import { FloatingAiActionsPanel } from "@/components/writing-analysis/floating-ai-actions-panel";
 import { InteractiveScript } from "@/components/writing-analysis/interactive-script";
-import { ContentListView } from "./ContentListView";
-import { TranscriptToggle } from "../ui/TranscriptToggle";
+import { ContentListView } from "./content-list-view";
+import { TranscriptToggle } from "../ui/transcript-toggle";
 import type { PersonaOption } from "../../types/script-writer-types";
 import type { SidebarTab } from "../../types";
 
@@ -156,16 +156,16 @@ export function EditingView({
           {/* Back Button */}
           <button
             onClick={onBackToInput}
-            className="text-muted-foreground hover:text-foreground hover:bg-background-hover flex items-center space-x-2 rounded-md px-3 py-2 text-sm font-medium transition-colors"
+            className="text-muted-foreground hover:text-foreground hover:bg-background-hover flex items-center space-x-2 rounded-md px-3 py-2 text-sm font-medium transition-colors md:flex-shrink-0 flex-shrink"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            Back to Input
+            <span className="md:inline hidden">Back to Input</span>
           </button>
 
           {/* Enhanced Toolbar */}
-          <div className="flex flex-1 justify-center">
+          <div className="flex flex-1 justify-center md:px-4 px-2">
             <EnhancedToolbar
               onSave={onSave}
               onSimplify={() => console.log("Simplify text using AI")}
@@ -189,7 +189,7 @@ export function EditingView({
           </div>
 
           {/* Transcript Toggle */}
-          <div className="flex items-center">
+          <div className="flex items-center md:flex-shrink-0 flex-shrink">
             <TranscriptToggle
               showFullTranscript={showFullTranscript}
               onToggle={onTranscriptToggle}
@@ -200,9 +200,9 @@ export function EditingView({
       </div>
 
       {/* Main Content Area - Takes remaining height */}
-      <div className="flex min-h-0 flex-1">
+      <div className="flex min-h-0 flex-1 md:flex-row flex-col">
         {/* Left Sidebar - AI Actions Panel - Static */}
-        <div className="border-border bg-card w-80 flex-shrink-0 border-r p-4">
+        <div className="border-border bg-card md:w-80 w-full md:flex-shrink-0 md:border-r border-b md:border-b-0 p-4 md:block hidden">
           <FloatingAiActionsPanel onPersonaSelect={onPersonaSelect} onActionTrigger={onActionTrigger} />
         </div>
 
@@ -320,7 +320,7 @@ export function EditingView({
         </div>
 
         {/* Right Sidebar - Analysis - Static */}
-        <div className="border-border bg-card w-80 flex-shrink-0 border-l p-4">
+        <div className="border-border bg-card md:w-80 w-full md:flex-shrink-0 md:border-l border-t md:border-t-0 p-4 md:block hidden">
           <AnalysisSidebar
             sidebarTab={sidebarTab}
             setSidebarTab={setSidebarTab}
