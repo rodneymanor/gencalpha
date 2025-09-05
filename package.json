@@ -22,6 +22,7 @@
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
     "test:auth-setup": "playwright test tests/auth.setup.ts --headed",
+    "test:a11y": "node scripts/check-accessibility.js",
     "test:collections": "playwright test tests/collections-slideout.spec.ts",
     "test:collections-auth": "playwright test tests/collections-slideout-auth.spec.ts --project=chromium",
     "storybook": "storybook dev -p 6006",

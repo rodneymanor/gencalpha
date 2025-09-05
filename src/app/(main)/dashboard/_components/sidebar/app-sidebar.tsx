@@ -350,14 +350,14 @@ export function AppSidebar({ className, onItemClick }: AppSidebarProps) {
                   <span className="text-xl font-bold text-foreground">C</span>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                  <div className="flex items-center gap-1.5 text-xs text-neutral-600">
                     <div
                       className={cn(
                         "h-1.5 w-1.5 rounded-full transition-colors duration-300",
-                        isAIActive ? "bg-emerald-400" : "bg-gray-300",
+                        isAIActive ? "bg-emerald-500" : "bg-neutral-400",
                       )}
                     />
-                    <span>AI Writing Assistant</span>
+                    <span>{isAIActive ? "AI Active" : "AI Idle"}</span>
                   </div>
                 </div>
               </div>
@@ -365,7 +365,7 @@ export function AppSidebar({ className, onItemClick }: AppSidebarProps) {
               {/* Collapse Button - Hidden on mobile */}
               <button
                 onClick={() => toggleSidebar(true)}
-                className="hidden md:block rounded-md p-1.5 text-gray-400 transition-colors duration-200 hover:bg-gray-50 hover:text-gray-600"
+                className="hidden md:block rounded-md p-1.5 text-neutral-600 transition-colors duration-200 hover:bg-neutral-100 hover:text-neutral-900"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
@@ -373,7 +373,7 @@ export function AppSidebar({ className, onItemClick }: AppSidebarProps) {
           ) : (
             <button
               onClick={() => toggleSidebar(false)}
-              className="mx-auto hidden md:block rounded-md p-2 text-gray-400 transition-colors duration-200 hover:bg-gray-50 hover:text-gray-600"
+              className="mx-auto hidden md:block rounded-md p-2 text-neutral-600 transition-colors duration-200 hover:bg-neutral-100 hover:text-neutral-900"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
@@ -434,7 +434,7 @@ export function AppSidebar({ className, onItemClick }: AppSidebarProps) {
         {/* Quick Generators */}
         {!isCollapsed && (
           <div className="mb-6 px-4">
-            <h3 className="mb-3 text-xs font-medium tracking-wide text-gray-400 uppercase">Quick Actions</h3>
+            <h3 className="mb-3 text-xs font-medium tracking-wide text-neutral-600 uppercase">Quick Actions</h3>
             <div className="grid grid-cols-2 gap-2">
               {quickGenerators.map((generator) => (
                 <button
@@ -446,12 +446,12 @@ export function AppSidebar({ className, onItemClick }: AppSidebarProps) {
                   )}
                 >
                   <div className="mb-2 flex items-center gap-2">
-                    <div className="flex h-5 w-5 items-center justify-center rounded-md bg-gray-200 text-gray-600 transition-all duration-200 group-hover:bg-gray-300">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-md bg-neutral-300 text-neutral-700 transition-all duration-200 group-hover:bg-neutral-400">
                       <generator.icon className="h-3 w-3" />
                     </div>
-                    <div className="text-xs font-medium text-gray-700 group-hover:text-gray-900">{generator.title}</div>
+                    <div className="text-xs font-medium text-neutral-700 group-hover:text-neutral-900">{generator.title}</div>
                   </div>
-                  <div className="text-xs text-gray-500">{generator.uses} uses</div>
+                  <div className="text-xs text-neutral-600">{generator.uses} uses</div>
                 </button>
               ))}
             </div>
@@ -472,14 +472,14 @@ export function AppSidebar({ className, onItemClick }: AppSidebarProps) {
               <div key={section.id} className="mb-6">
                 {!isCollapsed && (
                   <div className="mb-3 flex items-center justify-between">
-                    <h3 className="text-xs font-medium tracking-wide text-gray-400 uppercase">{section.title}</h3>
+                    <h3 className="text-xs font-medium tracking-wide text-neutral-600 uppercase">{section.title}</h3>
                     <button
                       onClick={() => toggleSection(section.id)}
                       className="rounded p-0.5 transition-colors duration-200 hover:bg-gray-100"
                     >
                       <ChevronDown
                         className={cn(
-                          "h-3.5 w-3.5 text-gray-400 transition-transform duration-200",
+                          "h-3.5 w-3.5 text-neutral-500 transition-transform duration-200",
                           collapsedSections[section.id] && "rotate-180",
                         )}
                       />
@@ -529,13 +529,13 @@ export function AppSidebar({ className, onItemClick }: AppSidebarProps) {
                               <span className="flex-1 text-sm font-medium">{item.title}</span>
 
                               {item.badge && (
-                                <div className="flex h-5 min-w-5 flex-shrink-0 items-center justify-center rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-600">
+                                <div className="flex h-5 min-w-5 flex-shrink-0 items-center justify-center rounded-full bg-neutral-700 px-2 py-0.5 text-xs text-white">
                                   {item.badge}
                                 </div>
                               )}
 
                               {item.comingSoon && (
-                                <div className="flex-shrink-0 rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-600">
+                                <div className="flex-shrink-0 rounded-full bg-neutral-300 px-2 py-0.5 text-xs text-neutral-700">
                                   Soon
                                 </div>
                               )}
