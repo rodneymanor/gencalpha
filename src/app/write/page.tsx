@@ -12,8 +12,8 @@ export default async function WritePage({
   const fromLibrary = typeof params.from === "string" && params.from === "library";
 
   // Check if Firebase is configured
-  const hasFirebaseConfig = process.env.NEXT_PUBLIC_FIREBASE_API_KEY && 
-    process.env.NEXT_PUBLIC_FIREBASE_API_KEY !== "demo-api-key";
+  const hasFirebaseConfig =
+    process.env.NEXT_PUBLIC_FIREBASE_API_KEY && process.env.NEXT_PUBLIC_FIREBASE_API_KEY !== "demo-api-key";
 
   if (!hasFirebaseConfig) {
     return <FirebaseConfigError />;
