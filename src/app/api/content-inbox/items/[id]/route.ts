@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAdminAuth, adminDb } from "@/lib/firebase-admin";
 
 // PATCH - Update content item
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // Authenticate user
     const auth = await getAdminAuth();
@@ -13,7 +13,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
 
     // Get the document reference
@@ -45,7 +45,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 }
 
 // DELETE - Delete single content item
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // Authenticate user
     const auth = await getAdminAuth();
@@ -53,7 +53,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     // Delete the document
     await adminDb.collection("users").doc(auth.uid).collection("contentInbox").doc(id).delete();
