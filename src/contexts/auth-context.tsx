@@ -91,35 +91,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [hasValidCache, setHasValidCache] = useState(false);
   const [isBackgroundVerifying, setIsBackgroundVerifying] = useState(false);
 
-  // Check for version changes and force logout if needed
+  // Simplified version checking without forced reloads
   useEffect(() => {
-    const checkVersionAndInitialize = async () => {
+    const initializeCache = () => {
       const storedVersion = localStorage.getItem(APP_VERSION_STORAGE_KEY);
 
-      // If version has changed, force logout
+      // If version has changed, clear cache but don't force reload
       if (storedVersion && storedVersion !== APP_VERSION) {
-        console.log("🔄 [AUTH] App version changed from", storedVersion, "to", APP_VERSION, "- forcing logout");
-
-        // Clear all auth-related storage
+        console.log("🔄 [AUTH] App version changed, clearing cache");
         clearAuthCache();
-        localStorage.clear();
-        sessionStorage.clear();
-
-        // Sign out if user is currently signed in
-        if (auth?.currentUser) {
-          try {
-            await signOut(auth);
-          } catch (error) {
-            console.error("Error signing out during version update:", error);
-          }
-        }
-
-        // Update stored version
         localStorage.setItem(APP_VERSION_STORAGE_KEY, APP_VERSION);
-
-        // Force page reload to ensure clean state
-        window.location.reload();
-        return;
       }
 
       // If no version stored yet (first visit), just store it
@@ -127,20 +108,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem(APP_VERSION_STORAGE_KEY, APP_VERSION);
       }
 
-      // Normal initialization from cache
+      // Load from cache if available
       const cachedAuth = getAuthCache();
-      if (cachedAuth) {
+      if (cachedAuth && !isCacheStale()) {
         console.log("🔍 [AUTH] Loading from cache:", cachedAuth);
         setUserProfile(cachedAuth.userProfile);
         setAccountLevel(cachedAuth.accountLevel);
         setHasValidCache(true);
-        // Reduce initializing time when we have valid cache
-        setInitializing(false);
         setIsBackgroundVerifying(true);
       }
+      
+      // Always set initializing to false after cache check
+      setInitializing(false);
     };
 
-    checkVersionAndInitialize();
+    initializeCache();
   }, []);
 
   const updateAuthCache = useCallback(
@@ -178,33 +160,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!auth) {
       console.warn("⚠️ [AUTH] Firebase auth is not configured - running in fallback mode");
-      setInitializing(false);
-      setIsBackgroundVerifying(false);
       return;
     }
 
-    // Add a timeout fallback to prevent infinite loading
-    const initTimeout = setTimeout(() => {
-      console.warn("⚠️ [AUTH] Initialization timeout - Firebase auth may not be responding");
-      setInitializing(false);
-      setIsBackgroundVerifying(false);
-    }, 10000); // 10 second timeout
-
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      clearTimeout(initTimeout); // Clear timeout once auth state is received
       console.log("🔍 [AUTH] Auth state changed:", firebaseUser?.uid ?? "logged out");
       setUser(firebaseUser);
 
       if (firebaseUser) {
-        await UserManagementService.updateLastLogin(firebaseUser.uid);
-
-        // Only fetch profile if we don't have valid cache, if profile differs, or if cache is stale
+        // Try to fetch profile, but don't block on it
         const cachedAuth = getAuthCache();
         const shouldFetchProfile =
           !hasValidCache || !cachedAuth || cachedAuth.userProfile?.uid !== firebaseUser.uid || isCacheStale();
 
         if (shouldFetchProfile) {
           try {
+            // Do these in parallel, don't await them
+            UserManagementService.updateLastLogin(firebaseUser.uid).catch(err => 
+              console.warn("⚠️ [AUTH] Failed to update last login:", err)
+            );
+            
             const profile = await UserManagementService.getUserProfile(firebaseUser.uid);
             setUserProfile(profile);
 
@@ -214,16 +189,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             updateAuthCache(firebaseUser, profile, newAccountLevel);
           } catch (error) {
-            console.error("Error fetching user profile:", error);
-            // Only clear profile if we don't have valid cache fallback
-            if (!hasValidCache) {
-              setUserProfile(null);
+            console.warn("⚠️ [AUTH] Error fetching user profile, using cached data:", error);
+            // Use cached data if available, otherwise set basic profile
+            if (cachedAuth?.userProfile) {
+              setUserProfile(cachedAuth.userProfile);
+              setAccountLevel(cachedAuth.accountLevel);
+            } else {
+              setUserProfile({
+                uid: firebaseUser.uid,
+                email: firebaseUser.email || "",
+                displayName: firebaseUser.displayName || "",
+                role: "creator",
+                createdAt: new Date(),
+                updatedAt: new Date()
+              });
               setAccountLevel("free");
             }
-            updateAuthCache(firebaseUser, null, hasValidCache ? accountLevel : "free");
           }
         } else {
-          console.log("🚀 [AUTH] Using cached profile data - background verification complete");
+          console.log("🚀 [AUTH] Using cached profile data");
         }
 
         setHasValidCache(true);
@@ -234,14 +218,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         clearAuthCache();
       }
 
-      setInitializing(false);
       setIsBackgroundVerifying(false);
     });
 
-    return () => {
-      clearTimeout(initTimeout);
-      unsubscribe();
-    };
+    return unsubscribe;
   }, [updateAuthCache, hasValidCache, accountLevel]);
 
   const signIn = async (email: string, password: string) => {
@@ -384,36 +364,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     ],
   );
 
-  // Global loading gate - prevent any auth-based navigation until auth is resolved
-  if (initializing) {
-    // Show a minimal skeleton that represents the app structure
-    return (
-      <div className="flex h-screen">
-        {/* Sidebar skeleton */}
-        <div className="w-64 border-r border-neutral-200 bg-neutral-50 p-4">
-          <div className="space-y-4">
-            <div className="h-10 w-full animate-pulse rounded-[var(--radius-button)] bg-neutral-200" />
-            <div className="space-y-2">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="h-8 w-full animate-pulse rounded-[var(--radius-button)] bg-neutral-200" />
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Main content skeleton */}
-        <div className="flex-1 p-6">
-          <div className="mb-4 h-8 w-48 animate-pulse rounded-[var(--radius-card)] bg-neutral-200" />
-          <div className="mb-8 h-5 w-64 animate-pulse rounded-[var(--radius-card)] bg-neutral-200" />
-          <div className="grid grid-cols-3 gap-4">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-32 animate-pulse rounded-[var(--radius-card)] bg-neutral-200" />
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Remove global loading gate - let individual components handle their own loading states
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

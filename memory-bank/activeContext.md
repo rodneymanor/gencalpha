@@ -43,12 +43,20 @@ _Last Updated: 2025-01-14_
   - Added `messages/AckLoader.tsx`, `messages/VideoActionsPanel.tsx`, `messages/EmulateInputPanel.tsx`
   - Replaced inline JSX branches in `claude-chat.tsx` with these components, passing callbacks via props
 
+- **Critical Auth Flow Simplification for Production Stability:**
+  - **Removed global loading gate** that was blocking entire app during auth initialization
+  - **Eliminated forced page reloads** that could cause infinite loops in production
+  - **Simplified version checking** to clear cache without reloading page
+  - **Made auth initialization resilient** to API failures and network issues
+  - **Created `useAuthLoading` hook** for components needing individual loading states
+  - **Fixed Vercel deployment issues** by ensuring auth flow never gets stuck
+
 ## 3. Immediate Next Steps
 
+- Test the simplified authentication flow in production deployment
+- Verify environment variables are properly set in Vercel
+- Monitor auth initialization performance and error rates
 - Add optional toolbar actions on slideout editor: Copy/Publish pipeline and status toasts.
-- Consider persisting slideout editor state to notes or drafts.
-- Evaluate mobile spacing for the slideout editor (`px-11` → `px-6 md:px-11`).
-- Phase 2: extract presentational components (`VideoActionsPanel`, `AckLoader`, `EmulateInputPanel`) and optional hooks (`useUrlDetection`).
 
 ## 4. Open Questions / Known Issues
 

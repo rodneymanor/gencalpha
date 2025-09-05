@@ -6,6 +6,7 @@ export interface StreamlinedScriptWriterProps {
   initialPrompt?: string;
   onScriptComplete?: (script: string) => void;
   className?: string;
+  fromLibrary?: boolean;
 }
 
 export interface QuickGenerator {
