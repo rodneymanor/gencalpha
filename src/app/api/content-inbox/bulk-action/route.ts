@@ -2,14 +2,13 @@
 
 import { NextRequest, NextResponse } from "next/server";
 
-import { getAuth } from "@/lib/firebase-admin";
-import { db } from "@/lib/firebase-admin";
+import { getAdminAuth, adminDb } from "@/lib/firebase-admin";
 
 // POST - Perform bulk action on content items
 export async function POST(request: NextRequest) {
   try {
     // Authenticate user
-    const auth = await getAuth(request);
+    const auth = await getAdminAuth();
     if (!auth.uid) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -27,11 +26,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Perform action based on type
-    const batch = db.batch();
+    const batch = adminDb.batch();
     let updateCount = 0;
 
     for (const id of ids) {
-      const docRef = db.collection("users").doc(auth.uid).collection("contentInbox").doc(id);
+      const docRef = adminDb.collection("users").doc(auth.uid).collection("contentInbox").doc(id);
 
       switch (action.type) {
         case "delete":

@@ -177,12 +177,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!auth) {
+      console.warn("⚠️ [AUTH] Firebase auth is not configured - running in fallback mode");
       setInitializing(false);
       setIsBackgroundVerifying(false);
       return;
     }
 
+    // Add a timeout fallback to prevent infinite loading
+    const initTimeout = setTimeout(() => {
+      console.warn("⚠️ [AUTH] Initialization timeout - Firebase auth may not be responding");
+      setInitializing(false);
+      setIsBackgroundVerifying(false);
+    }, 10000); // 10 second timeout
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      clearTimeout(initTimeout); // Clear timeout once auth state is received
       console.log("🔍 [AUTH] Auth state changed:", firebaseUser?.uid ?? "logged out");
       setUser(firebaseUser);
 
@@ -229,7 +238,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsBackgroundVerifying(false);
     });
 
-    return unsubscribe;
+    return () => {
+      clearTimeout(initTimeout);
+      unsubscribe();
+    };
   }, [updateAuthCache, hasValidCache, accountLevel]);
 
   const signIn = async (email: string, password: string) => {
@@ -388,12 +400,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             </div>
           </div>
         </div>
-        
+
         {/* Main content skeleton */}
         <div className="flex-1 p-6">
-          <div className="h-8 w-48 animate-pulse rounded-[var(--radius-card)] bg-neutral-200 mb-4" />
-          <div className="h-5 w-64 animate-pulse rounded-[var(--radius-card)] bg-neutral-200 mb-8" />
-          <div className="grid gap-4 grid-cols-3">
+          <div className="mb-4 h-8 w-48 animate-pulse rounded-[var(--radius-card)] bg-neutral-200" />
+          <div className="mb-8 h-5 w-64 animate-pulse rounded-[var(--radius-card)] bg-neutral-200" />
+          <div className="grid grid-cols-3 gap-4">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="h-32 animate-pulse rounded-[var(--radius-card)] bg-neutral-200" />
             ))}

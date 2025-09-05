@@ -3,6 +3,7 @@ import { ReactNode } from "react";
 import type { Metadata } from "next";
 import { Lato, Roboto } from "next/font/google";
 
+import ErrorBoundary from "@/components/error-boundary";
 import { LoadingProvider } from "@/components/ui/loading";
 import { Toaster } from "@/components/ui/sonner";
 import { APP_CONFIG } from "@/config/app-config";
@@ -55,16 +56,18 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <link rel="dns-prefetch" href="https://firebaseio.com" />
       </head>
       <body className={`${lato.variable} ${roboto.variable} font-sans min-h-screen antialiased`}>
-        <PostHogProvider>
-          <QueryProvider>
-            <LoadingProvider>
-              <PreferencesStoreProvider themeMode={themeMode} themePreset={themePreset}>
-                {children}
-                <Toaster />
-              </PreferencesStoreProvider>
-            </LoadingProvider>
-          </QueryProvider>
-        </PostHogProvider>
+        <ErrorBoundary>
+          <PostHogProvider>
+            <QueryProvider>
+              <LoadingProvider>
+                <PreferencesStoreProvider themeMode={themeMode} themePreset={themePreset}>
+                  {children}
+                  <Toaster />
+                </PreferencesStoreProvider>
+              </LoadingProvider>
+            </QueryProvider>
+          </PostHogProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

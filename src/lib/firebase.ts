@@ -23,6 +23,23 @@ console.log("🔥 [Firebase] Has valid config:", hasValidConfig);
 console.log("🔥 [Firebase] API Key exists:", !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
 console.log("🔥 [Firebase] API Key is demo:", process.env.NEXT_PUBLIC_FIREBASE_API_KEY === "demo-api-key");
 console.log("🔥 [Firebase] Project ID:", process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID);
+console.log("🔥 [Firebase] Auth Domain:", process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN);
+console.log("🔥 [Firebase] Running in:", typeof window !== "undefined" ? "browser" : "server");
+
+// Log missing environment variables for debugging
+if (!hasValidConfig) {
+  console.error("❌ [Firebase] Missing or invalid Firebase configuration!");
+  console.error("❌ [Firebase] Please check these environment variables in Vercel:");
+  if (!process.env.NEXT_PUBLIC_FIREBASE_API_KEY || process.env.NEXT_PUBLIC_FIREBASE_API_KEY === "demo-api-key") {
+    console.error("  - NEXT_PUBLIC_FIREBASE_API_KEY (currently using demo value)");
+  }
+  if (!process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN) console.error("  - NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN");
+  if (!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) console.error("  - NEXT_PUBLIC_FIREBASE_PROJECT_ID");
+  if (!process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET) console.error("  - NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET");
+  if (!process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID)
+    console.error("  - NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID");
+  if (!process.env.NEXT_PUBLIC_FIREBASE_APP_ID) console.error("  - NEXT_PUBLIC_FIREBASE_APP_ID");
+}
 
 const app = hasValidConfig ? (getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]) : null;
 const auth = hasValidConfig && app ? getAuth(app) : null;

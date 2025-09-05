@@ -2,14 +2,13 @@
 
 import { NextRequest, NextResponse } from "next/server";
 
-import { getAuth } from "@/lib/firebase-admin";
-import { db } from "@/lib/firebase-admin";
+import { getAdminAuth, adminDb } from "@/lib/firebase-admin";
 
 // POST - Update the order of content items (for drag and drop)
 export async function POST(request: NextRequest) {
   try {
     // Authenticate user
-    const auth = await getAuth(request);
+    const auth = await getAdminAuth();
     if (!auth.uid) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -23,7 +22,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update order for each item
-    const batch = db.batch();
+    const batch = adminDb.batch();
 
     for (const item of items) {
       if (!item.id || typeof item.order !== "number") {
@@ -31,7 +30,7 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      const docRef = db.collection("users").doc(auth.uid).collection("contentInbox").doc(item.id);
+      const docRef = adminDb.collection("users").doc(auth.uid).collection("contentInbox").doc(item.id);
 
       batch.update(docRef, {
         order: item.order,

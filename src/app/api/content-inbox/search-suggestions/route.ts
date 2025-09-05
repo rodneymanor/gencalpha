@@ -2,14 +2,13 @@
 
 import { NextRequest, NextResponse } from "next/server";
 
-import { getAuth } from "@/lib/firebase-admin";
-import { db } from "@/lib/firebase-admin";
+import { getAdminAuth, adminDb } from "@/lib/firebase-admin";
 
 // GET - Get search suggestions based on query
 export async function GET(request: NextRequest) {
   try {
     // Authenticate user
-    const auth = await getAuth(request);
+    const auth = await getAdminAuth();
     if (!auth.uid) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -25,7 +24,7 @@ export async function GET(request: NextRequest) {
     const queryLower = query.toLowerCase();
 
     // Get recent items to build suggestions from
-    const snapshot = await db
+    const snapshot = await adminDb
       .collection("users")
       .doc(auth.uid)
       .collection("contentInbox")

@@ -2,14 +2,13 @@
 
 import { NextRequest, NextResponse } from "next/server";
 
-import { getAuth } from "@/lib/firebase-admin";
-import { db } from "@/lib/firebase-admin";
+import { getAdminAuth, adminDb } from "@/lib/firebase-admin";
 
 // PATCH - Update content item
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     // Authenticate user
-    const auth = await getAuth(request);
+    const auth = await getAdminAuth();
     if (!auth.uid) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -18,7 +17,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     const body = await request.json();
 
     // Get the document reference
-    const docRef = db.collection("users").doc(auth.uid).collection("contentInbox").doc(id);
+    const docRef = adminDb.collection("users").doc(auth.uid).collection("contentInbox").doc(id);
 
     // Check if document exists
     const doc = await docRef.get();
@@ -49,7 +48,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     // Authenticate user
-    const auth = await getAuth(request);
+    const auth = await getAdminAuth();
     if (!auth.uid) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -57,7 +56,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     const { id } = params;
 
     // Delete the document
-    await db.collection("users").doc(auth.uid).collection("contentInbox").doc(id).delete();
+    await adminDb.collection("users").doc(auth.uid).collection("contentInbox").doc(id).delete();
 
     return NextResponse.json({
       success: true,

@@ -62,17 +62,25 @@ const nextConfig = {
     return config;
   },
   compiler: {
-    removeConsole: process.env.NODE_ENV === "production",
+    // Temporarily disable console removal for production debugging
+    // TODO: Re-enable after fixing deployment issues
+    removeConsole: false, // process.env.NODE_ENV === "production",
   },
-  // Ignore TypeScript and ESLint errors during builds for deployments
+  // Temporarily enable TypeScript checking for debugging deployment issues
+  // TODO: Disable again after fixing issues
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false, // true,
   },
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false, // true,
   },
   async redirects() {
     return [
+      {
+        source: "/",
+        destination: "/write",
+        permanent: false,
+      },
       {
         source: "/dashboard",
         destination: "/dashboard/daily",
