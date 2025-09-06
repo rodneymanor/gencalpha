@@ -14,7 +14,6 @@ import { MagicCard } from "@/components/magicui/magic-card";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useAuth } from "@/contexts/auth-context";
 
 import { GoogleButton } from "../../_components/social-auth/google-button";
 
@@ -23,7 +22,6 @@ const FormSchema = z.object({
 });
 
 export default function LoginV2() {
-  const { loading } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -64,9 +62,9 @@ export default function LoginV2() {
             </div>
 
             {/* Form Section */}
-            <div className="space-y-6">
+            <div className="space-y-6" suppressHydrationWarning>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" suppressHydrationWarning>
                   <FormField
                     control={form.control}
                     name="email"
@@ -91,7 +89,7 @@ export default function LoginV2() {
                   <Button
                     className="active:bg-brand-700 h-12 w-full bg-brand-500 text-neutral-50 transition-all duration-150 hover:bg-brand-600"
                     type="submit"
-                    disabled={isSubmitting || loading}
+                    disabled={isSubmitting}
                   >
                     {isSubmitting ? "Processing..." : "Next"}
                   </Button>

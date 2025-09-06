@@ -12,7 +12,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { cn } from "@/lib/utils";
 
 export function GoogleButton({ className, ...props }: React.ComponentProps<typeof Button>) {
-  const { signInWithGoogle, loading } = useAuth();
+  const { signInWithGoogle } = useAuth();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -33,7 +33,7 @@ export function GoogleButton({ className, ...props }: React.ComponentProps<typeo
       variant="outline"
       className={cn("text-foreground hover:bg-accent bg-white", className)}
       onClick={handleGoogleSignIn}
-      disabled={loading || isSubmitting}
+      disabled={isSubmitting}
       {...props}
     >
       <SimpleIcon icon={siGoogle} className="size-4" />
