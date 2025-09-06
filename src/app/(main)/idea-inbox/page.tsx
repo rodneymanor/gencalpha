@@ -1,19 +1,20 @@
-'use client';
+"use client";
 
 // Idea Inbox Page - Redirects to unified Library with inspiration filter
 // Phase 2: Redirect to Library page with captured content filter
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect } from "react";
+
+import { useRouter } from "next/navigation";
 
 export default function IdeaInboxPage() {
   const router = useRouter();
-  
+
   useEffect(() => {
     // Redirect to library with captured content filter
-    router.replace('/library?source=captured');
+    router.replace("/library?source=captured");
   }, [router]);
-  
+
   // Show loading state while redirecting
   return (
     <div className="flex h-full items-center justify-center">

@@ -61,7 +61,6 @@ export async function POST(request: NextRequest) {
             }
             throw new Error("Invalid analysis structure after recovery attempt");
           }
-
         } catch (error) {
           console.log(`❌ Attempt ${attempt} failed:`, error instanceof Error ? error.message : error);
 
@@ -82,7 +81,7 @@ export async function POST(request: NextRequest) {
     // Fallback analysis with reduced scope
     const fallbackAnalysis = async (reducedTranscripts: string[]): Promise<any> => {
       console.log(
-        `🔄 Fallback: Analyzing ${reducedTranscripts.length} transcripts instead of ${scriptsToAnalyze.length}`
+        `🔄 Fallback: Analyzing ${reducedTranscripts.length} transcripts instead of ${scriptsToAnalyze.length}`,
       );
 
       try {
@@ -461,11 +460,10 @@ ${transcripts.map((t, i) => `Script ${i + 1}: ${t.substring(0, 200)}...`).join("
       console.log(`  - Hooks extracted: ${analysis.allHooksExtracted?.length ?? 0}`);
       console.log(`  - Voice profile: ${analysis.voiceProfile ? "Complete" : "Missing"}`);
       console.log(
-        `  - Script formula: ${analysis.scriptGenerationRules?.detailedScriptFormula ? "Present" : "Missing"}`
+        `  - Script formula: ${analysis.scriptGenerationRules?.detailedScriptFormula ? "Present" : "Missing"}`,
       );
 
       return NextResponse.json(analysis);
-
     } catch (error) {
       console.error("❌ Voice analysis failed after all attempts:", error);
 

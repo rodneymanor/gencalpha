@@ -1,11 +1,11 @@
-import { type ChatMessage } from "@/components/write-chat/types";
 import { type PersonaOption } from "@/components/write-chat/persona-selector";
-import { 
-  createConversation, 
-  saveMessage as saveMessageToDb, 
-  generateTitle, 
-  loadConversation 
+import {
+  createConversation,
+  saveMessage as saveMessageToDb,
+  generateTitle,
+  loadConversation,
 } from "@/components/write-chat/services/chat-service";
+import { type ChatMessage } from "@/components/write-chat/types";
 
 export interface ConversationHandlerConfig {
   setConversationId: React.Dispatch<React.SetStateAction<string | null>>;
@@ -23,20 +23,14 @@ export interface LoadedConversation {
 }
 
 export function createConversationHandler(config: ConversationHandlerConfig) {
-  const {
-    setConversationId,
-    setConversationTitle,
-    setIsFirstResponse,
-    setMessages,
-    onHeroExpansion,
-  } = config;
+  const { setConversationId, setConversationTitle, setIsFirstResponse, setMessages, onHeroExpansion } = config;
 
   // Ensure conversation exists and persist the user's message
   const ensureConversationAndSaveUserMessage = async (
     userInput: string,
     selectedPersona: PersonaOption | null,
     conversationId: string | null,
-    initialPrompt?: string
+    initialPrompt?: string,
   ): Promise<string | null> => {
     try {
       let convIdLocal = conversationId;
@@ -109,7 +103,7 @@ export function createConversationHandler(config: ConversationHandlerConfig) {
     userMessage: string,
     assistantMessage: string,
     isFirstResponse: boolean,
-    currentTitle: string | null
+    currentTitle: string | null,
   ): Promise<string | null> => {
     if (!isFirstResponse || currentTitle) return null;
 
@@ -129,7 +123,7 @@ export function createConversationHandler(config: ConversationHandlerConfig) {
     } catch (error) {
       console.warn("⚠️ [ConversationHandler] Failed to generate title:", error);
     }
-    
+
     return null;
   };
 
@@ -137,7 +131,7 @@ export function createConversationHandler(config: ConversationHandlerConfig) {
   const saveMessage = async (
     conversationId: string | null,
     role: "user" | "assistant",
-    content: string
+    content: string,
   ): Promise<void> => {
     if (!conversationId) {
       console.warn("⚠️ [ConversationHandler] No conversation ID available for saving message");

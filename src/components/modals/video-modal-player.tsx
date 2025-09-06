@@ -1,9 +1,11 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Play, FileText } from 'lucide-react';
-import { Video } from '@/lib/collections';
-import { cn } from '@/lib/utils';
+import React, { useState } from "react";
+
+import { Play, FileText } from "lucide-react";
+
+import { Video } from "@/lib/collections";
+import { cn } from "@/lib/utils";
 
 interface VideoModalPlayerProps {
   video: Video;
@@ -12,12 +14,7 @@ interface VideoModalPlayerProps {
   className?: string;
 }
 
-export function VideoModalPlayer({
-  video,
-  onPlay,
-  onPause,
-  className
-}: VideoModalPlayerProps) {
+export function VideoModalPlayer({ video, onPlay, onPause, className }: VideoModalPlayerProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
 
@@ -28,12 +25,13 @@ export function VideoModalPlayer({
 
   // Determine if this is an iframe URL (Bunny.net or embed)
   const isIframeUrl = (url: string) => {
-    return url && (
-      url.includes("iframe") || 
-      url.includes("embed") || 
-      url.includes("bunny") ||
-      url.includes("youtube.com/embed") ||
-      url.includes("vimeo.com/video")
+    return (
+      url &&
+      (url.includes("iframe") ||
+        url.includes("embed") ||
+        url.includes("bunny") ||
+        url.includes("youtube.com/embed") ||
+        url.includes("vimeo.com/video"))
     );
   };
 
@@ -104,7 +102,7 @@ export function VideoModalPlayer({
           onLoad={handleIframeLoad}
           onError={handleIframeError}
           title={video.title || "Video player"}
-          style={{ objectFit: 'cover', objectPosition: 'center' }}
+          style={{ objectFit: "cover", objectPosition: "center" }}
         />
       ) : (
         /* Fallback HTML5 Video Player for direct URLs */
@@ -114,7 +112,7 @@ export function VideoModalPlayer({
           controls
           autoPlay
           className="h-full w-full"
-          style={{ objectFit: 'cover', objectPosition: 'center' }}
+          style={{ objectFit: "cover", objectPosition: "center" }}
           onPlay={handleVideoPlay}
           onPause={handleVideoPause}
           onLoadStart={() => setIsLoading(true)}
@@ -126,11 +124,9 @@ export function VideoModalPlayer({
       )}
 
       {/* Video Metadata Overlay - hidden by default, can be toggled */}
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3 opacity-0 hover:opacity-100 transition-opacity duration-200">
-        <h3 className="text-sm font-semibold text-white truncate">{video.title || 'Untitled Video'}</h3>
-        {video.metadata?.author && (
-          <p className="text-xs text-neutral-300 truncate">by {video.metadata.author}</p>
-        )}
+      <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/60 to-transparent p-3 opacity-0 transition-opacity duration-200 hover:opacity-100">
+        <h3 className="truncate text-sm font-semibold text-white">{video.title || "Untitled Video"}</h3>
+        {video.metadata?.author && <p className="truncate text-xs text-neutral-300">by {video.metadata.author}</p>}
       </div>
     </div>
   );

@@ -61,10 +61,10 @@ const CustomDailyButton = ({ url }: { url: string }) => {
       asChild
       isActive={false}
       tooltip="New Script"
-      className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground data-[active=true]:bg-transparent data-[active=true]:font-normal pl-[8px]"
+      className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground pl-[8px] data-[active=true]:bg-transparent data-[active=true]:font-normal"
     >
       <Link href={url} onClick={handleClick}>
-        <div className="-ml-1 flex size-6 shrink-0 items-center justify-center rounded-[var(--radius-pill)] bg-neutral-200 border border-neutral-200 shadow-[var(--shadow-soft-drop)] transition-all duration-200 ease-linear hover:bg-neutral-300 hover:border-neutral-400 hover:scale-110">
+        <div className="-ml-1 flex size-6 shrink-0 items-center justify-center rounded-[var(--radius-pill)] border border-neutral-200 bg-neutral-200 shadow-[var(--shadow-soft-drop)] transition-all duration-200 ease-linear hover:scale-110 hover:border-neutral-400 hover:bg-neutral-300">
           <Plus className="size-4 text-neutral-900 transition-transform duration-200" />
         </div>
         <span className="font-semibold text-neutral-900">New Script</span>
@@ -121,7 +121,12 @@ const NavItemExpanded = ({
             <SidebarMenuSub>
               {item.subItems.map((subItem) => (
                 <SidebarMenuSubItem key={subItem.title}>
-                  <SidebarMenuSubButton aria-disabled={subItem.comingSoon} isActive={isActive(subItem.url)} asChild className="group">
+                  <SidebarMenuSubButton
+                    aria-disabled={subItem.comingSoon}
+                    isActive={isActive(subItem.url)}
+                    asChild
+                    className="group"
+                  >
                     <Link href={subItem.url} target={subItem.newTab ? "_blank" : undefined}>
                       {subItem.icon && <SidebarIcon icon={subItem.icon} />}
                       <span>{subItem.title}</span>
@@ -166,7 +171,7 @@ const NavItemCollapsed = ({
               <SidebarMenuSubButton
                 key={subItem.title}
                 asChild
-                className="focus-visible:ring-0 group"
+                className="group focus-visible:ring-0"
                 aria-disabled={subItem.comingSoon}
                 isActive={isActive(subItem.url)}
               >

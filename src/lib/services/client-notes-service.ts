@@ -3,8 +3,8 @@
  * Handles authentication automatically and provides type-safe API calls
  */
 
-import { auth } from "@/lib/firebase";
 import { NoteType } from "@/app/(main)/dashboard/idea-inbox/_components/types";
+import { auth } from "@/lib/firebase";
 
 import { Note, CreateNoteData, UpdateNoteData, NotesFilter } from "./notes-service";
 

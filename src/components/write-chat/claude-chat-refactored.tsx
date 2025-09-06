@@ -1,27 +1,28 @@
-/* eslint-disable max-lines */
 "use client";
 
 import { useEffect, useRef, useCallback, useState } from "react";
+
+import { ACK_LOADING } from "@/components/write-chat/constants";
+import { createActionSystemHandler } from "@/components/write-chat/handlers/action-system-handler";
+import { createConversationHandler } from "@/components/write-chat/handlers/conversation-handler";
+import { createScriptActionHandler } from "@/components/write-chat/handlers/script-action-handler";
+import { createVideoActionHandler } from "@/components/write-chat/handlers/video-action-handler";
+import { useActionSelectionState } from "@/components/write-chat/hooks/use-action-selection-state";
+import { useChatState } from "@/components/write-chat/hooks/use-chat-state";
+import { useConversationState } from "@/components/write-chat/hooks/use-conversation-state";
+import { useVideoActionState } from "@/components/write-chat/hooks/use-video-action-state";
+import { useVoiceRecorder } from "@/components/write-chat/hooks/use-voice-recorder";
 import { useAuth } from "@/contexts/auth-context";
 import { useIdeaInboxFlag } from "@/hooks/use-feature-flag";
-import { useVoiceRecorder } from "@/components/write-chat/hooks/use-voice-recorder";
-import { useVideoActionState } from "@/components/write-chat/hooks/use-video-action-state";
 import { useLightweightUrlDetection } from "@/hooks/use-lightweight-url-detection";
 import { useSmoothMessageManager } from "@/components/write-chat/smooth-message-manager";
 import { detectSocialUrl } from "@/lib/utils/lightweight-url-detector";
 
 // Custom state hooks
-import { useChatState } from "@/components/write-chat/hooks/use-chat-state";
-import { useConversationState } from "@/components/write-chat/hooks/use-conversation-state";
-import { useActionSelectionState } from "@/components/write-chat/hooks/use-action-selection-state";
 import { useIdeaModeState } from "@/components/write-chat/hooks/use-idea-mode-state";
 import { useVideoState } from "@/components/write-chat/hooks/use-video-state";
 
 // Action handlers
-import { createVideoActionHandler } from "@/components/write-chat/handlers/video-action-handler";
-import { createScriptActionHandler } from "@/components/write-chat/handlers/script-action-handler";
-import { createActionSystemHandler } from "@/components/write-chat/handlers/action-system-handler";
-import { createConversationHandler } from "@/components/write-chat/handlers/conversation-handler";
 
 // UI Components
 import { HeroSection } from "@/components/write-chat/presentation/hero-section";
@@ -31,7 +32,6 @@ import { TransitionWrapper } from "@/components/write-chat/ui/transition-wrapper
 // Types and constants
 import { type PersonaOption, type ActionType } from "@/components/write-chat/persona-selector";
 import { type VideoAction } from "@/components/write-chat/hooks/use-video-action-state";
-import { ACK_LOADING } from "@/components/write-chat/constants";
 
 // Helper function to convert LightweightDetectionResult to legacy DetectionResult format
 function convertDetectionResult(lightweight: any): any {
@@ -146,8 +146,8 @@ export function ClaudeChat({
   });
 
   // Voice recording
-  const { isRecording, toggle: toggleRecording } = useVoiceRecorder({ 
-    onTranscription: chatState.setInputValue 
+  const { isRecording, toggle: toggleRecording } = useVoiceRecorder({
+    onTranscription: chatState.setInputValue,
   });
   const [showListening, setShowListening] = useState(true);
 
@@ -208,21 +208,22 @@ export function ClaudeChat({
   });
 
   // Action trigger handler
-  const handleActionTrigger = useCallback((action: ActionType, prompt: string) => {
-    console.log(`🎯 Action triggered: ${action} with prompt: ${prompt}`);
-    
-    if (onActionTrigger) {
-      onActionTrigger(action, prompt);
-    }
-    
-    const userInput = chatState.inputValue.trim();
-    const enhancedPrompt = userInput 
-      ? `${prompt}\n\nTopic/Idea: ${userInput}`
-      : prompt;
-    
-    actionSelectionState.clearAllSelections();
-    handleSend(enhancedPrompt);
-  }, [onActionTrigger, chatState.inputValue, actionSelectionState]);
+  const handleActionTrigger = useCallback(
+    (action: ActionType, prompt: string) => {
+      console.log(`🎯 Action triggered: ${action} with prompt: ${prompt}`);
+
+      if (onActionTrigger) {
+        onActionTrigger(action, prompt);
+      }
+
+      const userInput = chatState.inputValue.trim();
+      const enhancedPrompt = userInput ? `${prompt}\n\nTopic/Idea: ${userInput}` : prompt;
+
+      actionSelectionState.clearAllSelections();
+      handleSend(enhancedPrompt);
+    },
+    [onActionTrigger, chatState.inputValue, actionSelectionState],
+  );
 
   // Main send handler
   const handleSend = async (value: string) => {
@@ -252,16 +253,16 @@ export function ClaudeChat({
 
     // Check for video URL
     const currentDetection = detectSocialUrl(trimmed);
-    const isVideoUrlSubmission = currentDetection.isValid && 
-      (currentDetection.platform === "instagram" || currentDetection.platform === "tiktok");
+    const isVideoUrlSubmission =
+      currentDetection.isValid && (currentDetection.platform === "instagram" || currentDetection.platform === "tiktok");
 
     // Add user message
     const userMessageId = crypto.randomUUID();
-    
+
     if (isVideoUrlSubmission) {
       // Handle video URL submission
       videoState.setPendingVideo(currentDetection.url!, currentDetection.platform!);
-      
+
       const ackMessageId = crypto.randomUUID();
       const videoActionsId = crypto.randomUUID();
       const ackMessage = "I found a video! What would you like me to do with it?";
@@ -284,8 +285,8 @@ export function ClaudeChat({
 
       // Generate script (simplified - always use script flow)
       const ensuredConvId = await conversationState.ensureConversation(
-        chatState.selectedPersona?.name ?? "Default", 
-        initialPrompt
+        chatState.selectedPersona?.name ?? "Default",
+        initialPrompt,
       );
       await conversationState.saveUserMessage(trimmed);
       await scriptActionHandler(trimmed, ensuredConvId);
@@ -297,10 +298,13 @@ export function ClaudeChat({
   };
 
   // Handle video action
-  const handleVideoAction = useCallback(async (action: VideoAction) => {
-    await videoActionHandler(action, videoState.pendingVideoUrl);
-    videoState.clearPendingVideo();
-  }, [videoActionHandler, videoState]);
+  const handleVideoAction = useCallback(
+    async (action: VideoAction) => {
+      await videoActionHandler(action, videoState.pendingVideoUrl);
+      videoState.clearPendingVideo();
+    },
+    [videoActionHandler, videoState],
+  );
 
   // Effects
   useEffect(() => {

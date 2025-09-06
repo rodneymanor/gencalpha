@@ -112,11 +112,11 @@ export const VideoCard = React.forwardRef<HTMLDivElement, VideoCardProps>(
         ref={ref}
         className="bg-card group focus-within:ring-primary-300 cursor-pointer overflow-hidden rounded-[var(--radius-card)] shadow-[var(--shadow-soft-drop)] transition-all duration-200 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-offset-neutral-50 focus:outline-none"
         onClick={() => {
-          console.log('🖱️ VideoCard clicked:', {
+          console.log("🖱️ VideoCard clicked:", {
             id: video.id,
             title: video.title,
             creator: video.creator,
-            hasOnClick: !!onClick
+            hasOnClick: !!onClick,
           });
           onClick?.(video);
         }}

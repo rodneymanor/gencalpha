@@ -40,12 +40,12 @@ export function LoginForm() {
   useEffect(() => {
     if (formRef.current) {
       // Add to form
-      formRef.current.setAttribute('data-lpignore', 'true');
-      
+      formRef.current.setAttribute("data-lpignore", "true");
+
       // Add to all inputs
       const inputs = formRef.current.querySelectorAll('input[type="email"], input[type="password"]');
-      inputs.forEach(input => {
-        input.setAttribute('data-lpignore', 'true');
+      inputs.forEach((input) => {
+        input.setAttribute("data-lpignore", "true");
       });
     }
   }, []);
@@ -75,12 +75,7 @@ export function LoginForm() {
             <FormItem>
               <FormLabel>Email Address</FormLabel>
               <FormControl>
-                <Input 
-                  id="email" 
-                  type="email" 
-                  placeholder="you@example.com" 
-                  autoComplete="email" 
-                  {...field} />
+                <Input id="email" type="email" placeholder="you@example.com" autoComplete="email" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

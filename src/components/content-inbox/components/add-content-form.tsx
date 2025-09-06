@@ -8,27 +8,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
 
 import { detectPlatform } from "../hooks/use-content-inbox";
 import { ContentCategory, Platform } from "../types";
 
 interface AddContentFormProps {
   onClose: () => void;
-  onSubmit: (data: {
-    url: string;
-    category?: ContentCategory;
-    title?: string;
-    description?: string;
-  }) => Promise<void>;
+  onSubmit: (data: { url: string; category?: ContentCategory; title?: string; description?: string }) => Promise<void>;
   isSubmitting?: boolean;
 }
 
@@ -40,11 +28,7 @@ const categories: { value: ContentCategory; label: string; description: string }
   { value: "educational", label: "Educational", description: "Learning resources" },
 ];
 
-export const AddContentForm: React.FC<AddContentFormProps> = ({
-  onClose,
-  onSubmit,
-  isSubmitting = false,
-}) => {
+export const AddContentForm: React.FC<AddContentFormProps> = ({ onClose, onSubmit, isSubmitting = false }) => {
   const [url, setUrl] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -79,7 +63,7 @@ export const AddContentForm: React.FC<AddContentFormProps> = ({
         description: description.trim() || undefined,
         category,
       });
-      
+
       // Reset form on success
       setUrl("");
       setTitle("");
@@ -106,7 +90,7 @@ export const AddContentForm: React.FC<AddContentFormProps> = ({
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="flex flex-1 flex-col">
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 space-y-6 overflow-y-auto p-6">
           {/* URL Input */}
           <div className="space-y-2">
             <Label htmlFor="url" className="flex items-center gap-2">
@@ -135,9 +119,7 @@ export const AddContentForm: React.FC<AddContentFormProps> = ({
 
           {/* Title (Optional) */}
           <div className="space-y-2">
-            <Label htmlFor="title">
-              Title (Optional)
-            </Label>
+            <Label htmlFor="title">Title (Optional)</Label>
             <Input
               id="title"
               type="text"
@@ -145,16 +127,12 @@ export const AddContentForm: React.FC<AddContentFormProps> = ({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
-            <p className="text-xs text-neutral-500">
-              Leave blank to auto-detect from the content
-            </p>
+            <p className="text-xs text-neutral-500">Leave blank to auto-detect from the content</p>
           </div>
 
           {/* Description (Optional) */}
           <div className="space-y-2">
-            <Label htmlFor="description">
-              Description (Optional)
-            </Label>
+            <Label htmlFor="description">Description (Optional)</Label>
             <Textarea
               id="description"
               placeholder="Add notes or description"
@@ -188,18 +166,18 @@ export const AddContentForm: React.FC<AddContentFormProps> = ({
           </div>
 
           {/* Tags - TODO: Implement tag functionality in future */}
-          {/* 
+          {/*
             TODO: Future Tags Implementation
             - Multi-select tag input component
             - Auto-complete from existing tags
             - Create new tags on the fly
             - Tag color/category selection
             - Maximum tag limit (e.g., 5 tags per item)
-            
+
             Example UI:
             <div className="space-y-2">
               <Label>Tags</Label>
-              <TagInput 
+              <TagInput
                 value={tags}
                 onChange={setTags}
                 suggestions={availableTags}
@@ -210,10 +188,10 @@ export const AddContentForm: React.FC<AddContentFormProps> = ({
 
           {/* Error Message */}
           {error && (
-            <div className="rounded-[var(--radius-button)] border border-destructive-200 bg-destructive-50 p-3">
+            <div className="border-destructive-200 bg-destructive-50 rounded-[var(--radius-button)] border p-3">
               <div className="flex items-start gap-2">
-                <AlertCircle className="h-4 w-4 text-destructive-600 mt-0.5" />
-                <p className="text-sm text-destructive-700">{error}</p>
+                <AlertCircle className="text-destructive-600 mt-0.5 h-4 w-4" />
+                <p className="text-destructive-700 text-sm">{error}</p>
               </div>
             </div>
           )}
@@ -222,19 +200,10 @@ export const AddContentForm: React.FC<AddContentFormProps> = ({
         {/* Footer Actions */}
         <div className="border-t border-neutral-200 px-6 py-4">
           <div className="flex items-center justify-end gap-3">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={onClose}
-              disabled={isSubmitting}
-            >
+            <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting || !url.trim()}
-              className="gap-2"
-            >
+            <Button type="submit" disabled={isSubmitting || !url.trim()} className="gap-2">
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />

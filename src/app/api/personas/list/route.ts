@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { authenticateWithFirebaseToken } from "@/lib/firebase-auth-helpers";
+
 import { getAdminDb, isAdminInitialized } from "@/lib/firebase-admin";
+import { authenticateWithFirebaseToken } from "@/lib/firebase-auth-helpers";
 
 export async function GET(request: NextRequest) {
   try {
@@ -23,15 +24,12 @@ export async function GET(request: NextRequest) {
     }
 
     const adminDb = getAdminDb();
-    
+
     // Get user's personas - simplified query to avoid index requirement
-    const personasRef = adminDb
-      .collection("personas")
-      .where("userId", "==", authResult.user.uid)
-      .limit(50); // Get more initially, we'll filter in memory
+    const personasRef = adminDb.collection("personas").where("userId", "==", authResult.user.uid).limit(50); // Get more initially, we'll filter in memory
 
     const snapshot = await personasRef.get();
-    
+
     // Filter and sort in memory to avoid complex index requirements
     const personas = snapshot.docs
       .map((doc) => ({
@@ -53,15 +51,14 @@ export async function GET(request: NextRequest) {
       success: true,
       personas,
     });
-
   } catch (error) {
     console.error("❌ [List Personas API] Error:", error);
     return NextResponse.json(
-      { 
-        success: false, 
-        error: "Failed to load personas" 
+      {
+        success: false,
+        error: "Failed to load personas",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

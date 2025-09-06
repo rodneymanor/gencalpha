@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { NoteType } from "@/app/(main)/dashboard/idea-inbox/_components/types";
 import { authenticateApiKey } from "@/lib/api-key-auth";
 import { authenticateWithFirebaseToken } from "@/lib/firebase-auth-helpers";
 import { notesService, CreateNoteData, NotesFilter } from "@/lib/services/notes-service";
-import { NoteType } from "@/app/(main)/dashboard/idea-inbox/_components/types";
 
 async function authenticateRequest(request: NextRequest) {
   console.log("📋 [Notes API] Authenticating request");

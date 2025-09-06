@@ -4,12 +4,8 @@
  */
 
 import { createAuthenticityScorer, AuthenticityScorer } from "../analyzers/authenticity-scorer";
-import {
-  PersonaProfile,
-  ScriptGenerationInput,
-  GeneratedScript,
-  ScriptGenerationResult,
-} from "../types";
+import { PersonaProfile, ScriptGenerationInput, GeneratedScript, ScriptGenerationResult } from "../types";
+
 import { createRulesEngine, RulesEngine } from "./rules-engine";
 
 /**
@@ -267,7 +263,7 @@ export class ScriptGenerator {
 
     // Add personal reference if available
     const personalReferences = profile.speechPatterns.emotionalStates.explaining.transitionWords.filter((word) =>
-      word.toLowerCase().includes("i ")
+      word.toLowerCase().includes("i "),
     );
 
     if (personalReferences.length > 0) {
@@ -318,9 +314,7 @@ export class ScriptGenerator {
       ["you guys", "everyone", "people"].find((addr) => profile.voiceProfile.vocabularyFingerprint.includes(addr)) ||
       "you";
 
-    let close = closingPhrases.length > 0
-      ? closingPhrases[0]
-      : `So ${audienceAddress}, `;
+    let close = closingPhrases.length > 0 ? closingPhrases[0] : `So ${audienceAddress}, `;
 
     close += `if you want to master ${input.topic.toLowerCase()}, `;
 

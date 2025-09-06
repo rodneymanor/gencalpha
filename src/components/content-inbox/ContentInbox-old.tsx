@@ -107,19 +107,19 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
         // Import auth to get the current user
         const { auth } = await import("@/lib/firebase");
         const user = auth.currentUser;
-        
+
         if (!user) {
           console.log("No authenticated user, skipping onboarding check");
           return;
         }
-        
+
         const token = await user.getIdToken();
         const response = await fetch("/api/content-inbox/check-onboarding", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-        
+
         if (response.ok) {
           const result = await response.json();
           if (result.gettingStartedAdded && !result.hasContent) {
@@ -319,7 +319,11 @@ export const ContentInbox: React.FC<ContentInboxProps> = ({ className }) => {
           {/* Select all checkbox */}
           {items.length > 0 && (
             <div className="mb-4 flex items-center gap-3">
-              <Checkbox checked={isAllSelected} indeterminate={isIndeterminate ? true : undefined} onCheckedChange={handleSelectAll} />
+              <Checkbox
+                checked={isAllSelected}
+                indeterminate={isIndeterminate ? true : undefined}
+                onCheckedChange={handleSelectAll}
+              />
               <span className="text-sm text-neutral-600">Select all {totalItems} items</span>
             </div>
           )}

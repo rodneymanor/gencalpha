@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { NoteType } from "@/app/(main)/dashboard/idea-inbox/_components/types";
 import { authenticateApiKey } from "@/lib/api-key-auth";
 import { notesService } from "@/lib/services/notes-service";
-import { NoteType } from "@/app/(main)/dashboard/idea-inbox/_components/types";
 import { generateTitleFromContent } from "@/lib/transcript-title-generator";
 
 interface TextIdeaBody {
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     if (!finalTitle && resolvedContent) {
       finalTitle = generateTitleFromContent(resolvedContent);
     }
-    
+
     // Fallback if content is too short or meaningless
     if (!finalTitle || finalTitle === "Untitled Idea") {
       finalTitle = "Saved from Extension";

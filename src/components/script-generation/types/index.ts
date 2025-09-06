@@ -7,6 +7,8 @@ export interface StreamlinedScriptWriterProps {
   onScriptComplete?: (script: string) => void;
   className?: string;
   fromLibrary?: boolean;
+  preselectedGenerator?: string;
+  preselectedTemplate?: string;
 }
 
 export interface QuickGenerator {

@@ -4,13 +4,13 @@ import { useState, useEffect, useCallback } from "react";
 
 import { Plus, Bookmark } from "lucide-react";
 
+import { VideoModalOverlay } from "@/components/modals/video-modal-overlay";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CollectionCombobox } from "@/components/ui/collection-combobox";
 import { EditableText } from "@/components/ui/edit-button";
 import { CardSkeleton } from "@/components/ui/loading";
 import { VideoGrid as NewVideoGrid, type VideoData } from "@/components/video/video-grid";
-import { VideoModalOverlay } from "@/components/modals/video-modal-overlay";
 import { useAuth } from "@/contexts/auth-context";
 import { VideoInsightsProvider } from "@/contexts/video-insights-context";
 import { VideoProcessingProvider } from "@/contexts/video-processing-context";
@@ -22,8 +22,8 @@ import { VideoInsights } from "@/types/video-insights";
 
 import { AddVideoDialog } from "./_components/add-video-dialog";
 import { CollectionManagementPanel } from "./_components/collection-management-panel";
-import { VideoManagementPanel } from "./_components/video-management-panel";
 import { CollectionsProvider, useCollections } from "./_components/collections-context";
+import { VideoManagementPanel } from "./_components/video-management-panel";
 import { CollectionsTabs } from "./_components/collections-tabs";
 import { VideoGrid } from "./_components/video-grid";
 
@@ -125,11 +125,11 @@ const useLoadCollections = (user: { uid?: string } | null, dispatch: (action: an
 };
 
 // Collections tab content component
-function CollectionsTabContent({ 
+function CollectionsTabContent({
   selectedCollectionId,
   onVideoClick,
-  isPanelOpen 
-}: { 
+  isPanelOpen,
+}: {
   selectedCollectionId: string;
   onVideoClick: (video: Video) => void;
   isPanelOpen?: boolean;
@@ -139,8 +139,8 @@ function CollectionsTabContent({
       {/* Main Content */}
       <div className="mt-6">
         {/* Video Grid */}
-        <VideoGrid 
-          collectionId={selectedCollectionId} 
+        <VideoGrid
+          collectionId={selectedCollectionId}
           onVideoClick={onVideoClick}
           forceColumns={isPanelOpen ? 1 : undefined}
         />
@@ -267,14 +267,14 @@ const transformToVideoInsights = (video: Video): VideoInsights => {
       : [];
 
   const resolvedVideoUrl = video.iframeUrl || video.directUrl || video.originalUrl || "";
-  
-  console.log('🎬 transformToVideoInsights - Video URL resolution:', {
+
+  console.log("🎬 transformToVideoInsights - Video URL resolution:", {
     videoId: video.id,
     iframeUrl: video.iframeUrl,
-    directUrl: video.directUrl, 
+    directUrl: video.directUrl,
     originalUrl: video.originalUrl,
     resolvedVideoUrl,
-    hasVideoUrl: !!resolvedVideoUrl
+    hasVideoUrl: !!resolvedVideoUrl,
   });
 
   return {
@@ -394,13 +394,13 @@ const transformToVideoInsights = (video: Video): VideoInsights => {
 };
 
 // Saved videos tab content component with improved responsive design
-function SavedCollectionsTabContent({ 
-  selectedVideo, 
+function SavedCollectionsTabContent({
+  selectedVideo,
   setSelectedVideo,
-  isPanelOpen
-}: { 
-  selectedVideo: Video | null; 
-  setSelectedVideo: (video: Video | null) => void; 
+  isPanelOpen,
+}: {
+  selectedVideo: Video | null;
+  setSelectedVideo: (video: Video | null) => void;
   isPanelOpen?: boolean;
 }) {
   const [savedVideos, setSavedVideos] = useState<Video[]>([]);
@@ -415,16 +415,18 @@ function SavedCollectionsTabContent({
       const result = await RBACClientService.getCollectionVideos(user.uid);
       // Filter for videos marked as favorite
       const favoriteVideos = result.videos.filter((video) => video.favorite === true);
-      
+
       // Debug: Log video data to check metadata
-      console.log('Loaded saved videos:', favoriteVideos.map(v => ({
-        id: v.id,
-        title: v.title,
-        hasMetadata: !!v.metadata,
-        author: v.metadata?.author,
-        platform: v.platform
-      })));
-      
+      console.log(
+        "Loaded saved videos:",
+        favoriteVideos.map((v) => ({
+          id: v.id,
+          title: v.title,
+          hasMetadata: !!v.metadata,
+          author: v.metadata?.author,
+          platform: v.platform,
+        })),
+
       setSavedVideos(favoriteVideos);
     } catch (error) {
       console.error("Failed to load saved videos:", error);
@@ -442,12 +444,12 @@ function SavedCollectionsTabContent({
   // Use shared transformation function with debug logging
   const transformVideoToVideoDataWithLogging = useCallback((video: Video): VideoData => {
     const transformed = transformVideoToVideoData(video);
-    console.log('🔄 transformVideoToVideoData:', {
+    console.log("🔄 transformVideoToVideoData:", {
       input_video_id: video.id,
       input_has_metadata: !!video.metadata,
       input_author: video.metadata?.author,
       output_creator: transformed.creator,
-      full_input: video
+      full_input: video,
     });
     return transformed;
   }, []);
@@ -455,36 +457,41 @@ function SavedCollectionsTabContent({
   // Handle click/activation from new VideoGrid component (opens panel)
   const handleNewVideoGridClick = useCallback(
     (videoData: VideoData) => {
-      console.log('🖱️ VIDEO CLICKED - VideoData received:', {
+      console.log("🖱️ VIDEO CLICKED - VideoData received:", {
         id: videoData.id,
         title: videoData.title,
         creator: videoData.creator,
-        platform: videoData.platform
+        platform: videoData.platform,
       });
-      
-      console.log('📚 savedVideos array:', savedVideos.map(v => ({
-        id: v.id,
-        title: v.title,
-        hasMetadata: !!v.metadata,
-        author: v.metadata?.author
-      })));
-      
+
+      console.log(
+        "📚 savedVideos array:",
+        savedVideos.map((v) => ({
+          id: v.id,
+          title: v.title,
+          hasMetadata: !!v.metadata,
+          author: v.metadata?.author,
+        })),
+
       // Find the original Video object by ID to preserve all metadata
       const originalVideo = savedVideos.find((v) => v.id === videoData.id);
-      
+
       if (originalVideo) {
-        console.log('✅ Found original video:', {
+        console.log("✅ Found original video:", {
           id: originalVideo.id,
           title: originalVideo.title,
           hasMetadata: !!originalVideo.metadata,
           author: originalVideo.metadata?.author,
           fullMetadata: originalVideo.metadata,
-          fullVideo: originalVideo
+          fullVideo: originalVideo,
         });
         setSelectedVideo(originalVideo);
       } else {
-        console.error('❌ Could not find original video with ID:', videoData.id);
-        console.log('Available IDs:', savedVideos.map(v => v.id));
+        console.error("❌ Could not find original video with ID:", videoData.id);
+        console.log(
+          "Available IDs:",
+          savedVideos.map((v) => v.id),
+        );
       }
     },
     [savedVideos],
@@ -492,13 +499,13 @@ function SavedCollectionsTabContent({
 
   // Track selectedVideo changes
   useEffect(() => {
-    console.log('📌 selectedVideo state changed:', {
+    console.log("📌 selectedVideo state changed:", {
       hasVideo: !!selectedVideo,
       id: selectedVideo?.id,
       title: selectedVideo?.title,
       hasMetadata: !!selectedVideo?.metadata,
       author: selectedVideo?.metadata?.author,
-      fullVideo: selectedVideo
+      fullVideo: selectedVideo,
     });
   }, [selectedVideo]);
 
@@ -520,11 +527,8 @@ function SavedCollectionsTabContent({
     [savedVideos, selectedVideo],
   );
 
-
-
   return (
-    <>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <div className="col-span-1 lg:col-span-12">
           <Card>
             <CardHeader className="pb-4 sm:pb-6">
@@ -567,8 +571,6 @@ function SavedCollectionsTabContent({
           </Card>
         </div>
       </div>
-
-    </>
   );
 }
 
@@ -576,15 +578,15 @@ function CollectionsContent() {
   const [selectedCollectionId, setSelectedCollectionId] = useState<string>("all-videos");
   const [isAddVideoDialogOpen, setIsAddVideoDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("collections");
-  
+
   // Panel management state
   const [isCollectionPanelOpen, setIsCollectionPanelOpen] = useState(false);
   const [isVideoPanelOpen, setIsVideoPanelOpen] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
-  
+
   // Derive panel open state
   const isPanelOpen = !!selectedVideo;
-  
+
   // Filter replaced by explicit collection picker
   const { state, dispatch } = useCollections();
   const { user } = useAuth();
@@ -621,7 +623,7 @@ function CollectionsContent() {
             return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
           });
           dispatch({ type: "SET_COLLECTIONS", payload: sortedCollections });
-          
+
           // Auto-select the new collection
           setSelectedCollectionId(collectionId);
         } catch (error) {
@@ -666,15 +668,15 @@ function CollectionsContent() {
   };
 
   // Navigation handlers for modal
-  const handleVideoNavigation = (direction: 'prev' | 'next') => {
+  const handleVideoNavigation = (direction: "prev" | "next") => {
     const currentVideos = getCurrentVideos();
     if (currentVideos.length === 0 || !selectedVideo) return;
 
-    const currentIndex = currentVideos.findIndex(v => v.id === selectedVideo.id);
+    const currentIndex = currentVideos.findIndex((v) => v.id === selectedVideo.id);
     if (currentIndex === -1) return;
 
     let newIndex = currentIndex;
-    if (direction === 'prev') {
+    if (direction === "prev") {
       newIndex = currentIndex > 0 ? currentIndex - 1 : currentVideos.length - 1;
     } else {
       newIndex = currentIndex < currentVideos.length - 1 ? currentIndex + 1 : 0;
@@ -693,10 +695,10 @@ function CollectionsContent() {
       return { canNavigatePrev: false, canNavigateNext: false };
     }
 
-    const currentIndex = currentVideos.findIndex(v => v.id === selectedVideo.id);
+    const currentIndex = currentVideos.findIndex((v) => v.id === selectedVideo.id);
     return {
       canNavigatePrev: currentVideos.length > 1,
-      canNavigateNext: currentVideos.length > 1
+      canNavigateNext: currentVideos.length > 1,
     };
   };
 
@@ -704,52 +706,52 @@ function CollectionsContent() {
     <div className="bg-background flex min-h-screen w-full" id="collections-main-content">
       {/* Main Content Area - No longer needs margin adjustment */}
       <div className="flex flex-1 justify-center overflow-x-hidden overflow-y-scroll">
-        <div className="container mx-auto px-6" style={{ maxWidth: '1200px' }}>
-        {/* Header */}
-        <div className="pt-6">
-          <CollectionsHeader
-            selectedCollectionId={selectedCollectionId}
-            selectedCollection={selectedCollection ?? null}
-            canWrite={canWrite}
-            handleEditTitle={handleEditTitle}
-            handleEditDescription={handleEditDescription}
-            setIsAddVideoDialogOpen={setIsAddVideoDialogOpen}
-            onOpenCollectionPanel={() => setIsCollectionPanelOpen(true)}
-            onOpenVideoPanel={() => setIsVideoPanelOpen(true)}
-          />
-        </div>
-
-        {/* Collections Tabs */}
-        <CollectionsTabs
-          className="mb-4 sm:mb-6"
-          defaultTab={activeTab}
-          onTabChange={setActiveTab}
-          rightContent={
-            <CollectionCombobox
+        <div className="container mx-auto px-6" style={{ maxWidth: "1200px" }}>
+          {/* Header */}
+          <div className="pt-6">
+            <CollectionsHeader
               selectedCollectionId={selectedCollectionId}
-              onChange={setSelectedCollectionId}
-              placeholder="All Videos"
+              selectedCollection={selectedCollection ?? null}
+              canWrite={canWrite}
+              handleEditTitle={handleEditTitle}
+              handleEditDescription={handleEditDescription}
+              setIsAddVideoDialogOpen={setIsAddVideoDialogOpen}
+              onOpenCollectionPanel={() => setIsCollectionPanelOpen(true)}
+              onOpenVideoPanel={() => setIsVideoPanelOpen(true)}
             />
-          }
-        />
+          </div>
 
-        {/* Tab Content */}
-        {activeTab === "collections" ? (
-          <CollectionsTabContent 
-            selectedCollectionId={selectedCollectionId}
-            onVideoClick={setSelectedVideo}
-            isPanelOpen={isPanelOpen}
+          {/* Collections Tabs */}
+          <CollectionsTabs
+            className="mb-4 sm:mb-6"
+            defaultTab={activeTab}
+            onTabChange={setActiveTab}
+            rightContent={
+              <CollectionCombobox
+                selectedCollectionId={selectedCollectionId}
+                onChange={setSelectedCollectionId}
+                placeholder="All Videos"
+              />
+            }
           />
-        ) : (
-          <SavedCollectionsTabContent 
-            selectedVideo={selectedVideo} 
-            setSelectedVideo={setSelectedVideo} 
-            isPanelOpen={isPanelOpen}
-          />
-        )}
-        
+
+          {/* Tab Content */}
+          {activeTab === "collections" ? (
+            <CollectionsTabContent
+              selectedCollectionId={selectedCollectionId}
+              onVideoClick={setSelectedVideo}
+              isPanelOpen={isPanelOpen}
+            />
+          ) : (
+            <SavedCollectionsTabContent
+              selectedVideo={selectedVideo}
+              setSelectedVideo={setSelectedVideo}
+              isPanelOpen={isPanelOpen}
+            />
+          )}
+
         {/* Bottom margin for spacing */}
-        <div className="mb-6"></div>
+          <div className="mb-6"></div>
         </div>
       </div>
 
@@ -764,11 +766,14 @@ function CollectionsContent() {
           onCopy: (content: string, componentType?: string) => {
             console.log(`Copied ${componentType ?? "content"}:`, content);
             // Copy to clipboard
-            navigator.clipboard.writeText(content).then(() => {
-              console.log('Successfully copied to clipboard');
-            }).catch(err => {
-              console.error('Failed to copy to clipboard:', err);
-            });
+            navigator.clipboard
+              .writeText(content)
+              .then(() => {
+                console.log("Successfully copied to clipboard");
+              })
+              .catch((err) => {
+                console.error("Failed to copy to clipboard:", err);
+              });
           },
           onDownload: () => {
             console.log("Downloaded video insights:", selectedVideo?.title);
@@ -779,7 +784,7 @@ function CollectionsContent() {
           },
           onVideoPause: () => {
             console.log("Video paused");
-          }
+          },
         }}
       />
 

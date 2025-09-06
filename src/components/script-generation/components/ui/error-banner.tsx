@@ -18,11 +18,7 @@ export function ErrorBanner({ error, onDismiss }: ErrorBannerProps) {
           <p className="font-medium">Generation Notice</p>
           <p className="mt-1">{error}</p>
         </div>
-        <button
-          onClick={onDismiss}
-          className="p-1 text-amber-500 hover:text-amber-700"
-          aria-label="Dismiss"
-        >
+        <button onClick={onDismiss} className="p-1 text-amber-500 hover:text-amber-700" aria-label="Dismiss">
           ×
         </button>
       </div>

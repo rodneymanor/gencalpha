@@ -4,18 +4,18 @@ import { useState, useEffect, useCallback } from "react";
 
 import { Play } from "lucide-react";
 
+import { VideoNotionPanel } from "@/components/panels/notion";
 import { Button } from "@/components/ui/button";
 import { CardSkeleton, LoadingBoundary, useAsyncOperation, useIsLoading } from "@/components/ui/loading";
 import { VideoGridProcessingPlaceholder } from "@/components/ui/video-grid-processing-placeholder";
 import { VideoGrid as NewVideoGrid, type VideoData } from "@/components/video/video-grid";
-import { VideoNotionPanel } from "@/components/panels/notion";
-import { videoToNotionData } from "@/lib/video-to-notion-adapter";
 import { useAuth } from "@/contexts/auth-context";
 import { useVideoProcessing } from "@/contexts/video-processing-context";
 import { RBACClientService } from "@/core/auth/rbac-client";
 import { useRBAC } from "@/hooks/use-rbac";
 import { processScriptComponents } from "@/hooks/use-script-analytics";
 import { Video, CollectionsService } from "@/lib/collections";
+import { videoToNotionData } from "@/lib/video-to-notion-adapter";
 import { VideoInsights } from "@/types/video-insights";
 
 import { useCollections } from "./collections-context";
@@ -416,36 +416,32 @@ export function VideoGrid({ collectionId, onVideoClick, forceColumns }: VideoGri
 
       {/* Only show internal panel if no parent callback provided */}
       {selectedVideo && !onVideoClick && (
-        <div 
-          className="fixed top-0 right-0 h-full z-50"
-          style={{ width: '600px' }}
-        >
+        <div className="fixed top-0 right-0 z-50 h-full" style={{ width: "600px" }}>
           <VideoNotionPanel
-            {...videoToNotionData(
-              selectedVideo,
-              transformToVideoInsights(selectedVideo),
-              {
-                onCopy: (content: string, componentType?: string) => {
-                  console.log(`Copied ${componentType ?? "content"}:`, content);
-                  // Copy to clipboard
-                  navigator.clipboard.writeText(content).then(() => {
-                    console.log('Successfully copied to clipboard');
-                  }).catch(err => {
-                    console.error('Failed to copy to clipboard:', err);
+            {...videoToNotionData(selectedVideo, transformToVideoInsights(selectedVideo), {
+              onCopy: (content: string, componentType?: string) => {
+                console.log(`Copied ${componentType ?? "content"}:`, content);
+                // Copy to clipboard
+                navigator.clipboard
+                  .writeText(content)
+                  .then(() => {
+                    console.log("Successfully copied to clipboard");
+                  })
+                  .catch((err) => {
+                    console.error("Failed to copy to clipboard:", err);
                   });
-                },
-                onDownload: () => {
-                  console.log("Downloaded video insights:", selectedVideo.title);
-                  // TODO: Implement actual download functionality
-                },
-                onVideoPlay: () => {
-                  console.log("Video started playing");
-                },
-                onVideoPause: () => {
-                  console.log("Video paused");
-                }
-              }
-            )}
+              },
+              onDownload: () => {
+                console.log("Downloaded video insights:", selectedVideo.title);
+                // TODO: Implement actual download functionality
+              },
+              onVideoPlay: () => {
+                console.log("Video started playing");
+              },
+              onVideoPause: () => {
+                console.log("Video paused");
+              },
+            })}
             isOpen={!!selectedVideo}
             onClose={() => setSelectedVideo(null)}
             showPageControls={true}
@@ -454,12 +450,9 @@ export function VideoGrid({ collectionId, onVideoClick, forceColumns }: VideoGri
             maxWidth={800}
             defaultTab="video"
           />
-          
+
           {/* Backdrop */}
-          <div 
-            className="fixed inset-0 bg-black/20 -z-10"
-            onClick={() => setSelectedVideo(null)}
-          />
+          <div className="fixed inset-0 -z-10 bg-black/20" onClick={() => setSelectedVideo(null)} />
         </div>
       )}
     </>

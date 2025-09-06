@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { ChevronDown, ChevronUp, Copy, Check, Edit2, Trash2 } from "lucide-react";
+
+import { Copy, Check, Edit2, Trash2 } from "lucide-react";
 
 interface ContentItem {
   id: number;
@@ -20,12 +21,12 @@ export function ContentListView({ contentType, content, onContentUpdate }: Conte
     contentType,
     contentLength: content?.length,
     contentPreview: content?.substring(0, 200),
-    hasContent: !!content
+    hasContent: !!content,
   });
-  
+
   // Parse the content into individual items
   const parseContent = (rawContent: string): ContentItem[] => {
-    const lines = rawContent.split("\n").filter(line => line.trim());
+    const lines = rawContent.split("\n").filter((line) => line.trim());
     const items: ContentItem[] = [];
     let currentItem = "";
     let itemId = 1;
@@ -35,7 +36,7 @@ export function ContentListView({ contentType, content, onContentUpdate }: Conte
       if (line.startsWith("##") || line.startsWith("> **")) {
         continue;
       }
-      
+
       // Check if this is a numbered item (e.g., "1. ", "2. ", etc.)
       const numberedMatch = line.match(/^(\d+)\.\s+(.+)/);
       if (numberedMatch) {
@@ -64,8 +65,8 @@ export function ContentListView({ contentType, content, onContentUpdate }: Conte
     if (items.length === 0) {
       const paragraphs = rawContent
         .split(/\n\n+/)
-        .filter(p => p.trim() && !p.startsWith("##") && !p.startsWith("> **") && !p.includes("---"));
-      
+        .filter((p) => p.trim() && !p.startsWith("##") && !p.startsWith("> **") && !p.includes("---"));
+
       // Return all found paragraphs, not limited to 10 - system should be flexible
       return paragraphs.map((p, index) => ({
         id: index + 1,
@@ -76,9 +77,9 @@ export function ContentListView({ contentType, content, onContentUpdate }: Conte
     console.log("🎯 [ContentListView] Parsed items:", {
       itemCount: items.length,
       firstItem: items[0]?.content?.substring(0, 50),
-      allItemsPreview: items.slice(0, 3).map(item => item.content.substring(0, 30))
+      allItemsPreview: items.slice(0, 3).map((item) => item.content.substring(0, 30)),
     });
-    
+
     return items;
   };
 
@@ -121,13 +122,11 @@ export function ContentListView({ contentType, content, onContentUpdate }: Conte
 
   const handleSaveEdit = () => {
     if (editingId !== null) {
-      const updatedItems = items.map(item =>
-        item.id === editingId ? { ...item, content: editText } : item
-      );
+      const updatedItems = items.map((item) => (item.id === editingId ? { ...item, content: editText } : item));
       setItems(updatedItems);
       setEditingId(null);
       setEditText("");
-      
+
       // Update the parent with the new content
       const newContent = formatItemsAsContent(updatedItems);
       onContentUpdate(newContent);
@@ -140,9 +139,9 @@ export function ContentListView({ contentType, content, onContentUpdate }: Conte
   };
 
   const handleDelete = (id: number) => {
-    const updatedItems = items.filter(item => item.id !== id);
+    const updatedItems = items.filter((item) => item.id !== id);
     setItems(updatedItems);
-    
+
     // Update the parent with the new content
     const newContent = formatItemsAsContent(updatedItems);
     onContentUpdate(newContent);
@@ -197,9 +196,7 @@ export function ContentListView({ contentType, content, onContentUpdate }: Conte
           >
             {/* Item Header */}
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-xs font-medium text-neutral-500">
-                {getItemLabel(index + 1)}
-              </span>
+              <span className="text-xs font-medium text-neutral-500">{getItemLabel(index + 1)}</span>
               <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                 <button
                   onClick={() => handleCopy(item)}
@@ -235,7 +232,7 @@ export function ContentListView({ contentType, content, onContentUpdate }: Conte
                 <textarea
                   value={editText}
                   onChange={(e) => setEditText(e.target.value)}
-                  className="w-full rounded-[var(--radius-button)] border border-neutral-300 bg-white p-2 text-sm text-neutral-900 focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400"
+                  className="focus:border-primary-400 focus:ring-primary-400 w-full rounded-[var(--radius-button)] border border-neutral-300 bg-white p-2 text-sm text-neutral-900 focus:ring-1 focus:outline-none"
                   rows={3}
                   autoFocus
                 />

@@ -20,7 +20,6 @@ interface InputViewProps {
   selectedTemplate?: string;
   onQuickGeneratorSelect: (generator: QuickGenerator) => void;
   onTemplateSelect: (template: Template) => void;
-  onCreateCustomTemplate: () => void;
   className?: string;
 }
 
@@ -36,7 +35,6 @@ export function InputView({
   selectedTemplate,
   onQuickGeneratorSelect,
   onTemplateSelect,
-  onCreateCustomTemplate,
   className = "",
 }: InputViewProps) {
   return (
@@ -83,7 +81,6 @@ export function InputView({
               selectedTemplate={selectedTemplate}
               onQuickGeneratorSelect={onQuickGeneratorSelect}
               onTemplateSelect={onTemplateSelect}
-              onCreateCustomTemplate={onCreateCustomTemplate}
             />
             <div className="text-muted-foreground mt-6 text-center text-sm">
               💡 Tip: Be specific about your topic and target audience for better results

@@ -1,10 +1,10 @@
-import { type ChatMessage } from "@/components/write-chat/types";
-import { type PersonaOption } from "@/components/write-chat/persona-selector";
-import { type ActionType, CONTENT_ACTIONS } from "@/components/write-chat/persona-selector";
 import { ACK_LOADING, ACK_BEFORE_SLIDE_MS, SLIDE_DURATION_MS } from "@/components/write-chat/constants";
-import { buildAuthHeaders } from "@/lib/http/auth-headers";
+import { CONTENT_ACTIONS } from "@/components/write-chat/persona-selector";
+import { type PersonaOption } from "@/components/write-chat/persona-selector";
 import { generateTitle, saveMessage as saveMessageToDb } from "@/components/write-chat/services/chat-service";
+import { type ChatMessage } from "@/components/write-chat/types";
 import { delay } from "@/components/write-chat/utils";
+import { buildAuthHeaders } from "@/lib/http/auth-headers";
 
 export interface ActionSystemHandlerConfig {
   setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
@@ -31,32 +31,29 @@ export function createActionSystemHandler(config: ActionSystemHandlerConfig) {
     onSend,
   } = config;
 
-  return async function handleActionTrigger(
-    selectedActionKey: string,
-    userInput: string
-  ): Promise<void> {
-    const actionData = CONTENT_ACTIONS.find(a => a.key === selectedActionKey);
+  return async function handleActionTrigger(selectedActionKey: string, userInput: string): Promise<void> {
+    const actionData = CONTENT_ACTIONS.find((a) => a.key === selectedActionKey);
     if (!actionData) {
       console.warn("⚠️ [ActionSystemHandler] Action not found:", selectedActionKey);
       return;
     }
 
     const enhancedPrompt = `${actionData.prompt}\n\nTopic/Idea: ${userInput}`;
-    
+
     // Process as enhanced prompt
     const userMessageId = crypto.randomUUID();
     const ackMessageId = crypto.randomUUID();
     const ackText = `I'll ${actionData.label.toLowerCase()} for "${userInput}".`;
-    
+
     setMessages((prev) => [
       ...prev,
       { id: userMessageId, role: "user", content: userInput },
       { id: ackMessageId, role: "assistant", content: ackText },
       { id: crypto.randomUUID(), role: "assistant", content: ACK_LOADING },
     ]);
-    
+
     onSend?.(enhancedPrompt, selectedPersona);
-    
+
     // Process the enhanced prompt through the chatbot API
     try {
       const authHeaders = await buildAuthHeaders();
@@ -74,13 +71,13 @@ export function createActionSystemHandler(config: ActionSystemHandlerConfig) {
         const errorData = (await response.json().catch(() => ({}))) as { error?: string };
         throw new Error(errorData.error ?? `HTTP error ${response.status}`);
       }
-      
+
       const data = await response.json();
       const assistantText = data.response ?? "I'm sorry, I didn't receive a proper response.";
-      
+
       await delay(ACK_BEFORE_SLIDE_MS);
       await delay(SLIDE_DURATION_MS);
-      
+
       setMessages((prev): ChatMessage[] => {
         const filtered = prev.filter((m) => m.content !== ACK_LOADING);
         const next: ChatMessage[] = [
@@ -118,7 +115,7 @@ export function createActionSystemHandler(config: ActionSystemHandlerConfig) {
     } catch (err: unknown) {
       await delay(ACK_BEFORE_SLIDE_MS);
       await delay(SLIDE_DURATION_MS);
-      
+
       setMessages((prev): ChatMessage[] => {
         const filtered = prev.filter((m) => m.content !== ACK_LOADING);
         return [

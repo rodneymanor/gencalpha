@@ -195,7 +195,7 @@ export class TranscriptionOrchestrator {
     if (this.config.enableLogging) {
       console.log("📝 [TRANSCRIPTION_ORCHESTRATOR] Using raw transcript content (AI analysis disabled)");
     }
-    
+
     // Always use basic extraction to preserve the actual transcript
     components = this.extractScriptComponents(transcript);
 

@@ -294,7 +294,7 @@ export const ContentCard: React.FC<ContentCardProps> = ({
         "transition-all duration-200",
         "overflow-hidden",
         isSelected && "border-primary-400 bg-primary-50",
-        item.isSystemContent && "border-brand-200 bg-gradient-to-br from-brand-50 to-primary-50",
+        item.isSystemContent && "border-brand-200 from-brand-50 to-primary-50 bg-gradient-to-br",
         item.isPinned && "border-primary-300",
       )}
     >
@@ -316,14 +316,14 @@ export const ContentCard: React.FC<ContentCardProps> = ({
 
       {/* Pinned indicator */}
       {item.isPinned && (
-        <div className="absolute top-2 left-12 z-10 rounded-full bg-primary-500 p-1.5">
+        <div className="bg-primary-500 absolute top-2 left-12 z-10 rounded-full p-1.5">
           <Pin className="h-3 w-3 text-white" />
         </div>
       )}
 
       {/* System content indicator */}
       {item.isSystemContent && (
-        <div className="absolute top-2 left-2 z-10 rounded-full bg-brand-500 p-1.5">
+        <div className="bg-brand-500 absolute top-2 left-2 z-10 rounded-full p-1.5">
           <Sparkles className="h-3 w-3 text-white" />
         </div>
       )}
@@ -373,9 +373,7 @@ export const ContentCard: React.FC<ContentCardProps> = ({
 
         {/* Content/Transcript snippet */}
         {(item.content || item.transcription?.text) && (
-          <p className="mb-2 line-clamp-2 text-xs text-neutral-600">
-            {item.content || item.transcription.text}
-          </p>
+          <p className="mb-2 line-clamp-2 text-xs text-neutral-600">{item.content || item.transcription.text}</p>
         )}
 
         {/* Metrics */}

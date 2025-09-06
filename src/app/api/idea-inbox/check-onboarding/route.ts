@@ -2,4 +2,4 @@
 // Phase 1: API route alias
 
 // Re-export all methods from content-inbox route
-export { GET } from '@/app/api/content-inbox/check-onboarding/route';
+export { GET } from "@/app/api/content-inbox/check-onboarding/route";

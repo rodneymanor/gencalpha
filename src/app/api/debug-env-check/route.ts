@@ -4,7 +4,7 @@ export async function GET(request: NextRequest) {
   // Only allow in development or with a specific debug key
   const debugKey = request.nextUrl.searchParams.get("key");
   const isProduction = process.env.NODE_ENV === "production";
-  
+
   // Simple auth check - replace with your actual debug key
   if (isProduction && debugKey !== process.env.DEBUG_KEY) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     other: {
       hasPosthogKey: !!process.env.NEXT_PUBLIC_POSTHOG_KEY,
       hasDebugKey: !!process.env.DEBUG_KEY,
-    }
+    },
   };
 
   return NextResponse.json(envCheck);

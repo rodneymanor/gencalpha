@@ -1,14 +1,17 @@
 "use client";
 
 import React from "react";
+
 import { EnhancedToolbar } from "@/components/editor/enhanced-toolbar";
 import { AnalysisSidebar } from "@/components/writing-analysis/analysis-sidebar";
 import { FloatingAiActionsPanel } from "@/components/writing-analysis/floating-ai-actions-panel";
 import { InteractiveScript } from "@/components/writing-analysis/interactive-script";
-import { ContentListView } from "./content-list-view";
-import { TranscriptToggle } from "../ui/transcript-toggle";
-import type { PersonaOption } from "../../types/script-writer-types";
+
 import type { SidebarTab } from "../../types";
+import type { PersonaOption } from "../../types/script-writer-types";
+import { TranscriptToggle } from "../ui/transcript-toggle";
+
+import { ContentListView } from "./content-list-view";
 
 interface EditingViewProps {
   generatedScript: string;
@@ -17,25 +20,25 @@ interface EditingViewProps {
   onBackToInput: () => void;
   lastError: string | null;
   onDismissError: () => void;
-  
+
   // Script analysis
   scriptAnalysis: any;
   showComplexityView: boolean;
-  
+
   // Sidebar state
   sidebarTab: SidebarTab;
   setSidebarTab: (tab: SidebarTab) => void;
   wordCount: number;
-  
+
   // Toolbar handlers
   onSave: () => void;
   onPersonaSelect: (persona: PersonaOption | null) => void;
   onActionTrigger: (action: string, prompt: string) => void;
   onToolbarAction: (action: string) => void;
-  
+
   // Save state
   isSaving: boolean;
-  
+
   // Transcript toggle state
   showFullTranscript: boolean;
   onTranscriptToggle: (showFull: boolean) => void;
@@ -43,8 +46,7 @@ interface EditingViewProps {
     transcript?: string;
     formattedScript?: string;
   };
-  
-  
+
   className?: string;
 }
 
@@ -101,7 +103,7 @@ export function EditingView({
 
   // Determine if transcript data is available
   const hasTranscriptData = !!(transcriptionDebug?.transcript ?? transcriptionDebug?.formattedScript);
-  
+
   // Calculate the content to display based on toggle state
   const getDisplayScript = () => {
     console.log("🔄 [EditingView] Calculating displayScript:", {
@@ -125,11 +127,11 @@ export function EditingView({
 
     if (!showFullTranscript && transcriptionDebug?.formattedScript) {
       console.log("🏗️ [EditingView] Showing formatted components");
-      
+
       // Filter out any sections that might contain the full transcript
       const componentsOnly = filterOutFullTranscript(transcriptionDebug.formattedScript);
       console.log("🔍 [EditingView] Filtered components:", componentsOnly.substring(0, 200));
-      
+
       return componentsOnly;
     }
 
@@ -156,16 +158,16 @@ export function EditingView({
           {/* Back Button */}
           <button
             onClick={onBackToInput}
-            className="text-muted-foreground hover:text-foreground hover:bg-background-hover flex items-center space-x-2 rounded-md px-3 py-2 text-sm font-medium transition-colors md:flex-shrink-0 flex-shrink"
+            className="text-muted-foreground hover:text-foreground hover:bg-background-hover flex flex-shrink items-center space-x-2 rounded-md px-3 py-2 text-sm font-medium transition-colors md:flex-shrink-0"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            <span className="md:inline hidden">Back to Input</span>
+            <span className="hidden md:inline">Back to Input</span>
           </button>
 
           {/* Enhanced Toolbar */}
-          <div className="flex flex-1 justify-center md:px-4 px-2">
+          <div className="flex flex-1 justify-center px-2 md:px-4">
             <EnhancedToolbar
               onSave={onSave}
               onSimplify={() => console.log("Simplify text using AI")}
@@ -189,7 +191,7 @@ export function EditingView({
           </div>
 
           {/* Transcript Toggle */}
-          <div className="flex items-center md:flex-shrink-0 flex-shrink">
+          <div className="flex flex-shrink items-center md:flex-shrink-0">
             <TranscriptToggle
               showFullTranscript={showFullTranscript}
               onToggle={onTranscriptToggle}
@@ -200,9 +202,9 @@ export function EditingView({
       </div>
 
       {/* Main Content Area - Takes remaining height */}
-      <div className="flex min-h-0 flex-1 md:flex-row flex-col">
+      <div className="flex min-h-0 flex-1 flex-col md:flex-row">
         {/* Left Sidebar - AI Actions Panel - Static */}
-        <div className="border-border bg-card md:w-80 w-full md:flex-shrink-0 md:border-r border-b md:border-b-0 p-4 md:block hidden">
+        <div className="border-border bg-card hidden w-full border-b p-4 md:block md:w-80 md:flex-shrink-0 md:border-r md:border-b-0">
           <FloatingAiActionsPanel onPersonaSelect={onPersonaSelect} onActionTrigger={onActionTrigger} />
         </div>
 
@@ -238,12 +240,12 @@ export function EditingView({
                   isIdeas: selectedQuickGenerator === "content-ideas",
                   isTips: selectedQuickGenerator === "value-bombs",
                   displayScriptLength: displayScript?.length,
-                  displayScriptPreview: displayScript?.substring(0, 100)
+                  displayScriptPreview: displayScript?.substring(0, 100),
                 })}
                 {/* Conditional Content Rendering */}
                 {selectedQuickGenerator === "generate-hooks" ||
-                 selectedQuickGenerator === "content-ideas" ||
-                 selectedQuickGenerator === "value-bombs" ? (
+                selectedQuickGenerator === "content-ideas" ||
+                selectedQuickGenerator === "value-bombs" ? (
                   <ContentListView
                     contentType={
                       selectedQuickGenerator === "generate-hooks"
@@ -320,7 +322,7 @@ export function EditingView({
         </div>
 
         {/* Right Sidebar - Analysis - Static */}
-        <div className="border-border bg-card md:w-80 w-full md:flex-shrink-0 md:border-l border-t md:border-t-0 p-4 md:block hidden">
+        <div className="border-border bg-card hidden w-full border-t p-4 md:block md:w-80 md:flex-shrink-0 md:border-t-0 md:border-l">
           <AnalysisSidebar
             sidebarTab={sidebarTab}
             setSidebarTab={setSidebarTab}
@@ -329,7 +331,6 @@ export function EditingView({
           />
         </div>
       </div>
-
     </div>
   );
 }

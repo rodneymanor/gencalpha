@@ -1,4 +1,4 @@
-import { Calendar, GalleryVerticalEnd, LibraryBig, Inbox, PenLine, Users, VenetianMask, type LucideIcon } from "lucide-react";
+import { Calendar, GalleryVerticalEnd, LibraryBig, PenLine, Users, VenetianMask, type LucideIcon } from "lucide-react";
 
 export interface NavSubItem {
   title: string;

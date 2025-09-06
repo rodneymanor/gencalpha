@@ -25,7 +25,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error("🚨 [ErrorBoundary] Caught error:", error);
     console.error("🚨 [ErrorBoundary] Error info:", errorInfo);
-    
+
     // Log to external service in production
     if (process.env.NODE_ENV === "production") {
       // Add your error reporting service here (e.g., Sentry, PostHog)
@@ -45,20 +45,16 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
       }
 
       return (
-        <div className="min-h-screen flex items-center justify-center bg-neutral-50 p-4">
-          <div className="max-w-md w-full bg-white rounded-lg shadow-md p-6 text-center">
-            <div className="text-red-500 text-6xl mb-4">⚠️</div>
-            <h1 className="text-xl font-semibold text-gray-900 mb-2">
-              Something went wrong
-            </h1>
-            <p className="text-gray-600 mb-4">
+        <div className="flex min-h-screen items-center justify-center bg-neutral-50 p-4">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 text-center shadow-md">
+            <div className="mb-4 text-6xl text-red-500">⚠️</div>
+            <h1 className="mb-2 text-xl font-semibold text-gray-900">Something went wrong</h1>
+            <p className="mb-4 text-gray-600">
               The application encountered an unexpected error. This has been logged for investigation.
             </p>
             <details className="mb-4 text-left">
-              <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700">
-                Technical details
-              </summary>
-              <pre className="text-xs bg-gray-100 p-2 rounded mt-2 overflow-auto">
+              <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700">Technical details</summary>
+              <pre className="mt-2 overflow-auto rounded bg-gray-100 p-2 text-xs">
                 {this.state.error.message}
                 {process.env.NODE_ENV === "development" && (
                   <>
@@ -71,13 +67,13 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
             <div className="space-x-3">
               <button
                 onClick={this.retry}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition-colors"
+                className="rounded bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600"
               >
                 Try Again
               </button>
               <button
                 onClick={() => window.location.reload()}
-                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded transition-colors"
+                className="rounded bg-gray-500 px-4 py-2 text-white transition-colors hover:bg-gray-600"
               >
                 Reload Page
               </button>

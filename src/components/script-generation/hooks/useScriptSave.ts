@@ -1,7 +1,9 @@
 import { useState, useCallback } from "react";
+
 import { useScriptsApi } from "@/hooks/use-scripts-api";
-import type { PersonaOption } from "../types/script-writer-types";
+
 import { ScriptSaveService } from "../services/scriptSaveService";
+import type { PersonaOption } from "../types/script-writer-types";
 
 interface UseScriptSaveParams {
   generatedScript: string;
@@ -20,12 +22,9 @@ export function useScriptSave(params: UseScriptSaveParams) {
 
   const handleSaveScript = useCallback(async () => {
     setIsSaving(true);
-    
+
     try {
-      const scriptSaveService = new ScriptSaveService(
-        { createScript, updateScript },
-        params.onSaveSuccess
-      );
+      const scriptSaveService = new ScriptSaveService({ createScript, updateScript }, params.onSaveSuccess);
 
       await scriptSaveService.saveScript({
         generatedScript: params.generatedScript,

@@ -244,10 +244,7 @@ export const ContentViewer: React.FC<ContentViewerProps> = ({ item, onClose, onE
   return (
     <div className="flex h-full flex-col">
       {/* Standardized Header - 52px height */}
-      <SimpleSlideoutHeader
-        title="Content Details"
-        onClose={onClose}
-      />
+      <SimpleSlideoutHeader title="Content Details" onClose={onClose} />
 
       {/* Content */}
       <ScrollArea className="flex-1">

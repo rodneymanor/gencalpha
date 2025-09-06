@@ -10,6 +10,8 @@ export default async function WritePage({
   const initialPrompt = typeof params.prompt === "string" ? params.prompt : undefined;
   const remountKey = typeof params.new === "string" ? params.new : undefined;
   const fromLibrary = typeof params.from === "string" && params.from === "library";
+  const preselectedGenerator = typeof params.generator === "string" ? params.generator : undefined;
+  const preselectedTemplate = typeof params.template === "string" ? params.template : undefined;
 
   // Check if Firebase is configured
   const hasFirebaseConfig =
@@ -25,6 +27,8 @@ export default async function WritePage({
         key={remountKey}
         initialPrompt={initialPrompt}
         fromLibrary={fromLibrary}
+        preselectedGenerator={preselectedGenerator}
+        preselectedTemplate={preselectedTemplate}
         className="from-background to-background-muted bg-gradient-to-b"
       />
     </div>

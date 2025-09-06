@@ -1,18 +1,12 @@
 "use client";
 
 import React from "react";
+
+import { Zap, Scissors, Volume2, Palette, ArrowUp, ArrowDown } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
-import { 
-  Zap, 
-  RotateCcw, 
-  Copy, 
-  Scissors, 
-  Volume2, 
-  Palette,
-  ArrowUp,
-  ArrowDown 
-} from "lucide-react";
 import { cn } from "@/lib/utils";
+
 import type { ActionType } from "./persona-selector";
 
 export interface ContextualAction {
@@ -39,7 +33,7 @@ const CONTEXTUAL_ACTIONS: Record<string, ContextualAction[]> = {
       icon: <Scissors className="h-3 w-3" />,
       prompt: "Make these hooks shorter and more punchy. Keep the impact but reduce word count.",
       category: "modify",
-      description: "Condense hooks for better impact"
+      description: "Condense hooks for better impact",
     },
     {
       id: "platform-hooks",
@@ -47,7 +41,7 @@ const CONTEXTUAL_ACTIONS: Record<string, ContextualAction[]> = {
       icon: <Volume2 className="h-3 w-3" />,
       prompt: "Optimize these hooks specifically for TikTok. Make them more casual, trendy, and scroll-stopping.",
       category: "format",
-      description: "Tailor hooks for TikTok audience"
+      description: "Tailor hooks for TikTok audience",
     },
     {
       id: "more-hooks",
@@ -55,7 +49,7 @@ const CONTEXTUAL_ACTIONS: Record<string, ContextualAction[]> = {
       icon: <ArrowUp className="h-3 w-3" />,
       prompt: "Generate 10 more hooks in a similar style to these, but with different angles and approaches.",
       category: "enhance",
-      description: "Expand hook collection"
+      description: "Expand hook collection",
     },
     {
       id: "emotional-hooks",
@@ -63,8 +57,8 @@ const CONTEXTUAL_ACTIONS: Record<string, ContextualAction[]> = {
       icon: <Zap className="h-3 w-3" />,
       prompt: "Rewrite these hooks to be more emotionally compelling. Add urgency, curiosity, or strong emotion.",
       category: "enhance",
-      description: "Increase emotional impact"
-    }
+      description: "Increase emotional impact",
+    },
   ],
   ideas: [
     {
@@ -73,7 +67,7 @@ const CONTEXTUAL_ACTIONS: Record<string, ContextualAction[]> = {
       icon: <ArrowUp className="h-3 w-3" />,
       prompt: "Expand each of these content ideas with specific details, angles, and execution tips.",
       category: "enhance",
-      description: "Add depth to content ideas"
+      description: "Add depth to content ideas",
     },
     {
       id: "trending-angles",
@@ -81,15 +75,16 @@ const CONTEXTUAL_ACTIONS: Record<string, ContextualAction[]> = {
       icon: <Palette className="h-3 w-3" />,
       prompt: "Add trending angles and formats to these content ideas. Include current social media trends.",
       category: "enhance",
-      description: "Make ideas more current"
+      description: "Make ideas more current",
     },
     {
       id: "platform-specific",
       label: "Platform-Specific",
       icon: <Volume2 className="h-3 w-3" />,
-      prompt: "Adapt these content ideas for specific platforms (TikTok, Instagram, YouTube) with platform-specific approaches.",
+      prompt:
+        "Adapt these content ideas for specific platforms (TikTok, Instagram, YouTube) with platform-specific approaches.",
       category: "format",
-      description: "Customize for platforms"
+      description: "Customize for platforms",
     },
     {
       id: "niche-down",
@@ -97,8 +92,8 @@ const CONTEXTUAL_ACTIONS: Record<string, ContextualAction[]> = {
       icon: <ArrowDown className="h-3 w-3" />,
       prompt: "Take these broad content ideas and make them more specific and niche-focused.",
       category: "modify",
-      description: "Make ideas more targeted"
-    }
+      description: "Make ideas more targeted",
+    },
   ],
   script: [
     {
@@ -107,7 +102,7 @@ const CONTEXTUAL_ACTIONS: Record<string, ContextualAction[]> = {
       icon: <Scissors className="h-3 w-3" />,
       prompt: "Make this script shorter while keeping the key message and impact. Aim for 60 seconds or less.",
       category: "modify",
-      description: "Condense script length"
+      description: "Condense script length",
     },
     {
       id: "stronger-cta",
@@ -115,7 +110,7 @@ const CONTEXTUAL_ACTIONS: Record<string, ContextualAction[]> = {
       icon: <Zap className="h-3 w-3" />,
       prompt: "Rewrite the call-to-action to be more compelling and action-oriented.",
       category: "enhance",
-      description: "Improve call-to-action"
+      description: "Improve call-to-action",
     },
     {
       id: "add-storytelling",
@@ -123,7 +118,7 @@ const CONTEXTUAL_ACTIONS: Record<string, ContextualAction[]> = {
       icon: <Palette className="h-3 w-3" />,
       prompt: "Add storytelling elements to make this script more engaging and relatable.",
       category: "enhance",
-      description: "Incorporate narrative elements"
+      description: "Incorporate narrative elements",
     },
     {
       id: "platform-adapt",
@@ -131,8 +126,8 @@ const CONTEXTUAL_ACTIONS: Record<string, ContextualAction[]> = {
       icon: <Volume2 className="h-3 w-3" />,
       prompt: "Adapt this script specifically for Instagram Reels with visual cues and platform-specific language.",
       category: "format",
-      description: "Optimize for Instagram"
-    }
+      description: "Optimize for Instagram",
+    },
   ],
   tips: [
     {
@@ -141,7 +136,7 @@ const CONTEXTUAL_ACTIONS: Record<string, ContextualAction[]> = {
       icon: <Zap className="h-3 w-3" />,
       prompt: "Make these tips more actionable with specific steps and implementation guidance.",
       category: "enhance",
-      description: "Add concrete steps"
+      description: "Add concrete steps",
     },
     {
       id: "beginner-friendly",
@@ -149,7 +144,7 @@ const CONTEXTUAL_ACTIONS: Record<string, ContextualAction[]> = {
       icon: <ArrowDown className="h-3 w-3" />,
       prompt: "Rewrite these tips to be more beginner-friendly with simple language and explanations.",
       category: "modify",
-      description: "Simplify for beginners"
+      description: "Simplify for beginners",
     },
     {
       id: "advanced-tips",
@@ -157,8 +152,8 @@ const CONTEXTUAL_ACTIONS: Record<string, ContextualAction[]> = {
       icon: <ArrowUp className="h-3 w-3" />,
       prompt: "Create advanced versions of these tips for experienced users.",
       category: "enhance",
-      description: "Elevate complexity"
-    }
+      description: "Elevate complexity",
+    },
   ],
   general: [
     {
@@ -167,7 +162,7 @@ const CONTEXTUAL_ACTIONS: Record<string, ContextualAction[]> = {
       icon: <Palette className="h-3 w-3" />,
       prompt: "Rewrite this content with a different tone (choose: casual, professional, friendly, or authoritative).",
       category: "modify",
-      description: "Adjust writing tone"
+      description: "Adjust writing tone",
     },
     {
       id: "add-examples",
@@ -175,16 +170,12 @@ const CONTEXTUAL_ACTIONS: Record<string, ContextualAction[]> = {
       icon: <ArrowUp className="h-3 w-3" />,
       prompt: "Add specific examples and case studies to illustrate the points in this content.",
       category: "enhance",
-      description: "Include concrete examples"
-    }
-  ]
+      description: "Include concrete examples",
+    },
+  ],
 };
 
-export function ContextualQuickActions({ 
-  contentType, 
-  onActionTrigger, 
-  className 
-}: ContextualQuickActionsProps) {
+export function ContextualQuickActions({ contentType, onActionTrigger, className }: ContextualQuickActionsProps) {
   const actions = CONTEXTUAL_ACTIONS[contentType] || CONTEXTUAL_ACTIONS.general;
 
   const handleActionClick = (action: ContextualAction) => {
@@ -195,7 +186,7 @@ export function ContextualQuickActions({
       "more-actionable": "value-bombs",
       "shorter-script": "if-then-script",
       "stronger-cta": "problem-solution",
-      "add-storytelling": "tutorial-script"
+      "add-storytelling": "tutorial-script",
     };
 
     const actionType = actionTypeMap[action.id] || "content-ideas";
@@ -203,9 +194,14 @@ export function ContextualQuickActions({
   };
 
   return (
-    <div className={cn("flex flex-wrap gap-2 p-3 bg-neutral-50 rounded-[var(--radius-card)] border border-neutral-200", className)}>
-      <div className="w-full mb-1">
-        <p className="text-xs text-neutral-500 font-medium">Quick Actions:</p>
+    <div
+      className={cn(
+        "flex flex-wrap gap-2 rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-50 p-3",
+        className,
+      )}
+    >
+      <div className="mb-1 w-full">
+        <p className="text-xs font-medium text-neutral-500">Quick Actions:</p>
       </div>
       {actions.slice(0, 4).map((action) => (
         <Button
@@ -214,10 +210,10 @@ export function ContextualQuickActions({
           size="sm"
           onClick={() => handleActionClick(action)}
           className={cn(
-            "h-7 px-2 py-1 text-xs font-medium gap-1.5 rounded-[var(--radius-button)]",
-            "border-neutral-300 text-neutral-700 bg-white",
-            "hover:bg-neutral-100 hover:border-neutral-400",
-            "transition-all duration-150"
+            "h-7 gap-1.5 rounded-[var(--radius-button)] px-2 py-1 text-xs font-medium",
+            "border-neutral-300 bg-white text-neutral-700",
+            "hover:border-neutral-400 hover:bg-neutral-100",
+            "transition-all duration-150",
           )}
           title={action.description}
         >

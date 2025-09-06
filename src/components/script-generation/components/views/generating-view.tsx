@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+
 import { ScriptGenerationTimeline } from "../../script-generation-timeline";
 import type { PersonaOption } from "../../types/script-writer-types";
 

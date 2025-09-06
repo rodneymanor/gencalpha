@@ -1,28 +1,22 @@
-'use client'
+"use client";
 
-import React, { useState, useEffect } from 'react'
-import { 
-  Sparkles, 
-  Brain, 
-  FileText, 
-  Wand2, 
-  CheckCircle2,
-  Loader2 
-} from 'lucide-react'
+import React, { useState, useEffect } from "react";
+
+import { Sparkles, Brain, FileText, Wand2, CheckCircle2, Loader2 } from "lucide-react";
 
 interface TimelineStep {
-  icon: React.ReactNode
-  content: string
-  status: 'pending' | 'active' | 'completed'
-  timestamp?: string
+  icon: React.ReactNode;
+  content: string;
+  status: "pending" | "active" | "completed";
+  timestamp?: string;
 }
 
 interface ScriptGenerationTimelineProps {
-  isActive: boolean
-  onComplete: (script: string) => void
-  userPrompt: string
-  selectedPersona?: any
-  selectedQuickGenerator?: string | null
+  isActive: boolean;
+  onComplete: (script: string) => void;
+  userPrompt: string;
+  selectedPersona?: any;
+  selectedQuickGenerator?: string | null;
 }
 
 // AI Script Generation Steps - Mimics the actual process
@@ -32,220 +26,220 @@ const getGenerationSteps = (generatorType?: string | null) => {
       {
         time: "Step 1",
         steps: [
-          { 
-            icon: <Brain className="w-4 h-4" />, 
-            content: "Analyzing your topic and audience" 
-          }
-        ]
+          {
+            icon: <Brain className="h-4 w-4" />,
+            content: "Analyzing your topic and audience",
+          },
+        ],
       },
       {
-        time: "Step 2", 
+        time: "Step 2",
         steps: [
-          { 
-            icon: <Sparkles className="w-4 h-4" />, 
-            content: "Generating hook variations" 
+          {
+            icon: <Sparkles className="h-4 w-4" />,
+            content: "Generating hook variations",
           },
           {
-            icon: <Wand2 className="w-4 h-4" />,
-            content: "Testing different angles"
-          }
-        ]
+            icon: <Wand2 className="h-4 w-4" />,
+            content: "Testing different angles",
+          },
+        ],
       },
       {
         time: "Final",
         steps: [
           {
-            icon: <CheckCircle2 className="w-4 h-4" />,
-            content: "Selecting 10 best hooks"
-          }
-        ]
-      }
-    ]
+            icon: <CheckCircle2 className="h-4 w-4" />,
+            content: "Selecting 10 best hooks",
+          },
+        ],
+      },
+    ];
   }
-  
+
   if (generatorType === "content-ideas") {
     return [
       {
         time: "Step 1",
         steps: [
-          { 
-            icon: <Brain className="w-4 h-4" />, 
-            content: "Researching your topic" 
-          }
-        ]
+          {
+            icon: <Brain className="h-4 w-4" />,
+            content: "Researching your topic",
+          },
+        ],
       },
       {
-        time: "Step 2", 
+        time: "Step 2",
         steps: [
-          { 
-            icon: <Sparkles className="w-4 h-4" />, 
-            content: "Brainstorming unique angles" 
+          {
+            icon: <Sparkles className="h-4 w-4" />,
+            content: "Brainstorming unique angles",
           },
           {
-            icon: <FileText className="w-4 h-4" />,
-            content: "Creating content concepts"
-          }
-        ]
+            icon: <FileText className="h-4 w-4" />,
+            content: "Creating content concepts",
+          },
+        ],
       },
       {
         time: "Final",
         steps: [
           {
-            icon: <CheckCircle2 className="w-4 h-4" />,
-            content: "Organizing ideas by impact"
-          }
-        ]
-      }
-    ]
+            icon: <CheckCircle2 className="h-4 w-4" />,
+            content: "Organizing ideas by impact",
+          },
+        ],
+      },
+    ];
   }
-  
+
   if (generatorType === "value-bombs") {
     return [
       {
         time: "Step 1",
         steps: [
-          { 
-            icon: <Brain className="w-4 h-4" />, 
-            content: "Analyzing topic expertise" 
-          }
-        ]
+          {
+            icon: <Brain className="h-4 w-4" />,
+            content: "Analyzing topic expertise",
+          },
+        ],
       },
       {
-        time: "Step 2", 
+        time: "Step 2",
         steps: [
-          { 
-            icon: <Sparkles className="w-4 h-4" />, 
-            content: "Extracting actionable insights" 
+          {
+            icon: <Sparkles className="h-4 w-4" />,
+            content: "Extracting actionable insights",
           },
           {
-            icon: <Wand2 className="w-4 h-4" />,
-            content: "Crafting practical tips"
-          }
-        ]
+            icon: <Wand2 className="h-4 w-4" />,
+            content: "Crafting practical tips",
+          },
+        ],
       },
       {
         time: "Final",
         steps: [
           {
-            icon: <CheckCircle2 className="w-4 h-4" />,
-            content: "Selecting 10 highest-value tips"
-          }
-        ]
-      }
-    ]
+            icon: <CheckCircle2 className="h-4 w-4" />,
+            content: "Selecting 10 highest-value tips",
+          },
+        ],
+      },
+    ];
   }
-  
+
   // Default full script steps
   return [
     {
       time: "Step 1",
       steps: [
-        { 
-          icon: <Brain className="w-4 h-4" />, 
-          content: "Analyzing your idea and intent" 
-        }
-      ]
+        {
+          icon: <Brain className="h-4 w-4" />,
+          content: "Analyzing your idea and intent",
+        },
+      ],
     },
     {
-      time: "Step 2", 
+      time: "Step 2",
       steps: [
-        { 
-          icon: <Sparkles className="w-4 h-4" />, 
-          content: "Crafting compelling hook" 
+        {
+          icon: <Sparkles className="h-4 w-4" />,
+          content: "Crafting compelling hook",
         },
         {
-          icon: <Wand2 className="w-4 h-4" />,
-          content: "Building narrative bridge"
-        }
-      ]
+          icon: <Wand2 className="h-4 w-4" />,
+          content: "Building narrative bridge",
+        },
+      ],
     },
     {
       time: "Step 3",
       steps: [
         {
-          icon: <FileText className="w-4 h-4" />,
-          content: "Developing golden nugget content"
+          icon: <FileText className="h-4 w-4" />,
+          content: "Developing golden nugget content",
         },
         {
-          icon: <CheckCircle2 className="w-4 h-4" />,
-          content: "Creating call-to-action"
-        }
-      ]
+          icon: <CheckCircle2 className="h-4 w-4" />,
+          content: "Creating call-to-action",
+        },
+      ],
     },
     {
       time: "Final",
       steps: [
         {
-          icon: <CheckCircle2 className="w-4 h-4" />,
-          content: "Polishing and optimizing script"
-        }
-      ]
-    }
-  ]
-}
+          icon: <CheckCircle2 className="h-4 w-4" />,
+          content: "Polishing and optimizing script",
+        },
+      ],
+    },
+  ];
+};
 
-export function ScriptGenerationTimeline({ 
-  isActive, 
-  onComplete, 
+export function ScriptGenerationTimeline({
+  isActive,
+  onComplete,
   userPrompt,
   selectedPersona,
-  selectedQuickGenerator 
+  selectedQuickGenerator,
 }: ScriptGenerationTimelineProps) {
-  const [currentStepIndex, setCurrentStepIndex] = useState(0)
-  const [currentSubStepIndex, setCurrentSubStepIndex] = useState(0)
-  const [isGenerating, setIsGenerating] = useState(false)
-  
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [currentSubStepIndex, setCurrentSubStepIndex] = useState(0);
+  const [isGenerating, setIsGenerating] = useState(false);
+
   // Get the appropriate generation steps based on the generator type
-  const generationSteps = getGenerationSteps(selectedQuickGenerator)
+  const generationSteps = getGenerationSteps(selectedQuickGenerator);
 
   // Generate script when timeline becomes active
   useEffect(() => {
     if (isActive && !isGenerating) {
-      generateScript()
+      generateScript();
     }
-  }, [isActive, isGenerating])
+  }, [isActive, isGenerating]);
 
   const generateScript = async () => {
-    setIsGenerating(true)
-    
+    setIsGenerating(true);
+
     try {
       // Simulate realistic AI generation timing
-      await simulateGenerationSteps()
-      
+      await simulateGenerationSteps();
+
       // Make actual API call with proper auth headers
       // Get Firebase Auth token
-      const { auth } = await import('@/lib/firebase')
+      const { auth } = await import("@/lib/firebase");
       if (!auth?.currentUser) {
-        throw new Error('User not authenticated')
+        throw new Error("User not authenticated");
       }
 
-      const token = await auth.currentUser.getIdToken()
+      const token = await auth.currentUser.getIdToken();
 
-      console.log('🚀 [Script Generation] Making API call with:', {
+      console.log("🚀 [Script Generation] Making API call with:", {
         idea: userPrompt.substring(0, 50),
         generatorType: selectedQuickGenerator,
         hasPersona: !!selectedPersona,
       });
 
-      const response = await fetch('/api/script/generate', {
-        method: 'POST',
+      const response = await fetch("/api/script/generate", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           idea: userPrompt,
-          length: '60',
+          length: "60",
           persona: selectedPersona,
           generatorType: selectedQuickGenerator,
         }),
-      })
+      });
 
-      console.log('🌐 [Script Generation] Response status:', response.status);
+      console.log("🌐 [Script Generation] Response status:", response.status);
 
       if (response.ok) {
-        const result = await response.json()
-        console.log('✅ [Script Generation] API response:', {
+        const result = await response.json();
+        console.log("✅ [Script Generation] API response:", {
           success: result.success,
           hasScript: !!result.script,
           scriptType: typeof result.script,
@@ -253,61 +247,61 @@ export function ScriptGenerationTimeline({
 
         if (result.success && result.script) {
           // Convert to our expected format
-          const scriptMarkdown = formatScriptForEditor(result.script)
-          console.log('📝 [Script Generation] Formatted script:', scriptMarkdown.substring(0, 100));
-          onComplete(scriptMarkdown)
+          const scriptMarkdown = formatScriptForEditor(result.script);
+          console.log("📝 [Script Generation] Formatted script:", scriptMarkdown.substring(0, 100));
+          onComplete(scriptMarkdown);
         } else {
-          throw new Error(result.error || 'Script generation failed')
+          throw new Error(result.error || "Script generation failed");
         }
       } else {
         const errorText = await response.text();
-        console.error('❌ [Script Generation] API error:', {
+        console.error("❌ [Script Generation] API error:", {
           status: response.status,
           statusText: response.statusText,
           errorBody: errorText.substring(0, 500),
         });
-        throw new Error(`API error (${response.status}): ${response.statusText}`)
+        throw new Error(`API error (${response.status}): ${response.statusText}`);
       }
     } catch (error) {
-      console.error('Script generation error:', error)
+      console.error("Script generation error:", error);
       // Show user-friendly error message and provide fallback
-      const errorMessage = error instanceof Error ? error.message : 'Script generation failed'
-      
+      const errorMessage = error instanceof Error ? error.message : "Script generation failed";
+
       // Create a helpful fallback script
-      const fallbackScript = createFallbackScript(userPrompt, errorMessage)
-      onComplete(fallbackScript)
+      const fallbackScript = createFallbackScript(userPrompt, errorMessage);
+      onComplete(fallbackScript);
     } finally {
-      setIsGenerating(false)
+      setIsGenerating(false);
     }
-  }
+  };
 
   const simulateGenerationSteps = async () => {
     // Step through each major step
     for (let stepIndex = 0; stepIndex < generationSteps.length; stepIndex++) {
-      setCurrentStepIndex(stepIndex)
-      const step = generationSteps[stepIndex]
-      
+      setCurrentStepIndex(stepIndex);
+      const step = generationSteps[stepIndex];
+
       // Step through substeps within each major step
       for (let subStepIndex = 0; subStepIndex < step.steps.length; subStepIndex++) {
-        setCurrentSubStepIndex(subStepIndex)
-        
+        setCurrentSubStepIndex(subStepIndex);
+
         // Realistic timing based on step complexity
-        const delay = getStepDelay(stepIndex, subStepIndex)
-        await new Promise(resolve => setTimeout(resolve, delay))
+        const delay = getStepDelay(stepIndex, subStepIndex);
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
-  }
+  };
 
   const getStepDelay = (stepIndex: number, subStepIndex: number) => {
     // Realistic delays that match actual AI processing
     const stepDelays = [
       [1000], // Step 1: Analysis (1s)
       [1500, 1200], // Step 2: Hook and Bridge (1.5s, 1.2s)
-      [2000, 1800], // Step 3: Content and CTA (2s, 1.8s)  
-      [800] // Final: Polish (0.8s)
-    ]
-    return stepDelays[stepIndex]?.[subStepIndex] || 1000
-  }
+      [2000, 1800], // Step 3: Content and CTA (2s, 1.8s)
+      [800], // Final: Polish (0.8s)
+    ];
+    return stepDelays[stepIndex]?.[subStepIndex] || 1000;
+  };
 
   const formatScriptForEditor = (script: any) => {
     // Check if we're generating specific content types
@@ -319,9 +313,9 @@ ${script.hook || script.content || "Generated hooks will appear here"}
 
 ---
 
-> **💡 Tip:** Each hook is designed to grab attention immediately. Pick the ones that resonate with your style and adapt them to your voice!`
+> **💡 Tip:** Each hook is designed to grab attention immediately. Pick the ones that resonate with your style and adapt them to your voice!`;
     }
-    
+
     if (selectedQuickGenerator === "content-ideas") {
       // Format content ideas
       return `## Content Ideas
@@ -330,9 +324,9 @@ ${script.hook || script.content || "Generated content ideas will appear here"}
 
 ---
 
-> **💡 Tip:** These ideas are starting points. Expand on the ones that excite you most and make them your own!`
+> **💡 Tip:** These ideas are starting points. Expand on the ones that excite you most and make them your own!`;
     }
-    
+
     if (selectedQuickGenerator === "value-bombs") {
       // Format value tips
       return `## 10 Value Tips
@@ -341,15 +335,12 @@ ${script.hook || script.content || "Generated value tips will appear here"}
 
 ---
 
-> **💡 Tip:** These are actionable tips your audience can implement immediately. Use them as standalone posts or combine them into comprehensive content!`
+> **💡 Tip:** These are actionable tips your audience can implement immediately. Use them as standalone posts or combine them into comprehensive content!`;
     }
-    
+
     // Format full script (default)
     return `**Hook:**
 ${script.hook}
-
-**Micro Hook:**
-Now here's what's interesting...
 
 **Bridge:**
 ${script.bridge}
@@ -358,19 +349,16 @@ ${script.bridge}
 ${script.goldenNugget || script.content}
 
 **Call to Action:**
-${script.wta || script.callToAction}`
-  }
+${script.wta || script.callToAction}`;
+  };
 
   const createFallbackScript = (prompt: string, errorMessage?: string) => {
-    const topicWords = prompt.split(' ').slice(0, 3).join(' ')
-    
-    return `> **⚠️ Note:** We encountered an issue generating your custom script${errorMessage ? ` (${errorMessage})` : ''}. Here's a template you can customize:
+    const topicWords = prompt.split(" ").slice(0, 3).join(" ");
+
+    return `> **⚠️ Note:** We encountered an issue generating your custom script${errorMessage ? ` (${errorMessage})` : ""}. Here's a template you can customize:
 
 **Hook:**
 Here's something you might not know about ${topicWords}.
-
-**Micro Hook:**
-But here's the thing most people miss...
 
 **Bridge:**
 The key is understanding that this isn't just about the obvious solution - it's about the approach that actually works.
@@ -381,46 +369,46 @@ The secret is to focus on the fundamentals first. Start with the basic principle
 **Call to Action:**
 What's your experience with this approach? Let me know in the comments below!
 
-> **💡 Tip:** You can edit any section above by clicking on it. Try using our AI actions to improve each part!`
-  }
+> **💡 Tip:** You can edit any section above by clicking on it. Try using our AI actions to improve each part!`;
+  };
 
   const getStepStatus = (stepIndex: number, subStepIndex: number) => {
-    if (stepIndex < currentStepIndex) return 'completed'
-    if (stepIndex === currentStepIndex && subStepIndex <= currentSubStepIndex) return 'active'
-    return 'pending'
-  }
+    if (stepIndex < currentStepIndex) return "completed";
+    if (stepIndex === currentStepIndex && subStepIndex <= currentSubStepIndex) return "active";
+    return "pending";
+  };
 
-  if (!isActive) return null
+  if (!isActive) return null;
 
   return (
-    <div className="fixed inset-0 bg-background z-50 flex items-center justify-center">
-      <div className="max-w-2xl w-full px-8">
+    <div className="bg-background fixed inset-0 z-50 flex items-center justify-center">
+      <div className="w-full max-w-2xl px-8">
         {/* Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center space-x-3 mb-4">
+        <div className="mb-12 text-center">
+          <div className="mb-4 inline-flex items-center space-x-3">
             <div className="relative">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <Loader2 className="w-6 h-6 text-primary animate-spin" />
+              <div className="bg-primary/10 flex h-12 w-12 items-center justify-center rounded-full">
+                <Loader2 className="text-primary h-6 w-6 animate-spin" />
               </div>
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-foreground">
-                {selectedQuickGenerator === "generate-hooks" 
-                  ? "Generating Hooks" 
+              <h2 className="text-foreground text-2xl font-bold">
+                {selectedQuickGenerator === "generate-hooks"
+                  ? "Generating Hooks"
                   : selectedQuickGenerator === "content-ideas"
-                  ? "Creating Content Ideas"
-                  : selectedQuickGenerator === "value-bombs"
-                  ? "Generating Value Tips"
-                  : "Crafting Your Script"}
+                    ? "Creating Content Ideas"
+                    : selectedQuickGenerator === "value-bombs"
+                      ? "Generating Value Tips"
+                      : "Crafting Your Script"}
               </h2>
               <p className="text-muted-foreground">
-                {selectedQuickGenerator === "generate-hooks" 
+                {selectedQuickGenerator === "generate-hooks"
                   ? "AI is creating 10 compelling hooks for your content..."
                   : selectedQuickGenerator === "content-ideas"
-                  ? "AI is brainstorming content ideas for your topic..."
-                  : selectedQuickGenerator === "value-bombs"
-                  ? "AI is generating high-value actionable tips..."
-                  : "AI is analyzing and creating your content..."}
+                    ? "AI is brainstorming content ideas for your topic..."
+                    : selectedQuickGenerator === "value-bombs"
+                      ? "AI is generating high-value actionable tips..."
+                      : "AI is analyzing and creating your content..."}
               </p>
             </div>
           </div>
@@ -431,80 +419,60 @@ What's your experience with this approach? Let me know in the comments below!
           {generationSteps.map((step, stepIndex) => (
             <div key={step.time} className="relative">
               {/* Step Time Label */}
-              <div className="text-sm font-semibold text-muted-foreground mb-4 text-center">
-                {step.time}
-              </div>
-              
+              <div className="text-muted-foreground mb-4 text-center text-sm font-semibold">{step.time}</div>
+
               {/* Step Content */}
               <div className="space-y-4">
                 {step.steps.map((subStep, subStepIndex) => {
-                  const status = getStepStatus(stepIndex, subStepIndex)
-                  
+                  const status = getStepStatus(stepIndex, subStepIndex);
+
                   return (
-                    <div 
+                    <div
                       key={subStepIndex}
-                      className={`
-                        flex items-center space-x-4 p-4 rounded-[var(--radius-card)] border transition-all duration-500
-                        ${status === 'active' ? 'border-primary bg-primary/5 shadow-sm' : ''}
-                        ${status === 'completed' ? 'border-green-200 bg-green-50' : ''}
-                        ${status === 'pending' ? 'border-border bg-muted/30' : ''}
-                      `}
+                      className={`flex items-center space-x-4 rounded-[var(--radius-card)] border p-4 transition-all duration-500 ${status === "active" ? "border-primary bg-primary/5 shadow-sm" : ""} ${status === "completed" ? "border-green-200 bg-green-50" : ""} ${status === "pending" ? "border-border bg-muted/30" : ""} `}
                     >
                       {/* Icon */}
-                      <div className={`
-                        flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-colors
-                        ${status === 'active' ? 'bg-primary text-primary-foreground' : ''}
-                        ${status === 'completed' ? 'bg-green-500 text-white' : ''}
-                        ${status === 'pending' ? 'bg-muted text-muted-foreground' : ''}
-                      `}>
-                        {status === 'active' ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          subStep.icon
-                        )}
+                      <div
+                        className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full transition-colors ${status === "active" ? "bg-primary text-primary-foreground" : ""} ${status === "completed" ? "bg-green-500 text-white" : ""} ${status === "pending" ? "bg-muted text-muted-foreground" : ""} `}
+                      >
+                        {status === "active" ? <Loader2 className="h-4 w-4 animate-spin" /> : subStep.icon}
                       </div>
-                      
+
                       {/* Content */}
                       <div className="flex-1">
-                        <p className={`
-                          text-sm font-medium transition-colors
-                          ${status === 'active' ? 'text-foreground' : ''}
-                          ${status === 'completed' ? 'text-foreground' : ''}
-                          ${status === 'pending' ? 'text-muted-foreground' : ''}
-                        `}>
+                        <p
+                          className={`text-sm font-medium transition-colors ${status === "active" ? "text-foreground" : ""} ${status === "completed" ? "text-foreground" : ""} ${status === "pending" ? "text-muted-foreground" : ""} `}
+                        >
                           {subStep.content}
                         </p>
                       </div>
-                      
+
                       {/* Status Indicator */}
-                      {status === 'completed' && (
-                        <CheckCircle2 className="w-5 h-5 text-green-500" />
-                      )}
+                      {status === "completed" && <CheckCircle2 className="h-5 w-5 text-green-500" />}
                     </div>
-                  )
+                  );
                 })}
               </div>
-              
+
               {/* Connecting Line */}
               {stepIndex < generationSteps.length - 1 && (
-                <div className="flex justify-center mt-6">
-                  <div className={`
-                    w-px h-8 transition-colors duration-500
-                    ${stepIndex < currentStepIndex ? 'bg-green-500' : 'bg-border'}
-                  `} />
+                <div className="mt-6 flex justify-center">
+                  <div
+                    className={`h-8 w-px transition-colors duration-500 ${stepIndex < currentStepIndex ? "bg-green-500" : "bg-border"} `}
+                  />
                 </div>
               )}
             </div>
           ))}
         </div>
-        
+
         {/* Progress Indicator */}
         <div className="mt-8 text-center">
-          <div className="text-xs text-muted-foreground">
+          <div className="text-muted-foreground text-xs">
             Step {Math.min(currentStepIndex + 1, generationSteps.length)} of {generationSteps.length}
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

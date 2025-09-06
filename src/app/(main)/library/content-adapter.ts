@@ -1,13 +1,13 @@
 // Content Inbox Data Adapter
 // Transforms ContentInbox items to LibraryItem format for the unified Library
 
+import { ContentIdea } from "@/app/api/content/ideas/route";
+import { Hook } from "@/app/api/hooks/route";
 import { ContentItem } from "@/components/content-inbox/types";
 import { Script } from "@/types/script";
-import { Hook } from "@/app/api/hooks/route";
-import { ContentIdea } from "@/app/api/content/ideas/route";
 
-import { LibraryItem } from "./types";
 import { scriptsToLibraryItems, hooksToLibraryItems, contentIdeasToLibraryItems } from "./generated-content-adapter";
+import { LibraryItem } from "./types";
 
 /**
  * Maps ContentInbox Platform to LibraryItem type

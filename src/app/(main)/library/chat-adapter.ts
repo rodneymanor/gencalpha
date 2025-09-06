@@ -2,6 +2,7 @@
 // Transforms chat conversation data to LibraryItem format for the DataTableTemplate
 
 import { ChatConversation } from "@/components/write-chat/services/chat-service";
+
 import { LibraryItem } from "./types";
 
 /**
@@ -11,14 +12,14 @@ import { LibraryItem } from "./types";
 export function chatToLibraryItem(chat: ChatConversation): LibraryItem {
   const createdDate = new Date(chat.createdAt);
   const lastMessageDate = new Date(chat.lastMessageAt);
-  
+
   // Determine status based on chat properties
   const status: LibraryItem["status"] = chat.status === "saved" ? "published" : "draft";
-  
+
   // Calculate a rough "size" based on message count
   // Assume average message is about 500 characters
   const estimatedSize = chat.messagesCount * 500;
-  
+
   return {
     id: chat.id,
     title: chat.title ?? "Untitled Chat",
@@ -66,13 +67,8 @@ export function chatsToLibraryItems(chats: ChatConversation[]): LibraryItem[] {
  * Combines chat data with mock library data for demo purposes
  * In production, you might have different data sources
  */
-export function combineDataSources(
-  chats: ChatConversation[],
-  mockData: LibraryItem[]
-): LibraryItem[] {
+export function combineDataSources(chats: ChatConversation[], mockData: LibraryItem[]): LibraryItem[] {
   const chatItems = chatsToLibraryItems(chats);
   // Combine and sort by updatedAt date
-  return [...chatItems, ...mockData].sort(
-    (a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()
-  );
+  return [...chatItems, ...mockData].sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
 }

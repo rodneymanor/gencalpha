@@ -1,5 +1,3 @@
-import type { QuickGenerator, Template } from "../types";
-
 // Icon mapping for quick generators
 export const QUICK_GENERATOR_ICONS = {
   "generate-hooks": "send" as const,

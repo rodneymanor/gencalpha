@@ -101,10 +101,7 @@ Learn more about the future of accelerated life sciences research and how you ca
   const renderHighlightedScript = (text: string) => {
     if (!scriptAnalysis.hasComponentAnalysis) {
       return text
-        .replace(
-          /\*\*([^:]+):\*\*/g,
-          '<h4 class="text-lg font-semibold text-foreground mt-6 mb-3 first:mt-0">$1:</h4>',
-        )
+        .replace(/\*\*([^:]+):\*\*/g, '<h4 class="text-lg font-semibold text-foreground mt-6 mb-3 first:mt-0">$1:</h4>')
         .replace(/\n\s*\n/g, '</p><p class="mb-4">');
     }
 
@@ -147,9 +144,7 @@ Learn more about the future of accelerated life sciences research and how you ca
     if (content && Array.isArray(content)) {
       content.forEach((block: any) => {
         if (block.type === "paragraph" && block.content) {
-          const text = block.content
-            .map((item: any) => (item.type === "text" ? item.text : ""))
-            .join(" ");
+          const text = block.content.map((item: any) => (item.type === "text" ? item.text : "")).join(" ");
           count += text.split(/\s+/).filter((word: string) => word.length > 0).length;
         }
       });
@@ -187,7 +182,7 @@ Learn more about the future of accelerated life sciences research and how you ca
   return (
     <div className="bg-background min-h-screen">
       {/* Enhanced Toolbar */}
-      <div className="border-b border-border-subtle bg-background-elevated shadow-[var(--shadow-soft-minimal)]">
+      <div className="border-border-subtle bg-background-elevated border-b shadow-[var(--shadow-soft-minimal)]">
         <EnhancedToolbar
           onSave={handleSave}
           onSimplify={handleSimplify}
@@ -213,11 +208,8 @@ Learn more about the future of accelerated life sciences research and how you ca
       {/* Main Content Area */}
       <div className="flex gap-6 p-4 pt-6">
         {/* Floating AI Actions Panel */}
-        <div className="fixed bottom-4 left-4 top-20 z-40 w-80">
-          <FloatingAiActionsPanel
-            onPersonaSelect={handlePersonaSelect}
-            onActionTrigger={handleActionTrigger}
-          />
+        <div className="fixed top-20 bottom-4 left-4 z-40 w-80">
+          <FloatingAiActionsPanel onPersonaSelect={handlePersonaSelect} onActionTrigger={handleActionTrigger} />
         </div>
 
         {/* Main Editor */}

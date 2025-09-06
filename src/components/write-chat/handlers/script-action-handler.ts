@@ -1,10 +1,10 @@
-import { type ChatMessage } from "@/components/write-chat/types";
-import { type PersonaOption } from "@/components/write-chat/persona-selector";
 import { ACK_LOADING, ACK_BEFORE_SLIDE_MS, SLIDE_DURATION_MS } from "@/components/write-chat/constants";
+import { type PersonaOption } from "@/components/write-chat/persona-selector";
 import { generateTitle, saveMessage as saveMessageToDb } from "@/components/write-chat/services/chat-service";
-import { useScriptGeneration } from "@/hooks/use-script-generation";
-import { processScriptComponents } from "@/hooks/use-script-analytics";
+import { type ChatMessage } from "@/components/write-chat/types";
 import { sendScriptToSlideout, delay } from "@/components/write-chat/utils";
+import { processScriptComponents } from "@/hooks/use-script-analytics";
+import { useScriptGeneration } from "@/hooks/use-script-generation";
 import { type ScriptData, type ScriptComponent } from "@/types/script-panel";
 
 export interface ScriptActionHandlerConfig {
@@ -106,11 +106,7 @@ export function createScriptActionHandler(config: ScriptActionHandlerConfig) {
   const { generateScript } = useScriptGeneration();
 
   // Helper function to generate title after script generation
-  const generateTitleForScript = async (
-    userInput: string, 
-    scriptHook: string, 
-    convIdOverride?: string
-  ) => {
+  const generateTitleForScript = async (userInput: string, scriptHook: string, convIdOverride?: string) => {
     const convIdLocal = convIdOverride ?? conversationId;
     if (!convIdLocal || !isFirstResponse || conversationTitle) return;
 
@@ -160,17 +156,14 @@ export function createScriptActionHandler(config: ScriptActionHandlerConfig) {
     }
   };
 
-  return async function handleScriptGeneration(
-    userInput: string,
-    ensuredConvId: string | null
-  ): Promise<void> {
+  return async function handleScriptGeneration(userInput: string, ensuredConvId: string | null): Promise<void> {
     try {
       // Get the persona data if selected
       const personaData = selectedPersona;
       const res = await generateScript(userInput, "60", personaData);
-      
+
       await delay(ACK_BEFORE_SLIDE_MS);
-      
+
       if (res.success && res.script) {
         const scriptData = convertToScriptData(res.script, userInput);
         sendScriptToSlideout(scriptData, "Generated Script");

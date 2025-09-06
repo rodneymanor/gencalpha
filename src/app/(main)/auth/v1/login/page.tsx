@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+
 import Link from "next/link";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -44,13 +45,16 @@ export default function LoginV1() {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-neutral-50 px-4 py-12 sm:px-6 lg:px-8" suppressHydrationWarning>
+    <div
+      className="relative flex min-h-screen items-center justify-center bg-neutral-50 px-4 py-12 sm:px-6 lg:px-8"
+      suppressHydrationWarning
+    >
       <div className="w-full max-w-md space-y-8">
         {/* Gen.C Logo */}
         <div className="flex justify-center">
           <div className="flex cursor-pointer items-center gap-2 transition-colors hover:opacity-80">
             <span className="text-3xl font-bold text-neutral-900">Gen</span>
-            <div className="h-3 w-3 rounded-full bg-brand-500"></div>
+            <div className="bg-brand-500 h-3 w-3 rounded-full"></div>
             <span className="text-3xl font-bold text-neutral-900">C</span>
           </div>
         </div>
@@ -81,7 +85,7 @@ export default function LoginV1() {
 
               {/* Next Button with Brand Color */}
               <Button
-                className="active:bg-brand-700 h-12 w-full bg-brand-500 text-neutral-50 transition-all duration-150 hover:bg-brand-600"
+                className="active:bg-brand-700 bg-brand-500 hover:bg-brand-600 h-12 w-full text-neutral-50 transition-all duration-150"
                 type="submit"
                 disabled={isSubmitting}
               >

@@ -50,10 +50,10 @@ export function VideoModalOverlay({
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 1024); // lg breakpoint is 1024px
     };
-    
+
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   // Helper to check if element is in video grid
@@ -62,8 +62,7 @@ export function VideoModalOverlay({
     return !!(
       element.closest('[role="grid"]') ||
       element.closest(".video-grid") ||
-      (element.getAttribute("role") === "button" &&
-        element.getAttribute("aria-label")?.includes("video"))
+      (element.getAttribute("role") === "button" && element.getAttribute("aria-label")?.includes("video"))
     );
   };
 
@@ -133,11 +132,7 @@ export function VideoModalOverlay({
   const notionData = videoInsights ? videoToNotionData(video, videoInsights, callbacks ?? {}) : null;
 
   return (
-    <div
-      ref={overlayRef}
-      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm"
-      onClick={handleBackdropClick}
-    >
+    <div ref={overlayRef} className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm" onClick={handleBackdropClick}>
       {/* Close Button */}
       <button
         onClick={onClose}
@@ -170,7 +165,7 @@ export function VideoModalOverlay({
                   </div>
                 </div>
               </div>
-              
+
               {/* Mobile: Notion Panel */}
               <div className="flex w-full flex-col">
                 {notionData && videoInsights ? (
@@ -224,7 +219,7 @@ export function VideoModalOverlay({
 
               {/* Desktop: Arrow container - thin strip between video and metrics */}
               {(canNavigatePrev || canNavigateNext) && (
-                <div className="relative w-16 flex-shrink-0 bg-gradient-to-r from-black to-neutral-900 flex items-center justify-center">
+                <div className="relative flex w-16 flex-shrink-0 items-center justify-center bg-gradient-to-r from-black to-neutral-900">
                   <div className="flex flex-col gap-1 rounded-lg border border-white/10 bg-black/40 p-2 backdrop-blur-sm">
                     <button
                       onClick={() => onVideoChange?.("prev")}

@@ -1,10 +1,14 @@
-import { type VideoAction } from "@/components/write-chat/hooks/use-video-action-state";
-import { type ChatMessage } from "@/components/write-chat/types";
-import { type PersonaOption } from "@/components/write-chat/persona-selector";
-import { type VideoUrl } from "@/components/write-chat/hooks/use-video-state";
 import { ACK_LOADING } from "@/components/write-chat/constants";
-import { createConversation, saveMessage as saveMessageToDb, generateTitle } from "@/components/write-chat/services/chat-service";
 import { useInlineVideoActions } from "@/components/write-chat/hooks/use-inline-video-actions";
+import { type VideoAction } from "@/components/write-chat/hooks/use-video-action-state";
+import { type VideoUrl } from "@/components/write-chat/hooks/use-video-state";
+import { type PersonaOption } from "@/components/write-chat/persona-selector";
+import {
+  createConversation,
+  saveMessage as saveMessageToDb,
+  generateTitle,
+} from "@/components/write-chat/services/chat-service";
+import { type ChatMessage } from "@/components/write-chat/types";
 
 export interface VideoActionHandlerConfig {
   videoActionState: any; // Replace with proper type from use-video-action-state
@@ -42,7 +46,7 @@ export function createVideoActionHandler(config: VideoActionHandlerConfig) {
 
   return async function handleVideoAction(action: VideoAction, pendingVideoUrl: VideoUrl | null): Promise<void> {
     console.log("🎯 [handleVideoAction] Called with action:", action);
-    
+
     if (!pendingVideoUrl) {
       console.log("❌ [handleVideoAction] No pending video URL");
       return;
@@ -51,7 +55,7 @@ export function createVideoActionHandler(config: VideoActionHandlerConfig) {
     // Try to request the action using atomic state management
     const requestId = videoActionState.actions.requestAction(action);
     console.log("📝 [handleVideoAction] Request ID:", requestId);
-    
+
     if (!requestId) {
       // Request was rejected (debounced or already processing)
       console.log("🚫 [handleVideoAction] Request rejected by state machine");

@@ -16,7 +16,6 @@ import { UnifiedSlideout, ClaudeArtifactConfig } from "@/components/ui/unified-s
 import { cn } from "@/lib/utils";
 
 // Import components
-import { AddContentForm } from "./components/add-content-form";
 import { AddIdeaPanel } from "./components/AddIdeaPanel";
 import { BulkActionsToolbar } from "./components/BulkActionsToolbar";
 import { ContentTable } from "./components/content-table";

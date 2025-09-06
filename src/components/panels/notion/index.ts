@@ -1,23 +1,16 @@
 // Main exports
-export { default as NotionPanel } from './NotionPanel';
-export { default as NotionPanelWrapper } from './NotionPanelWrapper';
-export { default as VideoNotionPanel } from './VideoNotionPanel';
+export { default as NotionPanel } from "./NotionPanel";
+export { default as NotionPanelWrapper } from "./NotionPanelWrapper";
+export { default as VideoNotionPanel } from "./VideoNotionPanel";
 
 // Sub-components (for advanced use cases)
-export { default as NotionPanelHeader } from './NotionPanelHeader';
-export { default as NotionPanelProperties } from './NotionPanelProperties';
-export { default as NotionPanelTabs } from './NotionPanelTabs';
-export { default as NotionPanelResize } from './NotionPanelResize';
+export { default as NotionPanelHeader } from "./NotionPanelHeader";
+export { default as NotionPanelProperties } from "./NotionPanelProperties";
+export { default as NotionPanelTabs } from "./NotionPanelTabs";
+export { default as NotionPanelResize } from "./NotionPanelResize";
 
 // Export all types
-export type { 
-  PageProperty,
-  TabType, 
-  TabData,
-  PanelMode,
-  NotionPanelConfig,
-  NotionPanelProps
-} from './types';
+export type { PageProperty, TabType, TabData, PanelMode, NotionPanelConfig, NotionPanelProps } from "./types";
 
 // Export presets for quick setup
-export { PanelPresets } from './types';
+export { PanelPresets } from "./types";

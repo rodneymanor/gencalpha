@@ -1,15 +1,9 @@
-// Library Types and Utilities  
+// Library Types and Utilities
 // Type definitions and helper functions for the Library page
 
 import React from "react";
-import {
-  FileText,
-  Video,
-  Mic,
-  Image as ImageIcon,
-  Link,
-  BookOpen,
-} from "lucide-react";
+
+import { FileText, Video, Mic, Image as ImageIcon, Link, BookOpen } from "lucide-react";
 
 import { BaseItem } from "@/components/templates/data-table-template";
 
@@ -75,7 +69,7 @@ export const formatDuration = (seconds?: number): string => {
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
   const secs = seconds % 60;
-  
+
   if (hours > 0) {
     return `${hours}h ${minutes}m`;
   } else if (minutes > 0) {
@@ -89,7 +83,7 @@ export const generateMockData = (): LibraryItem[] => {
   const types: LibraryItem["type"][] = ["document", "video", "audio", "image", "link", "note"];
   const categories: LibraryItem["category"][] = ["idea", "script", "hooks"];
   const statuses: LibraryItem["status"][] = ["draft", "published", "reviewing", "archived"];
-  
+
   const mockTitles = [
     "Hook: Start with a shocking statistic",
     "Script: Product review framework",
@@ -110,7 +104,7 @@ export const generateMockData = (): LibraryItem[] => {
 
   return mockTitles.map((title, index) => {
     const type = types[index % types.length];
-    
+
     // Assign category based on title prefix
     let category: LibraryItem["category"];
     if (title.startsWith("Hook:")) {
@@ -122,10 +116,10 @@ export const generateMockData = (): LibraryItem[] => {
     } else {
       category = categories[index % categories.length];
     }
-    
+
     const status = statuses[index % statuses.length];
     const createdDate = new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000);
-    
+
     return {
       id: `lib-${index + 1}`,
       title,
@@ -148,12 +142,15 @@ export const generateMockData = (): LibraryItem[] => {
       progress: Math.random() > 0.5 ? Math.floor(Math.random() * 101) : undefined,
       url: type === "link" ? `https://example.com/${title.toLowerCase().replace(/\s+/g, "-")}` : undefined,
       thumbnail: ["video", "image"].includes(type) ? `https://picsum.photos/seed/${index}/200/150` : undefined,
-      metadata: type === "document" ? {
-        wordCount: Math.floor(Math.random() * 10000) + 1000,
-        pageCount: Math.floor(Math.random() * 100) + 10,
-        format: "PDF",
-        language: "English",
-      } : undefined,
+      metadata:
+        type === "document"
+          ? {
+              wordCount: Math.floor(Math.random() * 10000) + 1000,
+              pageCount: Math.floor(Math.random() * 100) + 10,
+              format: "PDF",
+              language: "English",
+            }
+          : undefined,
     };
   });
 };

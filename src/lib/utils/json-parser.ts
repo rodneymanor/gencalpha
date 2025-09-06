@@ -64,7 +64,7 @@ export function parseJsonWithRecovery(content: string): any {
       }
     }
 
-    throw new Error(`Failed to parse JSON: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(`Failed to parse JSON: ${error instanceof Error ? error.message : "Unknown error"}`);
   }
 }
 

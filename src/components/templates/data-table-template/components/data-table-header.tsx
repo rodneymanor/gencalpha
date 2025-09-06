@@ -3,20 +3,19 @@
 // Data Table Header Component
 // Provides title, search, filters, and view mode controls
 
-import React, { useState } from "react";
+import React from "react";
 
-import { Search, Plus, Check, ChevronDown } from "lucide-react";
+import { Search, Plus, ChevronDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuCheckboxItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 import { DataTableTemplateConfig, BaseItem, ViewMode } from "../types";
@@ -58,16 +57,17 @@ export function DataTableHeader<T extends BaseItem>({
           </div>
         </div>
 
-{config.customHeaderActions || (config.addAction && (
-          <Button
-            onClick={onAddClick}
-            className="border border-neutral-200 bg-neutral-100 text-neutral-900 shadow-[0_0_0_1px_rgba(0,0,0,0.04)] hover:-translate-y-px hover:border-neutral-300 hover:bg-neutral-200 hover:shadow-[var(--shadow-soft-drop)]"
-            size="sm"
-          >
-            {config.addAction.icon || <Plus className="h-4 w-4" />}
-            {config.addAction.label}
-          </Button>
-        ))}
+        {config.customHeaderActions ||
+          (config.addAction && (
+            <Button
+              onClick={onAddClick}
+              className="border border-neutral-200 bg-neutral-100 text-neutral-900 shadow-[0_0_0_1px_rgba(0,0,0,0.04)] hover:-translate-y-px hover:border-neutral-300 hover:bg-neutral-200 hover:shadow-[var(--shadow-soft-drop)]"
+              size="sm"
+            >
+              {config.addAction.icon || <Plus className="h-4 w-4" />}
+              {config.addAction.label}
+            </Button>
+          ))}
       </div>
 
       {/* Filters & Search Row */}
@@ -92,7 +92,7 @@ export function DataTableHeader<T extends BaseItem>({
               const selectedValues = filters[filter.key] || [];
               const hasSelection = selectedValues.length > 0;
               const allSelected = selectedValues.length === filter.options?.length;
-              
+
               return (
                 <DropdownMenu key={filter.key}>
                   <DropdownMenuTrigger asChild>
@@ -109,13 +109,11 @@ export function DataTableHeader<T extends BaseItem>({
                       {filter.icon}
                       {filter.label}
                       {hasSelection && !allSelected && (
-                        <span className="ml-1 rounded-full bg-primary-200 px-1.5 py-0.5 text-xs">
+                        <span className="bg-primary-200 ml-1 rounded-full px-1.5 py-0.5 text-xs">
                           {selectedValues.length}
                         </span>
                       )}
-                      {allSelected && (
-                        <span className="ml-1 text-xs text-primary-600">All</span>
-                      )}
+                      {allSelected && <span className="text-primary-600 ml-1 text-xs">All</span>}
                       <ChevronDown className="ml-1 h-3 w-3" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -139,7 +137,7 @@ export function DataTableHeader<T extends BaseItem>({
                           All
                         </DropdownMenuCheckboxItem>
                         <DropdownMenuSeparator />
-                        
+
                         {/* Individual options */}
                         {filter.options.map((option) => {
                           const isSelected = selectedValues.includes(option.value);
@@ -164,7 +162,7 @@ export function DataTableHeader<T extends BaseItem>({
                 </DropdownMenu>
               );
             })}
-            
+
             {/* Reset Filters Button */}
             {config.filters && config.filters.length > 0 && (
               <Button
@@ -172,14 +170,14 @@ export function DataTableHeader<T extends BaseItem>({
                 size="xs"
                 onClick={() => {
                   // Clear all filters
-                  config.filters?.forEach(filter => {
+                  config.filters?.forEach((filter) => {
                     onFilterChange(filter.key, []);
                   });
                 }}
                 className={cn(
                   "h-8 px-3 text-xs text-neutral-600 hover:text-neutral-900",
                   "hover:bg-neutral-100",
-                  Object.keys(filters).some(key => filters[key]?.length > 0) ? "visible" : "invisible"
+                  Object.keys(filters).some((key) => filters[key]?.length > 0) ? "visible" : "invisible",
                 )}
               >
                 Reset filters

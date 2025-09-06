@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 //
 import { UnifiedSlideout, ClaudeArtifactConfig } from "@/components/ui/unified-slideout";
 import ClaudeChat from "@/components/write-chat/claude-chat";
-import { type ActionType, type PersonaOption } from "@/components/write-chat/persona-selector";
+import { type ActionType } from "@/components/write-chat/persona-selector";
 import { ScriptData } from "@/types/script-panel";
 
 export function UnifiedWriteClient({
@@ -41,17 +41,20 @@ export function UnifiedWriteClient({
   //
 
   // Handle action triggers from the new system
-  const handleActionTrigger = useCallback((action: ActionType, prompt: string) => {
-    console.log(`🎯 [UnifiedWriteClient] Action triggered: ${action} with prompt: ${prompt}`);
-    
-    // Call the external handler if provided
-    if (onActionTrigger) {
-      onActionTrigger(action, prompt);
-    }
+  const handleActionTrigger = useCallback(
+    (action: ActionType, prompt: string) => {
+      console.log(`🎯 [UnifiedWriteClient] Action triggered: ${action} with prompt: ${prompt}`);
 
-    // The action will be processed through the normal chat flow in ClaudeChat
-    // This handler is mainly for tracking and external integration
-  }, [onActionTrigger]);
+      // Call the external handler if provided
+      if (onActionTrigger) {
+        onActionTrigger(action, prompt);
+      }
+
+      // The action will be processed through the normal chat flow in ClaudeChat
+      // This handler is mainly for tracking and external integration
+    },
+    [onActionTrigger],
+  );
 
   // Handle slideout opening with content adjustment
   const handleSlideoutOpen = useCallback(() => {

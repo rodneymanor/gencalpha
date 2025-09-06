@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode, useState } from "react";
+
 import { Menu, ArrowLeft } from "lucide-react";
 
 import { DashboardWrapper } from "@/app/(main)/dashboard/_components/dashboard-wrapper";
@@ -28,8 +29,8 @@ export default function MainLayout({ children }: Readonly<{ children: ReactNode 
                 <ResizableLayoutProvider>
                   <div className="flex h-screen">
                     {/* Desktop Sidebar - hidden on mobile */}
-                    <AppSidebar className="hidden md:block flex-shrink-0" />
-                    
+                    <AppSidebar className="hidden flex-shrink-0 md:block" />
+
                     {/* Mobile Sidebar - Full page view */}
                     {showMobileSidebar && (
                       <div className="fixed inset-0 z-50 bg-white md:hidden">
@@ -42,8 +43,8 @@ export default function MainLayout({ children }: Readonly<{ children: ReactNode 
                           </button>
                           <span className="ml-3 text-lg font-medium">Menu</span>
                         </div>
-                        <AppSidebar 
-                          className="h-[calc(100vh-3.5rem)]" 
+                        <AppSidebar
+                          className="h-[calc(100vh-3.5rem)]"
                           onItemClick={() => setShowMobileSidebar(false)}
                         />
                       </div>
@@ -61,21 +62,21 @@ export default function MainLayout({ children }: Readonly<{ children: ReactNode 
                             >
                               <Menu className="h-5 w-5" />
                             </button>
-                            
+
                             {/* Mobile Logo */}
                             <div className="flex items-center gap-1">
-                              <span className="text-lg font-bold text-foreground">Gen</span>
+                              <span className="text-foreground text-lg font-bold">Gen</span>
                               <div className="bg-brand h-1.5 w-1.5 rounded-full"></div>
-                              <span className="text-lg font-bold text-foreground">C</span>
+                              <span className="text-foreground text-lg font-bold">C</span>
                             </div>
                           </div>
-                          
+
                           <div className="flex items-center gap-2">
                             <ProcessingNotificationBadge />
                           </div>
                         </div>
                       </header>
-                      
+
                       <div className="min-h-0 flex-1 overflow-y-auto">
                         <VideoProcessingNotifier />
                         {children}

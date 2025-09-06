@@ -5,8 +5,8 @@
 
 import { FieldValue } from "firebase-admin/firestore";
 
-import { adminDb } from "@/lib/firebase-admin";
 import { NoteType } from "@/app/(main)/dashboard/idea-inbox/_components/types";
+import { adminDb } from "@/lib/firebase-admin";
 
 export interface Note {
   id: string;
@@ -277,9 +277,7 @@ class NotesService {
       // Filter by search term (case-insensitive)
       const searchLower = searchTerm.toLowerCase();
       return allNotes.filter(
-        (note) =>
-          note.title.toLowerCase().includes(searchLower) ||
-          note.content.toLowerCase().includes(searchLower),
+        (note) => note.title.toLowerCase().includes(searchLower) || note.content.toLowerCase().includes(searchLower),
       );
     } catch (error) {
       console.error("Error searching notes:", error);

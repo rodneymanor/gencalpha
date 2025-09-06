@@ -1,12 +1,12 @@
 /**
  * @deprecated This file is deprecated and will be removed in a future version.
- * 
+ *
  * This is the legacy sidebar implementation that was used before the modern AI sidebar redesign.
  * It has been replaced by the new soft UI design that aligns with Claude/Perplexity aesthetics.
- * 
+ *
  * Created: 2025-01-14 (backup of original implementation)
  * Replaced by: app-sidebar.tsx (modern implementation)
- * 
+ *
  * DO NOT USE THIS FILE - It's kept for reference only
  */
 
@@ -54,8 +54,10 @@ function SidebarLogo({ isPinned, onPinToggle }: { isPinned: boolean; onPinToggle
     }
 
     // If already on /write (with or without query params), reload the page for a fresh script
-    if (window.location.pathname === APP_CONFIG.navigation.homePage || 
-        window.location.pathname.startsWith(APP_CONFIG.navigation.homePage)) {
+    if (
+      window.location.pathname === APP_CONFIG.navigation.homePage ||
+      window.location.pathname.startsWith(APP_CONFIG.navigation.homePage)
+    ) {
       window.location.href = APP_CONFIG.navigation.homePage;
     } else {
       // Otherwise navigate normally

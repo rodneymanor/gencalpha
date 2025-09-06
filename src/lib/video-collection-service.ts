@@ -52,10 +52,10 @@ export class VideoCollectionService {
       }
 
       // Call API endpoint to add video
-      const response = await fetch('/api/videos/add-to-collection', {
-        method: 'POST',
+      const response = await fetch("/api/videos/add-to-collection", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           userId,
@@ -67,17 +67,17 @@ export class VideoCollectionService {
       const result = await response.json();
 
       if (!response.ok) {
-        console.error('Failed to add video:', result);
+        console.error("Failed to add video:", result);
         return {
           success: false,
-          message: result.message ?? 'Failed to add video to collection',
+          message: result.message ?? "Failed to add video to collection",
           error: result.error,
         };
       }
 
       return result;
     } catch (error) {
-      console.error('❌ [VIDEO_COLLECTION] Unexpected error:', error);
+      console.error("❌ [VIDEO_COLLECTION] Unexpected error:", error);
       return {
         success: false,
         message: "Failed to add video to collection",
@@ -158,18 +158,18 @@ export class VideoCollectionService {
         scrapeAttempted: false,
         transcriptAttempted: false,
         components: {
-          hook: '',
-          bridge: '',
-          nugget: '',
-          wta: ''
-        }
+          hook: "",
+          bridge: "",
+          nugget: "",
+          wta: "",
+        },
       },
       metrics: {
         views: 0,
         likes: 0,
         comments: 0,
-        saves: 0
-      }
+        saves: 0,
+      },
     };
   }
 }

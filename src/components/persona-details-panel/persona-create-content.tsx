@@ -1,12 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
+
 import { Sparkles, User, Link, Video, AlertCircle, Loader2, Plus, X } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 
 interface PersonaCreateContentProps {
   activeTab: string;
-  onAnalyze: (input: string | string[], mode: 'profile' | 'videos') => void;
+  onAnalyze: (input: string | string[], mode: "profile" | "videos") => void;
   isAnalyzing: boolean;
   analysisProgress: {
     step: string;
@@ -16,12 +18,12 @@ interface PersonaCreateContentProps {
   analysisError: string;
 }
 
-export function PersonaCreateContent({ 
-  activeTab, 
-  onAnalyze, 
-  isAnalyzing, 
-  analysisProgress, 
-  analysisError 
+export function PersonaCreateContent({
+  activeTab,
+  onAnalyze,
+  isAnalyzing,
+  analysisProgress,
+  analysisError,
 }: PersonaCreateContentProps) {
   const [profileUrl, setProfileUrl] = useState("");
   const [videoUrls, setVideoUrls] = useState<string[]>([""]);
@@ -45,14 +47,14 @@ export function PersonaCreateContent({
 
   const handleAnalyzeProfile = () => {
     if (profileUrl.trim()) {
-      onAnalyze(profileUrl.trim(), 'profile');
+      onAnalyze(profileUrl.trim(), "profile");
     }
   };
 
   const handleAnalyzeVideos = () => {
-    const validUrls = videoUrls.filter(url => url.trim());
+    const validUrls = videoUrls.filter((url) => url.trim());
     if (validUrls.length > 0) {
-      onAnalyze(validUrls, 'videos');
+      onAnalyze(validUrls, "videos");
     }
   };
 
@@ -61,8 +63,8 @@ export function PersonaCreateContent({
     return (
       <div className="px-6 py-4">
         <div className="mb-6">
-          <div className="flex items-center gap-2 mb-3">
-            <User className="h-5 w-5 text-primary-600" />
+          <div className="mb-3 flex items-center gap-2">
+            <User className="text-primary-600 h-5 w-5" />
             <h3 className="text-lg font-semibold text-neutral-900">Create from Creator Profile</h3>
           </div>
           <p className="text-sm text-neutral-600">
@@ -72,7 +74,7 @@ export function PersonaCreateContent({
 
         <div className="space-y-4">
           <div>
-            <label htmlFor="profile-url" className="block text-sm font-medium text-neutral-700 mb-2">
+            <label htmlFor="profile-url" className="mb-2 block text-sm font-medium text-neutral-700">
               TikTok Username or Profile URL
             </label>
             <input
@@ -81,7 +83,7 @@ export function PersonaCreateContent({
               value={profileUrl}
               onChange={(e) => setProfileUrl(e.target.value)}
               placeholder="Enter @username or TikTok profile URL"
-              className="w-full px-3 py-2 border border-neutral-200 rounded-[var(--radius-button)] bg-white text-sm focus:outline-none focus:ring-1 focus:ring-primary-400 focus:border-primary-400 transition-colors disabled:bg-neutral-100 disabled:cursor-not-allowed"
+              className="focus:ring-primary-400 focus:border-primary-400 w-full rounded-[var(--radius-button)] border border-neutral-200 bg-white px-3 py-2 text-sm transition-colors focus:ring-1 focus:outline-none disabled:cursor-not-allowed disabled:bg-neutral-100"
               disabled={isAnalyzing}
             />
             <p className="mt-1.5 text-xs text-neutral-500">
@@ -91,18 +93,18 @@ export function PersonaCreateContent({
 
           {/* Progress indicator */}
           {isAnalyzing && analysisProgress && (
-            <div className="rounded-[var(--radius-button)] border border-primary-200 bg-primary-50 p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Loader2 className="h-4 w-4 animate-spin text-primary-600" />
-                <span className="text-sm font-medium text-primary-700">{analysisProgress.step}</span>
+            <div className="border-primary-200 bg-primary-50 rounded-[var(--radius-button)] border p-4">
+              <div className="mb-2 flex items-center gap-2">
+                <Loader2 className="text-primary-600 h-4 w-4 animate-spin" />
+                <span className="text-primary-700 text-sm font-medium">{analysisProgress.step}</span>
               </div>
-              <div className="h-2 w-full rounded-full bg-primary-200">
+              <div className="bg-primary-200 h-2 w-full rounded-full">
                 <div
-                  className="h-2 rounded-full bg-primary-600 transition-all duration-500"
+                  className="bg-primary-600 h-2 rounded-full transition-all duration-500"
                   style={{ width: `${(analysisProgress.current / analysisProgress.total) * 100}%` }}
                 />
               </div>
-              <p className="mt-2 text-xs text-primary-600">
+              <p className="text-primary-600 mt-2 text-xs">
                 Step {analysisProgress.current} of {analysisProgress.total} • This may take about a minute
               </p>
             </div>
@@ -110,10 +112,10 @@ export function PersonaCreateContent({
 
           {/* Error display */}
           {analysisError && (
-            <div className="rounded-[var(--radius-button)] border border-destructive-200 bg-destructive-50 p-3">
+            <div className="border-destructive-200 bg-destructive-50 rounded-[var(--radius-button)] border p-3">
               <div className="flex items-start gap-2">
-                <AlertCircle className="mt-0.5 h-4 w-4 text-destructive-600" />
-                <p className="text-sm text-destructive-700">{analysisError}</p>
+                <AlertCircle className="text-destructive-600 mt-0.5 h-4 w-4" />
+                <p className="text-destructive-700 text-sm">{analysisError}</p>
               </div>
             </div>
           )}
@@ -121,7 +123,7 @@ export function PersonaCreateContent({
           <Button
             onClick={handleAnalyzeProfile}
             disabled={isAnalyzing || !profileUrl.trim()}
-            className="w-full bg-primary-600 hover:bg-primary-700 text-white disabled:bg-neutral-300"
+            className="bg-primary-600 hover:bg-primary-700 w-full text-white disabled:bg-neutral-300"
           >
             {isAnalyzing ? (
               <>
@@ -145,8 +147,8 @@ export function PersonaCreateContent({
     return (
       <div className="px-6 py-4">
         <div className="mb-6">
-          <div className="flex items-center gap-2 mb-3">
-            <Video className="h-5 w-5 text-primary-600" />
+          <div className="mb-3 flex items-center gap-2">
+            <Video className="text-primary-600 h-5 w-5" />
             <h3 className="text-lg font-semibold text-neutral-900">Create from Specific Videos</h3>
           </div>
           <p className="text-sm text-neutral-600">
@@ -156,27 +158,25 @@ export function PersonaCreateContent({
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-3">
-              Video URLs (Max 10)
-            </label>
-            <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+            <label className="mb-3 block text-sm font-medium text-neutral-700">Video URLs (Max 10)</label>
+            <div className="max-h-[400px] space-y-3 overflow-y-auto pr-2">
               {videoUrls.map((url, index) => (
                 <div key={index} className="flex items-center gap-2">
-                  <div className="flex-1 relative">
-                    <Link className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                  <div className="relative flex-1">
+                    <Link className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-neutral-400" />
                     <input
                       type="text"
                       value={url}
                       onChange={(e) => handleVideoUrlChange(index, e.target.value)}
                       placeholder={`Video URL ${index + 1}`}
-                      className="w-full pl-10 pr-3 py-2 border border-neutral-200 rounded-[var(--radius-button)] bg-white text-sm focus:outline-none focus:ring-1 focus:ring-primary-400 focus:border-primary-400 transition-colors disabled:bg-neutral-100 disabled:cursor-not-allowed"
+                      className="focus:ring-primary-400 focus:border-primary-400 w-full rounded-[var(--radius-button)] border border-neutral-200 bg-white py-2 pr-3 pl-10 text-sm transition-colors focus:ring-1 focus:outline-none disabled:cursor-not-allowed disabled:bg-neutral-100"
                       disabled={isAnalyzing}
                     />
                   </div>
                   {videoUrls.length > 1 && (
                     <button
                       onClick={() => handleRemoveVideoUrl(index)}
-                      className="p-2 text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 rounded-[var(--radius-button)] transition-colors"
+                      className="rounded-[var(--radius-button)] p-2 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-600"
                       disabled={isAnalyzing}
                     >
                       <X className="h-4 w-4" />
@@ -185,18 +185,18 @@ export function PersonaCreateContent({
                 </div>
               ))}
             </div>
-            
+
             {videoUrls.length < 10 && (
               <button
                 onClick={handleAddVideoUrl}
-                className="mt-3 flex items-center gap-2 px-3 py-1.5 text-sm text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-[var(--radius-button)] transition-colors"
+                className="text-primary-600 hover:text-primary-700 hover:bg-primary-50 mt-3 flex items-center gap-2 rounded-[var(--radius-button)] px-3 py-1.5 text-sm transition-colors"
                 disabled={isAnalyzing}
               >
                 <Plus className="h-4 w-4" />
                 Add another video
               </button>
             )}
-            
+
             <p className="mt-2 text-xs text-neutral-500">
               Provide TikTok, YouTube, or other social media video URLs to analyze
             </p>
@@ -204,37 +204,39 @@ export function PersonaCreateContent({
 
           {/* Progress indicator */}
           {isAnalyzing && analysisProgress && (
-            <div className="rounded-[var(--radius-button)] border border-primary-200 bg-primary-50 p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Loader2 className="h-4 w-4 animate-spin text-primary-600" />
-                <span className="text-sm font-medium text-primary-700">{analysisProgress.step}</span>
+            <div className="border-primary-200 bg-primary-50 rounded-[var(--radius-button)] border p-4">
+              <div className="mb-2 flex items-center gap-2">
+                <Loader2 className="text-primary-600 h-4 w-4 animate-spin" />
+                <span className="text-primary-700 text-sm font-medium">{analysisProgress.step}</span>
               </div>
-              <div className="h-2 w-full rounded-full bg-primary-200">
+              <div className="bg-primary-200 h-2 w-full rounded-full">
                 <div
-                  className="h-2 rounded-full bg-primary-600 transition-all duration-500"
+                  className="bg-primary-600 h-2 rounded-full transition-all duration-500"
                   style={{ width: `${(analysisProgress.current / analysisProgress.total) * 100}%` }}
                 />
               </div>
-              <p className="mt-2 text-xs text-primary-600">
-                Step {analysisProgress.current} of {analysisProgress.total} • Processing {videoUrls.filter(url => url.trim()).length} video{videoUrls.filter(url => url.trim()).length !== 1 ? 's' : ''}...
+              <p className="text-primary-600 mt-2 text-xs">
+                Step {analysisProgress.current} of {analysisProgress.total} • Processing{" "}
+                {videoUrls.filter((url) => url.trim()).length} video
+                {videoUrls.filter((url) => url.trim()).length !== 1 ? "s" : ""}...
               </p>
             </div>
           )}
 
           {/* Error display */}
           {analysisError && (
-            <div className="rounded-[var(--radius-button)] border border-destructive-200 bg-destructive-50 p-3">
+            <div className="border-destructive-200 bg-destructive-50 rounded-[var(--radius-button)] border p-3">
               <div className="flex items-start gap-2">
-                <AlertCircle className="mt-0.5 h-4 w-4 text-destructive-600" />
-                <p className="text-sm text-destructive-700">{analysisError}</p>
+                <AlertCircle className="text-destructive-600 mt-0.5 h-4 w-4" />
+                <p className="text-destructive-700 text-sm">{analysisError}</p>
               </div>
             </div>
           )}
 
           <Button
             onClick={handleAnalyzeVideos}
-            disabled={isAnalyzing || !videoUrls.some(url => url.trim())}
-            className="w-full bg-primary-600 hover:bg-primary-700 text-white disabled:bg-neutral-300"
+            disabled={isAnalyzing || !videoUrls.some((url) => url.trim())}
+            className="bg-primary-600 hover:bg-primary-700 w-full text-white disabled:bg-neutral-300"
           >
             {isAnalyzing ? (
               <>

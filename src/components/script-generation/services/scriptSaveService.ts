@@ -1,12 +1,8 @@
 import { toast } from "sonner";
-import type { PersonaOption } from "../types/script-writer-types";
-import { 
-  extractScriptTitle, 
-  createScriptTags, 
-  createScriptSummary, 
-  getScriptCategory 
-} from "../utils";
+
 import { TOAST_MESSAGES, DEFAULT_APPROACH, DEFAULT_SOURCE } from "../constants";
+import type { PersonaOption } from "../types/script-writer-types";
+import { extractScriptTitle, createScriptTags, createScriptSummary, getScriptCategory } from "../utils";
 
 export interface ScriptSaveParams {
   generatedScript: string;
@@ -26,7 +22,7 @@ export interface ScriptApiHooks {
 export class ScriptSaveService {
   constructor(
     private apiHooks: ScriptApiHooks,
-    private onSuccess: (scriptId: string, title: string) => void
+    private onSuccess: (scriptId: string, title: string) => void,
   ) {}
 
   async saveScript(params: ScriptSaveParams): Promise<void> {
@@ -64,7 +60,7 @@ export class ScriptSaveService {
           summary,
           inputValue,
           selectedQuickGenerator,
-          selectedTemplate
+          selectedTemplate,
         );
         if (scriptId) {
           this.onSuccess(scriptId, extractedTitle);
@@ -85,7 +81,7 @@ export class ScriptSaveService {
     title: string,
     content: string,
     tags: string[],
-    summary: string
+    summary: string,
   ): Promise<void> {
     const updatedScript = await this.apiHooks.updateScript(scriptId, {
       content,
@@ -110,10 +106,10 @@ export class ScriptSaveService {
     summary: string,
     originalIdea: string,
     selectedQuickGenerator: string | null,
-    selectedTemplate: string | null
+    selectedTemplate: string | null,
   ): Promise<string | null> {
     const category = getScriptCategory(selectedQuickGenerator, selectedTemplate);
-    
+
     const newScript = await this.apiHooks.createScript({
       title,
       content,

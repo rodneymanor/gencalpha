@@ -33,7 +33,7 @@ export function TypewriterPlaceholder({
 
     const phraseIndex = Math.min(currentPhraseIndex, phrases.length - 1);
     const currentPhrase = phrases[phraseIndex] || "";
-    
+
     if (!isDeleting) {
       // Typing
       if (currentText.length < currentPhrase.length) {

@@ -163,7 +163,7 @@ function SkeletonWriteInterface() {
           <SkeletonAvatar />
         </div>
       </div>
-      
+
       {/* Chat area */}
       <div className="flex-1 p-6 space-y-4">
         {/* Message bubbles */}
@@ -177,7 +177,7 @@ function SkeletonWriteInterface() {
           <Skeleton className="h-12 w-48 rounded-[var(--radius-card)]" />
         </div>
       </div>
-      
+
       {/* Input area */}
       <div className="border-t border-neutral-200 p-4">
         <div className="flex gap-3">
@@ -212,7 +212,7 @@ function SkeletonTable({ rows = 5, columns = 4 }: { rows?: number; columns?: num
           ))}
         </div>
       </div>
-      
+
       {/* Rows */}
       <div>
         {Array.from({ length: rows }).map((_, rowIndex) => (

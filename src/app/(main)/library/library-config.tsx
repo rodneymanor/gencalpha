@@ -2,13 +2,9 @@
 // Separated configuration for the Library page to maintain clean code organization
 
 import React from "react";
+
+import { formatDistanceToNow } from "date-fns";
 import {
-  BookOpen,
-  FileText,
-  Video,
-  Mic,
-  Image as ImageIcon,
-  Link,
   Plus,
   Edit,
   Trash2,
@@ -18,9 +14,7 @@ import {
   Archive,
   FolderOpen,
   Calendar,
-  User,
   Tag,
-  Filter,
   Clock,
   CheckCircle,
   Eye,
@@ -32,7 +26,6 @@ import {
   Camera,
   Music,
 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 
 import {
@@ -44,7 +37,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 
-import { LibraryItem, TypeIcon, formatFileSize, formatDuration } from "./types";
+import { LibraryItem } from "./types";
 
 // Platform icon mapping
 const PlatformIcon: Record<string, React.ReactNode> = {
@@ -60,9 +53,11 @@ const PlatformIcon: Record<string, React.ReactNode> = {
 const PlatformBadge: React.FC<{ platform: string; className?: string }> = ({ platform, className = "" }) => {
   const icon = PlatformIcon[platform] ?? <Globe className="h-3 w-3" />;
   const label = platform.charAt(0).toUpperCase() + platform.slice(1);
-  
+
   return (
-    <div className={`inline-flex items-center gap-1 rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-600 ${className}`}>
+    <div
+      className={`inline-flex items-center gap-1 rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-600 ${className}`}
+    >
       {icon}
       <span>{label}</span>
     </div>
@@ -74,78 +69,56 @@ export const columns: ColumnConfig<LibraryItem>[] = [
   {
     key: "title",
     header: "Title",
-    width: "min-w-[300px]",
+    width: "min-w-[400px]",
     sortable: true,
     searchable: true,
     render: (item) => (
-      <div className="flex items-start gap-3">
-        <div className="mt-1 flex h-10 w-10 items-center justify-center rounded-[var(--radius-card)] bg-neutral-100 text-neutral-600">
-          {item.tags.includes('chat') ? <MessageSquare className="h-4 w-4" /> : TypeIcon[item.type]}
-        </div>
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <span className="font-medium text-neutral-900">{item.title}</span>
-            {item.rating && item.rating >= 4 && (
-              <Star className="h-3 w-3 fill-brand-500 text-brand-500" />
-            )}
-            {item.progress !== undefined && item.progress > 0 && item.progress < 100 && (
-              <div className="flex items-center gap-1">
-                <Progress value={item.progress} className="h-1.5 w-12" />
-                <span className="text-xs text-neutral-500">{item.progress}%</span>
-              </div>
-            )}
-          </div>
-          {item.description && (
-            <p className="mt-0.5 line-clamp-1 text-xs text-neutral-600">
-              {item.description}
-            </p>
-          )}
-          {item.tags.length > 0 && (
-            <div className="mt-1 flex flex-wrap gap-1">
-              {/* Show platform badge first if it exists */}
-              {item.tags.find(tag => ['tiktok', 'instagram', 'youtube', 'twitter', 'chat', 'manual'].includes(tag)) && (
-                <PlatformBadge 
-                  platform={item.tags.find(tag => ['tiktok', 'instagram', 'youtube', 'twitter', 'chat', 'manual'].includes(tag))!}
-                />
-              )}
-              {/* Show other tags */}
-              {item.tags
-                .filter(tag => !['captured', 'generated', 'tiktok', 'instagram', 'youtube', 'twitter', 'chat', 'manual'].includes(tag))
-                .slice(0, 2)
-                .map((tag) => (
-                  <span
-                    key={tag}
-                    className="inline-flex items-center rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-600"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              {item.tags.length > 3 && (
-                <span className="text-xs text-neutral-500">+{item.tags.length - 3}</span>
-              )}
+      <div className="flex-1 py-1">
+        <div className="flex items-center gap-3">
+          <span className="font-medium text-neutral-900">{item.title}</span>
+          {item.rating && item.rating >= 4 && <Star className="fill-brand-500 text-brand-500 h-3 w-3" />}
+          {item.progress !== undefined && item.progress > 0 && item.progress < 100 && (
+            <div className="flex items-center gap-1.5">
+              <Progress value={item.progress} className="h-1.5 w-12" />
+              <span className="text-xs text-neutral-500">{item.progress}%</span>
             </div>
           )}
         </div>
+        {item.description && <p className="mt-2 line-clamp-1 text-sm text-neutral-600">{item.description}</p>}
+        {item.tags.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {/* Show platform badge first if it exists */}
+            {item.tags.find((tag) => ["tiktok", "instagram", "youtube", "twitter", "chat", "manual"].includes(tag)) && (
+              <PlatformBadge
+                platform={
+                  item.tags.find((tag) =>
+                    ["tiktok", "instagram", "youtube", "twitter", "chat", "manual"].includes(tag),
+                  )!
+                }
+              />
+            )}
+            {/* Show other tags */}
+            {item.tags
+              .filter(
+                (tag) =>
+                  !["captured", "generated", "tiktok", "instagram", "youtube", "twitter", "chat", "manual"].includes(
+                    tag,
+                  ),
+              )
+              .slice(0, 2)
+              .map((tag) => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-600"
+                >
+                  {tag}
+                </span>
+              ))}
+            {item.tags.length > 3 && <span className="text-xs text-neutral-500">+{item.tags.length - 3}</span>}
+          </div>
+        )}
       </div>
     ),
-  },
-  {
-    key: "type",
-    header: "Type",
-    width: "w-[100px]",
-    sortable: true,
-    render: (item) => {
-      const platformTag = item.tags.find(tag => ['tiktok', 'instagram', 'youtube', 'twitter', 'chat', 'manual'].includes(tag));
-      const icon = platformTag ? PlatformIcon[platformTag] : TypeIcon[item.type];
-      const label = platformTag === 'chat' ? 'Chat' : item.type;
-      
-      return (
-        <div className="flex items-center gap-1.5">
-          {icon}
-          <span className="text-sm capitalize text-neutral-700">{label}</span>
-        </div>
-      );
-    },
   },
   {
     key: "category",
@@ -159,17 +132,12 @@ export const columns: ColumnConfig<LibraryItem>[] = [
     ),
   },
   {
-    key: "status",
-    header: "Status",
-    width: "w-[120px]",
-  },
-  {
     key: "createdAt",
     header: "Created Date",
     width: "w-[150px]",
     sortable: true,
     render: (item) => (
-      <div className="flex items-center gap-1 text-xs text-neutral-600">
+      <div className="flex items-center gap-2 text-xs text-neutral-600">
         <Calendar className="h-3 w-3" />
         {formatDistanceToNow(item.createdAt, { addSuffix: true })}
       </div>
@@ -181,7 +149,7 @@ export const columns: ColumnConfig<LibraryItem>[] = [
     width: "w-[150px]",
     sortable: true,
     render: (item) => (
-      <div className="flex items-center gap-1 text-xs text-neutral-600">
+      <div className="flex items-center gap-2 text-xs text-neutral-600">
         <Clock className="h-3 w-3" />
         {formatDistanceToNow(item.updatedAt, { addSuffix: true })}
       </div>
@@ -270,9 +238,9 @@ export const statusConfig: StatusConfig[] = [
 export const getLibraryConfig = (): DataTableTemplateConfig<LibraryItem> => ({
   title: "Library",
   description: "All your content in one place - chats, inspiration, and resources",
-  
+
   columns,
-  
+
   filters: [
     {
       key: "contentSource",
@@ -282,18 +250,6 @@ export const getLibraryConfig = (): DataTableTemplateConfig<LibraryItem> => ({
       options: [
         { value: "chat", label: "Chat Conversations" },
         { value: "captured", label: "Captured Content" },
-      ],
-    },
-    {
-      key: "type",
-      label: "Type",
-      type: "multiselect",
-      icon: <Filter className="mr-2 h-4 w-4" />,
-      options: [
-        { value: "chat", label: "Chat" },
-        { value: "tiktok", label: "TikTok" },
-        { value: "instagram", label: "Instagram" },
-        { value: "note", label: "Note" },
       ],
     },
     {
@@ -320,24 +276,23 @@ export const getLibraryConfig = (): DataTableTemplateConfig<LibraryItem> => ({
       ],
     },
   ],
-  
+
   statusConfig,
   statusField: "status",
-  
+
   enableSearch: true,
   searchPlaceholder: "Search all your content - chats, videos, ideas, and resources...",
   searchFields: ["title", "description"],
-  
+
   defaultSort: { field: "updatedAt", direction: "desc" },
   sortOptions: [
     { field: "title", label: "Title" },
     { field: "updatedAt", label: "Last Modified" },
     { field: "createdAt", label: "Date Created" },
   ],
-  
-  
+
   bulkActions,
-  
+
   itemActions: [
     {
       key: "view",
@@ -380,15 +335,16 @@ export const getLibraryConfig = (): DataTableTemplateConfig<LibraryItem> => ({
       },
     },
   ],
-  
+
   enableSelection: true,
   enableBulkActions: true,
   enableInfiniteScroll: false,
   enableDragAndDrop: true,
-  
+
   emptyState: {
     title: "Your unified library awaits",
-    description: "All your content will appear here - chat conversations, captured inspiration from social media, and saved resources.",
+    description:
+      "All your content will appear here - chat conversations, captured inspiration from social media, and saved resources.",
     icon: <Sparkles className="h-16 w-16" />,
     action: {
       label: "Start Creating",
@@ -397,7 +353,7 @@ export const getLibraryConfig = (): DataTableTemplateConfig<LibraryItem> => ({
       },
     },
   },
-  
+
   addAction: {
     label: "Add Resource",
     icon: <Plus className="mr-2 h-4 w-4" />,
@@ -405,7 +361,7 @@ export const getLibraryConfig = (): DataTableTemplateConfig<LibraryItem> => ({
       toast.info("Add resource dialog would open");
     },
   },
-  
+
   onItemClick: (item) => {
     console.log("Item clicked:", item);
   },

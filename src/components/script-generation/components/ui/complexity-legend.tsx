@@ -16,31 +16,19 @@ export function ComplexityLegend({ show }: ComplexityLegendProps) {
       <h4 className="text-foreground mb-3 text-sm font-medium">Readability Analysis</h4>
       <div className="flex flex-wrap gap-3">
         <div className="flex items-center space-x-2">
-          <div 
-            className="h-3 w-4 rounded-sm" 
-            style={{ backgroundColor: "rgba(59, 130, 246, 0.08)" }} 
-          />
+          <div className="h-3 w-4 rounded-sm" style={{ backgroundColor: "rgba(59, 130, 246, 0.08)" }} />
           <span className="text-muted-foreground text-xs">Middle School</span>
         </div>
         <div className="flex items-center space-x-2">
-          <div 
-            className="h-3 w-4 rounded-sm" 
-            style={{ backgroundColor: "rgba(245, 158, 11, 0.1)" }} 
-          />
+          <div className="h-3 w-4 rounded-sm" style={{ backgroundColor: "rgba(245, 158, 11, 0.1)" }} />
           <span className="text-muted-foreground text-xs">High School</span>
         </div>
         <div className="flex items-center space-x-2">
-          <div 
-            className="h-3 w-4 rounded-sm" 
-            style={{ backgroundColor: "rgba(249, 115, 22, 0.1)" }} 
-          />
+          <div className="h-3 w-4 rounded-sm" style={{ backgroundColor: "rgba(249, 115, 22, 0.1)" }} />
           <span className="text-muted-foreground text-xs">College</span>
         </div>
         <div className="flex items-center space-x-2">
-          <div 
-            className="h-3 w-4 rounded-sm" 
-            style={{ backgroundColor: "rgba(239, 68, 68, 0.1)" }} 
-          />
+          <div className="h-3 w-4 rounded-sm" style={{ backgroundColor: "rgba(239, 68, 68, 0.1)" }} />
           <span className="text-muted-foreground text-xs">Graduate</span>
         </div>
       </div>

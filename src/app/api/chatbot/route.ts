@@ -84,7 +84,8 @@ interface ChatRequest {
 }
 
 // Legacy chatbot route - now simplified since assistant system was removed
-const DEFAULT_PROMPT = "You are a helpful AI assistant that provides concise, valuable responses while maintaining a warm and professional tone.";
+const DEFAULT_PROMPT =
+  "You are a helpful AI assistant that provides concise, valuable responses while maintaining a warm and professional tone.";
 
 export async function POST(request: NextRequest) {
   console.log("🚀 [Chatbot API] Request received");

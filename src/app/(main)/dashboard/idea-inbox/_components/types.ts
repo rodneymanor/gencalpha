@@ -3,7 +3,7 @@ export enum NoteType {
   NOTE = "note",
   TIKTOK = "tiktok",
   INSTAGRAM = "instagram",
-  YOUTUBE = "youtube"
+  YOUTUBE = "youtube",
 }
 
 export interface Idea {

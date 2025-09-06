@@ -13,11 +13,11 @@ import "@blocknote/mantine/style.css";
 
 import { SlideoutHeader } from "@/components/ui/slideout-header";
 import { UnifiedSlideout, ClaudeArtifactConfig } from "@/components/ui/unified-slideout";
+import { generateTitleFromContent } from "@/lib/transcript-title-generator";
 import { cn } from "@/lib/utils";
 
 import { detectPlatform, useAddContent } from "../hooks/use-content-inbox";
 import { Platform } from "../types";
-import { generateTitleFromContent } from "@/lib/transcript-title-generator";
 
 interface AddIdeaPanelProps {
   isOpen: boolean;
@@ -134,7 +134,7 @@ export const AddIdeaPanel: React.FC<AddIdeaPanelProps> = ({ isOpen, onClose, onS
     if (!finalTitle) {
       // Generate title from editor content
       finalTitle = generateTitleFromContent(noteContent);
-      
+
       // If we generated a title, update the input field
       if (finalTitle !== "Untitled Idea") {
         setTitle(finalTitle);
@@ -142,10 +142,12 @@ export const AddIdeaPanel: React.FC<AddIdeaPanelProps> = ({ isOpen, onClose, onS
     }
 
     // Check if we have any content to save
-    const hasContent = finalTitle !== "Untitled Idea" || blocks.some(block => 
-      block.content && Array.isArray(block.content) && 
-      block.content.some(item => item.text && item.text.trim())
-    );
+    const hasContent =
+      finalTitle !== "Untitled Idea" ||
+      blocks.some(
+        (block) =>
+          block.content && Array.isArray(block.content) && block.content.some((item) => item.text && item.text.trim()),
+      );
 
     if (!hasContent) {
       toast.error("Please add some content to your idea");
@@ -218,7 +220,7 @@ export const AddIdeaPanel: React.FC<AddIdeaPanelProps> = ({ isOpen, onClose, onS
             className={cn(
               "rounded-[var(--radius-button)] px-3 py-1.5 text-sm font-medium transition-all",
               "bg-neutral-900 text-white hover:bg-neutral-800",
-              addContentMutation.isPending && "opacity-50 cursor-not-allowed"
+              addContentMutation.isPending && "cursor-not-allowed opacity-50",
             )}
           >
             {addContentMutation.isPending ? "Saving..." : "Save"}

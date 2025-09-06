@@ -35,7 +35,7 @@ const formatViewCount = (views: number) => {
 const getPlatformStyle = (platform: string) => {
   const styles = {
     tiktok: "bg-neutral-900 text-neutral-50",
-    instagram: "bg-primary-100 text-primary-700", 
+    instagram: "bg-primary-100 text-primary-700",
     youtube: "bg-destructive-100 text-destructive-700",
     default: "bg-neutral-100 text-neutral-700",
   };
@@ -53,7 +53,7 @@ export function VideoCard({
 }: VideoCardProps) {
   return (
     <div
-      className="group bg-neutral-100 hover:bg-neutral-200 relative aspect-[9/16] cursor-pointer overflow-hidden rounded-[var(--radius-card)] transition-colors duration-150 shadow-[var(--shadow-soft-drop)]"
+      className="group relative aspect-[9/16] cursor-pointer overflow-hidden rounded-[var(--radius-card)] bg-neutral-100 shadow-[var(--shadow-soft-drop)] transition-colors duration-150 hover:bg-neutral-200"
       onClick={() => onVideoClick(video)}
     >
       {video.thumbnailUrl && (
@@ -67,7 +67,10 @@ export function VideoCard({
 
       <div className="absolute inset-0 bg-neutral-900/0 transition-colors group-hover:bg-neutral-900/50">
         <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
-          <Button size="icon" className="rounded-pill bg-neutral-50/90 backdrop-blur-sm hover:bg-neutral-50 transition-all duration-150">
+          <Button
+            size="icon"
+            className="rounded-pill bg-neutral-50/90 backdrop-blur-sm transition-all duration-150 hover:bg-neutral-50"
+          >
             <Play className="h-6 w-6 fill-neutral-900 text-neutral-900" />
           </Button>
         </div>
@@ -75,7 +78,7 @@ export function VideoCard({
         <div className="absolute top-2 right-2 left-2 flex items-start justify-between">
           <div className="flex flex-col gap-2">
             <Badge className={cn("text-xs", getPlatformStyle(video.platform))}>{video.platform}</Badge>
-            {video.favorite && <Star className="h-4 w-4 fill-warning-500 text-warning-500" />}
+            {video.favorite && <Star className="fill-warning-500 text-warning-500 h-4 w-4" />}
           </div>
 
           <DropdownMenu>

@@ -5,9 +5,9 @@ import React, { useState } from "react";
 import { Copy, Download, User, Wand2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { IconSlideoutHeader } from "@/components/ui/slideout-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import { IconSlideoutHeader } from "@/components/ui/slideout-header";
 
 export interface PersonaDetails {
   id: string;

@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { authenticateApiKey } from "@/lib/api-key-auth";
 import { getAdminDb, isAdminInitialized } from "@/lib/firebase-admin";
-import { generateTikTokTitleFromTranscript, generateInstagramTitleFromTranscript } from "@/lib/transcript-title-generator";
+import {
+  generateTikTokTitleFromTranscript,
+  generateInstagramTitleFromTranscript,
+} from "@/lib/transcript-title-generator";
 
 interface SaveBody {
   transcript?: string;

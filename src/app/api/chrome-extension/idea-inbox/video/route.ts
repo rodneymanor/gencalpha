@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { NoteType } from "@/app/(main)/dashboard/idea-inbox/_components/types";
 import { authenticateApiKey } from "@/lib/api-key-auth";
 import { notesService } from "@/lib/services/notes-service";
 import { UnifiedVideoScraper, scrapeVideoUrl } from "@/lib/unified-video-scraper";
-import { NoteType } from "@/app/(main)/dashboard/idea-inbox/_components/types";
 
 interface VideoIdeaBody {
   url: string;

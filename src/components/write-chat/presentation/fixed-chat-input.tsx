@@ -1,7 +1,8 @@
 "use client";
 
-import { ArrowUp, SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
+
+import { ArrowUp, SlidersHorizontal } from "lucide-react";
 
 import { ShineBorder } from "@/components/magicui/shine-border";
 import { Button } from "@/components/ui/button";
@@ -25,16 +26,16 @@ export function FixedChatInput(props: {
     onPersonaSelect,
     showPersonas = true,
   } = props;
-  
+
   // Track hover and focus states for shine border
   const [isHovered, setIsHovered] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
-  
+
   return (
     <div className="chat-input-fixed">
       <div className="mx-auto w-full max-w-3xl">
-        <div 
-          className="relative bg-card border-border-subtle rounded-[var(--radius-card)] border shadow-[var(--shadow-input)]"
+        <div
+          className="bg-card border-border-subtle relative rounded-[var(--radius-card)] border shadow-[var(--shadow-input)]"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >

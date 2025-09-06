@@ -22,6 +22,8 @@ interface UseScriptGenerationProps {
   initialPrompt?: string;
   onScriptComplete?: (script: string) => void;
   fromLibrary?: boolean;
+  preselectedGenerator?: string;
+  preselectedTemplate?: string;
 }
 
 /**
@@ -36,35 +38,35 @@ function formatHookContent(content: string, metadata: any): string {
       const formattedHooks = metadata.hooks.map((hook: any, index: number) => {
         return `${index + 1}. ${hook.text}`;
       });
-      
+
       if (formattedHooks.length > 0) {
-        console.log('📋 [formatHookContent] Formatted structured hooks:', formattedHooks.length);
+        console.log("📋 [formatHookContent] Formatted structured hooks:", formattedHooks.length);
         return formattedHooks.join("\n\n");
       }
     } catch (error) {
       console.warn("⚠️ [formatHookContent] Failed to format structured hooks:", error);
     }
   }
-  
+
   // Check for items array from scripts collection (new structure)
   if (metadata?.items && Array.isArray(metadata.items)) {
     try {
       // Format items from scripts collection
       const formattedItems = metadata.items.map((item: any) => {
         // Handle both {number, text} and {text} formats
-        const number = item.number || (metadata.items.indexOf(item) + 1);
+        const number = item.number || metadata.items.indexOf(item) + 1;
         return `${number}. ${item.text}`;
       });
-      
+
       if (formattedItems.length > 0) {
-        console.log('📝 [formatHookContent] Formatted structured items:', formattedItems.length);
+        console.log("📝 [formatHookContent] Formatted structured items:", formattedItems.length);
         return formattedItems.join("\n\n");
       }
     } catch (error) {
       console.warn("⚠️ [formatHookContent] Failed to format structured items:", error);
     }
   }
-  
+
   // Fallback: Parse flat text format if no structured data
   if (content) {
     try {
@@ -86,7 +88,7 @@ function formatHookContent(content: string, metadata: any): string {
 
       // If we successfully parsed hooks, return them as a clean numbered list
       if (parsedHooks.length > 0) {
-        console.log('🔍 [formatHookContent] Parsed text hooks:', parsedHooks.length);
+        console.log("🔍 [formatHookContent] Parsed text hooks:", parsedHooks.length);
         return parsedHooks.join("\n\n");
       }
     } catch (error) {
@@ -95,17 +97,19 @@ function formatHookContent(content: string, metadata: any): string {
   }
 
   // Final fallback: return original content if all processing fails
-  return content || '';
+  return content || "";
 }
 
 export function useScriptGeneration({
   initialPrompt = "",
   onScriptComplete,
   fromLibrary = false,
+  preselectedGenerator,
+  preselectedTemplate,
 }: UseScriptGenerationProps) {
   // State management
   const scriptState = useScriptState(initialPrompt);
-  const templateSelection = useTemplateSelection();
+  const templateSelection = useTemplateSelection(preselectedGenerator, preselectedTemplate);
 
   // Load library content when coming from library
   useEffect(() => {
@@ -126,13 +130,13 @@ export function useScriptGeneration({
           // Set the script content and title
           scriptState.setGeneratedScript(processedContent);
           scriptState.setScriptTitle(content.title ?? "Library Content");
-          
+
           console.log("🔍 [useScriptGeneration] After setting content:", {
             processedContentLength: processedContent.length,
             processedContentPreview: processedContent.substring(0, 200),
             category: content.category,
             hasMetadataItems: !!content.metadata?.items,
-            itemsCount: content.metadata?.items?.length
+            itemsCount: content.metadata?.items?.length,
           });
 
           // Set the appropriate quick generator based on category or metadata

@@ -48,7 +48,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<HooksRespo
           hooks: [],
           error: "Admin SDK not configured",
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -60,7 +60,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<HooksRespo
           hooks: [],
           error: "Database not available",
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -73,10 +73,13 @@ export async function GET(request: NextRequest): Promise<NextResponse<HooksRespo
 
     // Map documents and sort by createdAt in JavaScript since we can't use orderBy in Firestore
     const hooks: Hook[] = hooksSnapshot.docs
-      .map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      } as Hook))
+      .map(
+        (doc) =>
+          ({
+            id: doc.id,
+            ...doc.data(),
+          }) as Hook,
+      )
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     console.log(`✅ [Hooks API] Found ${hooks.length} hook generations for user`);
@@ -93,7 +96,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<HooksRespo
         hooks: [],
         error: "Failed to fetch hooks",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -66,7 +66,7 @@ export const themes: Theme[] = [
       // Zoom Design System - Light Theme
       background: "#FFFFFF", // White - preserved
       foreground: "#00053D", // Midnight - dark text
-      card: "#FFFFFF", // White - preserved  
+      card: "#FFFFFF", // White - preserved
       cardForeground: "#00053D", // Midnight - dark text
       popover: "#FFFFFF", // White - preserved
       popoverForeground: "#00053D", // Midnight - dark text
@@ -95,7 +95,7 @@ export const themes: Theme[] = [
       chart1: "#0B5CFF", // Bloom
       chart2: "#00DEEF", // Agave
       chart3: "#00EF9D", // Spearmint
-      chart4: "#FFCD00", // Gold  
+      chart4: "#FFCD00", // Gold
       chart5: "#9A67FB", // Lavender
       sidebar: "#FFFFFF", // White - preserved
       sidebarForeground: "#00053D", // Midnight - dark text

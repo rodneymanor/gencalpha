@@ -98,22 +98,22 @@ type GenerateResponseBody = {
  */
 function parseNumberedItems(content: string): Array<{ number: number; text: string }> {
   if (!content) return [];
-  
-  const lines = content.split('\n').filter(line => line.trim());
+
+  const lines = content.split("\n").filter((line) => line.trim());
   const items: Array<{ number: number; text: string }> = [];
-  
-  lines.forEach(line => {
+
+  lines.forEach((line) => {
     // Match patterns: "1. Text" or "1) Text" or just numbered lines
     const match = line.match(/^(\d+)[.)\s]+(.+)$/);
     if (match) {
       const [, numberStr, text] = match;
       items.push({
         number: parseInt(numberStr, 10),
-        text: text.trim()
+        text: text.trim(),
       });
     }
   });
-  
+
   return items;
 }
 
@@ -144,7 +144,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<GenerateR
     if (generatorType === "generate-hooks" || generatorType === "content-ideas" || generatorType === "value-bombs") {
       // Create a simple prompt that doesn't require complex speed-write variables
       let simplePrompt = "";
-      
+
       if (generatorType === "generate-hooks") {
         simplePrompt = `Generate 10 compelling hooks for the following topic. Each hook should be attention-grabbing and make the reader want to continue. 
         
@@ -171,7 +171,7 @@ Return ONLY a numbered list (1-10) with each tip on its own line. Keep each tip 
         temperature: 0.7,
         maxTokens: 1000,
       });
-      
+
       if (!result.success) {
         return NextResponse.json(
           {
@@ -185,7 +185,7 @@ Return ONLY a numbered list (1-10) with each tip on its own line. Keep each tip 
       // Parse the generated content into structured items
       const content = result.content as string;
       const parsedItems = parseNumberedItems(content);
-      
+
       // Create the script response
       const scriptResponse = {
         hook: content || `Generated ${generatorType.replace("generate-", "").replace("-", " ")} based on your topic`,
@@ -193,16 +193,18 @@ Return ONLY a numbered list (1-10) with each tip on its own line. Keep each tip 
         content: "",
         callToAction: "",
       };
-      
+
       // Save to database with structured elements
       try {
         if (isAdminInitialized) {
           const adminDb = getAdminDb();
           const now = new Date().toISOString();
-          
+
           await adminDb.collection("scripts").add({
             userId: authResult.user.uid,
-            title: content.split('\n')[0]?.substring(0, 100) || `Generated ${generatorType.replace("generate-", "").replace("-", " ")}`,
+            title:
+              content.split("\n")[0]?.substring(0, 100) ||
+              `Generated ${generatorType.replace("generate-", "").replace("-", " ")}`,
             content: content,
             authors: authResult.user.email || "Unknown",
             status: "draft",
@@ -227,13 +229,13 @@ Return ONLY a numbered list (1-10) with each tip on its own line. Keep each tip 
             originalIdea: idea,
             source: "scripting",
           });
-          
+
           console.log(`✅ [Script Generate] Saved ${generatorType} with ${parsedItems.length} structured items`);
         }
       } catch (persistErr) {
         console.warn(`⚠️ [Script Generate] Failed to persist ${generatorType}:`, persistErr);
       }
-      
+
       return NextResponse.json({
         success: true,
         script: scriptResponse,

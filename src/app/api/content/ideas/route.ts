@@ -48,7 +48,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<ContentIde
           ideas: [],
           error: "Admin SDK not configured",
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -60,7 +60,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<ContentIde
           ideas: [],
           error: "Database not available",
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -73,10 +73,13 @@ export async function GET(request: NextRequest): Promise<NextResponse<ContentIde
 
     // Map documents and sort by createdAt in JavaScript since we can't use orderBy in Firestore
     const ideas: ContentIdea[] = ideasSnapshot.docs
-      .map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      } as ContentIdea))
+      .map(
+        (doc) =>
+          ({
+            id: doc.id,
+            ...doc.data(),
+          }) as ContentIdea,
+      )
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     console.log(`✅ [Content Ideas API] Found ${ideas.length} content ideas for user`);
@@ -93,7 +96,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<ContentIde
         ideas: [],
         error: "Failed to fetch content ideas",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

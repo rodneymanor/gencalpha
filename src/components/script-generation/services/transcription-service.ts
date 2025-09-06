@@ -1,6 +1,6 @@
+import { detectSocialUrl } from "@/lib/utils/lightweight-url-detector";
 import { TranscriptionOrchestrator } from "@/lib/video-actions/orchestrators/transcription-orchestrator";
 import type { VideoActionInput } from "@/lib/video-actions/types";
-import { detectSocialUrl } from "@/lib/utils/lightweight-url-detector";
 import { formatScriptWithComponents, createFallbackTranscript } from "../utils/formatters";
 import { ORCHESTRATOR_CONFIG } from "../utils/constants";
 
@@ -82,13 +82,9 @@ export class TranscriptionService {
       console.log("🔍 [TranscriptionService] Raw transcript:", result.data.transcript);
 
       // Process the transcription result
-      const transcriptionResult = this.processTranscriptionResult(
-        result.data,
-        urlDetection.platform || "unknown"
-      );
+      const transcriptionResult = this.processTranscriptionResult(result.data, urlDetection.platform || "unknown");
 
       callbacks.onComplete(transcriptionResult);
-
     } catch (error) {
       console.error("❌ [TranscriptionService] Transcription failed:", error);
       const errorMessage = `Transcription failed: ${error instanceof Error ? error.message : "Unknown error"}`;
@@ -102,13 +98,10 @@ export class TranscriptionService {
    * Processes the raw transcription data into a structured result
    * Consolidates the result processing logic from lines 115-157
    */
-  private processTranscriptionResult(
-    data: any,
-    platform: string
-  ): TranscriptionResult {
+  private processTranscriptionResult(data: any, platform: string): TranscriptionResult {
     console.log("🔍 [TranscriptionService] Processing transcription result");
     console.log("🔍 [TranscriptionService] Full data object:", data);
-    
+
     const scriptData = data.scriptData;
     const rawTranscript = data.transcript;
 
@@ -120,16 +113,19 @@ export class TranscriptionService {
         console.log("✅ [TranscriptionService] ScriptData found, processing components");
         // Only use formatted components, never the original transcript
         let formattedScript = "";
-        
+
         if (scriptData.components && scriptData.components.length > 0) {
           console.log("🔍 [TranscriptionService] Components found:", scriptData.components.length);
-          console.log("🔍 [TranscriptionService] Component details:", scriptData.components.map((c: any) => ({ 
-            id: c.id, 
-            type: c.type, 
-            label: c.label,
-            contentLength: c.content?.length || 0 
-          })));
-          
+          console.log(
+            "🔍 [TranscriptionService] Component details:",
+            scriptData.components.map((c: any) => ({
+              id: c.id,
+              type: c.type,
+              label: c.label,
+              contentLength: c.content?.length || 0,
+            })),
+          );
+
           formattedScript = formatScriptWithComponents(scriptData.components);
           console.log("🔍 [TranscriptionService] Formatted script length:", formattedScript.length);
           console.log("🔍 [TranscriptionService] Formatted script preview:", formattedScript.substring(0, 200));
@@ -139,14 +135,14 @@ export class TranscriptionService {
           formattedScript = createFallbackTranscript(rawTranscript, scriptData.fullScript);
           console.log("🔍 [TranscriptionService] Fallback script:", formattedScript.substring(0, 200));
         }
-        
+
         const result = {
           success: true,
           script: formattedScript,
           title: scriptData.title ?? `Transcript from ${platform}`,
           rawTranscript: rawTranscript,
         };
-        
+
         console.log("✅ [TranscriptionService] Returning successful result");
         return result;
       } catch (stateError) {
@@ -157,14 +153,14 @@ export class TranscriptionService {
       try {
         console.log("⚠️ [TranscriptionService] No ScriptData, using raw transcript");
         console.log("🔍 [TranscriptionService] Raw transcript preview:", rawTranscript.substring(0, 200));
-        
+
         const result = {
           success: true,
           script: `## Transcript\n${rawTranscript}`,
           title: `Transcript from ${platform}`,
           rawTranscript: rawTranscript,
         };
-        
+
         console.log("✅ [TranscriptionService] Returning raw transcript result");
         return result;
       } catch (stateError) {

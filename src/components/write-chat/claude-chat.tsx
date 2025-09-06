@@ -27,7 +27,6 @@ import { type ChatMessage } from "@/components/write-chat/types";
 import { sendScriptToSlideout, delay } from "@/components/write-chat/utils";
 import { useAuth } from "@/contexts/auth-context";
 import { useIdeaInboxFlag } from "@/hooks/use-feature-flag";
-
 import { useLightweightUrlDetection, type LightweightDetectionResult } from "@/hooks/use-lightweight-url-detection";
 import { processScriptComponents } from "@/hooks/use-script-analytics";
 import { useScriptGeneration } from "@/hooks/use-script-generation";
@@ -252,28 +251,29 @@ export function ClaudeChat({
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   // New action trigger handler
-  const handleActionTrigger = useCallback((action: ActionType, prompt: string) => {
-    console.log(`🎯 Action triggered: ${action} with prompt: ${prompt}`);
-    
-    if (onActionTrigger) {
-      onActionTrigger(action, prompt);
-    }
-    
-    // Build the enhanced prompt with user input and action context
-    const userInput = inputValue.trim();
-    const enhancedPrompt = userInput 
-      ? `${prompt}\n\nTopic/Idea: ${userInput}`
-      : prompt;
-    
-    // Clear selected action after triggering
-    setSelectedAction(null);
-    // Clear card selections after triggering
-    setSelectedQuickGenerator(undefined);
-    setSelectedTemplate(undefined);
-    
-    // Process the action prompt through the regular chat flow
-    handleSend(enhancedPrompt);
-  }, [onActionTrigger, inputValue]);
+  const handleActionTrigger = useCallback(
+    (action: ActionType, prompt: string) => {
+      console.log(`🎯 Action triggered: ${action} with prompt: ${prompt}`);
+
+      if (onActionTrigger) {
+        onActionTrigger(action, prompt);
+      }
+
+      // Build the enhanced prompt with user input and action context
+      const userInput = inputValue.trim();
+      const enhancedPrompt = userInput ? `${prompt}\n\nTopic/Idea: ${userInput}` : prompt;
+
+      // Clear selected action after triggering
+      setSelectedAction(null);
+      // Clear card selections after triggering
+      setSelectedQuickGenerator(undefined);
+      setSelectedTemplate(undefined);
+
+      // Process the action prompt through the regular chat flow
+      handleSend(enhancedPrompt);
+    },
+    [onActionTrigger, inputValue],
+  );
 
   // Load personas and set default on mount
   // Personas are now loaded within PersonaSelector component
@@ -658,34 +658,34 @@ export function ClaudeChat({
     // Check if we have a selected action/generator/template and should trigger it with the input
     const selectedActionKey = selectedAction || selectedQuickGenerator || selectedTemplate;
     if (selectedActionKey && isHeroState) {
-      const actionData = CONTENT_ACTIONS.find(a => a.key === selectedActionKey);
+      const actionData = CONTENT_ACTIONS.find((a) => a.key === selectedActionKey);
       if (actionData) {
         const enhancedPrompt = `${actionData.prompt}\n\nTopic/Idea: ${trimmed}`;
-        
+
         // Clear all selections after triggering
         setSelectedAction(null);
         setSelectedQuickGenerator(undefined);
         setSelectedTemplate(undefined);
-        
+
         // Trigger hero expansion
         handleHeroExpansion();
-        
+
         // Process as enhanced prompt
         const userMessageId = crypto.randomUUID();
         const ackMessageId = crypto.randomUUID();
         const ackText = `I'll ${actionData.label.toLowerCase()} for "${trimmed}".`;
-        
+
         setMessages((prev) => [
           ...prev,
           { id: userMessageId, role: "user", content: trimmed },
           { id: ackMessageId, role: "assistant", content: ackText },
           { id: crypto.randomUUID(), role: "assistant", content: ACK_LOADING },
         ]);
-        
+
         setInputValue("");
         setIsHeroState(false);
         onSend?.(enhancedPrompt, selectedPersona);
-        
+
         // Continue with enhanced prompt processing
         const lower = enhancedPrompt.toLowerCase();
         const isScriptCommand = lower.startsWith("/script ") || lower.includes("generate script");
@@ -743,7 +743,7 @@ export function ClaudeChat({
           }
           const data = await response.json();
           const assistantText = data.response ?? "I'm sorry, I didn't receive a proper response.";
-          
+
           await delay(ACK_BEFORE_SLIDE_MS);
           await delay(SLIDE_DURATION_MS);
           setMessages((prev): ChatMessage[] => {

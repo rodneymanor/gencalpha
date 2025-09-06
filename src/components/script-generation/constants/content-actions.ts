@@ -1,4 +1,5 @@
 import React from "react";
+
 import { Fish, Lightbulb, Layers, Target, ArrowRight, Zap } from "lucide-react";
 
 export type ActionType =

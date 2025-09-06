@@ -1,6 +1,7 @@
 import { useState } from "react";
-import type { PersonaOption } from "../types/script-writer-types";
+
 import type { FlowState, SidebarTab } from "../types";
+import type { PersonaOption } from "../types/script-writer-types";
 
 export function useScriptState(initialPrompt = "") {
   const [flowState, setFlowState] = useState<FlowState>("input");
@@ -9,14 +10,14 @@ export function useScriptState(initialPrompt = "") {
   const [generatedScript, setGeneratedScript] = useState<string>("");
   const [scriptTitle, setScriptTitle] = useState("Generated Script");
   const [savedScriptId, setSavedScriptId] = useState<string | null>(null);
-  
+
   // Editing state
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>("analysis");
   const [wordCount, setWordCount] = useState(0);
   const [showComplexityView, setShowComplexityView] = useState(true);
   const [recentActions, setRecentActions] = useState<string[]>([]);
   const [lastError, setLastError] = useState<string | null>(null);
-  
+
   // Debug state for transcription
   const [transcriptionDebug, setTranscriptionDebug] = useState<{
     currentStep: string;
@@ -27,7 +28,7 @@ export function useScriptState(initialPrompt = "") {
     formattedScript?: string;
   }>({
     currentStep: "Idle",
-    status: "Ready"
+    status: "Ready",
   });
 
   // Toggle for transcript view mode
@@ -77,7 +78,7 @@ export function useScriptState(initialPrompt = "") {
     lastError,
     transcriptionDebug,
     showFullTranscript,
-    
+
     // Setters
     setFlowState,
     setInputValue,
@@ -89,7 +90,7 @@ export function useScriptState(initialPrompt = "") {
     setLastError,
     setTranscriptionDebug,
     setShowFullTranscript,
-    
+
     // Actions
     handleScriptUpdate,
     handleBackToInput,

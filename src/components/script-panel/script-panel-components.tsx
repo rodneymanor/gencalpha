@@ -6,8 +6,8 @@ import { FileText, Clock, Download } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { SlideoutHeader } from "@/components/ui/slideout-header";
+import { cn } from "@/lib/utils";
 import {
   ScriptTabConfig,
   SCRIPT_COMPONENT_ICONS,

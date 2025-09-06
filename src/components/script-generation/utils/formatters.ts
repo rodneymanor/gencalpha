@@ -1,4 +1,5 @@
 import type { ScriptFormattingComponent } from "../types/script-writer-types";
+
 import { DEFAULT_VALUES } from "./constants";
 
 /**
@@ -8,14 +9,16 @@ import { DEFAULT_VALUES } from "./constants";
 export function formatScriptWithComponents(components: ScriptFormattingComponent[]): string {
   if (!components || components.length === 0) return "";
 
-  const formatted = components.map((component) => {
-    // Get the label and content using nullish coalescing
-    const label = component.label ?? component.type ?? "Content";
-    const content = component.content ?? "";
-    
-    // Format as markdown heading (## format required by InteractiveScript)
-    return `## ${label}\n${content}`;
-  }).join("\n\n");
+  const formatted = components
+    .map((component) => {
+      // Get the label and content using nullish coalescing
+      const label = component.label ?? component.type ?? "Content";
+      const content = component.content ?? "";
+
+      // Format as markdown heading (## format required by InteractiveScript)
+      return `## ${label}\n${content}`;
+    })
+    .join("\n\n");
 
   return formatted;
 }
@@ -34,10 +37,7 @@ export function extractScriptTitle(script: string, fallbackTitle: string): strin
  * Creates a basic transcript structure when components are not available
  * Extracted from line 131
  */
-export function createFallbackTranscript(
-  rawTranscript?: string, 
-  fullScript?: string
-): string {
+export function createFallbackTranscript(rawTranscript?: string, fullScript?: string): string {
   const content = rawTranscript ?? fullScript ?? DEFAULT_VALUES.FALLBACK_CONTENT;
   return `## Transcript\n${content}`;
 }
@@ -50,7 +50,7 @@ export function calculateWordCount(content: any): number {
   if (!content || !Array.isArray(content)) {
     return 0;
   }
-  
+
   let count = 0;
   content.forEach((block: any) => {
     if (block.type === "paragraph" && block.content) {
@@ -61,6 +61,6 @@ export function calculateWordCount(content: any): number {
       });
     }
   });
-  
+
   return count;
 }

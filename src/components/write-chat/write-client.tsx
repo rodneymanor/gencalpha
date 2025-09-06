@@ -13,11 +13,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import ClaudeChat from "@/components/write-chat/claude-chat";
-export function WriteClient({
-  initialPrompt,
-}: {
-  initialPrompt?: string;
-}) {
+
+export function WriteClient({ initialPrompt }: { initialPrompt?: string }) {
   const [isHeroState, setIsHeroState] = useState(true);
   const [chatTitle, setChatTitle] = useState<string>("Untitled Chat");
   const titleInputRef = useRef<HTMLInputElement | null>(null);

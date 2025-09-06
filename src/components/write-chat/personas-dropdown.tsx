@@ -9,7 +9,6 @@ import { User, Plus, ExternalLink, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/firebase";
-import { personaStorage, type StoredPersona } from "@/lib/services/persona-storage";
 
 // Interface for persona data from Firestore
 interface FirestorePersona {
@@ -54,7 +53,7 @@ export function PersonasDropdown({
           setLoading(true);
           try {
             const token = await user.getIdToken();
-            
+
             // Fetch personas from API
             const response = await fetch("/api/personas/list", {
               headers: {
@@ -63,19 +62,26 @@ export function PersonasDropdown({
             });
 
             const data = await response.json();
-            
+
             if (response.ok && data.success) {
               // Use Firestore personas directly with proper mapping
               const firestorePersonas: FirestorePersona[] = data.personas ?? [];
-              
+
               // Ensure all personas have required fields
               const processedPersonas = firestorePersonas.map((p) => ({
                 ...p,
                 username: p.username ?? p.name.toLowerCase().replace(/\s+/g, ""),
                 platform: p.platform ?? "tiktok",
-                initials: p.initials ?? p.name.split(" ").map((word) => word[0]).join("").toUpperCase().slice(0, 2),
+                initials:
+                  p.initials ??
+                  p.name
+                    .split(" ")
+                    .map((word) => word[0])
+                    .join("")
+                    .toUpperCase()
+                    .slice(0, 2),
               }));
-              
+
               setSavedPersonas(processedPersonas);
             } else {
               console.warn("Could not fetch personas:", data.error);
@@ -97,14 +103,14 @@ export function PersonasDropdown({
     };
 
     const unsubscribe = loadPersonas();
-    
+
     // Reload personas when window gains focus (in case they were updated elsewhere)
     const handleFocus = () => loadPersonas();
     window.addEventListener("focus", handleFocus);
 
     return () => {
       window.removeEventListener("focus", handleFocus);
-      unsubscribe.then(unsub => unsub());
+      unsubscribe.then((unsub) => unsub());
     };
   }, []);
 
@@ -239,7 +245,11 @@ export function PersonasDropdown({
                         <div className={`mt-0.5 flex-shrink-0 ${isSelected ? "text-primary-600" : "text-neutral-500"}`}>
                           {persona.avatar ? (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={persona.avatar} alt={persona.name} className="h-8 w-8 rounded-full object-cover" />
+                            <img
+                              src={persona.avatar}
+                              alt={persona.name}
+                              className="h-8 w-8 rounded-full object-cover"
+                            />
                           ) : (
                             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-200 text-xs font-medium text-neutral-700">
                               {persona.initials}

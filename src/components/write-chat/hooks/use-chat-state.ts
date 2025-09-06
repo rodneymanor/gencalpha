@@ -1,7 +1,8 @@
 import { useState, useCallback } from "react";
-import { type ChatMessage } from "@/components/write-chat/types";
-import { type PersonaOption } from "@/components/write-chat/persona-selector";
+
 import { ACK_LOADING } from "@/components/write-chat/constants";
+import { type PersonaOption } from "@/components/write-chat/persona-selector";
+import { type ChatMessage } from "@/components/write-chat/types";
 
 export interface UseChatStateReturn {
   // Core chat state
@@ -11,13 +12,13 @@ export interface UseChatStateReturn {
   setInputValue: React.Dispatch<React.SetStateAction<string>>;
   selectedPersona: PersonaOption | null;
   setSelectedPersona: React.Dispatch<React.SetStateAction<PersonaOption | null>>;
-  
+
   // UI state
   isHeroState: boolean;
   setIsHeroState: React.Dispatch<React.SetStateAction<boolean>>;
   isTransitioning: boolean;
   setIsTransitioning: React.Dispatch<React.SetStateAction<boolean>>;
-  
+
   // Helper methods
   clearInput: () => void;
   addMessage: (message: ChatMessage) => void;
@@ -28,27 +29,25 @@ export function useChatState(initialPersona?: PersonaOption): UseChatStateReturn
   // Core chat state
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState("");
-  const [selectedPersona, setSelectedPersona] = useState<PersonaOption | null>(
-    initialPersona ?? null
-  );
-  
+  const [selectedPersona, setSelectedPersona] = useState<PersonaOption | null>(initialPersona ?? null);
+
   // UI state
   const [isHeroState, setIsHeroState] = useState(true);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  
+
   // Helper methods
   const clearInput = useCallback(() => {
     setInputValue("");
   }, []);
-  
+
   const addMessage = useCallback((message: ChatMessage) => {
-    setMessages(prev => [...prev, message]);
+    setMessages((prev) => [...prev, message]);
   }, []);
-  
+
   const removeLoadingMessages = useCallback(() => {
-    setMessages(prev => prev.filter(m => m.content !== ACK_LOADING));
+    setMessages((prev) => prev.filter((m) => m.content !== ACK_LOADING));
   }, []);
-  
+
   return {
     // State
     messages,
@@ -61,7 +60,7 @@ export function useChatState(initialPersona?: PersonaOption): UseChatStateReturn
     setIsHeroState,
     isTransitioning,
     setIsTransitioning,
-    
+
     // Methods
     clearInput,
     addMessage,

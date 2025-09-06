@@ -1,5 +1,7 @@
 import { useCallback } from "react";
+
 import { useScriptsApi } from "@/hooks/use-scripts-api";
+
 import { ScriptPersistenceService } from "../services/script-persistence-service";
 import type { ScriptPersistenceOptions, ScriptPersistenceCallbacks } from "../services/script-persistence-service";
 
@@ -9,18 +11,15 @@ import type { ScriptPersistenceOptions, ScriptPersistenceCallbacks } from "../se
  */
 export function useScriptSaving() {
   const { createScript, updateScript } = useScriptsApi();
-  
+
   // Create service instance with API functions
   const persistenceService = new ScriptPersistenceService(createScript, updateScript);
 
   const saveScript = useCallback(
-    async (
-      options: ScriptPersistenceOptions,
-      callbacks: ScriptPersistenceCallbacks
-    ) => {
+    async (options: ScriptPersistenceOptions, callbacks: ScriptPersistenceCallbacks) => {
       await persistenceService.saveScript(options, callbacks);
     },
-    [persistenceService]
+    [persistenceService],
   );
 
   return {

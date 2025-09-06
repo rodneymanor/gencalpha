@@ -369,7 +369,7 @@ export const SearchFilterBar: React.FC<SearchFilterBarProps> = ({
         {/* Item count - moved to main row */}
         <div className="ml-auto flex items-center gap-2 text-sm text-neutral-600">
           {selectedCount > 0 && <span className="text-primary-600 font-medium">{selectedCount} selected</span>}
-          <span className="text-neutral-900 font-medium">{totalItems} items</span>
+          <span className="font-medium text-neutral-900">{totalItems} items</span>
         </div>
       </div>
 

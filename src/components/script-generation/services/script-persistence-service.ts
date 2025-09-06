@@ -1,10 +1,12 @@
 import { toast } from "sonner";
+
 import { useScriptsApi } from "@/hooks/use-scripts-api";
+
 import type { PersonaOption } from "../types/script-writer-types";
-import { buildScriptTags, buildScriptSummary } from "../utils/tag-builders";
-import { extractScriptTitle } from "../utils/formatters";
-import { TOAST_MESSAGES, DEFAULT_VALUES } from "../utils/constants";
 import type { ScriptSaveData, ScriptUpdateData } from "../types/script-writer-types";
+import { TOAST_MESSAGES, DEFAULT_VALUES } from "../utils/constants";
+import { extractScriptTitle } from "../utils/formatters";
+import { buildScriptTags, buildScriptSummary } from "../utils/tag-builders";
 
 export interface ScriptPersistenceOptions {
   generatedScript: string;
@@ -28,14 +30,11 @@ export interface ScriptPersistenceCallbacks {
  */
 export class ScriptPersistenceService {
   constructor(
-    private createScript: ReturnType<typeof useScriptsApi>['createScript'],
-    private updateScript: ReturnType<typeof useScriptsApi>['updateScript']
+    private createScript: ReturnType<typeof useScriptsApi>["createScript"],
+    private updateScript: ReturnType<typeof useScriptsApi>["updateScript"],
   ) {}
 
-  async saveScript(
-    options: ScriptPersistenceOptions,
-    callbacks: ScriptPersistenceCallbacks
-  ): Promise<void> {
+  async saveScript(options: ScriptPersistenceOptions, callbacks: ScriptPersistenceCallbacks): Promise<void> {
     const {
       generatedScript,
       scriptTitle,
@@ -90,7 +89,7 @@ export class ScriptPersistenceService {
           originalIdea: inputValue,
           source: DEFAULT_VALUES.SOURCE,
         });
-        
+
         if (newScriptId) {
           callbacks.onSaveComplete(newScriptId, extractedTitle);
         }
@@ -105,10 +104,7 @@ export class ScriptPersistenceService {
     }
   }
 
-  private async updateExistingScript(
-    scriptId: string,
-    updateData: ScriptUpdateData
-  ): Promise<void> {
+  private async updateExistingScript(scriptId: string, updateData: ScriptUpdateData): Promise<void> {
     const updatedScript = await this.updateScript(scriptId, updateData);
 
     if (updatedScript) {
@@ -131,7 +127,7 @@ export class ScriptPersistenceService {
       });
       return newScript.id;
     }
-    
+
     return null;
   }
 }

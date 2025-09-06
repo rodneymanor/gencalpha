@@ -242,18 +242,10 @@ export function ApiKeysSettings() {
                   <code className="flex-1 rounded border bg-neutral-50 p-2 font-mono text-sm">
                     {showActiveKey ? keyStatus.activeKey.apiKey : "••••••••••••••••••••••••••••••••••••••••"}
                   </code>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowActiveKey(!showActiveKey)}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => setShowActiveKey(!showActiveKey)}>
                     {showActiveKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => copyToClipboard(keyStatus.activeKey.apiKey)}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => copyToClipboard(keyStatus.activeKey.apiKey)}>
                     <Copy className="h-4 w-4" />
                   </Button>
                 </div>

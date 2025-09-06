@@ -77,10 +77,10 @@ interface SimpleSlideoutHeaderProps extends Omit<SlideoutHeaderProps, 'leftConte
 /**
  * Simple header with just a title
  */
-export function SimpleSlideoutHeader({ 
-  title, 
+export function SimpleSlideoutHeader({
+  title,
   badge,
-  ...props 
+  ...props
 }: SimpleSlideoutHeaderProps) {
   return (
     <SlideoutHeader
@@ -104,11 +104,11 @@ interface IconSlideoutHeaderProps extends Omit<SlideoutHeaderProps, 'leftContent
 /**
  * Header with icon, title and optional subtitle
  */
-export function IconSlideoutHeader({ 
+export function IconSlideoutHeader({
   icon,
-  title, 
+  title,
   subtitle,
-  ...props 
+  ...props
 }: IconSlideoutHeaderProps) {
   return (
     <SlideoutHeader

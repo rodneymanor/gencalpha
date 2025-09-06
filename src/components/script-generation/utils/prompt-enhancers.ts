@@ -1,5 +1,6 @@
-import { GENERATOR_TEMPLATES, SCRIPT_TEMPLATES } from "./constants";
 import type { ScriptGeneratorData } from "../types/script-writer-types";
+
+import { GENERATOR_TEMPLATES, SCRIPT_TEMPLATES } from "./constants";
 
 /**
  * Enhances a prompt based on selected quick generator
@@ -8,13 +9,13 @@ import type { ScriptGeneratorData } from "../types/script-writer-types";
 export function enhancePromptWithGenerator(
   prompt: string,
   selectedGenerator: string | null,
-  generators: ScriptGeneratorData[]
+  generators: ScriptGeneratorData[],
 ): string {
   if (!selectedGenerator) return prompt;
-  
+
   const generator = generators.find((g) => g.id === selectedGenerator);
   if (!generator) return prompt;
-  
+
   switch (generator.id) {
     case GENERATOR_TEMPLATES.GENERATE_HOOKS.id:
       return GENERATOR_TEMPLATES.GENERATE_HOOKS.promptTemplate.replace("{input}", prompt);
@@ -32,13 +33,13 @@ export function enhancePromptWithGenerator(
 export function enhancePromptWithTemplate(
   prompt: string,
   selectedTemplate: string | null,
-  templates: ScriptGeneratorData[]
+  templates: ScriptGeneratorData[],
 ): string {
   if (!selectedTemplate) return prompt;
-  
+
   const template = templates.find((t) => t.id === selectedTemplate);
   if (!template) return prompt;
-  
+
   switch (template.id) {
     case SCRIPT_TEMPLATES.IF_THEN.id:
       return SCRIPT_TEMPLATES.IF_THEN.promptTemplate.replace("{input}", prompt);
@@ -60,23 +61,15 @@ export function enhancePrompt(
     selectedTemplate?: string | null;
     generators: ScriptGeneratorData[];
     templates: ScriptGeneratorData[];
-  }
+  },
 ): string {
   let enhancedPrompt = basePrompt;
-  
+
   // Apply generator enhancement first
-  enhancedPrompt = enhancePromptWithGenerator(
-    enhancedPrompt,
-    options.selectedGenerator,
-    options.generators
-  );
-  
+  enhancedPrompt = enhancePromptWithGenerator(enhancedPrompt, options.selectedGenerator, options.generators);
+
   // Then apply template enhancement
-  enhancedPrompt = enhancePromptWithTemplate(
-    enhancedPrompt,
-    options.selectedTemplate,
-    options.templates
-  );
-  
+  enhancedPrompt = enhancePromptWithTemplate(enhancedPrompt, options.selectedTemplate, options.templates);
+
   return enhancedPrompt;
 }

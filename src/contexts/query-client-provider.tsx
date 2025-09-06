@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
 // React Query Client Provider
 
-import React from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import React from "react";
+
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // Create a client instance
 const queryClient = new QueryClient({

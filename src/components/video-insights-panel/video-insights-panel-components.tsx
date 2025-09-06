@@ -6,8 +6,8 @@ import { Play, FileText, Clock, Download, BookOpen, Search } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { SlideoutHeader } from "@/components/ui/slideout-header";
+import { cn } from "@/lib/utils";
 import { ScriptComponent } from "@/types/script-panel";
 import {
   VideoInsightsTabConfig,

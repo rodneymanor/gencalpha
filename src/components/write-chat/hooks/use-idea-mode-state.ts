@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+
 import { clientNotesService, type Note } from "@/lib/services/client-notes-service";
 
 export interface UseIdeaModeStateReturn {
@@ -11,7 +12,7 @@ export interface UseIdeaModeStateReturn {
   setIdeas: React.Dispatch<React.SetStateAction<Note[]>>;
   ideasOpen: boolean;
   setIdeasOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  
+
   // Helper methods
   saveIdea: (content: string) => Promise<void>;
   clearSaveMessage: () => void;
@@ -23,12 +24,12 @@ export function useIdeaModeState(): UseIdeaModeStateReturn {
   const [ideaSaveMessage, setIdeaSaveMessage] = useState<string | null>(null);
   const [ideas, setIdeas] = useState<Note[]>([]);
   const [ideasOpen, setIdeasOpen] = useState(false);
-  
+
   const saveIdea = useCallback(async (content: string): Promise<void> => {
     try {
       const firstLine = content.split("\n")[0]?.trim() ?? "Untitled";
       const title = firstLine.length > 60 ? firstLine.slice(0, 60) + "…" : firstLine || "Untitled";
-      
+
       await clientNotesService.createNote({
         title,
         content,
@@ -36,7 +37,7 @@ export function useIdeaModeState(): UseIdeaModeStateReturn {
         source: "manual",
         starred: false,
       });
-      
+
       setIdeaSaveMessage("Saved to Idea Inbox");
       setTimeout(() => setIdeaSaveMessage(null), 3000);
     } catch (error) {
@@ -45,11 +46,11 @@ export function useIdeaModeState(): UseIdeaModeStateReturn {
       setTimeout(() => setIdeaSaveMessage(null), 4000);
     }
   }, []);
-  
+
   const clearSaveMessage = useCallback(() => {
     setIdeaSaveMessage(null);
   }, []);
-  
+
   const loadIdeas = useCallback(async (): Promise<void> => {
     try {
       const res = await clientNotesService.getIdeaInboxNotes();
@@ -58,7 +59,7 @@ export function useIdeaModeState(): UseIdeaModeStateReturn {
       console.error("Failed to load ideas:", error);
     }
   }, []);
-  
+
   return {
     // State
     isIdeaMode,
@@ -69,7 +70,7 @@ export function useIdeaModeState(): UseIdeaModeStateReturn {
     setIdeas,
     ideasOpen,
     setIdeasOpen,
-    
+
     // Methods
     saveIdea,
     clearSaveMessage,

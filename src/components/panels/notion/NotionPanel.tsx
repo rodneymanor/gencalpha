@@ -1,10 +1,11 @@
-'use client';
+"use client";
 
-import React, { useState, useRef, useEffect } from 'react';
-import NotionPanelHeader from './NotionPanelHeader';
-import NotionPanelProperties, { type PageProperty } from './NotionPanelProperties';
-import NotionPanelTabs, { type TabType, type TabData, type CustomTabLabels } from './NotionPanelTabs';
-import NotionPanelResize from './NotionPanelResize';
+import React, { useState, useRef, useEffect } from "react";
+
+import NotionPanelHeader from "./NotionPanelHeader";
+import NotionPanelProperties, { type PageProperty } from "./NotionPanelProperties";
+import NotionPanelResize from "./NotionPanelResize";
+import NotionPanelTabs, { type TabType, type TabData, type CustomTabLabels } from "./NotionPanelTabs";
 
 interface NotionPanelProps {
   title?: string;
@@ -28,26 +29,26 @@ interface NotionPanelProps {
 }
 
 export default function NotionPanel({
-  title = 'New page',
+  title = "New page",
   onTitleChange,
   properties = [
-    { id: '1', type: 'status', name: 'Generation', value: { label: 'Script Ready', color: 'success' }, icon: 'burst' }
+    { id: "1", type: "status", name: "Generation", value: { label: "Script Ready", color: "success" }, icon: "burst" },
   ],
   onPropertyChange,
   showPageControls = true,
   children,
   editorContent,
   tabData,
-  defaultTab = 'video',
+  defaultTab = "video",
   width,
   onWidthChange,
   minWidth = 400,
   maxWidth = 900,
   isOpen = true,
   isNewIdea = false,
-  placeholder = 'Enter text or type / for commands',
+  placeholder = "Enter text or type / for commands",
   footer,
-  customTabLabels
+  customTabLabels,
 }: NotionPanelProps & { isOpen?: boolean }) {
   const [activeTab, setActiveTab] = useState<TabType>(defaultTab);
   const [isDragging, setIsDragging] = useState(false);
@@ -69,10 +70,10 @@ export default function NotionPanel({
 
     const handleMouseMove = (e: MouseEvent) => {
       if (!isDragging) return;
-      
+
       const deltaX = dragStartX - e.clientX;
       const newWidth = Math.min(Math.max(dragStartWidth + deltaX, minWidth), maxWidth);
-      
+
       if (onWidthChange) {
         onWidthChange(newWidth);
       } else if (panelRef.current) {
@@ -84,35 +85,28 @@ export default function NotionPanel({
       setIsDragging(false);
     };
 
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
 
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
     };
   }, [isDragging, dragStartX, dragStartWidth, minWidth, maxWidth, onWidthChange]);
 
   return (
-    <div 
-      ref={panelRef} 
-      className={`
-        flex flex-col h-full bg-neutral-50 relative
-        transform transition-transform duration-300 ease-out
-        ${isOpen ? 'translate-x-0' : 'translate-x-full'}
-      `}
-      style={{ 
+    <div
+      ref={panelRef}
+      className={`relative flex h-full transform flex-col bg-neutral-50 transition-transform duration-300 ease-out ${isOpen ? "translate-x-0" : "translate-x-full"} `}
+      style={{
         width: width ? `${width}px` : undefined,
-        transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)'
+        transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Resize Handle */}
-      <NotionPanelResize 
-        isDragging={isDragging}
-        onMouseDown={handleResizeMouseDown}
-      />
+      <NotionPanelResize isDragging={isDragging} onMouseDown={handleResizeMouseDown} />
 
       {/* Header Section */}
       <NotionPanelHeader
@@ -124,54 +118,36 @@ export default function NotionPanel({
 
       {/* Properties Section - Hidden in new idea mode */}
       {!isNewIdea && (
-        <div 
-          className={`
-            transform transition-all duration-300
-            ${isOpen ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'}
-          `}
+        <div
+          className={`transform transition-all duration-300 ${isOpen ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"} `}
           style={{
-            transitionDelay: isOpen ? '150ms' : '0ms',
-            transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)'
+            transitionDelay: isOpen ? "150ms" : "0ms",
+            transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         >
-          <NotionPanelProperties
-            properties={properties}
-            onPropertyChange={onPropertyChange}
-          />
+          <NotionPanelProperties properties={properties} onPropertyChange={onPropertyChange} />
         </div>
       )}
 
       {/* Content Area */}
       {isNewIdea ? (
         /* New Idea Mode - Editor Only */
-        <div 
-          className={`
-            flex-1 px-8 py-6 transform transition-all duration-300
-            ${isOpen ? 'translate-y-0 opacity-100' : 'translate-y-5 opacity-0'}
-          `}
+        <div
+          className={`flex-1 transform px-8 py-6 transition-all duration-300 ${isOpen ? "translate-y-0 opacity-100" : "translate-y-5 opacity-0"} `}
           style={{
-            transitionDelay: isOpen ? '200ms' : '0ms',
-            transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)'
+            transitionDelay: isOpen ? "200ms" : "0ms",
+            transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         >
-          {children ? (
-            children
-          ) : (
-            <div className="text-neutral-400 text-base">
-              {placeholder}
-            </div>
-          )}
+          {children ? children : <div className="text-base text-neutral-400">{placeholder}</div>}
         </div>
       ) : (
         /* Regular Mode - Tabs Section */
-        <div 
-          className={`
-            flex-1 flex flex-col transform transition-all duration-300 min-h-0
-            ${isOpen ? 'translate-y-0 opacity-100' : 'translate-y-5 opacity-0'}
-          `}
+        <div
+          className={`flex min-h-0 flex-1 transform flex-col transition-all duration-300 ${isOpen ? "translate-y-0 opacity-100" : "translate-y-5 opacity-0"} `}
           style={{
-            transitionDelay: isOpen ? '200ms' : '0ms',
-            transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)'
+            transitionDelay: isOpen ? "200ms" : "0ms",
+            transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         >
           <NotionPanelTabs
@@ -186,15 +162,11 @@ export default function NotionPanel({
 
       {/* Footer Section */}
       {footer && (
-        <div 
-          className={`
-            flex-shrink-0 border-t border-neutral-200 px-6 py-4 bg-neutral-50
-            transform transition-all duration-300
-            ${isOpen ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'}
-          `}
+        <div
+          className={`flex-shrink-0 transform border-t border-neutral-200 bg-neutral-50 px-6 py-4 transition-all duration-300 ${isOpen ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"} `}
           style={{
-            transitionDelay: isOpen ? '250ms' : '0ms',
-            transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)'
+            transitionDelay: isOpen ? "250ms" : "0ms",
+            transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         >
           {footer}
@@ -205,5 +177,5 @@ export default function NotionPanel({
 }
 
 // Re-export types for convenience
-export type { PageProperty } from './NotionPanelProperties';
-export type { TabType, TabData, CustomTabLabels } from './NotionPanelTabs';
+export type { PageProperty } from "./NotionPanelProperties";
+export type { TabType, TabData, CustomTabLabels } from "./NotionPanelTabs";

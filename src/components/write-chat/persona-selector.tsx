@@ -1,14 +1,16 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+
 import { ArrowRight, Fish, Lightbulb, Zap, FileText, User, Sparkles } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 // Action types for content generation (preserved from assistant system)
 type ActionType =
   | "generate-hooks"
-  | "content-ideas" 
+  | "content-ideas"
   | "if-then-script"
   | "problem-solution"
   | "tutorial-script"
@@ -56,7 +58,7 @@ const CONTENT_ACTIONS: Array<{
     category: "generators",
   },
   {
-    key: "content-ideas", 
+    key: "content-ideas",
     label: "10 Content Ideas",
     icon: <Lightbulb className="h-4 w-4" />,
     description: "Get 10 related content ideas to expand your topic",
@@ -66,7 +68,7 @@ const CONTENT_ACTIONS: Array<{
   },
   {
     key: "value-bombs",
-    label: "10 Value Tips", 
+    label: "10 Value Tips",
     icon: <Zap className="h-4 w-4" />,
     description: "Get 10 high-value, actionable tips for your audience",
     prompt:
@@ -127,7 +129,7 @@ export function PersonaSelector({
             "Content-Type": "application/json",
           },
         });
-        
+
         if (response.ok) {
           const data = await response.json();
           if (data.success) {
@@ -174,14 +176,14 @@ export function PersonaSelector({
           <User className="h-4 w-4 text-neutral-600" />
           <h3 className="text-sm font-medium text-neutral-700">Choose Writing Voice (Optional)</h3>
         </div>
-        
+
         {loading ? (
           <div className="text-sm text-neutral-500">Loading personas...</div>
         ) : userPersonas.length > 0 ? (
           <div className="flex flex-wrap gap-2">
             {userPersonas.map((persona) => {
               const isSelected = selectedPersona?.id === persona.id;
-              
+
               return (
                 <Button
                   key={persona.id}
@@ -192,10 +194,10 @@ export function PersonaSelector({
                     "gap-2 rounded-[var(--radius-button)] px-4 py-2 text-sm font-medium transition-all",
                     isSelected
                       ? "border-primary-500 text-primary-800 bg-primary-100 hover:bg-primary-150"
-                      : "border-neutral-200 text-neutral-600 hover:bg-neutral-50 hover:border-neutral-300",
+                      : "border-neutral-200 text-neutral-600 hover:border-neutral-300 hover:bg-neutral-50",
                     "shadow-sm hover:shadow-md",
                   )}
-                  title={`Voice style: ${persona.voiceStyle || 'Custom'} | ${persona.description}`}
+                  title={`Voice style: ${persona.voiceStyle || "Custom"} | ${persona.description}`}
                 >
                   <Sparkles className="h-3 w-3" />
                   {persona.name}
@@ -205,7 +207,11 @@ export function PersonaSelector({
           </div>
         ) : (
           <div className="text-sm text-neutral-500">
-            No personas created yet. <a href="/personas" className="text-primary-600 hover:text-primary-700 underline">Create your first persona</a> to get started.
+            No personas created yet.{" "}
+            <a href="/personas" className="text-primary-600 hover:text-primary-700 underline">
+              Create your first persona
+            </a>{" "}
+            to get started.
           </div>
         )}
       </div>
@@ -267,7 +273,7 @@ export function PersonaSelector({
                     "gap-2 rounded-[var(--radius-button)] px-4 py-2 text-sm font-medium transition-all",
                     isSelected && !hasInput
                       ? "hover:bg-neutral-150 border-neutral-500 bg-neutral-100 text-neutral-800"
-                      : "border-neutral-200 text-neutral-600 hover:bg-neutral-50 hover:border-neutral-300",
+                      : "border-neutral-200 text-neutral-600 hover:border-neutral-300 hover:bg-neutral-50",
                     "shadow-sm hover:shadow-md",
                   )}
                   title={action.description}
@@ -286,7 +292,7 @@ export function PersonaSelector({
         <div className="rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-50 p-4">
           {selectedAction && inputValue.trim().length === 0 ? (
             <p className="text-xs text-neutral-600">
-              <strong>Selected:</strong> {CONTENT_ACTIONS.find(a => a.key === selectedAction)?.label}
+              <strong>Selected:</strong> {CONTENT_ACTIONS.find((a) => a.key === selectedAction)?.label}
               <br />
               Now enter your topic or idea above and press Enter to generate.
             </p>
@@ -298,7 +304,8 @@ export function PersonaSelector({
             </p>
           ) : (
             <p className="text-xs text-neutral-600">
-              Choose a persona for voice styling, select a generator/template for structured content, or just enter your idea for a basic script.
+              Choose a persona for voice styling, select a generator/template for structured content, or just enter your
+              idea for a basic script.
             </p>
           )}
         </div>

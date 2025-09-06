@@ -10,21 +10,21 @@ export function buildScriptTags(options: {
   selectedQuickGenerator?: string | null;
 }): string[] {
   const { selectedPersona, selectedTemplate, selectedQuickGenerator } = options;
-  
+
   const tags: string[] = [];
-  
+
   if (selectedPersona) {
     tags.push(`persona:${selectedPersona.id}`);
   }
-  
+
   if (selectedTemplate) {
     tags.push(`template:${selectedTemplate}`);
   }
-  
+
   if (selectedQuickGenerator) {
     tags.push(`generator:${selectedQuickGenerator}`);
   }
-  
+
   return tags;
 }
 

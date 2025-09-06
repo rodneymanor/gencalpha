@@ -99,9 +99,7 @@ export function IdeasView({ refreshTrigger }: IdeasViewProps = {}) {
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
-        (idea) =>
-          idea.title.toLowerCase().includes(query) ||
-          (idea.content || "").toLowerCase().includes(query),
+        (idea) => idea.title.toLowerCase().includes(query) || (idea.content || "").toLowerCase().includes(query),
       );
     }
 
@@ -385,7 +383,9 @@ export function IdeasView({ refreshTrigger }: IdeasViewProps = {}) {
                         <label className="text-muted-foreground mb-1 block text-xs">Note Type</label>
                         <Select
                           value={filters.noteType}
-                          onValueChange={(value) => setFilters((prev) => ({ ...prev, noteType: value as NoteType | "all" }))}
+                          onValueChange={(value) =>
+                            setFilters((prev) => ({ ...prev, noteType: value as NoteType | "all" }))
+                          }
                         >
                           <SelectTrigger className="h-7 text-xs">
                             <SelectValue />

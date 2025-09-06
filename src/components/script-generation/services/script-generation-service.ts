@@ -1,6 +1,6 @@
 import type { PersonaOption } from "../types/script-writer-types";
-import { enhancePrompt } from "../utils/prompt-enhancers";
 import type { ScriptGeneratorData } from "../types/script-writer-types";
+import { enhancePrompt } from "../utils/prompt-enhancers";
 
 export interface ScriptGenerationOptions {
   prompt: string;
@@ -26,17 +26,8 @@ export class ScriptGenerationService {
    * Processes script generation request
    * Replaces the prompt enhancement logic from lines 170-208
    */
-  async generateScript(
-    options: ScriptGenerationOptions,
-    callbacks: ScriptGenerationCallbacks
-  ): Promise<void> {
-    const {
-      prompt,
-      selectedQuickGenerator,
-      selectedTemplate,
-      generators,
-      templates,
-    } = options;
+  async generateScript(options: ScriptGenerationOptions, callbacks: ScriptGenerationCallbacks): Promise<void> {
+    const { prompt, selectedQuickGenerator, selectedTemplate, generators, templates } = options;
 
     if (!prompt.trim()) {
       callbacks.onError("Empty prompt provided");
@@ -53,13 +44,12 @@ export class ScriptGenerationService {
       });
 
       console.log("🎯 [ScriptGenerationService] Enhanced prompt:", enhancedPrompt);
-      
+
       // Notify that generation is starting
       callbacks.onStart(enhancedPrompt);
-      
+
       // Note: The actual generation logic is handled by ScriptGenerationTimeline
       // This service focuses on prompt preparation and flow coordination
-      
     } catch (error) {
       console.error("❌ [ScriptGenerationService] Error during generation:", error);
       callbacks.onError(`Generation error: ${error instanceof Error ? error.message : "Unknown error"}`);
@@ -84,11 +74,11 @@ export class ScriptGenerationService {
     errorMessage?: string;
   } {
     const hasError = this.isErrorScript(script);
-    
+
     return {
       script,
       hasError,
-      errorMessage: hasError 
+      errorMessage: hasError
         ? "Script generation encountered an issue, but we provided a template to get you started."
         : undefined,
     };

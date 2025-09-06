@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
+
 import { Copy, Wand2, ChevronDown, ChevronRight, Hash, FileText, Tag, Activity } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -32,14 +34,14 @@ interface PersonaDetailsContentProps {
 }
 
 // Notion-style collapsible section component
-function CollapsibleSection({ 
-  title, 
-  icon: Icon, 
-  children, 
-  defaultOpen = true 
-}: { 
-  title: string; 
-  icon?: React.ComponentType<any>; 
+function CollapsibleSection({
+  title,
+  icon: Icon,
+  children,
+  defaultOpen = true,
+}: {
+  title: string;
+  icon?: React.ComponentType<any>;
   children: React.ReactNode;
   defaultOpen?: boolean;
 }) {
@@ -49,19 +51,15 @@ function CollapsibleSection({
     <div className="mb-4">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 w-full p-2 -ml-2 rounded-[var(--radius-button)] hover:bg-neutral-100 transition-colors group"
+        className="group -ml-2 flex w-full items-center gap-2 rounded-[var(--radius-button)] p-2 transition-colors hover:bg-neutral-100"
       >
-        <span className="text-neutral-400 group-hover:text-neutral-600 transition-colors">
-          {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+        <span className="text-neutral-400 transition-colors group-hover:text-neutral-600">
+          {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </span>
-        {Icon && <Icon className="w-4 h-4 text-neutral-500" />}
+        {Icon && <Icon className="h-4 w-4 text-neutral-500" />}
         <span className="text-sm font-semibold text-neutral-900">{title}</span>
       </button>
-      {isOpen && (
-        <div className="ml-6 mt-2">
-          {children}
-        </div>
-      )}
+      {isOpen && <div className="mt-2 ml-6">{children}</div>}
     </div>
   );
 }
@@ -69,9 +67,9 @@ function CollapsibleSection({
 // Notion-style property row component
 function PropertyRow({ label, value }: { label: string; value: string | React.ReactNode }) {
   return (
-    <div className="flex items-start py-2 group">
-      <span className="text-sm text-neutral-500 min-w-[140px]">{label}</span>
-      <span className="text-sm text-neutral-900 font-medium">{value}</span>
+    <div className="group flex items-start py-2">
+      <span className="min-w-[140px] text-sm text-neutral-500">{label}</span>
+      <span className="text-sm font-medium text-neutral-900">{value}</span>
     </div>
   );
 }
@@ -81,9 +79,9 @@ function BulletList({ items }: { items: string[] }) {
   return (
     <ul className="space-y-1.5">
       {items.map((item, index) => (
-        <li key={index} className="flex items-start group">
-          <span className="text-neutral-400 mr-2 mt-1 text-xs">•</span>
-          <span className="text-sm text-neutral-700 leading-relaxed">{item}</span>
+        <li key={index} className="group flex items-start">
+          <span className="mt-1 mr-2 text-xs text-neutral-400">•</span>
+          <span className="text-sm leading-relaxed text-neutral-700">{item}</span>
         </li>
       ))}
     </ul>
@@ -108,9 +106,7 @@ export function PersonaDetailsContent({ persona, activeTab }: PersonaDetailsCont
         {/* Description Section */}
         {persona.description && (
           <CollapsibleSection title="Description" icon={FileText} defaultOpen={true}>
-            <p className="text-sm text-neutral-700 leading-relaxed whitespace-pre-wrap">
-              {persona.description}
-            </p>
+            <p className="text-sm leading-relaxed whitespace-pre-wrap text-neutral-700">{persona.description}</p>
           </CollapsibleSection>
         )}
 
@@ -129,9 +125,9 @@ export function PersonaDetailsContent({ persona, activeTab }: PersonaDetailsCont
           <CollapsibleSection title="Tags" icon={Tag} defaultOpen={true}>
             <div className="flex flex-wrap gap-2">
               {persona.tags.map((tag, index) => (
-                <span 
-                  key={index} 
-                  className="inline-flex items-center px-2.5 py-1 rounded-[var(--radius-button)] bg-neutral-100 hover:bg-neutral-200 text-xs font-medium text-neutral-700 transition-colors cursor-default"
+                <span
+                  key={index}
+                  className="inline-flex cursor-default items-center rounded-[var(--radius-button)] bg-neutral-100 px-2.5 py-1 text-xs font-medium text-neutral-700 transition-colors hover:bg-neutral-200"
                 >
                   {tag}
                 </span>
@@ -143,25 +139,30 @@ export function PersonaDetailsContent({ persona, activeTab }: PersonaDetailsCont
         {/* Stats Section */}
         <CollapsibleSection title="Statistics" icon={Activity} defaultOpen={false}>
           <div className="space-y-1">
-            <PropertyRow 
-              label="Total Uses" 
-              value={persona.usageCount ? `${persona.usageCount} times` : "Never used"} 
+            <PropertyRow label="Total Uses" value={persona.usageCount ? `${persona.usageCount} times` : "Never used"} />
+            <PropertyRow
+              label="Created"
+              value={
+                persona.createdAt
+                  ? new Date(persona.createdAt).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })
+                  : "Unknown"
+              }
             />
-            <PropertyRow 
-              label="Created" 
-              value={persona.createdAt ? new Date(persona.createdAt).toLocaleDateString('en-US', { 
-                month: 'short', 
-                day: 'numeric', 
-                year: 'numeric' 
-              }) : "Unknown"} 
-            />
-            <PropertyRow 
-              label="Last Used" 
-              value={persona.lastUsedAt ? new Date(persona.lastUsedAt).toLocaleDateString('en-US', { 
-                month: 'short', 
-                day: 'numeric', 
-                year: 'numeric' 
-              }) : "Never"} 
+            <PropertyRow
+              label="Last Used"
+              value={
+                persona.lastUsedAt
+                  ? new Date(persona.lastUsedAt).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })
+                  : "Never"
+              }
             />
           </div>
         </CollapsibleSection>
@@ -183,18 +184,9 @@ export function PersonaDetailsContent({ persona, activeTab }: PersonaDetailsCont
       <div className="px-2">
         <CollapsibleSection title="Voice Characteristics" icon={Activity} defaultOpen={true}>
           <div className="space-y-1">
-            <PropertyRow 
-              label="Primary Style" 
-              value={persona.analysis.voiceProfile.primaryStyle} 
-            />
-            <PropertyRow 
-              label="Distinctiveness" 
-              value={persona.analysis.voiceProfile.distinctiveness} 
-            />
-            <PropertyRow 
-              label="Complexity" 
-              value={persona.analysis.voiceProfile.complexity} 
-            />
+            <PropertyRow label="Primary Style" value={persona.analysis.voiceProfile.primaryStyle} />
+            <PropertyRow label="Distinctiveness" value={persona.analysis.voiceProfile.distinctiveness} />
+            <PropertyRow label="Complexity" value={persona.analysis.voiceProfile.complexity} />
           </div>
         </CollapsibleSection>
 
@@ -217,7 +209,7 @@ export function PersonaDetailsContent({ persona, activeTab }: PersonaDetailsCont
       <div className="space-y-4">
         {/* All Extracted Hooks */}
         {persona.analysis.allHooksExtracted && persona.analysis.allHooksExtracted.length > 0 && (
-          <div className="rounded-[var(--radius-card)] border-2 border-brand-200 bg-brand-50 p-4">
+          <div className="border-brand-200 bg-brand-50 rounded-[var(--radius-card)] border-2 p-4">
             <h3 className="mb-3 font-medium text-neutral-900">
               📌 All Extracted Hooks ({persona.analysis.allHooksExtracted.length} Total)
             </h3>
@@ -289,9 +281,9 @@ export function PersonaDetailsContent({ persona, activeTab }: PersonaDetailsCont
       <div className="px-2">
         <CollapsibleSection title="Linguistic Patterns" icon={FileText} defaultOpen={true}>
           <div className="space-y-1">
-            <PropertyRow 
-              label="Avg Sentence Length" 
-              value={`${persona.analysis.linguisticFingerprint.avgSentenceLength} words`} 
+            <PropertyRow
+              label="Avg Sentence Length"
+              value={`${persona.analysis.linguisticFingerprint.avgSentenceLength} words`}
             />
           </div>
         </CollapsibleSection>
@@ -299,17 +291,17 @@ export function PersonaDetailsContent({ persona, activeTab }: PersonaDetailsCont
         {persona.analysis.linguisticFingerprint.vocabularyTier && (
           <CollapsibleSection title="Vocabulary Distribution" icon={Activity} defaultOpen={true}>
             <div className="space-y-1">
-              <PropertyRow 
-                label="Simple Words" 
-                value={`${persona.analysis.linguisticFingerprint.vocabularyTier.simple}%`} 
+              <PropertyRow
+                label="Simple Words"
+                value={`${persona.analysis.linguisticFingerprint.vocabularyTier.simple}%`}
               />
-              <PropertyRow 
-                label="Moderate Words" 
-                value={`${persona.analysis.linguisticFingerprint.vocabularyTier.moderate}%`} 
+              <PropertyRow
+                label="Moderate Words"
+                value={`${persona.analysis.linguisticFingerprint.vocabularyTier.moderate}%`}
               />
-              <PropertyRow 
-                label="Advanced Words" 
-                value={`${persona.analysis.linguisticFingerprint.vocabularyTier.advanced}%`} 
+              <PropertyRow
+                label="Advanced Words"
+                value={`${persona.analysis.linguisticFingerprint.vocabularyTier.advanced}%`}
               />
             </div>
           </CollapsibleSection>
@@ -321,7 +313,7 @@ export function PersonaDetailsContent({ persona, activeTab }: PersonaDetailsCont
               {persona.analysis.linguisticFingerprint.topUniqueWords.map((word: string, index: number) => (
                 <span
                   key={index}
-                  className="inline-flex items-center px-2.5 py-1 rounded-[var(--radius-button)] bg-primary-100 hover:bg-primary-200 text-xs font-medium text-primary-700 transition-colors cursor-default"
+                  className="bg-primary-100 hover:bg-primary-200 text-primary-700 inline-flex cursor-default items-center rounded-[var(--radius-button)] px-2.5 py-1 text-xs font-medium transition-colors"
                 >
                   {word}
                 </span>
@@ -357,7 +349,7 @@ export function PersonaDetailsContent({ persona, activeTab }: PersonaDetailsCont
             <div className="grid grid-cols-2 gap-6">
               {persona.analysis.scriptGenerationRules.mustInclude && (
                 <div>
-                  <h4 className="text-success-700 mb-3 text-sm font-semibold flex items-center gap-2">
+                  <h4 className="text-success-700 mb-3 flex items-center gap-2 text-sm font-semibold">
                     <span className="text-success-600">✓</span> Must Include
                   </h4>
                   <BulletList items={persona.analysis.scriptGenerationRules.mustInclude} />
@@ -366,7 +358,7 @@ export function PersonaDetailsContent({ persona, activeTab }: PersonaDetailsCont
 
               {persona.analysis.scriptGenerationRules.neverInclude && (
                 <div>
-                  <h4 className="text-destructive-700 mb-3 text-sm font-semibold flex items-center gap-2">
+                  <h4 className="text-destructive-700 mb-3 flex items-center gap-2 text-sm font-semibold">
                     <span className="text-destructive-600">×</span> Never Include
                   </h4>
                   <BulletList items={persona.analysis.scriptGenerationRules.neverInclude} />
@@ -380,7 +372,7 @@ export function PersonaDetailsContent({ persona, activeTab }: PersonaDetailsCont
         {(persona.analysis.scriptGenerationRules.universalFormula ||
           persona.analysis.scriptGenerationRules.formulaForNewScript) && (
           <CollapsibleSection title="Step-by-Step Formula" icon={FileText} defaultOpen={false}>
-            <div className="rounded-[var(--radius-card)] bg-neutral-50 border border-neutral-200 p-4 font-mono text-xs whitespace-pre-wrap text-neutral-700 leading-relaxed">
+            <div className="rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-50 p-4 font-mono text-xs leading-relaxed whitespace-pre-wrap text-neutral-700">
               {persona.analysis.scriptGenerationRules.universalFormula ||
                 persona.analysis.scriptGenerationRules.formulaForNewScript}
             </div>

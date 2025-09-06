@@ -674,7 +674,7 @@ function startBackgroundTranscription(
       try {
         const hooksRes = await fetch(`${baseUrl}/api/video/generate-hooks`, {
           method: "POST",
-          headers: { 
+          headers: {
             "Content-Type": "application/json",
             "x-internal-secret": process.env.INTERNAL_API_SECRET ?? "",
           },
@@ -698,7 +698,7 @@ function startBackgroundTranscription(
       try {
         const ideasRes = await fetch(`${baseUrl}/api/video/generate-content-ideas`, {
           method: "POST",
-          headers: { 
+          headers: {
             "Content-Type": "application/json",
             "x-internal-secret": process.env.INTERNAL_API_SECRET ?? "",
           },

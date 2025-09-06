@@ -1,5 +1,3 @@
-import { CONTENT_ACTIONS } from "../constants/content-actions";
-import type { PersonaOption } from "../types/script-writer-types";
 import {
   QUICK_GENERATOR_ICONS,
   TEMPLATE_ICONS,
@@ -9,7 +7,9 @@ import {
   GENERATOR_PROMPT_ENHANCERS,
   TEMPLATE_PROMPT_ENHANCERS,
 } from "../constants";
+import { CONTENT_ACTIONS } from "../constants/content-actions";
 import type { QuickGenerator, Template } from "../types";
+import type { PersonaOption } from "../types/script-writer-types";
 
 /**
  * Transforms CONTENT_ACTIONS into QuickGenerator format
@@ -43,7 +43,7 @@ export function mapContentActionsToTemplates(): Template[] {
  */
 export function enhancePromptForGenerator(prompt: string, generatorId: string, generators: QuickGenerator[]): string {
   const enhancer = GENERATOR_PROMPT_ENHANCERS[generatorId as keyof typeof GENERATOR_PROMPT_ENHANCERS];
-  
+
   if (enhancer) {
     if (typeof enhancer === "function" && enhancer.length === 1) {
       return enhancer(prompt);
@@ -54,7 +54,7 @@ export function enhancePromptForGenerator(prompt: string, generatorId: string, g
       return GENERATOR_PROMPT_ENHANCERS.default(generator, prompt);
     }
   }
-  
+
   return prompt;
 }
 
@@ -63,7 +63,7 @@ export function enhancePromptForGenerator(prompt: string, generatorId: string, g
  */
 export function enhancePromptForTemplate(prompt: string, templateId: string, templates: Template[]): string {
   const enhancer = TEMPLATE_PROMPT_ENHANCERS[templateId as keyof typeof TEMPLATE_PROMPT_ENHANCERS];
-  
+
   if (enhancer) {
     if (typeof enhancer === "function" && enhancer.length === 1) {
       return enhancer(prompt);
@@ -74,7 +74,7 @@ export function enhancePromptForTemplate(prompt: string, templateId: string, tem
       return TEMPLATE_PROMPT_ENHANCERS.default(template, prompt);
     }
   }
-  
+
   return prompt;
 }
 
@@ -93,7 +93,7 @@ export function extractScriptTitle(script: string, fallbackTitle: string): strin
 export function createScriptTags(
   selectedPersona: PersonaOption | null,
   selectedTemplate: string | null,
-  selectedQuickGenerator: string | null
+  selectedQuickGenerator: string | null,
 ): string[] {
   return [
     ...(selectedPersona ? [`persona:${selectedPersona.id}`] : []),
@@ -112,10 +112,7 @@ export function createScriptSummary(selectedPersona: PersonaOption | null): stri
 /**
  * Determines script category for saving
  */
-export function getScriptCategory(
-  selectedQuickGenerator: string | null,
-  selectedTemplate: string | null
-): string {
+export function getScriptCategory(selectedQuickGenerator: string | null, selectedTemplate: string | null): string {
   return selectedQuickGenerator ?? selectedTemplate ?? "general";
 }
 
@@ -124,7 +121,7 @@ export function getScriptCategory(
  */
 export function calculateWordCount(content: any): number {
   if (!content || !Array.isArray(content)) return 0;
-  
+
   let count = 0;
   content.forEach((block: any) => {
     if (block.type === "paragraph" && block.content) {
@@ -135,7 +132,7 @@ export function calculateWordCount(content: any): number {
       });
     }
   });
-  
+
   return count;
 }
 

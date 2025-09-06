@@ -14,6 +14,8 @@ export function StreamlinedScriptWriter({
   onScriptComplete,
   className = "",
   fromLibrary = false,
+  preselectedGenerator,
+  preselectedTemplate,
 }: StreamlinedScriptWriterProps) {
   // Use the main orchestrator hook that manages all state and logic
   const {
@@ -54,7 +56,13 @@ export function StreamlinedScriptWriter({
     handleScriptUpdate,
     showFullTranscript,
     setShowFullTranscript,
-  } = useScriptGeneration({ initialPrompt, onScriptComplete, fromLibrary });
+  } = useScriptGeneration({ 
+    initialPrompt, 
+    onScriptComplete, 
+    fromLibrary, 
+    preselectedGenerator, 
+    preselectedTemplate 
+  });
 
   // Render the appropriate view based on flow state
   if (flowState === "input") {
@@ -71,7 +79,6 @@ export function StreamlinedScriptWriter({
         selectedTemplate={selectedTemplate ?? undefined}
         onQuickGeneratorSelect={handleQuickGeneratorSelect}
         onTemplateSelect={handleTemplateSelect}
-        onCreateCustomTemplate={handleCreateCustomTemplate}
         className={className}
       />
     );
@@ -79,22 +86,17 @@ export function StreamlinedScriptWriter({
 
   if (flowState === "generating") {
     return (
-      <GeneratingView 
-        userPrompt={inputValue} 
-        selectedPersona={selectedPersona} 
+      <GeneratingView
+        userPrompt={inputValue}
+        selectedPersona={selectedPersona}
         selectedQuickGenerator={selectedQuickGenerator}
-        onComplete={handleGenerationComplete} 
+        onComplete={handleGenerationComplete}
       />
     );
   }
 
   if (flowState === "transcribing") {
-    return (
-      <TranscribingView 
-        className={className} 
-        onBackToInput={handleBackToInput}
-      />
-    );
+    return <TranscribingView className={className} onBackToInput={handleBackToInput} />;
   }
 
   return (

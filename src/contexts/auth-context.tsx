@@ -117,7 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setHasValidCache(true);
         setIsBackgroundVerifying(true);
       }
-      
+
       // Always set initializing to false after cache check
       setInitializing(false);
     };
@@ -176,10 +176,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (shouldFetchProfile) {
           try {
             // Do these in parallel, don't await them
-            UserManagementService.updateLastLogin(firebaseUser.uid).catch(err => 
-              console.warn("⚠️ [AUTH] Failed to update last login:", err)
+            UserManagementService.updateLastLogin(firebaseUser.uid).catch((err) =>
+              console.warn("⚠️ [AUTH] Failed to update last login:", err),
             );
-            
+
             const profile = await UserManagementService.getUserProfile(firebaseUser.uid);
             setUserProfile(profile);
 
@@ -201,7 +201,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 displayName: firebaseUser.displayName ?? "",
                 role: "creator",
                 createdAt: new Date(),
-                updatedAt: new Date()
+                updatedAt: new Date(),
               });
               setAccountLevel("free");
             }

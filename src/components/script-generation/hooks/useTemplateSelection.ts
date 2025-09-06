@@ -1,13 +1,13 @@
 import { useState } from "react";
 
-export function useTemplateSelection() {
-  const [selectedQuickGenerator, setSelectedQuickGenerator] = useState<string | null>(null);
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+export function useTemplateSelection(initialGenerator?: string, initialTemplate?: string) {
+  const [selectedQuickGenerator, setSelectedQuickGenerator] = useState<string | null>(initialGenerator || null);
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(initialTemplate || null);
 
   const handleQuickGeneratorSelect = (generator: any) => {
     // Handle both string and object inputs
-    const generatorId = typeof generator === 'string' ? generator : generator?.id;
-    
+    const generatorId = typeof generator === "string" ? generator : generator?.id;
+
     // Toggle selection - if already selected, deselect
     if (selectedQuickGenerator === generatorId) {
       setSelectedQuickGenerator(null);
@@ -20,8 +20,8 @@ export function useTemplateSelection() {
 
   const handleTemplateSelect = (template: any) => {
     // Handle both string and object inputs
-    const templateId = typeof template === 'string' ? template : template?.id;
-    
+    const templateId = typeof template === "string" ? template : template?.id;
+
     // Toggle selection - if already selected, deselect
     if (selectedTemplate === templateId) {
       setSelectedTemplate(null);

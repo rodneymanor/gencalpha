@@ -1,6 +1,7 @@
 // Cron endpoint for scheduled RSS updates
 // This should be called by Vercel Cron or external scheduler
 import { NextRequest, NextResponse } from "next/server";
+
 import { scheduledRSSUpdate } from "@/lib/scheduled/rss-updater";
 
 // Verify cron secret to prevent unauthorized calls

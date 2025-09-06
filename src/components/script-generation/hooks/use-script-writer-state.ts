@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+
 import type { PersonaOption } from "../types/script-writer-types";
 import type { FlowState, ScriptWriterState } from "../types/script-writer-types";
 import { FLOW_STATES, SIDEBAR_TABS, DEFAULT_VALUES } from "../utils/constants";
@@ -14,26 +15,28 @@ export function useScriptWriterState(initialPrompt = "") {
   const [selectedPersona, setSelectedPersona] = useState<PersonaOption | null>(null);
   const [generatedScript, setGeneratedScript] = useState("");
   const [scriptTitle, setScriptTitle] = useState(DEFAULT_VALUES.SCRIPT_TITLE);
-  
+
   // Saving state
   const [isSaving, setIsSaving] = useState(false);
   const [savedScriptId, setSavedScriptId] = useState<string | null>(null);
-  
+
   // Template and generator selection state
   const [selectedQuickGenerator, setSelectedQuickGenerator] = useState<string | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
-  
+
   // Editing state - sidebar and toolbar management
-  const [sidebarTab, setSidebarTab] = useState<"analysis" | "metrics" | "suggestions">(SIDEBAR_TABS.ANALYSIS as "analysis");
+  const [sidebarTab, setSidebarTab] = useState<"analysis" | "metrics" | "suggestions">(
+    SIDEBAR_TABS.ANALYSIS as "analysis",
+  );
   const [wordCount, setWordCount] = useState(0);
   const [showComplexityView, setShowComplexityView] = useState(true);
-  
+
   // AI Action Sidebar state
   const [recentActions, setRecentActions] = useState<string[]>([]);
-  
+
   // Error handling state
   const [lastError, setLastError] = useState<string | null>(null);
-  
+
   // Transcription state
   const [isTranscribing, setIsTranscribing] = useState(false);
 
@@ -81,46 +84,59 @@ export function useScriptWriterState(initialPrompt = "") {
     setIsTranscribing(false);
   }, []);
 
-  const updateScript = useCallback((updatedScript: string) => {
-    setGeneratedScript(updatedScript);
-    if (lastError) {
-      setLastError(null);
-    }
-  }, [lastError]);
+  const updateScript = useCallback(
+    (updatedScript: string) => {
+      setGeneratedScript(updatedScript);
+      if (lastError) {
+        setLastError(null);
+      }
+    },
+    [lastError],
+  );
 
   const handlePersonaSelect = useCallback((persona: PersonaOption | null) => {
     setSelectedPersona(persona);
   }, []);
 
-  const handleChatPersonaSelect = useCallback((personaId: string) => {
-    const personaOption = selectedPersona?.id === personaId 
-      ? null 
-      : ({ id: personaId, name: personaId, description: "" } as PersonaOption);
-    setSelectedPersona(personaOption);
-  }, [selectedPersona]);
+  const handleChatPersonaSelect = useCallback(
+    (personaId: string) => {
+      const personaOption =
+        selectedPersona?.id === personaId
+          ? null
+          : ({ id: personaId, name: personaId, description: "" } as PersonaOption);
+      setSelectedPersona(personaOption);
+    },
+    [selectedPersona],
+  );
 
-  const handleQuickGeneratorSelect = useCallback((generatorId: string) => {
-    if (selectedQuickGenerator === generatorId) {
-      setSelectedQuickGenerator(null);
-      setSelectedTemplate(null);
-    } else {
-      setSelectedQuickGenerator(generatorId);
-      setSelectedTemplate(null);
-    }
-  }, [selectedQuickGenerator]);
+  const handleQuickGeneratorSelect = useCallback(
+    (generatorId: string) => {
+      if (selectedQuickGenerator === generatorId) {
+        setSelectedQuickGenerator(null);
+        setSelectedTemplate(null);
+      } else {
+        setSelectedQuickGenerator(generatorId);
+        setSelectedTemplate(null);
+      }
+    },
+    [selectedQuickGenerator],
+  );
 
-  const handleTemplateSelect = useCallback((templateId: string) => {
-    if (selectedTemplate === templateId) {
-      setSelectedTemplate(null);
-      setSelectedQuickGenerator(null);
-    } else {
-      setSelectedTemplate(templateId);
-      setSelectedQuickGenerator(null);
-    }
-  }, [selectedTemplate]);
+  const handleTemplateSelect = useCallback(
+    (templateId: string) => {
+      if (selectedTemplate === templateId) {
+        setSelectedTemplate(null);
+        setSelectedQuickGenerator(null);
+      } else {
+        setSelectedTemplate(templateId);
+        setSelectedQuickGenerator(null);
+      }
+    },
+    [selectedTemplate],
+  );
 
   const addRecentAction = useCallback((action: string) => {
-    setRecentActions(prev => [action, ...prev.slice(0, 4)]);
+    setRecentActions((prev) => [action, ...prev.slice(0, 4)]);
   }, []);
 
   const handleSaveComplete = useCallback((scriptId: string, title: string) => {

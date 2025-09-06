@@ -165,21 +165,21 @@ export function generateTitleFromContent(content: string, maxWords: number = 8):
     if (Array.isArray(parsed)) {
       // Extract text from BlockNote blocks
       textContent = parsed
-        .map(block => {
+        .map((block) => {
           if (block.content) {
             if (Array.isArray(block.content)) {
               return block.content
-                .filter(item => item.type === 'text')
-                .map(item => item.text)
-                .join(' ');
-            } else if (typeof block.content === 'string') {
+                .filter((item) => item.type === "text")
+                .map((item) => item.text)
+                .join(" ");
+            } else if (typeof block.content === "string") {
               return block.content;
             }
           }
-          return '';
+          return "";
         })
         .filter(Boolean)
-        .join(' ');
+        .join(" ");
     }
   } catch {
     // Not JSON, use as-is
@@ -197,12 +197,57 @@ export function generateTitleFromContent(content: string, maxWords: number = 8):
 
   // Split into words and filter out common filler words/interjections
   const fillerWords = new Set([
-    "um", "uh", "ah", "eh", "like", "you know", "so", "well", "okay", "ok",
-    "actually", "basically", "literally", "obviously", "definitely", "totally",
-    "hey", "hi", "hello", "welcome", "thanks", "thank you", "please",
-    "i", "me", "my", "myself", "we", "our", "ours", "ourselves",
-    "a", "an", "the", "and", "but", "if", "or", "because", "as", "until", 
-    "while", "of", "at", "by", "for", "with", "about", "into", "through", "during"
+    "um",
+    "uh",
+    "ah",
+    "eh",
+    "like",
+    "you know",
+    "so",
+    "well",
+    "okay",
+    "ok",
+    "actually",
+    "basically",
+    "literally",
+    "obviously",
+    "definitely",
+    "totally",
+    "hey",
+    "hi",
+    "hello",
+    "welcome",
+    "thanks",
+    "thank you",
+    "please",
+    "i",
+    "me",
+    "my",
+    "myself",
+    "we",
+    "our",
+    "ours",
+    "ourselves",
+    "a",
+    "an",
+    "the",
+    "and",
+    "but",
+    "if",
+    "or",
+    "because",
+    "as",
+    "until",
+    "while",
+    "of",
+    "at",
+    "by",
+    "for",
+    "with",
+    "about",
+    "into",
+    "through",
+    "during",
   ]);
 
   const words = cleanedContent

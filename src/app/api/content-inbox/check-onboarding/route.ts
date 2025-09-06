@@ -48,22 +48,22 @@ export async function GET(request: NextRequest) {
   try {
     // Authenticate with Firebase token
     const authHeader = request.headers.get("authorization");
-    
+
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json({ error: "Unauthorized - No token provided" }, { status: 401 });
     }
-    
+
     const token = authHeader.substring(7);
     const authResult = await authenticateWithFirebaseToken(token);
-    
+
     if (authResult instanceof NextResponse) {
       return authResult;
     }
-    
+
     if (!isAdminInitialized) {
       return NextResponse.json({ error: "Firebase Admin not initialized" }, { status: 500 });
     }
-    
+
     const adminDb = getAdminDb();
 
     // Check if user already has content in their inbox
@@ -76,9 +76,9 @@ export async function GET(request: NextRequest) {
 
     // If user already has content, don't add the getting started note
     if (!contentSnapshot.empty) {
-      return NextResponse.json({ 
-        hasContent: true, 
-        gettingStartedAdded: false 
+      return NextResponse.json({
+        hasContent: true,
+        gettingStartedAdded: false,
       });
     }
 
@@ -93,10 +93,10 @@ export async function GET(request: NextRequest) {
       .get();
 
     if (!gettingStartedSnapshot.empty) {
-      return NextResponse.json({ 
-        hasContent: false, 
+      return NextResponse.json({
+        hasContent: false,
         gettingStartedAdded: true,
-        gettingStartedId: gettingStartedSnapshot.docs[0].id
+        gettingStartedId: gettingStartedSnapshot.docs[0].id,
       });
     }
 
@@ -126,13 +126,10 @@ export async function GET(request: NextRequest) {
       item: {
         id: docRef.id,
         ...contentItem,
-      }
+      },
     });
   } catch (error) {
     console.error("Error checking/creating onboarding content:", error);
-    return NextResponse.json(
-      { error: "Failed to check onboarding status" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to check onboarding status" }, { status: 500 });
   }
 }

@@ -2,14 +2,14 @@ import type { ScriptGeneratorData, TranscriptionStepData } from "../types/script
 
 export const FLOW_STATES = {
   INPUT: "input",
-  GENERATING: "generating", 
+  GENERATING: "generating",
   TRANSCRIBING: "transcribing",
   EDITING: "editing",
 } as const;
 
 export const SIDEBAR_TABS = {
   ANALYSIS: "analysis",
-  METRICS: "metrics", 
+  METRICS: "metrics",
   SUGGESTIONS: "suggestions",
 } as const;
 
@@ -19,7 +19,7 @@ export const GENERATOR_TEMPLATES = {
     promptTemplate: "Generate 10 different hooks for: {input}",
   },
   CONTENT_IDEAS: {
-    id: "content-ideas", 
+    id: "content-ideas",
     promptTemplate: "Generate content ideas for: {input}",
   },
 } as const;
@@ -41,7 +41,7 @@ export const TOAST_MESSAGES = {
     description: "Generate a script first before saving",
   },
   SCRIPT_UPDATED: {
-    title: "Script updated successfully", 
+    title: "Script updated successfully",
     description: "Your changes have been saved to the library",
   },
   SCRIPT_SAVED: {
@@ -50,21 +50,21 @@ export const TOAST_MESSAGES = {
   },
   SAVE_FAILED: {
     title: "Failed to save script",
-    description: "Please try again or check your connection", 
+    description: "Please try again or check your connection",
   },
 } as const;
 
 export const TRANSCRIPTION_STEPS: TranscriptionStepData[] = [
   {
     id: "url_detection",
-    label: "URL Detection", 
+    label: "URL Detection",
     status: "completed",
     description: "Social media URL recognized",
   },
   {
     id: "video_extraction",
     label: "Video Extraction",
-    status: "in_progress", 
+    status: "in_progress",
     description: "Extracting video from platform",
   },
   {
@@ -74,7 +74,7 @@ export const TRANSCRIPTION_STEPS: TranscriptionStepData[] = [
     description: "Converting audio to text using AI",
   },
   {
-    id: "analysis_prep", 
+    id: "analysis_prep",
     label: "Analysis Preparation",
     status: "pending",
     description: "Preparing content for script analysis",
@@ -92,7 +92,7 @@ export const QUICK_GENERATORS_CONFIG: Record<string, Partial<ScriptGeneratorData
     label: "Hook Generator",
   },
   "content-ideas": {
-    icon: "sparkles", 
+    icon: "sparkles",
     label: "Ideation",
   },
 } as const;
@@ -105,7 +105,7 @@ export const TEMPLATES_CONFIG: Record<string, Partial<ScriptGeneratorData & { du
   },
   "problem-solution": {
     icon: "check-circle",
-    label: "Solution-Based", 
+    label: "Solution-Based",
     duration: "3 min",
   },
 } as const;
