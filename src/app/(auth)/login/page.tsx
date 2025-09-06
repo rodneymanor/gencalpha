@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,6 +20,7 @@ const FormSchema = z.object({
 
 export default function LoginV1() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -27,6 +28,20 @@ export default function LoginV1() {
       email: "",
     },
   });
+
+  // Add data-lpignore attributes after mount to prevent LastPass injection
+  useEffect(() => {
+    if (formRef.current) {
+      // Add to form
+      formRef.current.setAttribute('data-lpignore', 'true');
+      
+      // Add to all inputs
+      const inputs = formRef.current.querySelectorAll('input[type="email"], input[type="password"]');
+      inputs.forEach(input => {
+        input.setAttribute('data-lpignore', 'true');
+      });
+    }
+  }, []);
 
   const onSubmit = async () => {
     setIsSubmitting(true);
@@ -58,7 +73,7 @@ export default function LoginV1() {
         {/* Form Section */}
         <div className="space-y-6" suppressHydrationWarning>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" suppressHydrationWarning>
+            <form ref={formRef} onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" data-lpignore="true">
               <FormField
                 control={form.control}
                 name="email"

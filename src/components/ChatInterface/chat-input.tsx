@@ -8,9 +8,9 @@ import { ShineBorder } from "@/components/magicui/shine-border";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { TypewriterPlaceholder } from "@/components/ui/typewriter-placeholder";
 import { PersonasDropdown } from "@/components/write-chat/personas-dropdown";
 import { useTrendingTopics } from "@/hooks/use-trending-topics";
-import { TypewriterPlaceholder } from "@/components/ui/typewriter-placeholder";
 
 interface ChatInputProps {
   value: string;
@@ -31,7 +31,6 @@ export default function ChatInput({
   value,
   onChange,
   onSubmit,
-  placeholder: _placeholder = "Write a script about...?",
   disabled = false,
   showTimeLimit = true,
   showSettings = true,
@@ -73,14 +72,13 @@ export default function ChatInput({
     limit: 8,
   });
 
-  // Preload topics on component mount for better UX and auto-focus input
+  // Preload topics on component mount for better UX
   useEffect(() => {
     if (showTrending) {
       // Preload topics in the background
       loadTopics();
     }
-    // Auto-focus the input field on mount
-    inputRef.current?.focus();
+    // Removed auto-focus on mount to prevent unwanted behavior
   }, [showTrending, loadTopics]);
 
   // Hide typewriter when user starts typing
@@ -117,12 +115,13 @@ export default function ChatInput({
   // Show trending topics when input is focused
   const handleInputFocus = () => {
     setIsFocused(true);
-    if (showTrending) {
-      setShowTrendingDropdown(true);
-      // Topics are already preloaded or will load from cache
-    }
+    // Trending dropdown disabled - no longer showing on focus
+    // if (showTrending) {
+    //   setShowTrendingDropdown(true);
+    //   // Topics are already preloaded or will load from cache
+    // }
   };
-  
+
   const handleInputBlur = () => {
     setIsFocused(false);
   };
@@ -151,9 +150,71 @@ export default function ChatInput({
     }
   };
 
+  // Render trending topics dropdown
+  const renderTrendingDropdown = () => {
+    if (!showTrending || !showTrendingDropdown) return null;
+
+    return (
+      <div
+        ref={dropdownRef}
+        className="absolute top-full right-0 left-0 z-10 mt-2 max-h-64 overflow-y-auto rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-50 shadow-[var(--shadow-soft-drop)]"
+      >
+        <div className="p-2">
+          <div className="mb-2 flex items-center justify-between px-2">
+            <div className="text-sm font-medium text-neutral-600">Trending Topics</div>
+            {isFromCache && (
+              <div className="flex items-center gap-1 text-xs text-neutral-500">
+                <Database className="h-3 w-3" />
+                <span>Cached</span>
+                {nextUpdate && (
+                  <>
+                    <Clock className="ml-1 h-3 w-3" />
+                    <span>Updates {getRelativeTime(nextUpdate)}</span>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+
+          {isLoadingTopics && (
+            <div className="flex items-center justify-center py-4">
+              <Loader2 className="h-4 w-4 animate-spin text-neutral-500" />
+              <span className="ml-2 text-sm text-neutral-500">Loading suggestions...</span>
+            </div>
+          )}
+
+          {!isLoadingTopics &&
+            trendingTopics.map((topic) => (
+              <button
+                key={topic.id}
+                type="button"
+                onClick={() => handleTrendingSelect(topic.title)}
+                className="flex w-full items-start gap-3 rounded-[var(--radius-button)] px-3 py-2 text-left transition-colors duration-150 hover:bg-neutral-100"
+              >
+                <Zap className="text-brand-500 mt-0.5 h-4 w-4 flex-shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-medium text-neutral-900">{topic.title}</div>
+                  <div className="mt-0.5 flex items-center gap-2 text-xs text-neutral-500">
+                    <span className="truncate">{topic.source}</span>
+                    {topic.relevanceScore > 5 && (
+                      <span className="bg-brand-100 text-brand-700 rounded px-1.5 py-0.5 text-xs font-medium">Hot</span>
+                    )}
+                  </div>
+                </div>
+              </button>
+            ))}
+
+          {!isLoadingTopics && trendingTopics.length === 0 && (
+            <div className="py-4 text-center text-sm text-neutral-500">No trending topics available</div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <form onSubmit={handleSubmit} className={`relative ${className}`}>
-      <div 
+      <div
         className="relative flex items-center gap-2 rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-50 p-2 shadow-[var(--shadow-input)] transition-all duration-200 hover:border-neutral-300"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -167,7 +228,7 @@ export default function ChatInput({
             className="opacity-70"
           />
         )}
-        
+
         {/* Personas dropdown on far left */}
         {showPersonas && (
           <PersonasDropdown selectedPersona={selectedPersona} onPersonaSelect={onPersonaSelect} disabled={disabled} />
@@ -195,14 +256,14 @@ export default function ChatInput({
             onBlur={handleInputBlur}
             placeholder=""
             disabled={disabled}
-            className="flex-1 w-full border-0 bg-transparent px-4 text-base text-neutral-900 caret-neutral-900 shadow-none ring-0 outline-none placeholder:text-neutral-500 hover:shadow-none focus:border-0 focus:shadow-none focus:ring-0 focus:outline-none focus-visible:border-0 focus-visible:shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none"
-            autoFocus
+            className="w-full flex-1 border-0 bg-transparent px-4 text-base text-neutral-900 caret-neutral-900 shadow-none ring-0 outline-none placeholder:text-neutral-500 hover:shadow-none focus:border-0 focus:shadow-none focus:ring-0 focus:outline-none focus-visible:border-0 focus-visible:shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none"
+            // autoFocus removed to prevent unwanted focus on page load
           />
           {/* Typewriter placeholder overlay */}
           {showTypewriter && !value && (
-            <div 
+            <div
               ref={placeholderRef}
-              className="absolute inset-0 flex items-center px-4 pointer-events-none"
+              className="pointer-events-none absolute inset-0 flex items-center px-4"
               onClick={() => inputRef.current?.focus()}
             >
               <TypewriterPlaceholder
@@ -243,67 +304,7 @@ export default function ChatInput({
       </div>
 
       {/* Trending topics dropdown */}
-      {showTrending && showTrendingDropdown && (
-        <div
-          ref={dropdownRef}
-          className="absolute top-full right-0 left-0 z-10 mt-2 max-h-64 overflow-y-auto rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-50 shadow-[var(--shadow-soft-drop)]"
-        >
-          <div className="p-2">
-            <div className="mb-2 flex items-center justify-between px-2">
-              <div className="text-sm font-medium text-neutral-600">Trending Topics</div>
-              {isFromCache && (
-                <div className="flex items-center gap-1 text-xs text-neutral-500">
-                  <Database className="h-3 w-3" />
-                  <span>Cached</span>
-                  {nextUpdate && (
-                    <>
-                      <Clock className="ml-1 h-3 w-3" />
-                      <span>Updates {getRelativeTime(nextUpdate)}</span>
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Loading state */}
-            {isLoadingTopics && (
-              <div className="flex items-center justify-center py-4">
-                <Loader2 className="h-4 w-4 animate-spin text-neutral-500" />
-                <span className="ml-2 text-sm text-neutral-500">Loading suggestions...</span>
-              </div>
-            )}
-
-            {/* Trending topics from RSS feeds */}
-            {!isLoadingTopics &&
-              trendingTopics.map((topic) => (
-                <button
-                  key={topic.id}
-                  type="button"
-                  onClick={() => handleTrendingSelect(topic.title)}
-                  className="flex w-full items-start gap-3 rounded-[var(--radius-button)] px-3 py-2 text-left transition-colors duration-150 hover:bg-neutral-100"
-                >
-                  <Zap className="text-brand-500 mt-0.5 h-4 w-4 flex-shrink-0" />
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-medium text-neutral-900">{topic.title}</div>
-                    <div className="mt-0.5 flex items-center gap-2 text-xs text-neutral-500">
-                      <span className="truncate">{topic.source}</span>
-                      {topic.relevanceScore > 5 && (
-                        <span className="bg-brand-100 text-brand-700 rounded px-1.5 py-0.5 text-xs font-medium">
-                          Hot
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </button>
-              ))}
-
-            {/* Empty state */}
-            {!isLoadingTopics && trendingTopics.length === 0 && (
-              <div className="py-4 text-center text-sm text-neutral-500">No trending topics available</div>
-            )}
-          </div>
-        </div>
-      )}
+      {renderTrendingDropdown()}
     </form>
   );
 }

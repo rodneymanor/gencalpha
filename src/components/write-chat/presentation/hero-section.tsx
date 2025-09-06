@@ -1,12 +1,12 @@
 "use client";
-import ChatInput from "@/components/ChatInterface/ChatInput";
-import { 
+import ChatInput from "@/components/ChatInterface/chat-input";
+import { ContentGeneratorCards } from "@/components/content-generator-cards";
+import {
   PersonaSelector,
   type ActionType,
   CONTENT_ACTIONS,
-  type PersonaOption
+  type PersonaOption,
 } from "@/components/write-chat/persona-selector";
-import { ContentGeneratorCards } from "@/components/content-generator-cards";
 
 export function HeroSection(props: {
   resolvedName?: string | null;
@@ -83,31 +83,42 @@ export function HeroSection(props: {
   };
 
   // Map CONTENT_ACTIONS to ContentGeneratorCards format
-  const quickGenerators = CONTENT_ACTIONS
-    .filter(action => action.category === "generators")
-    .map(action => ({
-      id: action.key,
-      title: action.label,
-      description: action.description,
-      icon: action.key === "generate-hooks" ? "send" as const : 
-            action.key === "content-ideas" ? "sparkles" as const : "heart" as const,
-      label: action.key === "generate-hooks" ? "Hook Generator" :
-             action.key === "content-ideas" ? "Ideation" : "Value Content"
-    }));
+  const quickGenerators = CONTENT_ACTIONS.filter((action) => action.category === "generators").map((action) => ({
+    id: action.key,
+    title: action.label,
+    description: action.description,
+    icon:
+      action.key === "generate-hooks"
+        ? ("send" as const)
+        : action.key === "content-ideas"
+          ? ("sparkles" as const)
+          : ("heart" as const),
+    label:
+      action.key === "generate-hooks"
+        ? "Hook Generator"
+        : action.key === "content-ideas"
+          ? "Ideation"
+          : "Value Content",
+  }));
 
-  const templates = CONTENT_ACTIONS
-    .filter(action => action.category === "templates")
-    .map(action => ({
-      id: action.key,
-      title: action.label,
-      description: action.description,
-      icon: action.key === "if-then-script" ? "power" as const :
-            action.key === "problem-solution" ? "check-circle" as const : "layers" as const,
-      label: action.key === "if-then-script" ? "Conditional" :
-             action.key === "problem-solution" ? "Solution-Based" : "Tutorial",
-      duration: action.key === "if-then-script" ? "2 min" :
-                action.key === "problem-solution" ? "3 min" : "5 min"
-    }));
+  const templates = CONTENT_ACTIONS.filter((action) => action.category === "templates").map((action) => ({
+    id: action.key,
+    title: action.label,
+    description: action.description,
+    icon:
+      action.key === "if-then-script"
+        ? ("power" as const)
+        : action.key === "problem-solution"
+          ? ("check-circle" as const)
+          : ("layers" as const),
+    label:
+      action.key === "if-then-script"
+        ? "Conditional"
+        : action.key === "problem-solution"
+          ? "Solution-Based"
+          : "Tutorial",
+    duration: action.key === "if-then-script" ? "2 min" : action.key === "problem-solution" ? "3 min" : "5 min",
+  }));
 
   const handleQuickGeneratorSelect = (generator: any) => {
     // Toggle selection - if already selected, deselect
@@ -140,7 +151,7 @@ export function HeroSection(props: {
     <div className="flex max-h-screen min-h-screen flex-col overflow-y-auto px-4 py-8 transition-all duration-300">
       {/* Flex spacer to center the hero content */}
       <div className="flex-1"></div>
-      
+
       {/* Anchored hero content - text and input grouped together */}
       <div className="flex-shrink-0 text-center">
         {/* Hero headline */}
@@ -154,9 +165,9 @@ export function HeroSection(props: {
             <span className="text-brand">What will you create today?</span>
           </h1>
         </div>
-        
+
         {/* Input field - anchored close to hero text */}
-        <div className="w-full max-w-3xl mx-auto px-5">
+        <div className="mx-auto w-full max-w-3xl px-5">
           <ChatInput
             value={inputValue}
             onChange={setInputValue}
@@ -174,7 +185,7 @@ export function HeroSection(props: {
       </div>
 
       {/* Spacer between input and bottom cards */}
-      <div className="flex-shrink-0 h-16"></div>
+      <div className="h-16 flex-shrink-0"></div>
 
       {/* Bottom section with content generator cards */}
       <div className="flex-shrink-0 pb-16">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 import { useRouter } from "next/navigation";
 
@@ -25,6 +25,7 @@ export function LoginForm() {
   const { signIn, loading } = useAuth();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -34,6 +35,20 @@ export function LoginForm() {
       remember: false,
     },
   });
+
+  // Add data-lpignore attributes after mount to prevent LastPass injection
+  useEffect(() => {
+    if (formRef.current) {
+      // Add to form
+      formRef.current.setAttribute('data-lpignore', 'true');
+      
+      // Add to all inputs
+      const inputs = formRef.current.querySelectorAll('input[type="email"], input[type="password"]');
+      inputs.forEach(input => {
+        input.setAttribute('data-lpignore', 'true');
+      });
+    }
+  }, []);
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     setIsSubmitting(true);
@@ -51,7 +66,8 @@ export function LoginForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      {/* data-lpignore prevents LastPass from injecting DOM elements */}
+      <form ref={formRef} onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="email"
@@ -59,7 +75,12 @@ export function LoginForm() {
             <FormItem>
               <FormLabel>Email Address</FormLabel>
               <FormControl>
-                <Input id="email" type="email" placeholder="you@example.com" autoComplete="email" {...field} />
+                <Input 
+                  id="email" 
+                  type="email" 
+                  placeholder="you@example.com" 
+                  autoComplete="email" 
+                  {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
