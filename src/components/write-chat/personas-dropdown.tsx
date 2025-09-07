@@ -8,7 +8,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { User, Plus, ExternalLink, Loader2, Zap, FileText } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import DropdownMenu, { DropdownSection, DropdownItem } from "@/components/ui/dropdown-menu";
+import ClaudeDropdownMenu, { DropdownSection, DropdownItem } from "@/components/ui/claude-dropdown-menu";
 import { auth } from "@/lib/firebase";
 
 // Interface for persona data from Firestore
@@ -321,7 +321,7 @@ export function PersonasDropdown({
           </div>
         ) : (
           <div ref={dropdownRef}>
-            <DropdownMenu
+            <ClaudeDropdownMenu
               sections={generateDropdownSections()}
               style={{
                 top: `${dropdownPosition.top}px`,
