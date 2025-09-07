@@ -65,13 +65,14 @@ export function useConversationState(): UseConversationStateReturn {
         return;
       }
 
-    try {
+      try {
         await saveMessageToDb(conversationId, "assistant", message);
       } catch (error) {
         console.warn("⚠️ [useConversationState] Failed to save assistant message:", error);
       }
     },
     [conversationId],
+  );
 
   return {
     // State

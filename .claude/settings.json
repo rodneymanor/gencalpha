@@ -13,5 +13,24 @@
       "Glob(**)"
     ],
     "deny": ["Bash(rm -rf:*)", "Bash(sudo:*)"]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write||Multi",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'cd \"$PWD\" && if [ -d .git ]; then CHANGED_FILES=$(git status --porcelain | awk \"{print \\$NF}\" | tr \"\\n\" \",\" | sed \"s/,$//\"); if [ -n \"$CHANGED_FILES\" ]; then git add .; git commit -m \"checkpoint: modify $CHANGED_FILES - $(date +\"%H:%M\")\"; fi; fi'",
+            "timeout": 30
+          },
+          {
+            "type": "command",
+            "command": "bash -c 'cd \"$PWD\" && ./restart-dev.sh'",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
   }
 }

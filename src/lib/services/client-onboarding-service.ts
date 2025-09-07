@@ -53,13 +53,35 @@ export class ClientOnboardingService {
    * Returns `null` if none exist.
    */
   static async getSelections(): Promise<OnboardingSelections | null> {
-    if (!auth?.currentUser) throw new Error("User not authenticated");
-    if (!db) throw new Error("Firestore not initialised");
+    console.log("🔧 [ClientOnboardingService] Starting getSelections...");
+
+    if (!auth?.currentUser) {
+      console.error("❌ [ClientOnboardingService] User not authenticated");
+      throw new Error("User not authenticated");
+    }
+    if (!db) {
+      console.error("❌ [ClientOnboardingService] Firestore not initialised");
+      throw new Error("Firestore not initialised");
+    }
 
     const { uid } = auth.currentUser;
-    const snap = await getDoc(this.userDoc(uid));
-    if (!snap.exists()) return null;
-    return (snap.data().onboardingSelections ?? null) as OnboardingSelections | null;
+    console.log("🔧 [ClientOnboardingService] User UID:", uid);
+
+    try {
+      const snap = await getDoc(this.userDoc(uid));
+      if (!snap.exists()) {
+        console.log("📝 [ClientOnboardingService] No user document found");
+        return null;
+      }
+
+      const data = snap.data();
+      const selections = data.onboardingSelections ?? null;
+      console.log("✅ [ClientOnboardingService] Retrieved selections:", selections);
+      return selections as OnboardingSelections | null;
+    } catch (error) {
+      console.error("❌ [ClientOnboardingService] Error fetching selections:", error);
+      throw error;
+    }
   }
 
   /**
