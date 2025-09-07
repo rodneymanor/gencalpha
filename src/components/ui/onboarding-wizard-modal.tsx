@@ -946,9 +946,14 @@ export function OnboardingWizardModal({
   const loadExistingSelections = async () => {
     try {
       setLoading(true);
-      // For now, we'll just load empty selections and skip the API call
-      // You can implement ClientOnboardingService.getSelections() later
       console.log('Loading existing selections for edit mode...');
+      const existingSelections = await ClientOnboardingService.getSelections();
+      if (existingSelections) {
+        setSelections(existingSelections);
+        console.log('✅ Loaded existing selections:', existingSelections);
+      } else {
+        console.log('📝 No existing selections found, using defaults');
+      }
     } catch (error) {
       console.error('Failed to load existing selections:', error);
     } finally {

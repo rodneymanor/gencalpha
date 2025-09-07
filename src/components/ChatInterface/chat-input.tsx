@@ -24,6 +24,8 @@ interface ChatInputProps {
   showPersonas?: boolean;
   selectedPersona?: string;
   onPersonaSelect?: (persona: string) => void;
+  selectedGenerator?: 'hook' | 'template' | null;
+  onGeneratorSelect?: (generator: 'hook' | 'template') => void;
   className?: string;
 }
 
@@ -38,6 +40,8 @@ export default function ChatInput({
   showPersonas = true,
   selectedPersona,
   onPersonaSelect,
+  selectedGenerator,
+  onGeneratorSelect,
   className = "",
 }: ChatInputProps) {
   const [timeLimit, setTimeLimit] = useState("20s");
@@ -231,7 +235,13 @@ export default function ChatInput({
 
         {/* Personas dropdown on far left */}
         {showPersonas && (
-          <PersonasDropdown selectedPersona={selectedPersona} onPersonaSelect={onPersonaSelect} disabled={disabled} />
+          <PersonasDropdown 
+            selectedPersona={selectedPersona} 
+            onPersonaSelect={onPersonaSelect} 
+            selectedGenerator={selectedGenerator}
+            onGeneratorSelect={onGeneratorSelect}
+            disabled={disabled} 
+          />
         )}
 
         {/* Settings button for chat configuration */}
@@ -259,11 +269,11 @@ export default function ChatInput({
             className="w-full flex-1 border-0 bg-transparent px-4 text-base text-neutral-900 caret-neutral-900 shadow-none ring-0 outline-none placeholder:text-neutral-500 hover:shadow-none focus:border-0 focus:shadow-none focus:ring-0 focus:outline-none focus-visible:border-0 focus-visible:shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none"
             // autoFocus removed to prevent unwanted focus on page load
           />
-          {/* Typewriter placeholder overlay */}
+          {/* Typewriter placeholder overlay - hidden on mobile */}
           {showTypewriter && !value && (
             <div
               ref={placeholderRef}
-              className="pointer-events-none absolute inset-0 flex items-center px-4"
+              className="pointer-events-none absolute inset-0 hidden items-center px-4 sm:flex"
               onClick={() => inputRef.current?.focus()}
             >
               <TypewriterPlaceholder
@@ -273,6 +283,13 @@ export default function ChatInput({
                 deletingSpeed={25}
                 pauseTime={1500}
               />
+            </div>
+          )}
+          
+          {/* Mobile-only simple placeholder */}
+          {showTypewriter && !value && (
+            <div className="pointer-events-none absolute inset-0 flex items-center px-4 text-neutral-500 sm:hidden">
+              Ask Gen.C to write something...
             </div>
           )}
         </div>

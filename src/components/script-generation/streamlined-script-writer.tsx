@@ -73,12 +73,6 @@ export function StreamlinedScriptWriter({
         onSubmit={handleSend}
         selectedPersona={selectedPersona}
         onPersonaSelect={handleChatPersonaSelect}
-        quickGenerators={quickGenerators}
-        templates={templates}
-        selectedQuickGenerator={selectedQuickGenerator ?? undefined}
-        selectedTemplate={selectedTemplate ?? undefined}
-        onQuickGeneratorSelect={handleQuickGeneratorSelect}
-        onTemplateSelect={handleTemplateSelect}
         className={className}
       />
     );

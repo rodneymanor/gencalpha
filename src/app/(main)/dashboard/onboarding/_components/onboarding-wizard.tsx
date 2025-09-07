@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/auth-context";
-import { OnboardingSelections, getOnboardingSelections, saveOnboardingSelections } from "@/lib/onboarding-service";
+import { ClientOnboardingService } from "@/lib/services/client-onboarding-service";
+import { OnboardingSelections } from "@/components/ui/onboarding-wizard-modal";
 import { cn } from "@/lib/utils";
 
 interface Topic {
@@ -65,8 +66,14 @@ export function OnboardingWizard() {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const selections = await getOnboardingSelections(user.uid);
-      setSelectedTopics(new Set([...(selections.mainTopics ?? []), ...(selections.customTopics ?? [])]));
+      try {
+        const selections = await ClientOnboardingService.getSelections();
+        if (selections) {
+          setSelectedTopics(new Set([...(selections.mainTopics ?? []), ...(selections.customTopics ?? [])]));
+        }
+      } catch (error) {
+        console.error("Failed to load existing selections:", error);
+      }
     })();
   }, [user]);
 
@@ -97,18 +104,22 @@ export function OnboardingWizard() {
     if (!user) return;
     setIsSaving(true);
 
-    const selections: OnboardingSelections = {
-      contentTypes: [],
-      mainTopics: [...selectedTopics],
-      subtopics: [],
-      customTopics: [],
-      platforms: [],
-    };
+    try {
+      const selections: OnboardingSelections = {
+        contentTypes: [],
+        mainTopics: [...selectedTopics],
+        subtopics: [],
+        customTopics: [],
+        platforms: [],
+      };
 
-    await saveOnboardingSelections(user.uid, selections);
-    setIsSaving(false);
-
-    router.push("/dashboard");
+      await ClientOnboardingService.saveSelections(selections);
+      setIsSaving(false);
+      router.push("/dashboard");
+    } catch (error) {
+      console.error("Failed to save onboarding selections:", error);
+      setIsSaving(false);
+    }
   };
 
   return (

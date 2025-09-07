@@ -3,9 +3,6 @@
 import React from "react";
 
 import ChatInput from "@/components/ChatInterface/chat-input";
-import { ContentGeneratorCards } from "@/components/content-generator-cards";
-
-import type { QuickGenerator, Template } from "../../types";
 import type { PersonaOption } from "../../types/script-writer-types";
 
 interface InputViewProps {
@@ -14,12 +11,8 @@ interface InputViewProps {
   onSubmit: (value: string) => void;
   selectedPersona: PersonaOption | null;
   onPersonaSelect: (personaId: string) => void;
-  quickGenerators: QuickGenerator[];
-  templates: Template[];
-  selectedQuickGenerator?: string;
-  selectedTemplate?: string;
-  onQuickGeneratorSelect: (generator: QuickGenerator) => void;
-  onTemplateSelect: (template: Template) => void;
+  selectedGenerator?: 'hook' | 'template' | null;
+  onGeneratorSelect?: (generator: 'hook' | 'template') => void;
   className?: string;
 }
 
@@ -29,12 +22,8 @@ export function InputView({
   onSubmit,
   selectedPersona,
   onPersonaSelect,
-  quickGenerators,
-  templates,
-  selectedQuickGenerator,
-  selectedTemplate,
-  onQuickGeneratorSelect,
-  onTemplateSelect,
+  selectedGenerator,
+  onGeneratorSelect,
   className = "",
 }: InputViewProps) {
   return (
@@ -69,22 +58,14 @@ export function InputView({
               showPersonas={true}
               selectedPersona={selectedPersona?.id}
               onPersonaSelect={onPersonaSelect}
+              selectedGenerator={selectedGenerator}
+              onGeneratorSelect={onGeneratorSelect}
             />
           </div>
 
-          {/* ContentGeneratorCards - Templates and Quick Generators */}
-          <div className="mx-auto w-full max-w-5xl">
-            <ContentGeneratorCards
-              quickGenerators={quickGenerators}
-              templates={templates}
-              selectedQuickGenerator={selectedQuickGenerator}
-              selectedTemplate={selectedTemplate}
-              onQuickGeneratorSelect={onQuickGeneratorSelect}
-              onTemplateSelect={onTemplateSelect}
-            />
-            <div className="text-muted-foreground mt-6 text-center text-sm">
-              💡 Tip: Be specific about your topic and target audience for better results
-            </div>
+          {/* Tip */}
+          <div className="text-muted-foreground mt-6 text-center text-sm">
+            💡 Tip: Be specific about your topic and target audience for better results
           </div>
         </div>
       </div>

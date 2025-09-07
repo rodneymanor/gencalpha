@@ -148,14 +148,14 @@ export function HeroSection(props: {
   };
 
   return (
-    <div className="flex max-h-screen min-h-screen flex-col overflow-y-auto px-4 py-8 transition-all duration-300">
-      {/* Flex spacer to center the hero content */}
-      <div className="flex-1"></div>
+    <div className="flex h-screen flex-col px-4 py-4 transition-all duration-300">
+      {/* Top spacer - smaller to move content up */}
+      <div className="flex-grow basis-0"></div>
 
       {/* Anchored hero content - text and input grouped together */}
       <div className="flex-shrink-0 text-center">
         {/* Hero headline */}
-        <div className="pb-8">
+        <div className="pb-6">
           <h1 className="text-4xl leading-10 font-bold tracking-tight">
             <span className="text-foreground">
               {`Hello${resolvedName ? ", " + resolvedName : ""}`}
@@ -184,11 +184,11 @@ export function HeroSection(props: {
         </div>
       </div>
 
-      {/* Spacer between input and bottom cards */}
-      <div className="h-16 flex-shrink-0"></div>
+      {/* Middle spacer between input and bottom cards */}
+      <div className="h-12 flex-shrink-0"></div>
 
       {/* Bottom section with content generator cards */}
-      <div className="flex-shrink-0 pb-16">
+      <div className="flex-shrink-0 pb-8">
         <div className="mx-auto w-full max-w-5xl px-5">
           {useActionSystem ? (
             <ContentGeneratorCards
@@ -215,6 +215,9 @@ export function HeroSection(props: {
           )}
         </div>
       </div>
+
+      {/* Bottom spacer - allows scrolling if needed */}
+      <div className="flex-grow basis-0"></div>
     </div>
   );
 }

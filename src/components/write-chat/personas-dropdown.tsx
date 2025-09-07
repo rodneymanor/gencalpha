@@ -5,9 +5,10 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
 import { onAuthStateChanged } from "firebase/auth";
-import { User, Plus, ExternalLink, Loader2 } from "lucide-react";
+import { User, Plus, ExternalLink, Loader2, Zap, FileText } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import DropdownMenu, { DropdownSection, DropdownItem } from "@/components/ui/dropdown-menu";
 import { auth } from "@/lib/firebase";
 
 // Interface for persona data from Firestore
@@ -26,6 +27,8 @@ interface FirestorePersona {
 interface PersonasDropdownProps {
   selectedPersona?: string;
   onPersonaSelect?: (persona: string) => void;
+  selectedGenerator?: 'hook' | 'template' | null;
+  onGeneratorSelect?: (generator: 'hook' | 'template') => void;
   className?: string;
   disabled?: boolean;
 }
@@ -33,6 +36,8 @@ interface PersonasDropdownProps {
 export function PersonasDropdown({
   selectedPersona,
   onPersonaSelect,
+  selectedGenerator,
+  onGeneratorSelect,
   className = "",
   disabled = false,
 }: PersonasDropdownProps) {
@@ -173,6 +178,101 @@ export function PersonasDropdown({
     setIsOpen(!isOpen);
   };
 
+  // Generate dropdown sections based on current state
+  const generateDropdownSections = (): DropdownSection[] => {
+    const sections: DropdownSection[] = [];
+
+    // Personas Section
+    const personaItems: DropdownItem[] = savedPersonas.length > 0 
+      ? savedPersonas.slice(0, 3).map((persona) => ({
+          id: persona.id,
+          label: persona.name,
+          description: `@${persona.username}`,
+          icon: persona.avatar ? (
+            <img
+              src={persona.avatar}
+              alt={persona.name}
+              className="h-4 w-4 rounded-full object-cover"
+            />
+          ) : (
+            <div className="flex h-4 w-4 items-center justify-center rounded-full bg-neutral-200 text-xs font-medium text-neutral-700">
+              {persona.initials}
+            </div>
+          ),
+          selected: selectedPersona === persona.id,
+          onClick: () => handlePersonaSelect(persona.id)
+        }))
+      : [{
+          id: 'no-personas',
+          label: 'No personas saved yet',
+          description: 'Create your first persona to get started',
+          icon: <User className="h-4 w-4" />,
+          disabled: true,
+          onClick: () => {}
+        }];
+
+    sections.push({
+      id: 'personas',
+      label: 'Personas',
+      items: personaItems
+    });
+
+    // Script Options Section
+    sections.push({
+      id: 'script-options',
+      label: 'Script Options',
+      items: [
+        {
+          id: 'hook-generator',
+          label: 'Hook Generator',
+          description: 'Create engaging openings',
+          icon: <Zap className="h-4 w-4" />,
+          selected: selectedGenerator === 'hook',
+          onClick: () => onGeneratorSelect?.('hook')
+        },
+        {
+          id: 'if-you-then-do-this',
+          label: 'If You Then Do This',
+          description: 'Conditional logic scripts',
+          icon: <FileText className="h-4 w-4" />,
+          selected: selectedGenerator === 'template',
+          onClick: () => onGeneratorSelect?.('template')
+        }
+      ]
+    });
+
+    // Management Section
+    sections.push({
+      id: 'management',
+      label: 'Management',
+      items: [
+        {
+          id: 'view-personas',
+          label: 'View Your Personas',
+          description: 'Manage voice profiles from creators',
+          icon: <ExternalLink className="h-4 w-4" />,
+          onClick: () => {
+            setIsOpen(false);
+            router.push("/personas");
+          }
+        },
+        {
+          id: 'create-persona',
+          label: 'Create New Persona',
+          description: 'Analyze a creator\'s voice patterns',
+          icon: <Plus className="h-4 w-4" />,
+          badge: 'NEW',
+          onClick: () => {
+            setIsOpen(false);
+            router.push("/personas");
+          }
+        }
+      ]
+    });
+
+    return sections;
+  };
+
   return (
     <div className={`relative ${className}`}>
       {/* Trigger Button */}
@@ -206,128 +306,30 @@ export function PersonasDropdown({
 
       {/* Dropdown Portal - positioned fixed to avoid layout shifts */}
       {isOpen && (
-        <div
-          ref={dropdownRef}
-          className="fixed z-[9999] w-72 rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-50 shadow-[var(--shadow-soft-drop)]"
-          style={{
-            top: `${dropdownPosition.top}px`,
-            left: `${dropdownPosition.left}px`,
-          }}
-        >
-          <div className="p-2">
-            {loading ? (
-              // Loading state
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin text-neutral-400" />
-              </div>
-            ) : (
-              <>
-                <div className="mb-2 px-2 text-sm font-medium text-neutral-600">
-                  {savedPersonas.length > 0 ? "Choose a Persona" : "No Saved Personas"}
-                </div>
-
-                {savedPersonas.length > 0 ? (
-                  savedPersonas.map((persona) => {
-                    const isSelected = selectedPersona === persona.id;
-
-                    return (
-                      <button
-                        key={persona.id}
-                        type="button"
-                        onClick={() => handlePersonaSelect(persona.id)}
-                        className={`flex w-full items-start gap-3 rounded-[var(--radius-button)] px-3 py-2 text-left transition-colors duration-150 ${
-                          isSelected
-                            ? "bg-primary-100 border-primary-200 border"
-                            : "border border-transparent hover:bg-neutral-100"
-                        }`}
-                      >
-                        {/* Avatar or Initials */}
-                        <div className={`mt-0.5 flex-shrink-0 ${isSelected ? "text-primary-600" : "text-neutral-500"}`}>
-                          {persona.avatar ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={persona.avatar}
-                              alt={persona.name}
-                              className="h-8 w-8 rounded-full object-cover"
-                            />
-                          ) : (
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-200 text-xs font-medium text-neutral-700">
-                              {persona.initials}
-                            </div>
-                          )}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div
-                            className={`truncate text-sm font-medium ${isSelected ? "text-primary-900" : "text-neutral-900"}`}
-                          >
-                            {persona.name}
-                          </div>
-                          <div className="mt-0.5 text-xs text-neutral-500">@{persona.username}</div>
-                        </div>
-                        {isSelected && (
-                          <div className="text-primary-600 flex-shrink-0">
-                            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                              <path
-                                fillRule="evenodd"
-                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                          </div>
-                        )}
-                      </button>
-                    );
-                  })
-                ) : (
-                  <div className="px-3 py-4 text-center">
-                    <User className="mx-auto h-8 w-8 text-neutral-400" />
-                    <p className="mt-2 text-sm text-neutral-600">No personas saved yet</p>
-                    <p className="mt-1 text-xs text-neutral-500">Create your first persona to get started</p>
-                  </div>
-                )}
-
-                {/* Divider */}
-                <div className="my-2 border-t border-neutral-200" />
-
-                {/* View All Personas Link */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsOpen(false);
-                    router.push("/personas");
-                  }}
-                  className="hover:bg-primary-50 hover:border-primary-200 flex w-full items-center gap-3 rounded-[var(--radius-button)] border border-transparent px-3 py-2 text-left transition-colors duration-150"
-                >
-                  <div className="text-primary-600 flex-shrink-0">
-                    <ExternalLink className="h-4 w-4" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-primary-700 text-sm font-medium">View Your Personas</div>
-                    <div className="mt-0.5 text-xs text-neutral-500">Manage voice profiles from creators</div>
-                  </div>
-                </button>
-
-                {/* Create New Persona Link */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsOpen(false);
-                    router.push("/personas");
-                  }}
-                  className="hover:bg-success-50 hover:border-success-200 mt-1 flex w-full items-center gap-3 rounded-[var(--radius-button)] border border-transparent px-3 py-2 text-left transition-colors duration-150"
-                >
-                  <div className="text-success-600 flex-shrink-0">
-                    <Plus className="h-4 w-4" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-success-700 text-sm font-medium">Create New Persona</div>
-                    <div className="mt-0.5 text-xs text-neutral-500">Analyze a creator&apos;s voice patterns</div>
-                  </div>
-                </button>
-              </>
-            )}
+        loading ? (
+          <div
+            ref={dropdownRef}
+            className="fixed z-[9999] w-72 rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-50 shadow-[var(--shadow-soft-drop)] p-4"
+            style={{
+              top: `${dropdownPosition.top}px`,
+              left: `${dropdownPosition.left}px`,
+            }}
+          >
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-neutral-400" />
+            </div>
           </div>
-        </div>
+        ) : (
+          <div ref={dropdownRef}>
+            <DropdownMenu
+              sections={generateDropdownSections()}
+              style={{
+                top: `${dropdownPosition.top}px`,
+                left: `${dropdownPosition.left}px`,
+              }}
+            />
+          </div>
+        )
       )}
     </div>
   );
