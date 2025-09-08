@@ -17,6 +17,15 @@
   "hooks": {
     "PostToolUse": [
       {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "'/Users/rmanor/Documents/Development-Local/Gen C Alpha/restart-dev.sh'"
+          }
+        ]
+      },
+      {
         "matcher": "Write||Multi",
         "hooks": [
           {

@@ -24,23 +24,24 @@ interface FirestorePersona {
   lastUsedAt?: string;
 }
 
-interface PersonasDropdownProps {
+interface ChatPersonasDropdownProps {
   selectedPersona?: string;
   onPersonaSelect?: (persona: string) => void;
-  selectedGenerator?: 'hook' | 'template' | null;
-  onGeneratorSelect?: (generator: 'hook' | 'template') => void;
+  selectedGenerator?: "hook" | "template" | null;
+  onGeneratorSelect?: (generator: "hook" | "template") => void;
   className?: string;
   disabled?: boolean;
 }
 
-export function PersonasDropdown({
+export function ChatPersonasDropdown({
   selectedPersona,
   onPersonaSelect,
   selectedGenerator,
   onGeneratorSelect,
   className = "",
   disabled = false,
-}: PersonasDropdownProps) {
+}: ChatPersonasDropdownProps) {
+  // State management following numbered variant system
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const [savedPersonas, setSavedPersonas] = useState<FirestorePersona[]>([]);
@@ -49,7 +50,7 @@ export function PersonasDropdown({
   const buttonRef = useRef<HTMLButtonElement>(null);
   const router = useRouter();
 
-  // Load personas from Firestore API
+  // Load personas from Firestore API with proper error handling
   useEffect(() => {
     const loadPersonas = async () => {
       // Wait for auth state to be ready
@@ -72,7 +73,7 @@ export function PersonasDropdown({
               // Use Firestore personas directly with proper mapping
               const firestorePersonas: FirestorePersona[] = data.personas ?? [];
 
-              // Ensure all personas have required fields
+              // Ensure all personas have required fields with fallbacks
               const processedPersonas = firestorePersonas.map((p) => ({
                 ...p,
                 username: p.username ?? p.name.toLowerCase().replace(/\s+/g, ""),
@@ -119,7 +120,7 @@ export function PersonasDropdown({
     };
   }, []);
 
-  // Calculate dropdown position to avoid layout shifts
+  // Calculate dropdown position to avoid layout shifts with numbered variants
   const calculateDropdownPosition = useCallback(() => {
     if (!buttonRef.current) return;
 
@@ -128,7 +129,7 @@ export function PersonasDropdown({
     const scrollX = window.scrollX;
 
     setDropdownPosition({
-      top: buttonRect.bottom + scrollY + 8, // 8px gap (mt-2)
+      top: buttonRect.bottom + scrollY + 8, // 8px gap following 4px grid system
       left: buttonRect.left + scrollX,
     });
   }, []);
@@ -165,6 +166,7 @@ export function PersonasDropdown({
     };
   }, [isOpen, calculateDropdownPosition]);
 
+  // Handle persona selection with state change feedback
   const handlePersonaSelect = (personaId: string) => {
     onPersonaSelect?.(personaId);
     setIsOpen(false);
@@ -178,96 +180,95 @@ export function PersonasDropdown({
     setIsOpen(!isOpen);
   };
 
-  // Generate dropdown sections based on current state
+  // Generate dropdown sections based on current state with numbered variants
   const generateDropdownSections = (): DropdownSection[] => {
     const sections: DropdownSection[] = [];
 
-    // Personas Section
-    const personaItems: DropdownItem[] = savedPersonas.length > 0 
-      ? savedPersonas.slice(0, 3).map((persona) => ({
-          id: persona.id,
-          label: persona.name,
-          description: `@${persona.username}`,
-          icon: persona.avatar ? (
-            <img
-              src={persona.avatar}
-              alt={persona.name}
-              className="h-4 w-4 rounded-full object-cover"
-            />
-          ) : (
-            <div className="flex h-4 w-4 items-center justify-center rounded-full bg-neutral-200 text-xs font-medium text-neutral-700">
-              {persona.initials}
-            </div>
-          ),
-          selected: selectedPersona === persona.id,
-          onClick: () => handlePersonaSelect(persona.id)
-        }))
-      : [{
-          id: 'no-personas',
-          label: 'No personas saved yet',
-          description: 'Create your first persona to get started',
-          icon: <Users className="h-4 w-4" />,
-          disabled: true,
-          onClick: () => {}
-        }];
+    // Personas Section with proper fallback handling
+    const personaItems: DropdownItem[] =
+      savedPersonas.length > 0
+        ? savedPersonas.slice(0, 3).map((persona) => ({
+            id: persona.id,
+            label: persona.name,
+            description: `@${persona.username}`,
+            icon: persona.avatar ? (
+              <img src={persona.avatar} alt={persona.name} className="h-4 w-4 rounded-full object-cover" />
+            ) : (
+              <div className="flex h-4 w-4 items-center justify-center rounded-full bg-neutral-200 text-xs font-medium text-neutral-700">
+                {persona.initials}
+              </div>
+            ),
+            selected: selectedPersona === persona.id,
+            onClick: () => handlePersonaSelect(persona.id),
+          }))
+        : [
+            {
+              id: "no-personas",
+              label: "No personas saved yet",
+              description: "Create your first persona to get started",
+              icon: <Users className="h-4 w-4" />,
+              disabled: true,
+              onClick: () => {},
+            },
+          ];
 
     sections.push({
-      id: 'personas',
-      label: 'Personas',
-      items: personaItems
+      id: "personas",
+      label: "Personas",
+      items: personaItems,
     });
 
-    // Script Options Section
+    // Script Options Section with numbered variant selections
     sections.push({
-      id: 'script-options',
-      label: 'Script Options',
+      id: "script-options",
+      label: "Script Options",
       items: [
         {
-          id: 'hook-generator',
-          label: 'Hook Generator',
-          description: 'Create engaging openings',
+          id: "hook-generator",
+          label: "Hook Generator",
+          description: "Create engaging openings",
           icon: <Zap className="h-4 w-4" />,
-          selected: selectedGenerator === 'hook',
-          onClick: () => onGeneratorSelect?.('hook')
+          selected: selectedGenerator === "hook",
+          onClick: () => onGeneratorSelect?.("hook"),
         },
         {
-          id: 'if-you-then-do-this',
-          label: 'If You Then Do This',
-          description: 'Conditional logic scripts',
+          id: "if-you-then-do-this",
+          label: "If You Then Do This",
+          description: "Conditional logic scripts",
           icon: <FileText className="h-4 w-4" />,
-          selected: selectedGenerator === 'template',
-          onClick: () => onGeneratorSelect?.('template')
-        }
-      ]
+          selected: selectedGenerator === "template",
+          onClick: () => onGeneratorSelect?.("template"),
+        },
+      ],
     });
 
-    // Management Section
+    // Management Section with navigation actions
     sections.push({
-      id: 'management',
-      label: 'Management',
+      id: "management",
+      label: "Management",
       items: [
         {
-          id: 'view-personas',
-          label: 'View Your Personas',
-          description: 'Manage voice profiles from creators',
+          id: "view-personas",
+          label: "View Your Personas",
+          description: "Manage voice profiles from creators",
           icon: <ExternalLink className="h-4 w-4" />,
           onClick: () => {
             setIsOpen(false);
             router.push("/personas");
-          }
+          },
         },
         {
-          id: 'create-persona',
-          label: 'Create New Persona',
-          description: 'Analyze a creator\'s voice patterns',
+          id: "create-persona",
+          label: "Create New Persona",
+          description: "Analyze a creator's voice patterns",
           icon: <Plus className="h-4 w-4" />,
-          badge: 'NEW',
+          badge: "NEW",
           onClick: () => {
             setIsOpen(false);
             router.push("/personas");
-          }
-        }
-      ]
+          },
+        },
+      ],
     });
 
     return sections;
@@ -275,7 +276,7 @@ export function PersonasDropdown({
 
   return (
     <div className={`relative ${className}`}>
-      {/* Trigger Button */}
+      {/* Trigger Button with numbered variant states */}
       <Button
         ref={buttonRef}
         type="button"
@@ -283,7 +284,7 @@ export function PersonasDropdown({
         size="icon"
         onClick={toggleDropdown}
         disabled={disabled}
-        className="h-10 w-10 flex-shrink-0 rounded-[var(--radius-button)] text-neutral-600 transition-colors duration-200 hover:bg-neutral-100 hover:text-neutral-900"
+        className="h-10 w-10 flex-shrink-0 rounded-[var(--radius-button)] text-neutral-600 transition-colors duration-150 hover:bg-neutral-100 hover:text-neutral-900"
         aria-label="Select persona"
       >
         <svg
@@ -304,12 +305,12 @@ export function PersonasDropdown({
         </svg>
       </Button>
 
-      {/* Dropdown Portal - positioned fixed to avoid layout shifts */}
-      {isOpen && (
-        loading ? (
+      {/* Dropdown Portal - positioned fixed to avoid layout shifts with numbered variants */}
+      {isOpen &&
+        (loading ? (
           <div
             ref={dropdownRef}
-            className="fixed z-[9999] w-72 rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-50 shadow-[var(--shadow-soft-drop)] p-4"
+            className="fixed z-[9999] w-72 rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-50 p-4 shadow-[var(--shadow-soft-drop)]"
             style={{
               top: `${dropdownPosition.top}px`,
               left: `${dropdownPosition.left}px`,
@@ -329,8 +330,7 @@ export function PersonasDropdown({
               }}
             />
           </div>
-        )
-      )}
+        ))}
     </div>
   );
 }

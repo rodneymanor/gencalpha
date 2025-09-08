@@ -257,6 +257,11 @@ export default function LibraryPage() {
     return (
       <>
         {content.split("\n").map((line, index) => {
+          // Empty lines for spacing
+          if (line.trim() === "") {
+            return <br key={index} />;
+          }
+
           // Handle headers
           if (line.startsWith("### ")) {
             return (
@@ -299,25 +304,26 @@ export default function LibraryPage() {
           }
 
 
-        // Handle bold text
+          // Handle bold text
           const boldText = line.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
 
-        // Handle italic text
+          // Handle italic text
           const italicText = boldText.replace(/\*(.*?)\*/g, "<em>$1</em>");
 
-        // Handle code spans
+          // Handle code spans
           const codeText = italicText.replace(
             /`(.*?)`/g,
-            '<code class="bg-neutral-100 px-1 py-0.5 rounded text-sm font-mono">$1</code>',
+            '<code class="bg-neutral-100 px-1 py-0.5 rounded text-sm font-mono">$1</code>'
+          );
 
-
-          // Empty lines for spacing
-          if (line.trim() === "") {
-            return <br key={index} />;
-          }
-
-        // Regular paragraphs
-          return <p key={index} className="mb-2 text-neutral-700" dangerouslySetInnerHTML={{ __html: codeText }} />;
+          // Regular paragraphs
+          return (
+            <p
+              key={index}
+              className="mb-2 text-neutral-700"
+              dangerouslySetInnerHTML={{ __html: codeText }}
+            />
+          );
         })}
       </>
     );

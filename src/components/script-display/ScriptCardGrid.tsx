@@ -1,14 +1,18 @@
-'use client'
+"use client"
 
-import React from 'react'
+import React from "react"
+import { RefreshCw, Loader2 } from "lucide-react"
 
-import type { ScriptSection, VideoScript } from './types'
+import type { ScriptSection, VideoScript } from "./types"
 
 // Component props
 interface ScriptCardGridProps {
   scripts: VideoScript[]
   title?: string
   subtitle?: string
+  onRefresh?: () => void
+  loading?: boolean
+  progressLabel?: string
 }
 
 // Component for individual script sections (Hook, Bridge, etc.)
@@ -48,59 +52,73 @@ const ScriptSection: React.FC<{ section: ScriptSection }> = ({ section }) => {
 // Component for individual video script card
 const ScriptCard: React.FC<{ script: VideoScript }> = ({ script }) => {
   return (
-    <div 
-      className={`
-        bg-neutral-50 rounded-[var(--radius-card)] p-4 
-        border border-neutral-200 hover:border-neutral-300 
-        transition-colors duration-200
-        ${script.spanRows ? 'row-span-2' : ''}
-      `}
+    <div
+      className={
+        "bg-neutral-50 rounded-[var(--radius-card)] p-4 border border-neutral-200 hover:border-neutral-300 transition-colors duration-200"
+      }
     >
-      {/* Card header with video number, title, and duration */}
-      <div className="flex items-center gap-3 mb-4">
-        <span className="text-neutral-600 text-sm font-medium">
-          {script.id}
-        </span>
-        <span className="text-base font-medium text-neutral-900 flex-1">
-          {script.title}
-        </span>
-        <span className="text-xs text-neutral-500">
-          {script.duration}
-        </span>
-      </div>
-
+      {/* Status badge */}
+      {script.status === 'loading' && (
+        <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-neutral-100 px-2 py-1 text-[11px] text-neutral-600">
+          <Loader2 className="h-3.5 w-3.5 animate-spin" /> Processing…
+        </div>
+      )}
       {/* Script sections container */}
       <div className="flex flex-col gap-2">
         {script.sections.map((section, index) => (
           <ScriptSection key={index} section={section} />
         ))}
       </div>
+
+      {/* Footer with duration */}
+      <div className="mt-3 pt-3 border-t border-neutral-200 text-xs text-neutral-600 flex items-center justify-end">
+        <span>Duration: {script.duration}</span>
+      </div>
     </div>
   )
 }
 
 // Main grid component for displaying multiple video scripts
-const ScriptCardGrid: React.FC<ScriptCardGridProps> = ({ 
-  scripts, 
-  title = 'Short Form Video Scripts',
-  subtitle = 'Complete scripts with Hook, Bridge, Golden Nugget, and WTA structure'
+const ScriptCardGrid: React.FC<ScriptCardGridProps> = ({
+  scripts,
+  title = "Short Form Video Scripts",
+  subtitle = "Complete scripts with Hook, Bridge, Golden Nugget, and WTA structure",
+  onRefresh,
+  loading = false,
+  progressLabel,
 }) => {
   return (
-    <div className="min-h-screen bg-neutral-50 py-8 px-6">
+    <div className="bg-neutral-50 py-8 px-6">
       <div className="max-w-[1200px] mx-auto">
         {/* Page header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-medium text-neutral-900 mb-2">
-            {title}
-          </h1>
-          <p className="text-neutral-600 text-sm">
-            {subtitle}
-          </p>
+        <div className="mb-8 flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-medium text-neutral-900 mb-2">{title}</h1>
+            <p className="text-neutral-600 text-sm">{subtitle}</p>
+            {loading && (
+              <div className="mt-2 inline-flex items-center gap-2 rounded-md bg-neutral-100 px-2 py-1 text-[12px] text-neutral-700">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>{progressLabel ?? 'Processing daily picks…'}</span>
+              </div>
+            )}
+          </div>
+          {onRefresh && (
+            <button
+              type="button"
+              aria-label="Refresh daily picks"
+              className="inline-flex h-9 items-center gap-2 rounded-md border border-neutral-200 bg-white px-3 text-sm text-neutral-700 hover:bg-neutral-50"
+              onClick={onRefresh}
+              title="Refresh"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Refresh
+            </button>
+          )}
         </div>
 
         {/* Masonry-style grid layout */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 auto-rows-auto grid-flow-dense">
-          {scripts.map(script => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 auto-rows-auto">
+          {scripts.map((script) => (
             <ScriptCard key={script.id} script={script} />
           ))}
         </div>

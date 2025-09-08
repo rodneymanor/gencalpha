@@ -7,7 +7,9 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { GoogleAIFileManager } from "@google/generative-ai/server";
 
 interface TranscriptionRequest {
-  videoUrl: string;
+  videoUrl?: string;
+  tiktokId?: string;
+  platform?: 'tiktok' | 'instagram';
 }
 
 interface TranscriptionResponse {
@@ -42,16 +44,24 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, operation:
 }
 
 // Download video from CDN URL
-async function downloadVideo(url: string): Promise<{ success: boolean; buffer?: ArrayBuffer; error?: string }> {
+async function downloadVideo(url: string): Promise<{ success: boolean; buffer?: ArrayBuffer; error?: string; status?: number }> {
   try {
     console.log("⬇️ Downloading video from CDN:", url);
 
-    const response = await fetch(url, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-      },
-    });
+    const parsed = new URL(url);
+    const isTikTok = parsed.hostname.includes('tiktok');
+    const headers: Record<string, string> = {
+      "User-Agent":
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      "Accept": "*/*",
+    };
+    if (isTikTok) {
+      headers["Referer"] = "https://www.tiktok.com/";
+      headers["Origin"] = "https://www.tiktok.com";
+      headers["Range"] = "bytes=0-";
+    }
+
+    const response = await fetch(url, { headers });
 
     if (!response.ok) {
       throw new Error(`Failed to download video: ${response.status} ${response.statusText}`);
@@ -254,12 +264,13 @@ export async function POST(request: NextRequest) {
 
   try {
     const body: TranscriptionRequest = await request.json();
-    const { videoUrl } = body;
+    const { videoUrl: initialUrl, tiktokId, platform } = body;
 
-    if (!videoUrl) {
-      return NextResponse.json({ success: false, error: "Video URL is required" } satisfies TranscriptionResponse, {
-        status: 400,
-      });
+    if (!initialUrl && !tiktokId) {
+      return NextResponse.json(
+        { success: false, error: "Video URL or TikTok ID is required" } satisfies TranscriptionResponse,
+        { status: 400 },
+      );
     }
 
     // Validate environment
@@ -271,20 +282,69 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(`📹 [${requestId}] Processing video URL: ${videoUrl}`);
+    if (initialUrl) {
+      console.log(`📹 [${requestId}] Processing video URL: ${initialUrl}`);
+    } else if (tiktokId) {
+      console.log(`📹 [${requestId}] No URL provided; will resolve via RapidAPI for TikTok id=${tiktokId}`);
+    }
 
-    // Step 1: Download video from CDN
-    const downloadResult = await downloadVideo(videoUrl);
-    if (!downloadResult.success || !downloadResult.buffer) {
-      console.error(`❌ [${requestId}] Download failed:`, downloadResult.error);
+    // Step 1: Determine a downloadable URL, possibly via RapidAPI
+    let urlToFetch = initialUrl as string | undefined;
+    if (!urlToFetch && tiktokId) {
+      try {
+        const { fetchTikTokRapidApiById, selectLowestBitratePlayUrl } = await import('@/lib/tiktok-rapidapi');
+        const data = await fetchTikTokRapidApiById(tiktokId);
+        const aweme = (data as any)?.data?.aweme_detail ?? (data as any)?.aweme_detail ?? data;
+        const freshUrl = selectLowestBitratePlayUrl(aweme);
+        if (freshUrl) {
+          urlToFetch = freshUrl;
+          console.log(`🎯 [${requestId}] Resolved TikTok CDN URL via RapidAPI`);
+        }
+      } catch (e) {
+        console.error(`❌ [${requestId}] Failed to resolve via RapidAPI:`, e);
+      }
+    }
+
+    if (!urlToFetch) {
       return NextResponse.json(
-        {
-          success: false,
-          error: "Failed to download video",
-          details: downloadResult.error,
-        } satisfies TranscriptionResponse,
+        { success: false, error: "Unable to resolve a downloadable video URL" } satisfies TranscriptionResponse,
         { status: 400 },
       );
+    }
+
+    // Step 2: Download video from CDN
+    let downloadResult = await downloadVideo(urlToFetch);
+    if (!downloadResult.success || !downloadResult.buffer) {
+      console.error(`❌ [${requestId}] Download failed:`, downloadResult.error);
+
+      // If this is TikTok and we have an ID, try refreshing a playable URL via RapidAPI
+      const looksLikeTikTok = platform === 'tiktok' || videoUrl.includes('tiktok');
+      if (looksLikeTikTok && tiktokId) {
+        try {
+          console.log(`🔁 [${requestId}] TikTok fallback via RapidAPI for id=${tiktokId}`);
+          const { fetchTikTokRapidApiById, selectLowestBitratePlayUrl } = await import('@/lib/tiktok-rapidapi');
+          const data = await fetchTikTokRapidApiById(tiktokId);
+          const aweme = data?.data?.aweme_detail ?? data?.aweme_detail ?? data;
+          const freshUrl = selectLowestBitratePlayUrl(aweme);
+          if (freshUrl) {
+            console.log(`🎯 [${requestId}] Got fresh CDN URL; retrying download`);
+            downloadResult = await downloadVideo(freshUrl);
+          }
+        } catch (err) {
+          console.error(`❌ [${requestId}] RapidAPI fallback failed:`, err);
+        }
+      }
+
+      if (!downloadResult.success || !downloadResult.buffer) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Failed to download video",
+            details: downloadResult.error,
+          } satisfies TranscriptionResponse,
+          { status: 400 },
+        );
+      }
     }
 
     console.log(`✅ [${requestId}] Video downloaded successfully: ${downloadResult.buffer.byteLength} bytes`);

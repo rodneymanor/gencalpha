@@ -9,6 +9,7 @@ interface ExpandableSectionProps {
   expandedText?: string
   children: React.ReactNode
   className?: string
+  plain?: boolean // when true, remove background and borders
 }
 
 const ExpandableSection: React.FC<ExpandableSectionProps> = ({
@@ -16,7 +17,8 @@ const ExpandableSection: React.FC<ExpandableSectionProps> = ({
   collapsedText = 'Explore Daily Content',
   expandedText = 'Hide Content Library',
   children,
-  className = ''
+  className = '',
+  plain = false,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false)
   const contentRef = useRef<HTMLDivElement>(null)
@@ -79,22 +81,20 @@ const ExpandableSection: React.FC<ExpandableSectionProps> = ({
       <button
         ref={triggerRef}
         onClick={handleToggle}
-        className="
-          w-full py-4 px-6
-          bg-neutral-100 hover:bg-neutral-200 
-          border-t border-neutral-200
-          transition-all duration-200
-          group
-        "
+        className={
+          `w-full py-4 px-6 transition-all duration-200 group ` +
+          (plain ? '' : 'bg-neutral-100 hover:bg-neutral-200 border-t border-neutral-200')
+        }
       >
         <div className="max-w-[1200px] mx-auto flex items-center justify-center gap-3">
-          <span className="text-neutral-700 font-medium text-sm">
+          <span className="text-neutral-700 font-medium text-sm motion-safe:animate-pulse [animation-duration:2.5s]">
             {isExpanded ? expandedText : collapsedText}
           </span>
           <ChevronsUp 
             className={`
               w-4 h-4 text-neutral-600
               transition-transform duration-500 ease-out
+              motion-safe:animate-pulse [animation-duration:2.5s]
               ${isExpanded ? 'rotate-180' : ''}
             `}
           />
@@ -111,7 +111,7 @@ const ExpandableSection: React.FC<ExpandableSectionProps> = ({
           transition: 'max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
         }}
       >
-        <div className="border-t border-neutral-200">
+        <div className={plain ? '' : 'border-t border-neutral-200'}>
           {children}
         </div>
       </div>

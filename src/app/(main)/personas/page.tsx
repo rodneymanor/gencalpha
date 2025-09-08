@@ -12,6 +12,9 @@ import { auth } from "@/lib/firebase";
 
 import { PersonaCreatePanel } from "./components/persona-create-panel";
 import { PersonaDetailsPanel } from "./components/persona-details-panel";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/auth-context";
 import { PersonaEmptyState } from "./components/persona-empty-state";
 import { PersonaHeader } from "./components/persona-header";
 // Services
@@ -22,11 +25,15 @@ import type { FirestorePersona, AnalysisProgress, AnalysisMode } from "./types";
 import { getRelativeTime } from "./utils";
 
 export default function PersonasPage() {
+  const { userProfile } = useAuth();
   // State management
   const [filterValue, setFilterValue] = useState("all");
   const [userPersonas, setUserPersonas] = useState<CreatorPersona[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPersona, setSelectedPersona] = useState<PersonaDetails | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [descModalOpen, setDescModalOpen] = useState(false);
+  const [descPersona, setDescPersona] = useState<{ id: string; name: string; description?: string } | null>(null);
   const [personasData, setPersonasData] = useState<FirestorePersona[]>([]);
 
   // Persona creation state
@@ -87,6 +94,13 @@ export default function PersonasPage() {
       });
 
       setUserPersonas(convertedPersonas);
+
+      // Default select "aron sogi" if present, else first
+      const defaultByName = convertedPersonas.find(
+        (p) => p.name?.toLowerCase?.().trim() === "aron sogi"
+      );
+      const defaultId = defaultByName?.id ?? convertedPersonas[0]?.id ?? null;
+      setSelectedId((prev) => prev ?? defaultId);
     } catch (err) {
       console.error("Error loading personas:", err);
       setUserPersonas([]);
@@ -99,28 +113,39 @@ export default function PersonasPage() {
   const handlePersonaClick = (personaId: string) => {
     console.log("Clicked persona:", personaId);
     const persona = personasData.find((p) => p.id === personaId);
-    if (persona) {
-      setSelectedPersona({
-        id: persona.id,
-        name: persona.name,
-        description: persona.description,
-        platform: persona.platform,
-        username: persona.username,
-        analysis: persona.analysis,
-        tags: persona.tags,
-        status: persona.status,
-        createdAt: persona.createdAt,
-        updatedAt: persona.updatedAt,
-        usageCount: persona.usageCount,
-        lastUsedAt: persona.lastUsedAt ?? undefined,
-        voiceStyle: persona.voiceStyle,
-        distinctiveness: persona.distinctiveness,
-        complexity: persona.complexity,
-        hasHookSystem: persona.hasHookSystem,
-        hasScriptRules: persona.hasScriptRules,
-        signatureMoveCount: persona.signatureMoveCount,
-      });
-    }
+    if (!persona) return;
+
+    // Always open the description modal first
+    setSelectedPersona(null);
+    setDescPersona({ id: persona.id, name: persona.name, description: persona.description });
+    setDescModalOpen(true);
+  };
+
+  const openFullDetails = () => {
+    if (!descPersona) return;
+    const persona = personasData.find((p) => p.id === descPersona.id);
+    if (!persona) return;
+    setSelectedPersona({
+      id: persona.id,
+      name: persona.name,
+      description: persona.description,
+      platform: persona.platform,
+      username: persona.username,
+      analysis: persona.analysis,
+      tags: persona.tags,
+      status: persona.status,
+      createdAt: persona.createdAt,
+      updatedAt: persona.updatedAt,
+      usageCount: persona.usageCount,
+      lastUsedAt: persona.lastUsedAt ?? undefined,
+      voiceStyle: persona.voiceStyle,
+      distinctiveness: persona.distinctiveness,
+      complexity: persona.complexity,
+      hasHookSystem: persona.hasHookSystem,
+      hasScriptRules: persona.hasScriptRules,
+      signatureMoveCount: persona.signatureMoveCount,
+    });
+    setDescModalOpen(false);
   };
 
   // Handle add new persona
@@ -185,14 +210,44 @@ export default function PersonasPage() {
                 personas={filteredPersonas}
                 onPersonaClick={handlePersonaClick}
                 onAddClick={handleAddPersona}
+                selectedId={selectedId ?? undefined}
+                selectable={true}
+                onPersonaSelect={(id) => setSelectedId(id)}
               />
             )}
           </div>
         </div>
       </div>
 
-      {/* Persona Details Panel */}
+      {/* Persona Details Panel (Super Admin only) */}
       <PersonaDetailsPanel persona={selectedPersona} onClose={() => setSelectedPersona(null)} />
+
+      {/* Description Dialog (Normal users) */}
+      <Dialog open={descModalOpen} onOpenChange={setDescModalOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{descPersona?.name ?? "Persona"}</DialogTitle>
+            <DialogDescription>Persona description</DialogDescription>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto pr-1">
+            {descPersona?.description ? (
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-neutral-700">
+                {descPersona.description}
+              </p>
+            ) : (
+              <p className="text-sm text-neutral-500">No description available for this persona.</p>
+            )}
+          </div>
+          {userProfile?.role === "super_admin" && (
+            <DialogFooter>
+              <Button variant="secondary" onClick={() => setDescModalOpen(false)}>
+                Close
+              </Button>
+              <Button onClick={openFullDetails}>View Full Details</Button>
+            </DialogFooter>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Create Persona Panel */}
       <PersonaCreatePanel

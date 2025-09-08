@@ -2,9 +2,10 @@
 
 import React from "react";
 
-import { Plus } from "lucide-react";
+import { Plus, AtSign, Pencil, Trash2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { Checkbox } from "@/components/ui/checkbox";
 
 // Types
 export interface CreatorPersona {
@@ -20,6 +21,10 @@ interface CreatorPersonaCardProps {
   persona: CreatorPersona;
   onClick?: (personaId: string) => void;
   className?: string;
+  selected?: boolean;
+  selectable?: boolean;
+  onEdit?: (personaId: string) => void;
+  onDelete?: (personaId: string) => void;
 }
 
 interface AddPersonaCardProps {
@@ -28,10 +33,16 @@ interface AddPersonaCardProps {
 }
 
 // Individual Persona Card Component
-export function CreatorPersonaCard({ persona, onClick, className }: CreatorPersonaCardProps) {
+export function CreatorPersonaCard({ persona, onClick, className, selected = false, selectable = false, onEdit, onDelete }: CreatorPersonaCardProps) {
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     onClick?.(persona.id);
+  };
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onClick?.(persona.id);
+    }
   };
 
   // Avatar style variants using Tailwind classes with dark mode support
@@ -45,85 +56,82 @@ export function CreatorPersonaCard({ persona, onClick, className }: CreatorPerso
   const avatarVariant = persona.avatarVariant ?? "light";
 
   return (
-    <button
+    <div
+      role="button"
+      tabIndex={0}
       onClick={handleClick}
+      onKeyDown={handleKeyDown}
       className={cn(
-        "group flex cursor-pointer flex-col gap-2.5 text-left",
-        "rounded-[var(--radius-card)] outline-offset-2 outline-transparent",
+        "group flex cursor-pointer flex-col text-left",
+        "rounded-[var(--radius-card)] focus:outline-hidden focus:ring-2 focus:ring-brand-400 focus:ring-offset-2",
         "transition-all duration-200",
-        "hover:outline-primary-300/30 focus:outline-primary-300/70",
         className,
       )}
     >
-      {/* Document Container */}
+      {/* Card Container */}
       <div
         className={cn(
-          "relative flex h-[164px] items-end justify-center",
-          "p-5 pb-0",
-          "border border-neutral-200 bg-neutral-50",
-          "dark:border-neutral-700 dark:bg-neutral-800",
-          "rounded-[var(--radius-card)]",
-          "transition-all duration-300 ease-out",
-          "group-hover:border-neutral-300 group-hover:bg-neutral-100",
-          "dark:group-hover:border-neutral-600 dark:group-hover:bg-neutral-700",
-          "overflow-hidden",
+          "border bg-card",
+          selected ? "border-brand-500 bg-brand-50" : "border-neutral-200",
+          "rounded-[var(--radius-card)] p-5 transition-all duration-200",
+          !selected && "hover:border-neutral-300 hover:shadow-[var(--shadow-soft-drop)]",
         )}
       >
-        {/* Document Preview */}
-        <div
-          className={cn(
-            "relative h-[calc(100%-20px)] w-[70%] max-w-[180px]",
-            "rounded-t-[var(--radius-card)]",
-            "bg-gradient-to-b from-neutral-50 to-neutral-100",
-            "dark:from-neutral-800 dark:to-neutral-700",
-            "transition-all duration-300 ease-out",
-            "shadow-[0_-5px_10px_-3px_rgba(0,0,0,0.08),0_-2px_4px_-2px_rgba(0,0,0,0.06)]",
-            "dark:shadow-[0_-5px_10px_-3px_rgba(0,0,0,0.2),0_-2px_4px_-2px_rgba(0,0,0,0.15)]",
-            "border border-b-0 border-neutral-200",
-            "dark:border-neutral-700",
-            "group-hover:-translate-y-1.5",
-            "group-hover:shadow-[0_-10px_20px_-5px_rgba(0,0,0,0.12),0_-4px_8px_-3px_rgba(0,0,0,0.08)]",
-            "dark:group-hover:shadow-[0_-10px_20px_-5px_rgba(0,0,0,0.3),0_-4px_8px_-3px_rgba(0,0,0,0.2)]",
-          )}
-        >
-          {/* Document Content */}
-          <div className="flex h-full w-full flex-col items-center justify-start p-5">
-            {/* Avatar */}
-            <div
-              className={cn(
-                "h-[42px] w-[42px] rounded-full",
-                "flex items-center justify-center",
-                "mb-3.5 flex-shrink-0 text-base font-semibold",
-                avatarStyles[avatarVariant],
-              )}
-            >
-              {persona.initials}
-            </div>
-
-            {/* Script Lines */}
-            <div className="flex w-full flex-col items-center gap-1">
-              {[85, 75, 80, 65, 70, 60].map((width, index) => (
-                <div
-                  key={`script-line-${width}`}
-                  className="h-0.5 rounded-[1px] bg-neutral-200/60 dark:bg-neutral-50/10"
-                  style={{ width: `${width}%` }}
-                />
-              ))}
+        {/* Header */}
+        <div className="mb-4 flex items-center gap-4">
+          <div
+            className={cn(
+              "h-12 w-12 rounded-[10px]",
+              "flex items-center justify-center text-lg font-semibold",
+              avatarStyles[avatarVariant],
+            )}
+          >
+            {persona.initials}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-sm font-medium text-neutral-900">{persona.name}</div>
+            <div className="mt-0.5 flex items-center gap-1 truncate text-xs text-neutral-600">
+              <AtSign className="h-3.5 w-3.5 text-neutral-500" />
+              <span className="truncate">{persona.followers}</span>
             </div>
           </div>
+          {selectable && (
+            <Checkbox
+              checked={selected}
+              onCheckedChange={() => onClick?.(persona.id)}
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
+              className={cn(
+                "size-4 rounded-[var(--radius-button)]",
+                selected ? "bg-brand-500 border-brand-500" : "border-neutral-300"
+              )}
+            />
+          )}
         </div>
-      </div>
 
-      {/* Creator Info */}
-      <div className="px-0.5">
-        <div className="truncate text-sm font-normal tracking-tight text-neutral-900 dark:text-neutral-100">
-          {persona.name}
-        </div>
-        <div className="mt-0.5 truncate text-xs font-normal tracking-tight text-neutral-600 dark:text-neutral-400">
-          {persona.followers} • {persona.lastEdited}
+        {/* Actions */}
+        <div className="mt-4 flex gap-2 border-t border-neutral-200 pt-4">
+          <button
+            className="flex flex-1 items-center justify-center gap-2 rounded-[var(--radius-button)] border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm font-medium text-neutral-700 transition-colors duration-150 hover:bg-neutral-100 hover:text-neutral-900"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit?.(persona.id);
+            }}
+          >
+            <Pencil className="h-4 w-4" /> Edit
+          </button>
+          <button
+            className="flex flex-1 items-center justify-center gap-2 rounded-[var(--radius-button)] border border-destructive-200 bg-neutral-50 px-3 py-2 text-sm font-medium text-destructive-600 transition-colors duration-150 hover:bg-destructive-50"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete?.(persona.id);
+            }}
+          >
+            <Trash2 className="h-4 w-4" /> Delete
+          </button>
         </div>
       </div>
-    </button>
+    </div>
   );
 }
 
@@ -174,22 +182,38 @@ interface CreatorPersonaGridProps {
   onPersonaClick?: (personaId: string) => void;
   onAddClick?: () => void;
   className?: string;
+  selectedId?: string;
+  selectable?: boolean;
+  onPersonaSelect?: (personaId: string) => void;
 }
 
-export function CreatorPersonaGrid({ personas, onPersonaClick, onAddClick, className }: CreatorPersonaGridProps) {
+export function CreatorPersonaGrid({ personas, onPersonaClick, onAddClick, className, selectedId, selectable = false, onPersonaSelect }: CreatorPersonaGridProps) {
   return (
     <div
       className={cn(
-        "grid gap-5",
-        "grid-cols-[repeat(auto-fill,minmax(260px,1fr))]",
-        "md:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] md:gap-4",
-        "sm:grid-cols-2 sm:gap-3",
+        "grid gap-4",
+        "grid-cols-[repeat(auto-fill,minmax(240px,1fr))]",
+        "sm:grid-cols-2",
         className,
       )}
     >
-      {personas.map((persona) => (
-        <CreatorPersonaCard key={persona.id} persona={persona} onClick={onPersonaClick} />
-      ))}
+      {personas.map((persona) => {
+        const handle = (id: string) => {
+          onPersonaSelect?.(id);
+          onPersonaClick?.(id);
+        };
+        return (
+          <CreatorPersonaCard
+            key={persona.id}
+            persona={persona}
+            onClick={handle}
+            selected={selectedId === persona.id}
+            selectable={selectable}
+            onEdit={(id) => onPersonaClick?.(id)}
+            onDelete={() => { /* no-op by default; wire up in page if needed */ }}
+          />
+        );
+      })}
       <AddPersonaCard onClick={onAddClick} />
     </div>
   );

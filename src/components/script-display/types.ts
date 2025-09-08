@@ -13,4 +13,6 @@ export interface VideoScript {
   duration: string
   sections: ScriptSection[]
   spanRows?: boolean
+  status?: 'loading' | 'ready' | 'error'
+  statusText?: string
 }

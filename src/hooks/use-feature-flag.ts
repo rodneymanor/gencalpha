@@ -18,7 +18,7 @@ export const useCreatorsPageFlag = () => useFeatureFlag("creators_page");
 export const useGhostWriterFlag = () => useFeatureFlag("ghost_writer");
 export const useIdeaInboxFlag = () => useFeatureFlag("idea_inbox");
 export const useBrandToolbarFlag = () => useFeatureFlag("brand_toolbar");
-export const useBrandSettingsFlag = () => useFeatureFlag("brand_settings");
+export const useBrandSettingsFlag = () => true; // Enabled for brand settings modal
 export const useThemeChooserFlag = () => useFeatureFlag("theme_chooser");
 
 // Add more feature flag hooks as needed

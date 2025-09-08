@@ -9,6 +9,7 @@ export interface StreamlinedScriptWriterProps {
   fromLibrary?: boolean;
   preselectedGenerator?: string;
   preselectedTemplate?: string;
+  onBrandModalOpen?: () => void;
 }
 
 export interface QuickGenerator {

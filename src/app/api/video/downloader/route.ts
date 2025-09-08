@@ -120,12 +120,20 @@ async function downloadVideoBuffer(videoUrl: string): Promise<ArrayBuffer> {
     console.log("🔍 [DOWNLOADER] Detected Apify key-value store URL, fetching directly");
   }
 
-  const response = await fetch(videoUrl, {
-    headers: {
-      "User-Agent":
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    },
-  });
+  const u = new URL(videoUrl);
+  const isTikTok = u.hostname.includes('tiktok');
+  const headers: Record<string, string> = {
+    "User-Agent":
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Accept": "*/*",
+  };
+  if (isTikTok) {
+    headers["Referer"] = "https://www.tiktok.com/";
+    headers["Origin"] = "https://www.tiktok.com";
+    headers["Range"] = "bytes=0-";
+  }
+
+  const response = await fetch(videoUrl, { headers });
 
   console.log(`🔍 [DOWNLOADER] Response status: ${response.status}`);
   console.log(`🔍 [DOWNLOADER] Response headers:`, Object.fromEntries(response.headers.entries()));

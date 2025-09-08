@@ -16,6 +16,7 @@ export function StreamlinedScriptWriter({
   fromLibrary = false,
   preselectedGenerator,
   preselectedTemplate,
+  onBrandModalOpen,
 }: StreamlinedScriptWriterProps) {
   // Use the main orchestrator hook that manages all state and logic
   const {
@@ -56,12 +57,12 @@ export function StreamlinedScriptWriter({
     handleScriptUpdate,
     showFullTranscript,
     setShowFullTranscript,
-  } = useScriptGeneration({ 
-    initialPrompt, 
-    onScriptComplete, 
-    fromLibrary, 
-    preselectedGenerator, 
-    preselectedTemplate 
+  } = useScriptGeneration({
+    initialPrompt,
+    onScriptComplete,
+    fromLibrary,
+    preselectedGenerator,
+    preselectedTemplate,
   });
 
   // Render the appropriate view based on flow state
@@ -73,6 +74,7 @@ export function StreamlinedScriptWriter({
         onSubmit={handleSend}
         selectedPersona={selectedPersona}
         onPersonaSelect={handleChatPersonaSelect}
+        onBrandModalOpen={onBrandModalOpen}
         className={className}
       />
     );

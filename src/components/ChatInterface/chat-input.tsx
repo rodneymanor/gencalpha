@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TypewriterPlaceholder } from "@/components/ui/typewriter-placeholder";
-import { PersonasDropdown } from "@/components/write-chat/personas-dropdown";
+import { ChatPersonasDropdown } from "@/components/ChatInterface/personas-dropdown";
 import { useTrendingTopics } from "@/hooks/use-trending-topics";
 
 interface ChatInputProps {
@@ -235,7 +235,7 @@ export default function ChatInput({
 
         {/* Personas dropdown on far left */}
         {showPersonas && (
-          <PersonasDropdown 
+          <ChatPersonasDropdown 
             selectedPersona={selectedPersona} 
             onPersonaSelect={onPersonaSelect} 
             selectedGenerator={selectedGenerator}

@@ -426,6 +426,7 @@ function SavedCollectionsTabContent({
           author: v.metadata?.author,
           platform: v.platform,
         })),
+      );
 
       setSavedVideos(favoriteVideos);
     } catch (error) {
@@ -472,6 +473,7 @@ function SavedCollectionsTabContent({
           hasMetadata: !!v.metadata,
           author: v.metadata?.author,
         })),
+      );
 
       // Find the original Video object by ID to preserve all metadata
       const originalVideo = savedVideos.find((v) => v.id === videoData.id);
