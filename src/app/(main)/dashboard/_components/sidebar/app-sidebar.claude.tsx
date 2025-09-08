@@ -1,28 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import Link from "next/link";
-
 import { usePathname, useRouter } from "next/navigation";
-
-import {
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  Chrome,
-  Smartphone,
-  FileText,
-  FolderOpen,
-  Hash,
-  MousePointer,
-  PenTool,
-  PlayCircle,
-  Sparkles,
-  TrendingUp,
-  Users,
-  PanelLeft,
-} from "lucide-react";
 import { createPortal } from "react-dom";
+
+import { ChevronDown, FileText, FolderOpen, PenTool, PlayCircle, Users, Plus, Chrome, Smartphone, PanelLeft } from "lucide-react";
 
 import { useContentItems } from "@/components/content-inbox/hooks/use-content-inbox";
 import { listConversations } from "@/components/write-chat/services/chat-service";
@@ -124,12 +106,12 @@ function FixedTooltip({ children, content, isVisible }: TooltipProps) {
   );
 }
 
-export function AppSidebar({ className, onItemClick }: AppSidebarProps) {
+export function AppSidebarClaude({ className, onItemClick }: AppSidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const { user } = useAuth();
 
-  // Pin + hover-to-open (desktop only); always expanded on mobile
+  // Pin state and collapsed state
   const [isPinned, setIsPinned] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("sidebar-pinned");
@@ -143,6 +125,7 @@ export function AppSidebar({ className, onItemClick }: AppSidebarProps) {
       if (isMobile) return false;
       const pinnedSaved = localStorage.getItem("sidebar-pinned");
       const pinned = pinnedSaved ? JSON.parse(pinnedSaved) : false;
+      // If pinned, start expanded; otherwise default to collapsed for hover-open UX
       return pinned ? false : true;
     }
     return true;
@@ -164,13 +147,6 @@ export function AppSidebar({ className, onItemClick }: AppSidebarProps) {
 
   // Use content items hook for fetching library items
   const { data: contentData } = useContentItems({}, { field: "savedAt", direction: "desc" });
-
-  const quickGenerators: QuickGenerator[] = [
-    { id: "generate-hooks", title: "Hook Generator", uses: 24, icon: Hash },
-    { id: "content-ideas", title: "Content Ideas", uses: 18, icon: Sparkles },
-    { id: "if-then-script", title: "If You Then Do This", uses: 15, icon: MousePointer },
-    { id: "problem-solution", title: "Problem Solution", uses: 32, icon: TrendingUp },
-  ];
 
   const sections: SidebarSection[] = [
     {
@@ -210,6 +186,7 @@ export function AppSidebar({ className, onItemClick }: AppSidebarProps) {
     });
   };
 
+  // Hover handlers (desktop only, no-op when pinned)
   const handleMouseEnter = () => {
     if (typeof window === "undefined") return;
     const isMobile = window.innerWidth < 768;
@@ -220,12 +197,14 @@ export function AppSidebar({ className, onItemClick }: AppSidebarProps) {
     const isMobile = window.innerWidth < 768;
     if (!isMobile && !isPinned) setIsCollapsed(true);
   };
+
   const togglePin = () => {
     const next = !isPinned;
     setIsPinned(next);
     if (typeof window !== "undefined") {
       localStorage.setItem("sidebar-pinned", JSON.stringify(next));
     }
+    // When pinning, keep expanded; when unpinning, collapse back to hover baseline
     setIsCollapsed(!next ? true : false);
   };
 
@@ -239,34 +218,28 @@ export function AppSidebar({ className, onItemClick }: AppSidebarProps) {
       "no-recent": "/library", // Navigate to library when clicking "No recent items"
     };
 
-    // For dynamic recent items (from database), navigate to library
     const url = urlMap[id] || "/library";
 
-    // Close slideout wrapper by dispatching a global event
     if (typeof window !== "undefined") {
       window.dispatchEvent(new CustomEvent("write:close-slideout"));
     }
 
-    // If already on the same route, reload for fresh content (especially /write)
     if (pathname === url) {
       window.location.href = url;
     } else {
       router.push(url);
     }
 
-    // Call the onItemClick callback if provided (for mobile menu close)
     if (onItemClick) {
       onItemClick();
     }
   };
 
   const handleLogoClick = () => {
-    // Close slideout wrapper by dispatching a global event
     if (typeof window !== "undefined") {
       window.dispatchEvent(new CustomEvent("write:close-slideout"));
     }
 
-    // If already on /write (with or without query params), reload the page for a fresh script
     const homePage = APP_CONFIG.navigation.homePage;
     if (window.location.pathname === homePage || window.location.pathname.startsWith(homePage)) {
       window.location.href = homePage;
@@ -274,7 +247,6 @@ export function AppSidebar({ className, onItemClick }: AppSidebarProps) {
       router.push(homePage);
     }
 
-    // Call the onItemClick callback if provided (for mobile menu close)
     if (onItemClick) {
       onItemClick();
     }
@@ -296,31 +268,28 @@ export function AppSidebar({ className, onItemClick }: AppSidebarProps) {
         // Combine different library items (chats and content)
         const libraryItems: SidebarItem[] = [];
 
-        // Add recent chat conversations (scripts)
         const recentChats = conversations.slice(0, 2).map((chat) => ({
           id: chat.id,
           title: chat.title ?? "Untitled Script",
-          icon: PenTool, // Script icon for chats
+          icon: PenTool,
         }));
         libraryItems.push(...recentChats);
 
-        // Add recent content items if available
         if (contentData?.pages) {
           const contentItems = contentData.pages
             .flatMap((page) => page.items ?? [])
-            .slice(0, 3 - recentChats.length) // Fill up to 3 total items
+            .slice(0, 3 - recentChats.length)
             .map((item) => ({
               id: item.id,
               title: item.title ?? "Untitled Content",
               icon:
                 item.platform.toLowerCase() === "tiktok" || item.platform.toLowerCase() === "instagram"
-                  ? PlayCircle // Video icon for social media content
-                  : FileText, // Document icon for other content
+                  ? PlayCircle
+                  : FileText,
             }));
           libraryItems.push(...contentItems);
         }
 
-        // If still less than 3 items, show what we have or a placeholder
         setRecentItems(libraryItems.length > 0 ? libraryItems.slice(0, 3) : []);
       } catch (error) {
         console.error("Error fetching sidebar data:", error);
@@ -331,11 +300,9 @@ export function AppSidebar({ className, onItemClick }: AppSidebarProps) {
   }, [user, contentData]);
 
   useEffect(() => {
-    // Simulate AI activity indicator
     const interval = setInterval(() => {
       setIsAIActive((prev) => !prev);
     }, 4000);
-
     return () => clearInterval(interval);
   }, []);
 
@@ -403,138 +370,74 @@ export function AppSidebar({ className, onItemClick }: AppSidebarProps) {
           )}
         </div>
 
-        {/* Search Bar - Commented out for now */}
-        {/* {!isCollapsed && (
-          <div className="border-b border-gray-50 p-4">
-            <div className="relative">
-              <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search or ask AI..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50/50 pr-10 pl-10 text-sm text-gray-700 transition-all duration-200 focus:border-gray-300 focus:bg-white focus:ring-1 focus:ring-gray-200 focus:outline-none"
-              />
-              <button className="absolute top-1/2 right-2 -translate-y-1/2 transform rounded-md p-1 text-gray-400 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-600">
-                <Mic className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          </div>
-        )} */}
-
-        {/* Primary CTA */}
+        {/* Primary CTA - Claude style (circle + plus) */}
         <div className={isCollapsed ? "py-4" : "p-4"}>
           {!isCollapsed ? (
             <button
               onClick={() => {
-                // Close slideout wrapper by dispatching a global event
                 if (typeof window !== "undefined") {
                   window.dispatchEvent(new CustomEvent("write:close-slideout"));
                 }
-
-                // Navigate to write page
                 router.push("/write");
-
-                // Call the onItemClick callback if provided (for mobile menu close)
                 if (onItemClick) {
                   onItemClick();
                 }
               }}
               className={cn(
-                "bg-brand group flex h-10 w-full items-center justify-center gap-2 rounded-lg",
-                "text-sm font-medium text-white transition-all duration-200 ease-out",
-                "hover:bg-brand-600 active:bg-brand-700 shadow-sm hover:shadow-md",
+                "group flex w-full items-center gap-3 rounded-md p-2 text-left transition-colors",
+                "hover:bg-neutral-100",
               )}
             >
-              <PenTool className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
-              <span>New Script</span>
+              <span
+                className={cn(
+                  "bg-brand flex h-8 w-8 items-center justify-center rounded-full text-white",
+                  "shadow-sm group-hover:shadow-md transition-shadow",
+                )}
+              >
+                <Plus className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
+              </span>
+              <span className="text-sm font-medium text-neutral-900">New Script</span>
             </button>
           ) : (
             <FixedTooltip isVisible={isCollapsed} content="New Script">
               <button
                 onClick={() => {
-                  // Close slideout wrapper by dispatching a global event
                   if (typeof window !== "undefined") {
                     window.dispatchEvent(new CustomEvent("write:close-slideout"));
                   }
-
-                  // Navigate to write page
                   router.push("/write");
-
-                  // Call the onItemClick callback if provided (for mobile menu close)
                   if (onItemClick) {
                     onItemClick();
                   }
                 }}
                 className={cn(
-                  "bg-brand group mx-auto flex h-10 w-10 items-center justify-center rounded-lg text-white transition-all duration-200 ease-out",
+                  "bg-brand group mx-auto flex h-10 w-10 items-center justify-center rounded-full text-white transition-all duration-200 ease-out",
                   "hover:bg-brand-600 active:bg-brand-700 shadow-sm hover:shadow-md hover:scale-[1.03]",
                 )}
+                aria-label="New Script"
+                title="New Script"
               >
-                <PenTool className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
+                <Plus className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
               </button>
             </FixedTooltip>
           )}
         </div>
 
-        {/* Quick Generators */}
-        {!isCollapsed && (
-          <div className="mb-6 px-4">
-            <h3 className="mb-3 text-xs font-medium tracking-wide text-neutral-600 uppercase">Quick Actions</h3>
-            <div className="grid grid-cols-2 gap-2">
-              {quickGenerators.map((generator) => (
-                <button
-                  key={generator.id}
-                  onClick={() => {
-                    // Close slideout wrapper by dispatching a global event
-                    if (typeof window !== "undefined") {
-                      window.dispatchEvent(new CustomEvent("write:close-slideout"));
-                    }
-
-                    // Navigate to write page with appropriate parameter
-                    // Hook Generator and Content Ideas are generators, the other two are templates
-                    const isGenerator = generator.id === "generate-hooks" || generator.id === "content-ideas";
-                    const paramName = isGenerator ? "generator" : "template";
-                    const url = `/write?${paramName}=${generator.id}`;
-
-                    router.push(url);
-
-                    // Call the onItemClick callback if provided (for mobile menu close)
-                    if (onItemClick) {
-                      onItemClick();
-                    }
-                  }}
-                  className={cn(
-                    "group border border-gray-100 bg-gray-50/50 p-3 text-left transition-all duration-200",
-                    "rounded-lg hover:border-gray-200 hover:bg-gray-100/80",
-                  )}
-                >
-                  <div className="mb-2 flex items-center gap-2">
-                    <div className="flex h-5 w-5 items-center justify-center rounded-md bg-neutral-300 text-neutral-700 transition-all duration-200 group-hover:bg-neutral-400">
-                      <generator.icon className="h-3 w-3" />
-                    </div>
-                    <div className="text-xs font-medium text-neutral-700 group-hover:text-neutral-900">
-                      {generator.title}
-                    </div>
-                  </div>
-                  <div className="text-xs text-neutral-600">{generator.uses} uses</div>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Quick Generators - removed for Claude style */}
 
         {/* Navigation Sections */}
         <div className="flex-1 overflow-x-visible overflow-y-auto px-4 pb-4">
           {sections.map((section) => {
-            // Hide "Recent Activity" section when sidebar is collapsed
             if (section.id === "recent" && isCollapsed) {
               return null;
             }
 
+            const showHeader = !isCollapsed && section.id !== "organize";
+            const renderItems = section.id === "organize" ? true : !collapsedSections[section.id] || isCollapsed;
+
             return (
               <div key={section.id} className="mb-6">
-                {!isCollapsed && (
+                {showHeader && (
                   <div className="mb-3 flex items-center justify-between">
                     <h3 className="text-xs font-medium tracking-wide text-neutral-600 uppercase">{section.title}</h3>
                     <button
@@ -551,7 +454,7 @@ export function AppSidebar({ className, onItemClick }: AppSidebarProps) {
                   </div>
                 )}
 
-                {(!collapsedSections[section.id] || isCollapsed) && (
+                {renderItems && (
                   <div className="space-y-1">
                     {section.items.map((item) => (
                       <FixedTooltip
@@ -568,16 +471,16 @@ export function AppSidebar({ className, onItemClick }: AppSidebarProps) {
                         <button
                           onClick={() => !item.comingSoon && handleItemClick(item.id)}
                           disabled={item.comingSoon}
-                        className={cn(
-                          "group flex w-full items-center gap-3 rounded-md p-2.5 text-left transition-all duration-200 ease-out",
-                          pathname === `/${item.id}` ||
-                            (item.id === "library" && pathname === "/library") ||
-                            (item.id === "brand-voice" && pathname === "/brand-hub")
-                            ? "bg-neutral-100 font-medium text-neutral-900"
-                            : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900",
-                          item.comingSoon && "cursor-not-allowed opacity-50",
-                          isCollapsed && "justify-center p-2",
-                        )}
+                          className={cn(
+                            "group flex w-full items-center gap-3 rounded-md p-2.5 text-left transition-all duration-200 ease-out",
+                            pathname === `/${item.id}` ||
+                              (item.id === "library" && pathname === "/library") ||
+                              (item.id === "brand-voice" && pathname === "/brand-hub")
+                              ? "bg-neutral-100 font-medium text-neutral-900"
+                              : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900",
+                            item.comingSoon && "cursor-not-allowed opacity-50",
+                            isCollapsed && "justify-center p-2",
+                          )}
                         >
                           {section.id !== "recent" && (
                             <div
@@ -623,10 +526,10 @@ export function AppSidebar({ className, onItemClick }: AppSidebarProps) {
         <div className="border-t border-gray-50 px-4 py-3">
           {!isCollapsed ? (
             <div className="space-y-2">
-              <Link
-                href="/chrome-extension"
+              <button
+                onClick={() => router.push("/chrome-extension")}
                 className={cn(
-                  "group flex items-center gap-2 rounded-md p-2 text-sm",
+                  "group flex w-full items-center gap-2 rounded-md p-2 text-sm",
                   pathname === "/chrome-extension"
                     ? "bg-neutral-100 text-neutral-900"
                     : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900",
@@ -634,11 +537,11 @@ export function AppSidebar({ className, onItemClick }: AppSidebarProps) {
               >
                 <Chrome className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
                 Chrome Extension
-              </Link>
-              <Link
-                href="/downloads"
+              </button>
+              <button
+                onClick={() => router.push("/downloads")}
                 className={cn(
-                  "group flex items-center gap-2 rounded-md p-2 text-sm",
+                  "group flex w-full items-center gap-2 rounded-md p-2 text-sm",
                   pathname === "/downloads"
                     ? "bg-neutral-100 text-neutral-900"
                     : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900",
@@ -646,34 +549,32 @@ export function AppSidebar({ className, onItemClick }: AppSidebarProps) {
               >
                 <Smartphone className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
                 iOS Shortcut
-              </Link>
+              </button>
             </div>
           ) : (
             <div className="flex flex-col items-center gap-2">
               <FixedTooltip isVisible={isCollapsed} content="Chrome Extension">
-                <Link
-                  href="/chrome-extension"
+                <button
+                  onClick={() => router.push("/chrome-extension")}
                   className="group flex h-9 w-9 items-center justify-center rounded-md text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
                 >
                   <Chrome className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
-                </Link>
+                </button>
               </FixedTooltip>
               <FixedTooltip isVisible={isCollapsed} content="iOS Shortcut">
-                <Link
-                  href="/downloads"
+                <button
+                  onClick={() => router.push("/downloads")}
                   className="group flex h-9 w-9 items-center justify-center rounded-md text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
                 >
                   <Smartphone className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
-                </Link>
+                </button>
               </FixedTooltip>
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="border-t border-gray-50 p-4">
-          {!isCollapsed ? <NavUser /> : <NavUser compact />}
-        </div>
+        <div className="border-t border-gray-50 p-4">{!isCollapsed ? <NavUser /> : <NavUser compact />}</div>
       </div>
     </div>
   );

@@ -36,6 +36,10 @@ export interface UserProfile {
   createdAt: string;
   updatedAt: string;
   lastLoginAt?: string;
+  // Content settings
+  contentTopic?: string; // canonical category (e.g., 'artificial-intelligence')
+  contentGoals?: string[];
+  contentUserType?: 'Personal' | 'Business' | 'Agency/Freelancer';
 }
 
 export interface CoachCreatorRelationship {

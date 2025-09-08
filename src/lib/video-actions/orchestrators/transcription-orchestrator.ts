@@ -163,7 +163,8 @@ export class TranscriptionOrchestrator {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ url }),
+      // Prefer lowest-bandwidth source for transcription; request audio-only if available
+      body: JSON.stringify({ url, preferAudioOnly: true }),
     });
 
     if (!response.ok) {

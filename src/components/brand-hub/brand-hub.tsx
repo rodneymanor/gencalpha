@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/auth-context'
 import { CreatorPersonaGrid, type CreatorPersona } from '@/components/creator-personas/creator-persona-card'
 import { PersonaApiService } from '@/app/(main)/personas/services/api'
 import { UserManagementService } from '@/lib/user-management'
+import { normalizeCategory, CATEGORY_ALIASES } from '@/data/keyword-pools'
 
 // Type definitions for brand voice and content data
 interface BrandVoice {
@@ -14,27 +15,7 @@ interface BrandVoice {
   icon: string
 }
 
-interface Creator {
-  id: string
-  name: string
-  platform: string
-  category: string
-  postsAnalyzed: number
-  avatar: string
-}
-
-interface ContentItem {
-  id: string
-  title: string
-  creator: string
-  views: string
-  platform: 'instagram' | 'tiktok'
-  insights: {
-    hook: string
-    format: string
-    length: string
-  }
-}
+// Knowledge Base types removed (feature not ready)
 
 interface TopicPillar {
   title: string
@@ -53,33 +34,17 @@ interface TopicData {
 
 interface BrandHubProps {
   initialBrandVoices?: BrandVoice[]
-  initialCreators?: Creator[]
-  initialContent?: ContentItem[]
   onSaveSettings?: (settings: any) => void
-  onAnalyzeVideo?: (url: string) => void
-  onAddCreator?: (handle: string, platform: string) => void
 }
 
-const BrandHub: React.FC<BrandHubProps> = ({
-  initialBrandVoices = [],
-  initialCreators = [],
-  initialContent = [],
-  onSaveSettings,
-  onAnalyzeVideo,
-  onAddCreator
-}) => {
+const BrandHub: React.FC<BrandHubProps> = ({ initialBrandVoices = [], onSaveSettings }) => {
   // State management for the component
-  const [activeSection, setActiveSection] = useState<'content-settings' | 'knowledge-base' | 'brand-voice'>('brand-voice')
+  const [activeSection, setActiveSection] = useState<'content-settings' | 'brand-voice'>('brand-voice')
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null)
   const [selectedUserType, setSelectedUserType] = useState<'Personal' | 'Business' | 'Agency/Freelancer'>('Personal')
   const [selectedGoals, setSelectedGoals] = useState<Set<string>>(new Set())
   const [hasChanges, setHasChanges] = useState(false)
-  const [videoUrl, setVideoUrl] = useState('')
-  const [creatorHandle, setCreatorHandle] = useState('')
-  const [selectedPlatform, setSelectedPlatform] = useState<'instagram' | 'tiktok'>('instagram')
   const [brandVoices, setBrandVoices] = useState<BrandVoice[]>(initialBrandVoices)
-  const [creators, setCreators] = useState<Creator[]>(initialCreators)
-  const [contentItems, setContentItems] = useState<ContentItem[]>(initialContent)
   const { user } = useAuth()
   const [personas, setPersonas] = useState<CreatorPersona[]>([])
   const [selectedPersonaId, setSelectedPersonaId] = useState<string | null>(null)
@@ -247,32 +212,43 @@ const BrandHub: React.FC<BrandHubProps> = ({
     setHasChanges(true)
   }
 
-  const handleSaveSettings = () => {
+  const handleSaveSettings = async () => {
     if (!hasChanges) return
-    
-    const settings = {
-      selectedTopic,
-      selectedUserType,
-      selectedGoals: Array.from(selectedGoals)
+    try {
+      const canonical = selectedTopic
+        ? // map UI keys to canonical categories
+          (selectedTopic === 'ai'
+            ? 'artificial-intelligence'
+            : selectedTopic === 'content'
+            ? 'content-creation'
+            : selectedTopic === 'productivity'
+            ? 'productivity'
+            : selectedTopic === 'nutrition'
+            ? 'nutrition'
+            : selectedTopic)
+        : undefined
+
+      if (user) {
+        await UserManagementService.updateUserProfile(user.uid, {
+          contentTopic: canonical,
+          contentUserType: selectedUserType,
+          contentGoals: Array.from(selectedGoals),
+        } as any)
+      }
+
+      const settings = {
+        selectedTopic,
+        selectedUserType,
+        selectedGoals: Array.from(selectedGoals),
+      }
+      onSaveSettings?.(settings)
+      setHasChanges(false)
+    } catch (e) {
+      console.error('Failed to save content settings', e)
     }
-    
-    onSaveSettings?.(settings)
-    setHasChanges(false)
   }
 
-  const handleAnalyzeVideo = () => {
-    if (!videoUrl.trim()) return
-    
-    onAnalyzeVideo?.(videoUrl)
-    setVideoUrl('')
-  }
-
-  const handleAddCreator = () => {
-    if (!creatorHandle.trim()) return
-    
-    onAddCreator?.(creatorHandle, selectedPlatform)
-    setCreatorHandle('')
-  }
+  // Knowledge Base handlers removed (feature not ready)
 
   // Load user personas and current brand voice selection
   useEffect(() => {
@@ -307,6 +283,26 @@ const BrandHub: React.FC<BrandHubProps> = ({
         const profile = await UserManagementService.getUserProfile(user.uid)
         const brandPersonaId = (profile as any)?.brandPersonaId as string | undefined
         if (brandPersonaId) setSelectedPersonaId(brandPersonaId)
+
+        // Initialize selected topic from profile
+        const contentTopic = (profile as any)?.contentTopic as string | undefined
+        if (contentTopic) {
+          const cat = (contentTopic || '').toString().toLowerCase()
+          const toUiKey = (c: string) => {
+            if (c === 'artificial-intelligence') return 'ai'
+            if (c === 'content-creation') return 'content'
+            if (c === 'productivity') return 'productivity'
+            if (c === 'nutrition') return 'nutrition'
+            // no dedicated UI tile for business currently
+            return undefined
+          }
+          const uiKey = toUiKey(cat)
+          if (uiKey && topicData[uiKey]) setSelectedTopic(uiKey)
+        }
+        const contentUserType = (profile as any)?.contentUserType as 'Personal' | 'Business' | 'Agency/Freelancer' | undefined
+        if (contentUserType) setSelectedUserType(contentUserType)
+        const contentGoals = (profile as any)?.contentGoals as string[] | undefined
+        if (Array.isArray(contentGoals)) setSelectedGoals(new Set(contentGoals))
       } catch (e) {
         console.warn('Could not load current brand voice selection')
       }
@@ -375,17 +371,6 @@ const BrandHub: React.FC<BrandHubProps> = ({
             </div>
             <div 
               className={`flex items-center px-3 py-2 rounded-[var(--radius-button)] text-sm font-normal cursor-pointer transition-all duration-150 ${
-                activeSection === 'knowledge-base' 
-                  ? 'bg-brand-500 text-white' 
-                  : 'text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900'
-              }`}
-              onClick={() => setActiveSection('knowledge-base')}
-            >
-              <span className="mr-3 w-4 text-center">📚</span>
-              Knowledge Base
-            </div>
-            <div 
-              className={`flex items-center px-3 py-2 rounded-[var(--radius-button)] text-sm font-normal cursor-pointer transition-all duration-150 ${
                 activeSection === 'brand-voice' 
                   ? 'bg-brand-500 text-white' 
                   : 'text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900'
@@ -442,133 +427,7 @@ const BrandHub: React.FC<BrandHubProps> = ({
             </section>
           )}
 
-          {/* Knowledge Base Section */}
-          {activeSection === 'knowledge-base' && (
-            <section className="flex min-h-0 flex-col">
-              <div className="mb-6">
-                <h1 className="text-2xl font-semibold text-neutral-900 mb-2">Knowledge Base</h1>
-                <p className="text-sm text-neutral-600">Build your content knowledge by analyzing successful videos and tracking inspirational creators</p>
-              </div>
-              <div className="flex-1 min-h-0 overflow-y-auto pr-1">
-                {/* Add Content Section */}
-                <div className="mb-8">
-                  <h3 className="text-lg font-medium text-neutral-900 mb-2">Add Content to Analyze</h3>
-                  <p className="text-sm text-neutral-600 mb-4">Paste a video URL to extract insights and grow your topic expertise</p>
-                  
-                  <div className="flex gap-3 mb-4">
-                    <input
-                      type="text"
-                      className="flex-1 px-3 py-2 bg-neutral-50 border border-neutral-200 focus:border-primary-400 rounded-[var(--radius-button)] text-sm placeholder:text-neutral-500 transition-colors duration-150"
-                      placeholder="Paste Instagram or TikTok video URL..."
-                      value={videoUrl}
-                      onChange={(e) => setVideoUrl(e.target.value)}
-                    />
-                    <button 
-                      className="flex items-center gap-2 px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-[var(--radius-button)] text-sm font-medium transition-colors duration-150"
-                      onClick={handleAnalyzeVideo}
-                    >
-                      <span>🔍</span>
-                      <span>Analyze</span>
-                    </button>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <span className="flex items-center gap-1 px-2 py-1 bg-neutral-100 rounded-[var(--radius-button)] text-xs text-neutral-600">
-                      <span>📱</span> Instagram Reels
-                    </span>
-                    <span className="flex items-center gap-1 px-2 py-1 bg-neutral-100 rounded-[var(--radius-button)] text-xs text-neutral-600">
-                      <span>🎵</span> TikTok Videos
-                    </span>
-                  </div>
-                </div>
-
-                {/* Creator Tracking Section */}
-                <div className="mb-8">
-                  <h3 className="text-lg font-medium text-neutral-900 mb-2">Track Inspirational Creators</h3>
-                  <p className="text-sm text-neutral-600 mb-4">Follow creators in your niche for daily content inspiration</p>
-                  
-                  <div className="flex gap-3 mb-6">
-                    <input
-                      type="text"
-                      className="flex-1 px-3 py-2 bg-neutral-50 border border-neutral-200 focus:border-primary-400 rounded-[var(--radius-button)] text-sm placeholder:text-neutral-500 transition-colors duration-150"
-                      placeholder="@username or profile URL"
-                      value={creatorHandle}
-                      onChange={(e) => setCreatorHandle(e.target.value)}
-                    />
-                    <select 
-                      className="px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-[var(--radius-button)] text-sm text-neutral-900"
-                      value={selectedPlatform}
-                      onChange={(e) => setSelectedPlatform(e.target.value as 'instagram' | 'tiktok')}
-                    >
-                      <option value="instagram">Instagram</option>
-                      <option value="tiktok">TikTok</option>
-                    </select>
-                    <button 
-                      className="flex items-center gap-2 px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-[var(--radius-button)] text-sm font-medium transition-colors duration-150"
-                      onClick={handleAddCreator}
-                    >
-                      <span>+</span>
-                      <span>Add Creator</span>
-                    </button>
-                  </div>
-
-                  {/* Tracked Creators List */}
-                  <div className="space-y-3">
-                    {creators.map((creator) => (
-                      <div key={creator.id} className="flex items-center gap-3 p-4 bg-neutral-50 border border-neutral-200 rounded-[var(--radius-card)]">
-                        <div className="w-10 h-10 bg-neutral-100 rounded-[var(--radius-button)] flex items-center justify-center text-base">
-                          {creator.avatar}
-                        </div>
-                        <div className="flex-1">
-                          <div className="text-sm font-medium text-neutral-900">{creator.name}</div>
-                          <div className="text-xs text-neutral-600">{creator.platform} • {creator.category}</div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="px-2 py-1 bg-neutral-100 rounded-[var(--radius-button)] text-xs text-neutral-600">
-                            {creator.postsAnalyzed} posts analyzed
-                          </span>
-                          <button className="w-6 h-6 text-neutral-500 hover:text-neutral-700 text-sm">×</button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Analyzed Content Grid */}
-                <div>
-                  <h3 className="text-lg font-medium text-neutral-900 mb-2">Recent Analysis</h3>
-                  <p className="text-sm text-neutral-600 mb-4">Your analyzed content and extracted insights</p>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                    {contentItems.map((item) => (
-                      <div key={item.id} className="bg-neutral-50 border border-neutral-200 rounded-[var(--radius-card)] p-4">
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className="w-10 h-10 bg-neutral-100 rounded-[var(--radius-button)] flex items-center justify-center text-base">
-                            {item.platform === 'instagram' ? '📱' : '🎵'}
-                          </div>
-                          <div className="flex-1">
-                            <div className="text-sm font-medium text-neutral-900 mb-1">{item.title}</div>
-                            <div className="text-xs text-neutral-600">{item.creator} • {item.views} views</div>
-                          </div>
-                        </div>
-                        <div className="flex flex-wrap gap-1">
-                          <span className="px-2 py-1 bg-neutral-100 rounded-[var(--radius-button)] text-xs text-neutral-600">
-                            Hook: {item.insights.hook}
-                          </span>
-                          <span className="px-2 py-1 bg-neutral-100 rounded-[var(--radius-button)] text-xs text-neutral-600">
-                            Format: {item.insights.format}
-                          </span>
-                          <span className="px-2 py-1 bg-neutral-100 rounded-[var(--radius-button)] text-xs text-neutral-600">
-                            Length: {item.insights.length}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </section>
-          )}
+          {/* Knowledge Base removed (not ready) */}
 
           {/* Content Settings Section */}
           {activeSection === 'content-settings' && (

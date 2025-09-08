@@ -2,15 +2,15 @@
 
 import { useState, useEffect, use } from "react";
 
+import BrandHub from "@/components/brand-hub/brand-hub";
 import FirebaseConfigError from "@/components/firebase-config-error";
 import { ScriptCardGrid } from "@/components/script-display";
 import { sampleScripts } from "@/components/script-display/sample-data";
 import type { VideoScript } from "@/components/script-display/types";
 import { StreamlinedScriptWriter } from "@/components/script-generation/streamlined-script-writer";
-import BrandHub from "@/components/brand-hub/brand-hub";
+import AnimatedGradientText from "@/components/ui/animated-gradient-text";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ExpandableSection from "@/components/ui/expandable-section";
-import { ClientScriptService } from "@/lib/services/client-script-service";
 import { useAuth } from "@/contexts/auth-context";
 
 export default function WritePage({
@@ -35,6 +35,8 @@ export default function WritePage({
   const fromLibrary = typeof params.from === "string" && params.from === "library";
   const preselectedGenerator = typeof params.generator === "string" ? params.generator : undefined;
   const preselectedTemplate = typeof params.template === "string" ? params.template : undefined;
+  const preselectedTopic =
+    typeof params.topic === "string" ? params.topic : typeof params.category === "string" ? params.category : undefined;
 
   useEffect(() => {
     // Check Firebase config on client side
@@ -46,128 +48,44 @@ export default function WritePage({
     setHasFirebaseConfig(!!isConfigured);
   }, []);
 
-  // Fetch top six videos and process them into scripts
-  const loadTopSix = async () => {
+  // Fetch server-processed daily scripts (cached per day)
+  const loadTopSix = async (force?: boolean) => {
     try {
       setIsRefreshing(true);
       setProcessedCount(0);
-      const res = await fetch("/api/tiktok/top-six", { cache: "no-store" });
+      const topicParam = preselectedTopic ?? (userProfile as any)?.contentTopic ?? undefined;
+      const search = new URLSearchParams();
+      if (topicParam) search.set("topic", String(topicParam));
+      if (force) search.set("force", "1");
+      if (user?.uid) search.set("userId", user.uid);
+      const qs = search.toString();
+      const url = `/api/tiktok/daily-picks${qs ? `?${qs}` : ""}`;
+      const res = await fetch(url, { cache: "no-store" });
       const json = await res.json();
-      if (res.ok && json?.ok && Array.isArray(json.videos)) {
-        console.log(`🎯 [DailyPicks] Received ${json.videos.length} candidate videos from Top Six`);
-        setTotalCount(json.videos.length);
-
-        // Set placeholders immediately
-        const placeholders: VideoScript[] = (json.videos as any[]).map((v: any, idx: number) => {
-          const secs = typeof v.duration === 'number' ? v.duration : 0;
-          const durationLabel = secs ? `${Math.round(secs)}s` : "";
-          const title = (v.description as string | undefined)?.slice(0, 80) || `Video ${idx + 1}`;
-          return {
-            id: idx + 1,
-            title,
-            duration: durationLabel,
-            status: 'loading',
-            statusText: 'Processing…',
-            sections: [
-              { type: 'hook', label: 'Hook', timeRange: '0-3s', dialogue: 'Loading…', action: 'Fetching video' },
-              { type: 'bridge', label: 'Bridge', timeRange: '3-8s', dialogue: 'Loading…', action: 'Transcribing' },
-              { type: 'golden-nugget', label: 'Golden Nugget', timeRange: '8-20s', dialogue: 'Loading…', action: 'Generating' },
-              { type: 'wta', label: 'What To Action', timeRange: '20-30s', dialogue: 'Loading…', action: 'Finalizing' },
-            ],
-          } satisfies VideoScript;
-        });
-        setDailyScripts(placeholders);
-
-        // Process each video sequentially
-        for (let idx = 0; idx < json.videos.length; idx++) {
-          const v = json.videos[idx];
-          try {
-            console.log(`🎬 [DailyPicks] (${idx + 1}/${json.videos.length}) Start processing`);
-
-            // 1) Transcribe via server pipeline (with TikTok fallback info)
-            console.log(`🎙️ [DailyPicks] Transcribing via /api/video/transcribe-from-url`);
-            const tRes = await fetch('/api/video/transcribe-from-url', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ videoUrl: v.url, tiktokId: v.itemId, platform: 'tiktok' }),
-            });
-            const tJson = await tRes.json().catch(() => ({}));
-            if (!tRes.ok || !tJson?.success) {
-              console.error('❌ [DailyPicks] Transcription failed:', tJson?.error || tRes.statusText);
-            }
-
-            const transcript = tJson?.transcript as string | undefined;
-            const comp = tJson?.components || {};
-            const hookText: string | undefined = comp.hook || (v.description as string | undefined)?.slice(0, 140);
-
-            // 2) Prepare idea for speed-write
-            const ideaBase = hookText || (transcript ? transcript.slice(0, 200) : `Script idea from trending video`);
-            const idea = String(ideaBase).slice(0, 900);
-
-            let contentFromGen: string | null = null;
-            if (user) {
-              console.log(`⚡ [DailyPicks] Generating speed-write script`);
-              const gen = await ClientScriptService.generateSingle({ idea, length: '60', type: 'speed' } as any);
-              if (gen.success && gen.script?.content) {
-                contentFromGen = gen.script.content;
-              } else {
-                console.error('❌ [DailyPicks] Speed-write generation failed:', gen.error);
-              }
-            } else {
-              console.warn('⚠️ [DailyPicks] Not authenticated; skipping speed-write generation');
-            }
-
-            // 3) Map to card sections
-            const content = contentFromGen || '';
-            const parts = content
-              ? content.split(/\n\n+/).map((s) => s.trim()).filter(Boolean)
-              : [hookText || '', comp.bridge || '', comp.nugget || comp.goldenNugget || '', comp.wta || ''];
-
-            const [hook = idea, bridge = parts[1] || '', nugget = parts[2] || '', wta = parts[3] || ''] = parts;
-
-            const secs = typeof v.duration === 'number' ? v.duration : 0;
-            const durationLabel = secs ? `${Math.round(secs)}s` : "";
-            const title = (v.description as string | undefined)?.slice(0, 80) || `Video ${idx + 1}`;
-
-            const built: VideoScript = {
-              id: idx + 1,
-              title,
-              duration: durationLabel,
-              status: 'ready',
-              sections: [
-                { type: 'hook', label: 'Hook', timeRange: '0-3s', dialogue: hook, action: 'Open strong' },
-                { type: 'bridge', label: 'Bridge', timeRange: '3-8s', dialogue: bridge, action: 'Set context' },
-                { type: 'golden-nugget', label: 'Golden Nugget', timeRange: '8-20s', dialogue: nugget, action: 'Deliver insight' },
-                { type: 'wta', label: 'What To Action', timeRange: '20-30s', dialogue: wta, action: 'Give next step' },
-              ],
-            };
-
-            setDailyScripts((prev) => {
-              const base = prev && prev.length === placeholders.length ? [...prev] : [...placeholders];
-              base[idx] = built;
-              return base;
-            });
-
-            setProcessedCount((c) => c + 1);
-            console.log(`✅ [DailyPicks] (${idx + 1}/${json.videos.length}) Completed`);
-          } catch (err) {
-            console.error(`❌ [DailyPicks] Error processing video ${idx + 1}:`, err);
-            setProcessedCount((c) => c + 1);
-          }
+      if (res.ok && json?.ok && Array.isArray(json.scripts)) {
+        if (Array.isArray(json.keywordsUsed)) {
+          console.log(`🔑 [DailyPicks] Keywords used: ${json.keywordsUsed.join(", ")}`);
         }
+        setTotalCount(json.scripts.length);
+        setDailyScripts(json.scripts as VideoScript[]);
+        setProcessedCount(json.scripts.length);
       } else {
         setDailyScripts([]);
       }
-    } catch (e) {
+    } catch {
       setDailyScripts([]);
     } finally {
       setIsRefreshing(false);
     }
   };
 
+  const resolvedTopic = preselectedTopic ?? ((userProfile as any)?.contentTopic as string | undefined) ?? null;
+
   useEffect(() => {
+    if (!resolvedTopic) return; // wait until topic is known
     loadTopSix();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resolvedTopic]);
 
   if (!hasFirebaseConfig && typeof window !== "undefined") {
     return <FirebaseConfigError />;
@@ -175,8 +93,16 @@ export default function WritePage({
 
   return (
     <div className="flex min-h-screen flex-col bg-neutral-50 font-sans">
+      {/* Announcement banner above hero: subtle, compact spacing */}
+      <div className="px-4 pt-3 md:px-6 md:pt-4">
+        <div className="mx-auto max-w-[1100px]">
+          <AnimatedGradientText className="text-[11px] tracking-wide md:text-xs">
+            Now introducing Brand Voice
+          </AnimatedGradientText>
+        </div>
+      </div>
       {/* Main content area - constrain height to leave room for expand trigger */}
-      <div className="max-h-[calc(100vh-60px)] flex-1 overflow-hidden">
+      <div className="-mt-[75px] max-h-[calc(100vh-52px)] flex-1 overflow-hidden">
         <StreamlinedScriptWriter
           key={remountKey}
           initialPrompt={initialPrompt}
@@ -187,8 +113,6 @@ export default function WritePage({
           onBrandModalOpen={() => setIsBrandHubOpen(true)}
         />
       </div>
-
-      {/* Expandable section trigger - always visible at bottom */}
       <ExpandableSection collapsedText="Explore Daily Content" expandedText="Hide Content Library" plain>
         <ScriptCardGrid
           scripts={dailyScripts && dailyScripts.length > 0 ? dailyScripts : sampleScripts}
@@ -200,13 +124,13 @@ export default function WritePage({
           }
           loading={isRefreshing}
           progressLabel={totalCount ? `Processing ${processedCount}/${totalCount}…` : undefined}
-          onRefresh={loadTopSix}
+          onRefresh={() => loadTopSix(true)}
         />
       </ExpandableSection>
 
       {/* Brand Hub Modal */}
       <Dialog open={isBrandHubOpen} onOpenChange={setIsBrandHubOpen}>
-        <DialogContent className="w-[95vw] h-[90vh] p-0 overflow-hidden sm:max-w-none flex flex-col">
+        <DialogContent className="flex h-[90vh] w-[95vw] flex-col overflow-hidden p-0 sm:max-w-none">
           <DialogHeader className="sr-only">
             <DialogTitle>Brand Hub</DialogTitle>
           </DialogHeader>

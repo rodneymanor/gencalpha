@@ -10,7 +10,7 @@ import { GoogleAIFileManager } from "@google/generative-ai/server";
 import { detectPlatform } from "@/core/video/platform-detector";
 
 // File upload and processing limits
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
+const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB in bytes
 const TRANSCRIPTION_TIMEOUT = 7 * 60 * 1000; // 7 minutes in milliseconds
 
 // Helper function to add timeout to any async operation

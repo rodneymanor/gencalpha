@@ -1,6 +1,15 @@
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <div style="font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial; padding: 16px; width: 360px; background: #fafafa;">
-    <h1 style="font-size: 18px; margin: 0 0 16px; font-weight: 600; color: #1a1a1a;">GenC Quick Actions</h1>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <h1 style="font-size: 18px; margin: 0; font-weight: 600; color: #1a1a1a;">GenC Quick Actions</h1>
+      <button id="btn-settings" style="padding: 6px 12px; border: 1px solid #ddd; border-radius: 6px; background: white; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.15s ease; display: flex; align-items: center; gap: 6px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M12 1v6M12 17v6M4.22 4.22l4.24 4.24M15.54 15.54l4.24 4.24M1 12h6M17 12h6M4.22 19.78l4.24-4.24M15.54 8.46l4.24-4.24"></path>
+        </svg>
+        Settings
+      </button>
+    </div>
     
     <!-- Video Section -->
     <div id="video-section" style="margin-bottom: 24px; display: none;">
@@ -26,16 +35,13 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
       </div>
     </div>
 
-    <!-- Idea Inbox Section -->
-    <div style="margin-bottom: 16px;">
-      <h2 style="font-size: 14px; margin: 0 0 12px; font-weight: 500; color: #666;">Save to Idea Inbox</h2>
-      <div style="display: flex; flex-direction: column; gap: 8px;">
-        <button id="btn-save-tab" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; background: white; cursor: pointer; font-size: 14px; transition: all 0.15s ease;">Save current tab</button>
-        <button id="btn-save-selection" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; background: white; cursor: pointer; font-size: 14px; transition: all 0.15s ease;">Save selection</button>
-      </div>
+    <!-- Default message when not on a supported page -->
+    <div id="default-message" style="padding: 24px 12px; text-align: center; color: #666; font-size: 14px; display: none;">
+      <p style="margin: 0 0 8px;">Navigate to a TikTok or Instagram video to add it to your collections.</p>
+      <p style="margin: 0; font-size: 13px; color: #999;">You can also visit creator profiles to add them to your database.</p>
     </div>
 
-    <div id="status" style="padding: 8px 12px; font-size: 12px; color: #666; background: #f0f0f0; border-radius: 6px; text-align: center; display: none;"></div>
+    <div id="status" style="padding: 8px 12px; font-size: 12px; color: #666; background: #f0f0f0; border-radius: 6px; text-align: center; display: none; margin-top: 16px;"></div>
   </div>
 `;
 
@@ -57,20 +63,9 @@ const getApiConfig = async () => {
   return { baseUrl, apiKey };
 };
 
-const save = async (content: string, title: string, tags: string[]) => {
-  const { baseUrl, apiKey } = await getApiConfig();
-  if (!apiKey) return show("Set API key in Options", true);
-  
-  try {
-    await fetch(`${baseUrl}/api/chrome-extension/idea-inbox/text`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-api-key": apiKey },
-      body: JSON.stringify({ title, content, tags }),
-    });
-    show("Saved to Idea Inbox");
-  } catch (error) {
-    show("Failed to save", true);
-  }
+// Settings button click handler
+const openSettings = () => {
+  browser.runtime.openOptionsPage();
 };
 
 const loadCollections = async () => {
@@ -218,15 +213,17 @@ browser.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {
   
   const videoSection = document.getElementById("video-section")!;
   const creatorSection = document.getElementById("creator-section")!;
+  const defaultMessage = document.getElementById("default-message")!;
   const videoSectionTitle = videoSection.querySelector("h2")!;
   const addVideoButton = document.getElementById("btn-add-video")!;
   const creatorSectionTitle = document.getElementById("creator-section-title")!;
   const creatorUsername = document.getElementById("creator-username")!;
   const creatorPlatform = document.getElementById("creator-platform")!;
   
-  // Hide both sections by default
+  // Hide all sections by default
   videoSection.style.display = "none";
   creatorSection.style.display = "none";
+  defaultMessage.style.display = "none";
   
   if (tab?.url) {
     console.log("Processing URL:", tab.url);
@@ -254,10 +251,15 @@ browser.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {
         
         // Store creator info for button click
         (window as any).currentCreator = { username, platform: creatorPlatform };
+      } else {
+        // Show default message if not on a supported page
+        console.log("Not on a supported page, showing default message");
+        defaultMessage.style.display = "block";
       }
     }
   } else {
-    console.log("No tab URL found");
+    console.log("No tab URL found, showing default message");
+    defaultMessage.style.display = "block";
   }
 }).catch(error => {
   console.error("Error querying tab:", error);
@@ -323,24 +325,7 @@ document.getElementById("btn-add-creator")!.addEventListener("click", async () =
   addCreatorToDatabase(currentCreator.username, currentCreator.platform);
 });
 
-document.getElementById("btn-save-tab")!.addEventListener("click", async () => {
-  const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
-  const title = (tab?.title ?? "Saved Page").slice(0, 120);
-  const url = tab?.url ?? "";
-  show("Saving...");
-  save(url, title, ["from-extension", "page"]).catch(console.error);
-});
-
-document.getElementById("btn-save-selection")!.addEventListener("click", async () => {
-  const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
-  const selection = await browser.scripting.executeScript({
-    target: { tabId: tab!.id! },
-    func: () => window.getSelection()?.toString() ?? "",
-  });
-  const selectedText = (selection[0]?.result as string) ?? "";
-  const title = (tab?.title ?? "Selected Text").slice(0, 120);
-  const url = tab?.url ?? "";
-  const content = `${selectedText}\n\nSource: ${url}`.trim();
-  show("Saving...");
-  save(content, title, ["from-extension", "selection"]).catch(console.error);
+// Settings button click handler
+document.getElementById("btn-settings")!.addEventListener("click", () => {
+  openSettings();
 });

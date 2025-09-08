@@ -8,7 +8,7 @@ import { scrapeVideoUrl, UnifiedVideoScraper } from "@/lib/unified-video-scraper
  */
 export async function POST(request: NextRequest) {
   try {
-    const { url } = await request.json();
+    const { url, preferAudioOnly } = await request.json();
     if (!url) {
       return NextResponse.json({ success: false, error: "url is required" });
     }
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      const result = await scrapeVideoUrl(decodedUrl);
+      const result = await scrapeVideoUrl(decodedUrl, { preferAudioOnly: !!preferAudioOnly });
       return NextResponse.json({
         success: true,
         platform: result.platform,

@@ -423,3 +423,54 @@
     transform: scale(1);
   }
 }
+
+/* ========================================
+   Subtle Floating Animations (2025 UX)
+   ======================================== */
+@keyframes floatYSubtle {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+  100% { transform: translateY(0); }
+}
+
+/* ========================================
+   Animated Gradient Text (subtle)
+   ======================================== */
+@keyframes gradient-x {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient-slow {
+  background-size: 200% 200%;
+  animation: gradient-x 8s var(--ease-in-out-soft) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-gradient-slow {
+    animation: none !important;
+  }
+}
+
+.float-subtle {
+  animation: floatYSubtle 3.2s var(--ease-in-out-soft) infinite;
+}
+
+.float-subtle-delayed {
+  animation: floatYSubtle 3.2s var(--ease-in-out-soft) infinite;
+  animation-delay: 0.25s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .float-subtle,
+  .float-subtle-delayed {
+    animation: none !important;
+  }
+}

@@ -2,18 +2,7 @@
 
 import Link from "next/link";
 
-import {
-  EllipsisVertical,
-  CircleUser,
-  CreditCard,
-  MessageSquareDot,
-  LogOut,
-  Building2,
-  Moon,
-  Sun,
-  Settings,
-  HelpCircle,
-} from "lucide-react";
+import { EllipsisVertical, LogOut, Moon, Sun, Settings, HelpCircle } from "lucide-react";
 import { toast } from "sonner";
 
 import { ThemeSwitcher } from "@/components/theme/theme-switcher";
@@ -37,7 +26,7 @@ function getDisplayName(userProfile: any, user: any): string {
   return userProfile?.displayName ?? user.displayName ?? user.email?.split("@")[0] ?? "User";
 }
 
-export function NavUser() {
+export function NavUser({ compact = false }: { compact?: boolean }) {
   const { user, userProfile, logout, loading } = useAuth();
   const themeMode = usePreferencesStore((s) => s.themeMode);
   const setThemeMode = usePreferencesStore((s) => s.setThemeMode);
@@ -72,16 +61,26 @@ export function NavUser() {
     <div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button className="flex w-full items-center gap-3 rounded-md p-2.5 text-left transition-all duration-200 ease-out hover:bg-gray-50 data-[state=open]:bg-gray-100">
-            <div className="text-foreground flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-200 text-sm leading-none font-medium">
+          {compact ? (
+            <button
+              aria-label="Open profile menu"
+              title="Profile"
+              className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 text-foreground text-sm font-medium leading-none hover:bg-gray-300 transition-transform duration-200 hover:scale-110"
+            >
               {firstInitial}
-            </div>
-            <div className="grid flex-1 text-left text-sm leading-tight">
-              <span className="truncate font-medium">{displayName}</span>
-              <span className="text-muted-foreground truncate text-xs">{email}</span>
-            </div>
-            <EllipsisVertical className="ml-auto h-4 w-4" />
-          </button>
+            </button>
+          ) : (
+            <button className="flex w-full items-center gap-3 rounded-md p-2.5 text-left transition-all duration-200 ease-out hover:bg-gray-50 data-[state=open]:bg-gray-100">
+              <div className="text-foreground flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-200 text-sm leading-none font-medium">
+                {firstInitial}
+              </div>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-medium">{displayName}</span>
+                <span className="text-muted-foreground truncate text-xs">{email}</span>
+              </div>
+              <EllipsisVertical className="ml-auto h-4 w-4" />
+            </button>
+          )}
         </DropdownMenuTrigger>
         <DropdownMenuContent
           className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
@@ -103,7 +102,7 @@ export function NavUser() {
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
             <DropdownMenuItem asChild>
-              <Link href="/settings" className="flex items-center gap-2">
+              <Link href="/dashboard/settings" className="flex items-center gap-2">
                 <Settings className="h-4 w-4" />
                 Settings
               </Link>
@@ -116,33 +115,8 @@ export function NavUser() {
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
-          <DropdownMenuGroup>
-            <DropdownMenuItem asChild>
-              <Link href="/dashboard/settings?tab=account" className="flex items-center gap-2">
-                <CircleUser />
-                Account
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/dashboard/settings?tab=brand" className="flex items-center gap-2">
-                <Building2 />
-                Brand
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/dashboard/settings?tab=billing" className="flex items-center gap-2">
-                <CreditCard />
-                Billing
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/dashboard/settings?tab=notifications" className="flex items-center gap-2">
-                <MessageSquareDot />
-                Notifications
-              </Link>
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
+          
+          
           <DropdownMenuItem onClick={handleThemeToggle} className="flex items-center gap-2">
             {themeMode === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             {themeMode === "dark" ? "Light Mode" : "Dark Mode"}

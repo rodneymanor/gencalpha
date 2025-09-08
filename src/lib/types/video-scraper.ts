@@ -28,4 +28,6 @@ export interface ScraperOptions {
   timeout?: number;
   retryCount?: number;
   includeMetrics?: boolean;
+  // Prefer returning an audio-only stream URL when available (useful for transcription)
+  preferAudioOnly?: boolean;
 }

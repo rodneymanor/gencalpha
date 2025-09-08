@@ -59,14 +59,14 @@ export class UnifiedVideoScraper {
   /**
    * Scrape Instagram video using the new RapidAPI shortcode endpoint
    */
-  private async scrapeInstagram(url: string, _options: ScraperOptions = {}): Promise<UnifiedVideoResult> {
+  private async scrapeInstagram(url: string, options: ScraperOptions = {}): Promise<UnifiedVideoResult> {
     console.log("📸 [UNIFIED_SCRAPER] Scraping Instagram URL with RapidAPI shortcode endpoint...");
     const shortcode = extractInstagramShortcode(url);
     if (!shortcode) {
       throw new Error("Could not extract shortcode from Instagram URL");
     }
     const instagramData = await fetchInstagramRapidApiByShortcode(shortcode);
-    return mapInstagramToUnified(instagramData, shortcode);
+    return mapInstagramToUnified(instagramData, shortcode, options?.preferAudioOnly === true);
   }
 
   // Removed legacy Instagram post scraper path

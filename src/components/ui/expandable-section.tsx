@@ -82,19 +82,22 @@ const ExpandableSection: React.FC<ExpandableSectionProps> = ({
         ref={triggerRef}
         onClick={handleToggle}
         className={
-          `w-full py-4 px-6 transition-all duration-200 group ` +
-          (plain ? '' : 'bg-neutral-100 hover:bg-neutral-200 border-t border-neutral-200')
+          `w-full py-4 px-6 transition-all duration-200 group fixed left-0 right-0 z-40 ` +
+          (plain ? '' : 'bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 rounded-pill shadow-xs')
         }
+        style={{
+          bottom: 'calc(15px + env(safe-area-inset-bottom, 0px))',
+        }}
       >
         <div className="max-w-[1200px] mx-auto flex items-center justify-center gap-3">
-          <span className="text-neutral-700 font-medium text-sm motion-safe:animate-pulse [animation-duration:2.5s]">
+          <span className="text-neutral-700 font-medium text-sm float-subtle">
             {isExpanded ? expandedText : collapsedText}
           </span>
           <ChevronsUp 
             className={`
               w-4 h-4 text-neutral-600
               transition-transform duration-500 ease-out
-              motion-safe:animate-pulse [animation-duration:2.5s]
+              float-subtle-delayed
               ${isExpanded ? 'rotate-180' : ''}
             `}
           />

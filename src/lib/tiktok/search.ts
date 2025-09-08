@@ -62,21 +62,41 @@ export async function searchTikTok(keyword: string, cursor = 0, searchId = 0): P
   }
 
   const url = `https://${RAPIDAPI_HOST}/api/search/general?keyword=${encodeURIComponent(keyword)}&cursor=${cursor}&search_id=${searchId}`;
-
-  const res = await fetch(url, {
-    method: 'GET',
-    headers: {
-      'x-rapidapi-key': key,
-      'x-rapidapi-host': RAPIDAPI_HOST,
-    },
-  });
-
-  const text = await res.text();
   try {
-    return JSON.parse(text) as TikTokSearchResponse;
-  } catch {
-    // Fallback shape when API returns text
-    return { status_code: res.status, data: [] } as TikTokSearchResponse;
+    console.log(`🔎 [RAPIDAPI][TikTok][Search] GET ${url}`);
+
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'x-rapidapi-key': key,
+        'x-rapidapi-host': RAPIDAPI_HOST,
+      },
+    });
+
+    console.log(
+      `🔎 [RAPIDAPI][TikTok][Search] status: ${res.status} ${res.statusText}`,
+    );
+
+    const text = await res.text();
+    try {
+      const json = JSON.parse(text) as TikTokSearchResponse;
+      const count = Array.isArray(json?.data) ? json.data.length : 0;
+      console.log(
+        `🔎 [RAPIDAPI][TikTok][Search] parsed ok: status_code=${json.status_code ?? res.status}, items=${count}`,
+      );
+      return json;
+    } catch (e) {
+      console.warn(
+        `⚠️ [RAPIDAPI][TikTok][Search] JSON parse failed. Raw length=${text.length}. Snippet=\n${text.slice(
+          0,
+          600,
+        )}`,
+      );
+      return { status_code: res.status, data: [] } as TikTokSearchResponse;
+    }
+  } catch (err) {
+    console.error(`❌ [RAPIDAPI][TikTok][Search] Request error:`, err);
+    return { status_code: 500, data: [] } as TikTokSearchResponse;
   }
 }
 
@@ -210,13 +230,20 @@ export function pickSmallest540PerItem(
 
     const choice = bestPreferred ?? bestAny;
     if (choice) {
+      // Prefer HTTPS URL from UrlList when available
+      const urlList = (choice.info?.PlayAddr?.UrlList ?? []).filter((u) => typeof u === 'string');
+      let preferredUrl = (urlList.find((u) => u.startsWith('https://')) || urlList[0]) as string | undefined;
+      if (preferredUrl && preferredUrl.startsWith('http://')) {
+        preferredUrl = 'https://' + preferredUrl.slice('http://'.length);
+      }
+
       results.push({
         itemId: item.id,
         description: item.desc,
         duration: item.video?.duration,
         gearName: choice.info.GearName,
         dataSize: choice.info.PlayAddr?.DataSize,
-        url: choice.info?.PlayAddr?.UrlList?.[0],
+        url: preferredUrl,
         views,
         likes,
         createdAt,

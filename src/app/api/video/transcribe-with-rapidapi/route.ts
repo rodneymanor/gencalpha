@@ -1,19 +1,21 @@
+import { NextRequest, NextResponse } from "next/server";
+import { scrapeVideoUrl } from "@/lib/unified-video-scraper";
 import fs from "fs";
 import path from "path";
-
-import { NextRequest, NextResponse } from "next/server";
-
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { GoogleAIFileManager } from "@google/generative-ai/server";
 
 interface TranscriptionRequest {
-  videoUrl: string; // required; no id-based fallbacks
-  // Optional TikTok session cookies to pass through to CDN requests.
-  // Accepts:
-  // - string: raw Cookie header value ("key1=val1; key2=val2")
-  // - Record<string,string>: map of cookie name -> value
-  // - Array<{ name: string; value: string }>
-  cookies?: string | Record<string, string> | Array<{ name: string; value: string }>;
+  rapidApiVideoData: {
+    itemId?: string;
+    description?: string;
+    duration?: number;
+    url?: string; // CDN URL from RapidAPI
+    views?: number;
+    likes?: number;
+    platform?: string;
+  };
+  originalUrl?: string; // Original TikTok/Instagram URL for fallback
 }
 
 interface TranscriptionResponse {
@@ -34,6 +36,7 @@ interface TranscriptionResponse {
   visualContext?: string;
   error?: string;
   details?: string;
+  approach?: string; // Which approach was used
 }
 
 // Helper function to add timeout to any async operation
@@ -47,76 +50,119 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, operation:
   return Promise.race([promise, timeoutPromise]);
 }
 
-// Download video from CDN URL (single attempt, no fallbacks)
-async function downloadVideo(
+// Try to download video using RapidAPI CDN URL with enhanced TikTok headers
+async function downloadFromRapidApiUrl(
   url: string,
-  options?: { cookieHeader?: string },
-): Promise<{ success: boolean; buffer?: ArrayBuffer; error?: string; status?: number; headersUsed?: string[]; cookieNames?: string[] }> {
-  console.log("⬇️ Downloading video from CDN:", url);
+): Promise<{ success: boolean; buffer?: ArrayBuffer; error?: string }> {
+  console.log("⬇️ [RAPIDAPI_TRANSCRIBE] Attempting download from RapidAPI CDN URL:", url);
+  
   const parsed = new URL(url);
   const isTikTok = parsed.hostname.includes('tiktok');
-
+  
   const headers: Record<string, string> = {
-    // Use stable desktop Chrome UA
-    "User-Agent":
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.74 Safari/537.36",
-    // Prefer video content types explicitly
-    "Accept": "video/mp4,video/*;q=0.9,*/*;q=0.8",
-    "Accept-Language": "en-US,en;q=0.5",
+    "User-Agent": "TikTok 26.2.0 rv:262018 (iPhone; iOS 14.4.2; en_US) Cronet",
+    "Accept": "*/*",
+    "Accept-Language": "en-US,en;q=0.9",
     "Accept-Encoding": "gzip, deflate, br",
     "Connection": "keep-alive",
+    "sec-fetch-dest": "video",
+    "sec-fetch-mode": "no-cors", 
+    "sec-fetch-site": "same-site",
   };
+  
   if (isTikTok) {
     headers["Referer"] = "https://www.tiktok.com/";
     headers["Origin"] = "https://www.tiktok.com";
+    // Use a more realistic mobile user agent for better success
+    headers["User-Agent"] = "Mozilla/5.0 (iPhone; CPU iPhone OS 14_4_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.3 Mobile/15E148 Safari/604.1";
   }
-  if (options?.cookieHeader) {
-    headers["Cookie"] = options.cookieHeader;
-  }
-
-  const cookieNames = options?.cookieHeader
-    ? String(options.cookieHeader)
-        .split(/;\s*/)
-        .map((p) => p.split("=")[0])
-        .filter(Boolean)
-    : [];
 
   try {
-    // Preflight HEAD to confirm accessibility without downloading payload
-    const headRes = await fetch(url, { method: 'HEAD', headers, redirect: 'follow' as any, cache: 'no-store' as any });
-    if (!headRes.ok) {
-      const status = headRes.status;
-      const text = await headRes.text().catch(() => '');
-      console.warn(`⚠️ [DOWNLOAD] HEAD responded ${status} ${headRes.statusText}. Body snippet:`, text.slice(0, 200));
-      return { success: false, error: `HEAD failed: ${status} ${headRes.statusText}`, status, headersUsed: Object.keys(headers), cookieNames };
-    }
-
-    // GET full resource (limit enforced below)
-    const response = await fetch(url, { headers, redirect: 'follow' as any, cache: 'no-store' as any });
+    // Try without cookies first (faster)
+    const response = await fetch(url, { 
+      headers, 
+      redirect: 'follow' as RequestRedirect,
+      cache: 'no-store' as RequestCache
+    });
+    
     if (!response.ok) {
-      const status = response.status;
-      const text = await response.text().catch(() => '');
-      console.warn(`⚠️ [DOWNLOAD] CDN responded ${status} ${response.statusText}. Body snippet:`, text.slice(0, 200));
-      return { success: false, error: `Failed to download video: ${status} ${response.statusText}`, status, headersUsed: Object.keys(headers), cookieNames };
+      console.warn(`⚠️ [RAPIDAPI_TRANSCRIBE] CDN URL failed: ${response.status} ${response.statusText}`);
+      return { success: false, error: `CDN URL failed: ${response.status} ${response.statusText}` };
     }
 
     const buffer = await response.arrayBuffer();
-    console.log(`✅ Video downloaded successfully: ${buffer.byteLength} bytes`);
+    console.log(`✅ [RAPIDAPI_TRANSCRIBE] Downloaded ${buffer.byteLength} bytes from CDN URL`);
 
-    // Check file size (max 25MB)
-    const maxSize = 25 * 1024 * 1024; // 25MB
+    // Check file size (max 10MB)
+    const maxSize = 10 * 1024 * 1024;
     if (buffer.byteLength > maxSize) {
       return { success: false, error: `Video file too large: ${buffer.byteLength} bytes (max ${maxSize} bytes)` };
     }
 
     return { success: true, buffer };
   } catch (error) {
-    console.error("❌ Failed to download video:", error);
+    console.error("❌ [RAPIDAPI_TRANSCRIBE] CDN download failed:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to download video",
-      headersUsed: Object.keys(headers),
-      cookieNames,
+      error: error instanceof Error ? error.message : "CDN download failed",
+    };
+  }
+}
+
+// Try to reconstruct original TikTok URL from itemId for fallback
+function reconstructTikTokUrl(itemId: string): string | null {
+  if (!itemId || !/^\d+$/.test(itemId)) {
+    return null;
+  }
+  
+  // Standard TikTok URL format: https://www.tiktok.com/@placeholder/video/{itemId}
+  // We use a generic username since we don't have the actual author username
+  return `https://www.tiktok.com/@user/video/${itemId}`;
+}
+
+// Fallback to unified video scraper if CDN URL fails
+async function downloadFromUnifiedScraper(
+  originalUrl: string | null,
+  itemId?: string,
+): Promise<{ success: boolean; buffer?: ArrayBuffer; error?: string }> {
+  let urlToTry = originalUrl;
+  
+  // If no original URL provided, try to reconstruct from itemId
+  if (!urlToTry && itemId) {
+    urlToTry = reconstructTikTokUrl(itemId);
+    if (urlToTry) {
+      console.log("🔧 [RAPIDAPI_TRANSCRIBE] Reconstructed TikTok URL from itemId:", urlToTry);
+    }
+  }
+  
+  if (!urlToTry) {
+    return {
+      success: false,
+      error: "No original URL provided and cannot reconstruct from itemId",
+    };
+  }
+  
+  console.log("🔄 [RAPIDAPI_TRANSCRIBE] Falling back to unified video scraper for:", urlToTry);
+  
+  try {
+    const scrapedData = await scrapeVideoUrl(urlToTry);
+    
+    if (!scrapedData.success || !scrapedData.data?.videoData?.buffer) {
+      return { 
+        success: false, 
+        error: scrapedData.error || "Failed to scrape video from original URL" 
+      };
+    }
+
+    const buffer = Buffer.from(scrapedData.data.videoData.buffer);
+    console.log(`✅ [RAPIDAPI_TRANSCRIBE] Downloaded ${buffer.byteLength} bytes via unified scraper`);
+    
+    return { success: true, buffer: buffer.buffer };
+  } catch (error) {
+    console.error("❌ [RAPIDAPI_TRANSCRIBE] Unified scraper failed:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unified scraper failed",
     };
   }
 }
@@ -295,35 +341,18 @@ Return the response in this exact JSON format:
 
 export async function POST(request: NextRequest) {
   const requestId = Math.random().toString(36).substring(7);
-  console.log(`🚀 [${requestId}] Starting video transcription from URL`);
+  console.log(`🚀 [${requestId}] Starting RapidAPI video transcription`);
 
   try {
     const body: TranscriptionRequest = await request.json();
-    const { videoUrl: initialUrl } = body;
+    const { rapidApiVideoData, originalUrl } = body;
 
-    // Build optional Cookie header from provided cookies
-    function buildCookieHeader(input: TranscriptionRequest['cookies']): string | undefined {
-      if (!input) return undefined;
-      if (typeof input === 'string') return input.trim() || undefined;
-      if (Array.isArray(input)) {
-        const parts = input
-          .map((c) => (c && c.name ? `${c.name}=${c.value ?? ''}` : ''))
-          .filter(Boolean);
-        return parts.length ? parts.join('; ') : undefined;
-      }
-      if (typeof input === 'object') {
-        const parts = Object.entries(input)
-          .filter(([k]) => !!k)
-          .map(([k, v]) => `${k}=${v ?? ''}`);
-        return parts.length ? parts.join('; ') : undefined;
-      }
-      return undefined;
-    }
-    const cookieHeader = buildCookieHeader(body.cookies);
-
-    if (!initialUrl) {
+    if (!rapidApiVideoData?.url && !originalUrl && !rapidApiVideoData?.itemId) {
       return NextResponse.json(
-        { success: false, error: "Video URL is required" } satisfies TranscriptionResponse,
+        { 
+          success: false, 
+          error: "Either RapidAPI video data with CDN URL, original URL, or itemId is required" 
+        } satisfies TranscriptionResponse,
         { status: 400 },
       );
     }
@@ -337,36 +366,58 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(`📹 [${requestId}] Processing video URL: ${initialUrl}`);
-    const urlToFetch = initialUrl;
+    let downloadResult: { success: boolean; buffer?: ArrayBuffer; error?: string };
+    let approachUsed = "unknown";
 
-    // Step 2: Download video from CDN
-    const downloadResult = await downloadVideo(urlToFetch, { cookieHeader });
-    if (!downloadResult.success || !downloadResult.buffer) {
-      console.error(`❌ [${requestId}] Download failed:`, downloadResult.error);
+    // Approach 1: Try RapidAPI CDN URL first
+    if (rapidApiVideoData?.url) {
+      console.log(`📹 [${requestId}] Attempting RapidAPI CDN URL approach`);
+      downloadResult = await downloadFromRapidApiUrl(rapidApiVideoData.url);
+      if (downloadResult.success) {
+        approachUsed = "rapidapi_cdn";
+      }
+    }
+
+    // Approach 2: Fallback to unified video scraper if CDN fails
+    if (!downloadResult || !downloadResult.success) {
+      console.log(`📹 [${requestId}] Falling back to unified video scraper approach`);
+      downloadResult = await downloadFromUnifiedScraper(originalUrl, rapidApiVideoData?.itemId);
+      if (downloadResult.success) {
+        approachUsed = "unified_scraper";
+      }
+    }
+
+    if (!downloadResult || !downloadResult.success || !downloadResult.buffer) {
+      console.error(`❌ [${requestId}] All download approaches failed:`, downloadResult?.error);
       return NextResponse.json(
         {
           success: false,
           error: "Failed to download video",
-          details: downloadResult.error,
-          debug: { headersUsed: downloadResult.headersUsed, cookieNames: downloadResult.cookieNames, status: downloadResult.status },
+          details: downloadResult?.error || "All download approaches failed",
+          approach: approachUsed,
         } satisfies TranscriptionResponse,
         { status: 400 },
       );
     }
 
-    console.log(`✅ [${requestId}] Video downloaded successfully: ${downloadResult.buffer.byteLength} bytes`);
+    console.log(`✅ [${requestId}] Video downloaded successfully via ${approachUsed}: ${downloadResult.buffer.byteLength} bytes`);
 
     // Step 2: Transcribe video
     const transcriptionResult = await transcribeVideo(downloadResult.buffer, requestId);
 
     if (!transcriptionResult.success) {
       console.error(`❌ [${requestId}] Transcription failed:`, transcriptionResult.error);
-      return NextResponse.json(transcriptionResult, { status: 500 });
+      return NextResponse.json({
+        ...transcriptionResult,
+        approach: approachUsed,
+      }, { status: 500 });
     }
 
-    console.log(`🎉 [${requestId}] Transcription completed successfully`);
-    return NextResponse.json(transcriptionResult);
+    console.log(`🎉 [${requestId}] Transcription completed successfully via ${approachUsed}`);
+    return NextResponse.json({
+      ...transcriptionResult,
+      approach: approachUsed,
+    });
   } catch (error) {
     console.error(`❌ [${requestId}] Unexpected error:`, error);
     return NextResponse.json(

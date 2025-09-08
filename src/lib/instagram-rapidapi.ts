@@ -26,14 +26,41 @@ export async function fetchInstagramRapidApiByShortcode(shortcode: string): Prom
   return resp.json();
 }
 
-export function mapInstagramToUnified(instagramData: any, shortcode: string): UnifiedVideoResult {
+export function mapInstagramToUnified(
+  instagramData: any,
+  shortcode: string,
+  preferAudioOnly = false,
+): UnifiedVideoResult {
   const standardVersions = instagramData?.video_versions ?? [];
   const dashVersions = instagramData?.video_dash_manifest?.video_versions ?? [];
   const allVersions = [...dashVersions, ...standardVersions];
 
+  // Heuristic to detect audio-only variants in IG dash manifest
+  const isAudioOnly = (v: any) => {
+    const t = String(v?.type || v?.mime_type || v?.content_type || "").toLowerCase();
+    const codecs = String(v?.codecs || "").toLowerCase();
+    const url = String(v?.url || "").toLowerCase();
+    const noDimensions = (v?.height === 0 || v?.width === 0) || (v?.height == null && v?.width == null);
+    return (
+      t.includes("audio") ||
+      codecs.includes("mp4a") ||
+      url.includes("/audio/") ||
+      url.includes("audio_only") ||
+      noDimensions && !t.includes("video")
+    );
+  };
+
   let selected: any | null = null;
+
   if (allVersions.length > 0) {
-    const sorted = [...allVersions].sort((a, b) => (a?.bandwidth ?? 0) - (b?.bandwidth ?? 0));
+    let candidates = allVersions;
+    if (preferAudioOnly) {
+      const audioOnly = allVersions.filter(isAudioOnly);
+      if (audioOnly.length > 0) {
+        candidates = audioOnly;
+      }
+    }
+    const sorted = [...candidates].sort((a, b) => (a?.bandwidth ?? 0) - (b?.bandwidth ?? 0));
     selected = sorted[0];
   }
 

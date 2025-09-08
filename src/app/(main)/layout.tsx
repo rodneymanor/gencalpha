@@ -5,7 +5,7 @@ import { ReactNode, useState } from "react";
 import { Menu, ArrowLeft } from "lucide-react";
 
 import { DashboardWrapper } from "@/app/(main)/dashboard/_components/dashboard-wrapper";
-import { AppSidebar } from "@/app/(main)/dashboard/_components/sidebar/app-sidebar";
+import { AppSidebarClaude } from "@/app/(main)/dashboard/_components/sidebar/app-sidebar.claude";
 import { VideoProcessingNotifier } from "@/components/notifications/video-processing-notifier";
 import { FloatingActionButton } from "@/components/ui/floating-action-button";
 import { ProcessingNotificationBadge } from "@/components/ui/processing-notification-badge";
@@ -29,7 +29,7 @@ export default function MainLayout({ children }: Readonly<{ children: ReactNode 
                 <ResizableLayoutProvider>
                   <div className="flex h-screen">
                     {/* Desktop Sidebar - hidden on mobile */}
-                    <AppSidebar className="hidden flex-shrink-0 md:block" />
+                    <AppSidebarClaude className="hidden flex-shrink-0 md:block" />
 
                     {/* Mobile Sidebar - Full page view */}
                     {showMobileSidebar && (
@@ -43,7 +43,7 @@ export default function MainLayout({ children }: Readonly<{ children: ReactNode 
                           </button>
                           <span className="ml-3 text-lg font-medium">Menu</span>
                         </div>
-                        <AppSidebar
+                        <AppSidebarClaude
                           className="h-[calc(100vh-3.5rem)]"
                           onItemClick={() => setShowMobileSidebar(false)}
                         />
