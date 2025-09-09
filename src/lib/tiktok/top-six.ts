@@ -1,13 +1,15 @@
-import { pickSmallest540PerItem, searchTikTok } from './search';
-import { rotateKeywords } from '@/lib/keyword-rotation';
-import { normalizeCategory, KEYWORD_POOLS } from '@/data/keyword-pools';
+import { normalizeCategory, KEYWORD_POOLS } from "@/data/keyword-pools";
+import { rotateKeywords } from "@/lib/keyword-rotation";
+
+import { pickSmallest540PerItem, searchTikTok } from "./search";
 
 export type RankedVideo = ReturnType<typeof pickSmallest540PerItem>[number] & {
   score: number;
   keyword: string;
 };
 
-const NEWS_REGEX = /\b(news|breaking|headline|update|press|politic|election|war|crime|weather|forecast|daily\s+news)\b/i;
+const NEWS_REGEX =
+  /\b(news|breaking|headline|update|press|politic|election|war|crime|weather|forecast|daily\s+news)\b/i;
 
 function isNonNews(desc?: string): boolean {
   if (!desc) return true;
@@ -29,7 +31,10 @@ function successScore(views = 0, likes = 0): number {
   return v * 1.0 + l * 0.7;
 }
 
-export async function getTopSixFromRotatedKeywords(options?: { force?: boolean; category?: string }): Promise<RankedVideo[]> {
+export async function getTopSixFromRotatedKeywords(options?: {
+  force?: boolean;
+  category?: string;
+}): Promise<RankedVideo[]> {
   // Simple in-process cache + in-flight coalescing to avoid RapidAPI bursts
   // Cache key is the rotation day + keywords list
   type CacheEntry = { key: string; at: number; result: RankedVideo[] };
@@ -51,19 +56,19 @@ export async function getTopSixFromRotatedKeywords(options?: { force?: boolean; 
   const compute = async (bypassCache: boolean): Promise<RankedVideo[]> => {
     const cat = normalizeCategory(options?.category || undefined);
     let keywords: string[] = [];
-    let day = 'n/a';
+    let day = "n/a";
     try {
       const rotation = await rotateKeywords({ count: 3, category: cat });
       keywords = rotation?.keywords ?? [];
-      day = (rotation as any)?.date ?? 'n/a';
+      day = (rotation as any)?.date ?? "n/a";
     } catch {
       // Fallback: pick from static pools (dev without Admin)
-      const pool = (cat ? KEYWORD_POOLS[cat] : KEYWORD_POOLS['content-creation']) || [];
+      const pool = (cat ? KEYWORD_POOLS[cat] : KEYWORD_POOLS["content-creation"]) || [];
       const shuffled = [...pool].sort(() => Math.random() - 0.5);
       keywords = shuffled.slice(0, 3);
       day = new Date().toISOString().slice(0, 10);
     }
-    const cacheKey = `${day}::${cat ?? 'all'}::${keywords.join('|')}`;
+    const cacheKey = `${day}::${cat ?? "all"}::${keywords.join("|")}`;
 
     // Serve from recent cache when available
     if (!bypassCache && state.last && state.last.key === cacheKey && Date.now() - state.last.at < CACHE_TTL_MS) {
@@ -71,7 +76,7 @@ export async function getTopSixFromRotatedKeywords(options?: { force?: boolean; 
     }
 
     console.log(
-      `🔁 [TopSix] rotateKeywords -> date=${day} category=${cat ?? 'all'} keywords=${keywords.length} (${keywords.join(', ')})`,
+      `🔁 [TopSix] rotateKeywords -> date=${day} category=${cat ?? "all"} keywords=${keywords.length} (${keywords.join(", ")})`,
     );
 
     const all: RankedVideo[] = [];
@@ -80,7 +85,7 @@ export async function getTopSixFromRotatedKeywords(options?: { force?: boolean; 
         const resp = await searchTikTok(kw, 0, 0);
         const items = pickSmallest540PerItem(resp);
         console.log(
-          `🔎 [TopSix] keyword="${kw}" -> resp_code=${resp?.status_code ?? 'n/a'} raw=${resp?.data?.length ?? 0} filtered=${items.length}`,
+          `🔎 [TopSix] keyword="${kw}" -> resp_code=${resp?.status_code ?? "n/a"} raw=${resp?.data?.length ?? 0} filtered=${items.length}`,
         );
 
         for (const it of items) {
@@ -104,7 +109,9 @@ export async function getTopSixFromRotatedKeywords(options?: { force?: boolean; 
       }
     }
 
-    const ranked = Array.from(byId.values()).sort((a, b) => b.score - a.score).slice(0, 6);
+    const ranked = Array.from(byId.values())
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 6);
     state.last = { key: cacheKey, at: Date.now(), result: ranked };
     return ranked;
   };

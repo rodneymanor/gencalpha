@@ -1,15 +1,11 @@
-import { z } from 'zod';
-import { getAdminDb } from './firebase-admin';
-import { FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { FieldValue, Timestamp } from "firebase-admin/firestore";
+import { z } from "zod";
+
+import { getAdminDb } from "./firebase-admin";
 
 export const KeywordQuerySchema = z.object({
-  primaryKeyword: z
-    .string({ required_error: 'primaryKeyword is required' })
-    .min(1)
-    .max(100),
-  generatedQuery: z
-    .string({ required_error: 'generatedQuery is required' })
-    .min(1),
+  primaryKeyword: z.string({ required_error: "primaryKeyword is required" }).min(1).max(100),
+  generatedQuery: z.string({ required_error: "generatedQuery is required" }).min(1),
   queryType: z.string().max(50).optional(),
   performanceScore: z
     .number()
@@ -40,11 +36,11 @@ export type KeywordQueryDoc = {
 
 export async function saveKeywordQuery(input: KeywordQueryInput): Promise<KeywordQueryDoc> {
   const adminDb = getAdminDb();
-  if (!adminDb) throw new Error('Firebase Admin is not initialized');
+  if (!adminDb) throw new Error("Firebase Admin is not initialized");
 
   const parsed = KeywordQuerySchema.parse(input);
 
-  const payload: Omit<KeywordQueryDoc, 'id' | 'createdAt'> & {
+  const payload: Omit<KeywordQueryDoc, "id" | "createdAt"> & {
     createdAt: FirebaseFirestore.FieldValue;
   } = {
     primaryKeyword: parsed.primaryKeyword,
@@ -56,9 +52,9 @@ export async function saveKeywordQuery(input: KeywordQueryInput): Promise<Keywor
     createdAt: FieldValue.serverTimestamp(),
   } as any;
 
-  const ref = await adminDb.collection('keyword_queries').add(payload);
+  const ref = await adminDb.collection("keyword_queries").add(payload);
   const snap = await ref.get();
-  const data = snap.data() as any;
+  const data = snap.data();
 
   return {
     id: ref.id,

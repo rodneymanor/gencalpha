@@ -244,6 +244,6 @@ function generatePlaceholderThumbnail(): string {
 }
 
 function extractInstagramShortcode(url: string): string | null {
-  const match = url.match(/(?:instagram\.com|instagr\.am)\/(?:p|reels?)\/([A-Za-z0-9_-]+)/);
+  const match = url.match(/(?:instagram\.com|instagr\.am)\/(?:p|reels?|tv|share)\/([A-Za-z0-9_-]+)/);
   return match ? match[1] : null;
 }

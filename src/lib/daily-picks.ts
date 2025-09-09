@@ -1,9 +1,10 @@
-import { getAdminDb, isAdminInitialized } from '@/lib/firebase-admin';
-import { getTopSixFromRotatedKeywords, RankedVideo } from '@/lib/tiktok/top-six';
-import { FieldValue } from 'firebase-admin/firestore';
-import { VideoTranscriber } from '@/core/video/transcriber';
-import { scriptGenerationService } from '@/lib/services/script-generation-service';
-import type { VideoScript } from '@/components/script-display/types';
+import { FieldValue } from "firebase-admin/firestore";
+
+import type { VideoScript } from "@/components/script-display/types";
+import { VideoTranscriber } from "@/core/video/transcriber";
+import { getAdminDb } from "@/lib/firebase-admin";
+import { scriptGenerationService } from "@/lib/services/script-generation-service";
+import { getTopSixFromRotatedKeywords, RankedVideo } from "@/lib/tiktok/top-six";
 
 type DailyPicksDoc = {
   date: string; // YYYY-MM-DD
@@ -13,7 +14,7 @@ type DailyPicksDoc = {
   createdAt: FirebaseFirestore.FieldValue | FirebaseFirestore.Timestamp;
 };
 
-const COLLECTION = 'daily_picks';
+const COLLECTION = "daily_picks";
 
 // In-memory fallback cache (when Firebase Admin is not initialized in dev)
 type MemEntry = { date: string; category: string | null; videos?: RankedVideo[]; scripts?: VideoScript[]; at: number };
@@ -25,7 +26,7 @@ if (!g.__dailyPicksMem) {
 const memStore: { map: Map<string, MemEntry> } = g.__dailyPicksMem;
 
 function docId(dateKey: string, category?: string | null) {
-  const cat = (category || 'all').toString().toLowerCase();
+  const cat = (category || "all").toString().toLowerCase();
   return `${dateKey}__${cat}`;
 }
 
@@ -34,8 +35,8 @@ export async function getOrComputeDailyPicks(params?: { category?: string; force
 
   const today = new Date();
   const y = today.getFullYear();
-  const m = String(today.getMonth() + 1).padStart(2, '0');
-  const d = String(today.getDate()).padStart(2, '0');
+  const m = String(today.getMonth() + 1).padStart(2, "0");
+  const d = String(today.getDate()).padStart(2, "0");
   const dateKey = `${y}-${m}-${d}`;
   const cat = params?.category || null;
   const id = docId(dateKey, cat);
@@ -83,8 +84,8 @@ export async function getOrComputeProcessedDailyScripts(params?: {
 
   const today = new Date();
   const y = today.getFullYear();
-  const m = String(today.getMonth() + 1).padStart(2, '0');
-  const d = String(today.getDate()).padStart(2, '0');
+  const m = String(today.getMonth() + 1).padStart(2, "0");
+  const d = String(today.getDate()).padStart(2, "0");
   const dateKey = `${y}-${m}-${d}`;
   const cat = params?.category || null;
   const id = docId(dateKey, cat);
@@ -99,7 +100,14 @@ export async function getOrComputeProcessedDailyScripts(params?: {
     data = (snap.exists ? (snap.data() as DailyPicksDoc) : undefined) || ({} as DailyPicksDoc);
   } else {
     const mem = memStore.map.get(id);
-    if (mem) data = { date: mem.date, category: mem.category, videos, scripts: mem.scripts, createdAt: FieldValue.serverTimestamp() as any };
+    if (mem)
+      data = {
+        date: mem.date,
+        category: mem.category,
+        videos,
+        scripts: mem.scripts,
+        createdAt: FieldValue.serverTimestamp() as any,
+      };
   }
 
   if (!params?.force && Array.isArray(data.scripts) && data.scripts.length > 0) {
@@ -116,7 +124,7 @@ export async function getOrComputeProcessedDailyScripts(params?: {
     try {
       if ((v as any)?.url && process.env.INTERNAL_API_SECRET) {
         const cdnUrl = (v as any).url as string;
-        const t = await VideoTranscriber.transcribeFromUrl(cdnUrl, 'tiktok' as any);
+        const t = await VideoTranscriber.transcribeFromUrl(cdnUrl, "tiktok" as any);
         transcript = t?.transcript ?? undefined;
         hookText = t?.components?.hook ?? undefined;
       }
@@ -124,13 +132,19 @@ export async function getOrComputeProcessedDailyScripts(params?: {
       // continue; fallback to description
     }
 
-    const ideaBase = hookText || (transcript ? transcript.slice(0, 200) : String(v.description || 'Script idea from trending video'));
+    const ideaBase =
+      hookText || (transcript ? transcript.slice(0, 200) : String(v.description || "Script idea from trending video"));
     const idea = String(ideaBase).slice(0, 900);
 
     let contentFromGen: string | null = null;
     try {
       // If admin not initialized, negative keyword service may fail; ignore errors
-      const gen = await scriptGenerationService.generateScript({ idea, length: '60', userId: params?.userId || 'public', type: 'speed' });
+      const gen = await scriptGenerationService.generateScript({
+        idea,
+        length: "60",
+        userId: params?.userId || "public",
+        type: "speed",
+      });
       if (gen.success && gen.content) {
         contentFromGen = gen.content;
       }
@@ -138,27 +152,36 @@ export async function getOrComputeProcessedDailyScripts(params?: {
       // ignore; we'll fallback to components/transcript
     }
 
-    const content = contentFromGen || '';
+    const content = contentFromGen || "";
     const parts = content
-      ? content.split(/\n\n+/).map((s) => s.trim()).filter(Boolean)
-      : [hookText || '', '', '', ''];
+      ? content
+          .split(/\n\n+/)
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : [hookText || "", "", "", ""];
 
-    const [hook = idea, bridge = parts[1] || '', nugget = parts[2] || '', wta = parts[3] || ''] = parts;
+    const [hook = idea, bridge = parts[1] || "", nugget = parts[2] || "", wta = parts[3] || ""] = parts;
 
-    const secs = typeof v.duration === 'number' ? v.duration : 0;
-    const durationLabel = secs ? `${Math.round(secs)}s` : '';
-    const title = (v.description as string | undefined)?.slice(0, 80) || `Video ${idx + 1}`;
+    const secs = typeof v.duration === "number" ? v.duration : 0;
+    const durationLabel = secs ? `${Math.round(secs)}s` : "";
+    const title = v.description?.slice(0, 80) || `Video ${idx + 1}`;
 
     scripts.push({
       id: idx + 1,
       title,
       duration: durationLabel,
-      status: 'ready',
+      status: "ready",
       sections: [
-        { type: 'hook', label: 'Hook', timeRange: '0-3s', dialogue: hook, action: 'Open strong' },
-        { type: 'bridge', label: 'Bridge', timeRange: '3-8s', dialogue: bridge, action: 'Set context' },
-        { type: 'golden-nugget', label: 'Golden Nugget', timeRange: '8-20s', dialogue: nugget, action: 'Deliver insight' },
-        { type: 'wta', label: 'What To Action', timeRange: '20-30s', dialogue: wta, action: 'Give next step' },
+        { type: "hook", label: "Hook", timeRange: "0-3s", dialogue: hook, action: "Open strong" },
+        { type: "bridge", label: "Bridge", timeRange: "3-8s", dialogue: bridge, action: "Set context" },
+        {
+          type: "golden-nugget",
+          label: "Golden Nugget",
+          timeRange: "8-20s",
+          dialogue: nugget,
+          action: "Deliver insight",
+        },
+        { type: "wta", label: "What To Action", timeRange: "20-30s", dialogue: wta, action: "Give next step" },
       ],
     });
   }

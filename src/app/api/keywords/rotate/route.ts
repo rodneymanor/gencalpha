@@ -1,16 +1,17 @@
-import { NextRequest } from 'next/server';
-import { rotateKeywords, getActiveKeywordsForDate } from '@/lib/keyword-rotation';
+import { NextRequest } from "next/server";
+
+import { rotateKeywords } from "@/lib/keyword-rotation";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const count = Number(searchParams.get('count') || 3);
-  const date = searchParams.get('date') || undefined; // e.g., 2025-09-09 for testing
-  const force = searchParams.get('force') === 'true';
+  const count = Number(searchParams.get("count") || 3);
+  const date = searchParams.get("date") || undefined; // e.g., 2025-09-09 for testing
+  const force = searchParams.get("force") === "true";
   try {
     const result = await rotateKeywords({ count, date, force });
     return Response.json({ ok: true, ...result });
   } catch (e: any) {
-    return Response.json({ ok: false, error: e?.message || 'Rotation failed' }, { status: 500 });
+    return Response.json({ ok: false, error: e?.message || "Rotation failed" }, { status: 500 });
   }
 }
 
@@ -23,7 +24,6 @@ export async function POST(req: NextRequest) {
     const result = await rotateKeywords({ count, date, force });
     return Response.json({ ok: true, ...result });
   } catch (e: any) {
-    return Response.json({ ok: false, error: e?.message || 'Rotation failed' }, { status: 500 });
+    return Response.json({ ok: false, error: e?.message || "Rotation failed" }, { status: 500 });
   }
 }
-

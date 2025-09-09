@@ -39,7 +39,7 @@ export interface UserProfile {
   // Content settings
   contentTopic?: string; // canonical category (e.g., 'artificial-intelligence')
   contentGoals?: string[];
-  contentUserType?: 'Personal' | 'Business' | 'Agency/Freelancer';
+  contentUserType?: "Personal" | "Business" | "Agency/Freelancer";
 }
 
 export interface CoachCreatorRelationship {

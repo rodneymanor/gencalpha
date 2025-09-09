@@ -4,12 +4,12 @@ import { useState, useRef, useEffect } from "react";
 
 import { Settings, ArrowUp, Zap, Loader2, Clock, Database } from "lucide-react";
 
+import { ChatPersonasDropdown } from "@/components/ChatInterface/personas-dropdown";
 import { ShineBorder } from "@/components/magicui/shine-border";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TypewriterPlaceholder } from "@/components/ui/typewriter-placeholder";
-import { ChatPersonasDropdown } from "@/components/ChatInterface/personas-dropdown";
 import { useTrendingTopics } from "@/hooks/use-trending-topics";
 
 interface ChatInputProps {
@@ -24,8 +24,8 @@ interface ChatInputProps {
   showPersonas?: boolean;
   selectedPersona?: string;
   onPersonaSelect?: (persona: string) => void;
-  selectedGenerator?: 'hook' | 'template' | null;
-  onGeneratorSelect?: (generator: 'hook' | 'template') => void;
+  selectedGenerator?: "hook" | "template" | null;
+  onGeneratorSelect?: (generator: "hook" | "template") => void;
   className?: string;
 }
 
@@ -219,7 +219,7 @@ export default function ChatInput({
   return (
     <form onSubmit={handleSubmit} className={`relative ${className}`}>
       <div
-        className="relative flex items-center gap-2 rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-50 p-2 shadow-[var(--shadow-input)] transition-all duration-200 hover:border-neutral-300"
+        className="relative flex items-center gap-2 rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-50 p-3 shadow-[var(--shadow-input)] transition-all duration-200 hover:border-neutral-300"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -235,12 +235,12 @@ export default function ChatInput({
 
         {/* Personas dropdown on far left */}
         {showPersonas && (
-          <ChatPersonasDropdown 
-            selectedPersona={selectedPersona} 
-            onPersonaSelect={onPersonaSelect} 
+          <ChatPersonasDropdown
+            selectedPersona={selectedPersona}
+            onPersonaSelect={onPersonaSelect}
             selectedGenerator={selectedGenerator}
             onGeneratorSelect={onGeneratorSelect}
-            disabled={disabled} 
+            disabled={disabled}
           />
         )}
 
@@ -285,7 +285,7 @@ export default function ChatInput({
               />
             </div>
           )}
-          
+
           {/* Mobile-only simple placeholder */}
           {showTypewriter && !value && (
             <div className="pointer-events-none absolute inset-0 flex items-center px-4 text-neutral-500 sm:hidden">

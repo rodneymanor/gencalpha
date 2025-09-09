@@ -16,10 +16,10 @@ export async function GET(request: NextRequest) {
     // For test/dev mode with test API key, return mock data
     if (process.env.NODE_ENV === "development" && request.headers.get("x-api-key") === "test-internal-secret-123") {
       console.log("🔓 [Chrome Collections] Using test mode - returning mock collections");
-      
+
       // Check if we have real test collections from previous adds
       const { getAdminDb, isAdminInitialized } = await import("@/lib/firebase-admin");
-      
+
       if (isAdminInitialized) {
         const adminDb = getAdminDb();
         if (adminDb) {
@@ -29,14 +29,14 @@ export async function GET(request: NextRequest) {
               .where("userId", "==", "test-user")
               .limit(10)
               .get();
-              
+
             const collections = collectionsSnapshot.docs.map((doc: any) => ({
               id: doc.id,
               ...doc.data(),
               createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || doc.data().createdAt,
               updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() || doc.data().updatedAt,
             }));
-            
+
             return NextResponse.json({
               success: true,
               user: {
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
           }
         }
       }
-      
+
       // Fallback to mock data if no real collections
       return NextResponse.json({
         success: true,
@@ -121,28 +121,28 @@ export async function POST(request: NextRequest) {
     if (authResult instanceof NextResponse) return authResult;
 
     const body = await request.json().catch(() => ({}));
-    
+
     // For test/dev mode with test API key, create collection directly
     if (process.env.NODE_ENV === "development" && request.headers.get("x-api-key") === "test-internal-secret-123") {
       console.log("🔓 [Chrome Collections] Using test mode - creating collection directly");
-      
+
       const { getAdminDb, isAdminInitialized } = await import("@/lib/firebase-admin");
-      
+
       if (!isAdminInitialized) {
         return NextResponse.json({ success: false, error: "Firebase Admin not configured" }, { status: 500 });
       }
-      
+
       const adminDb = getAdminDb();
       if (!adminDb) {
         return NextResponse.json({ success: false, error: "Admin DB not available" }, { status: 500 });
       }
-      
+
       const { title, description = "" } = body;
-      
+
       if (!title) {
         return NextResponse.json({ success: false, error: "Title is required" }, { status: 400 });
       }
-      
+
       const now = new Date();
       const collectionData = {
         title: title.trim(),
@@ -152,21 +152,24 @@ export async function POST(request: NextRequest) {
         createdAt: now,
         updatedAt: now,
       };
-      
+
       const docRef = await adminDb.collection("collections").add(collectionData);
-      
-      return NextResponse.json({
-        success: true,
-        message: "Collection created successfully",
-        collection: {
-          id: docRef.id,
-          ...collectionData,
-          createdAt: collectionData.createdAt.toISOString(),
-          updatedAt: collectionData.updatedAt.toISOString(),
+
+      return NextResponse.json(
+        {
+          success: true,
+          message: "Collection created successfully",
+          collection: {
+            id: docRef.id,
+            ...collectionData,
+            createdAt: collectionData.createdAt.toISOString(),
+            updatedAt: collectionData.updatedAt.toISOString(),
+          },
         },
-      }, { status: 201 });
+        { status: 201 },
+      );
     }
-    
+
     const forwardedHeaders: HeadersInit = { "content-type": "application/json" };
     const apiKey = request.headers.get("x-api-key");
     const authHeader = request.headers.get("authorization");

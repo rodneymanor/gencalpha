@@ -1,10 +1,22 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { usePathname, useRouter } from "next/navigation";
-import { createPortal } from "react-dom";
 
-import { ChevronDown, FileText, FolderOpen, PenTool, PlayCircle, Users, Plus, Chrome, Smartphone, PanelLeft } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+
+import {
+  ChevronDown,
+  FileText,
+  FolderOpen,
+  PenTool,
+  PlayCircle,
+  Users,
+  Plus,
+  Chrome,
+  Smartphone,
+  PanelLeft,
+} from "lucide-react";
+import { createPortal } from "react-dom";
 
 import { useContentItems } from "@/components/content-inbox/hooks/use-content-inbox";
 import { listConversations } from "@/components/write-chat/services/chat-service";
@@ -24,13 +36,6 @@ interface AppSidebarProps {
   };
   className?: string;
   onItemClick?: () => void;
-}
-
-interface QuickGenerator {
-  id: string;
-  title: string;
-  uses: number;
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
 }
 
 interface SidebarItem {
@@ -131,7 +136,7 @@ export function AppSidebarClaude({ className, onItemClick }: AppSidebarProps) {
     return true;
   });
 
-  const [isAIActive, setIsAIActive] = useState(true);
+  // Removed AI activity indicator state (status dot no longer shown)
 
   // Initialize collapsed sections from localStorage
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>(() => {
@@ -186,12 +191,13 @@ export function AppSidebarClaude({ className, onItemClick }: AppSidebarProps) {
     });
   };
 
-  // Hover handlers (desktop only, no-op when pinned)
+  // Enable hover-to-expand on desktop when not pinned
   const handleMouseEnter = () => {
     if (typeof window === "undefined") return;
     const isMobile = window.innerWidth < 768;
     if (!isMobile && !isPinned) setIsCollapsed(false);
   };
+
   const handleMouseLeave = () => {
     if (typeof window === "undefined") return;
     const isMobile = window.innerWidth < 768;
@@ -299,31 +305,33 @@ export function AppSidebarClaude({ className, onItemClick }: AppSidebarProps) {
     fetchSidebarData();
   }, [user, contentData]);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIsAIActive((prev) => !prev);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, []);
+  // Removed AI activity indicator effect
 
   return (
     <div
       className={cn(
-        "overflow-visible border-r border-gray-100 bg-white transition-all duration-200 ease-out",
+        "relative z-50 border-r border-gray-100 bg-white",
         isCollapsed ? "w-16" : "w-80",
         className,
       )}
+      // Smooth, Claude-like easing on width change; hover only affects desktop
+      style={{
+        transition: "width 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+        willChange: "width",
+        backfaceVisibility: "hidden",
+        overflow: "visible", // Allow content to be visible during transitions
+      }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       {/* Main Sidebar */}
       <div className="flex h-full w-full flex-col">
         {/* Header */}
-        <div className="flex h-16 items-center justify-between border-b border-gray-50 px-4">
-          {!isCollapsed ? (
-            <>
-              {/* Logo */}
-              <div className="flex items-center gap-3">
+        <div className="flex h-16 items-center justify-between border-b border-gray-50 px-4 overflow-hidden">
+          {/* Logo - hidden when collapsed */}
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            {!isCollapsed && (
+              <>
                 <div
                   className="hover:text-primary flex cursor-pointer items-center gap-1 transition-colors duration-200 ease-linear"
                   onClick={handleLogoClick}
@@ -332,95 +340,67 @@ export function AppSidebarClaude({ className, onItemClick }: AppSidebarProps) {
                   <div className="bg-brand h-2 w-2 rounded-[var(--radius-pill)]"></div>
                   <span className="text-foreground text-xl font-bold">C</span>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5 text-xs text-neutral-600">
-                    <div
-                      className={cn(
-                        "h-1.5 w-1.5 rounded-full transition-colors duration-300",
-                        isAIActive ? "bg-emerald-500" : "bg-neutral-400",
-                      )}
-                    />
-                    <span>{isAIActive ? "AI Active" : "AI Idle"}</span>
+                <div className="min-w-0 flex-1 overflow-hidden">
+                  <div className="flex items-center text-xs text-neutral-600 whitespace-nowrap">
+                    <span>AI writing assistant</span>
                   </div>
                 </div>
-              </div>
+              </>
+            )}
+          </div>
 
-              {/* Pin toggle - Hidden on mobile */}
-              <button
-                onClick={togglePin}
-                aria-pressed={isPinned}
-                aria-label={isPinned ? "Unpin sidebar" : "Pin sidebar"}
-                className="hidden rounded-md p-1.5 text-neutral-600 transition-colors duration-200 hover:bg-neutral-100 hover:text-neutral-900 md:block"
-                title={isPinned ? "Unpin" : "Pin"}
-              >
-                <PanelLeft className="h-4 w-4" />
-              </button>
-            </>
-          ) : (
-            // Collapsed header shows only pin toggle
-            <button
-              onClick={togglePin}
-              aria-pressed={isPinned}
-              aria-label={isPinned ? "Unpin sidebar" : "Pin sidebar"}
-              className="mx-auto hidden rounded-md p-2 text-neutral-600 transition-colors duration-200 hover:bg-neutral-100 hover:text-neutral-900 md:block"
-              title={isPinned ? "Unpin" : "Pin"}
-            >
-              <PanelLeft className="h-4 w-4" />
-            </button>
-          )}
+          {/* Pin toggle - Always present */}
+          <button
+            onClick={togglePin}
+            aria-pressed={isPinned}
+            aria-label={isPinned ? "Unpin sidebar" : "Pin sidebar"}
+            className="hidden rounded-md p-1.5 text-neutral-600 transition-colors duration-200 hover:bg-neutral-100 hover:text-neutral-900 md:block flex-shrink-0"
+            title={isPinned ? "Unpin" : "Pin"}
+          >
+            <PanelLeft className="h-4 w-4" />
+          </button>
         </div>
 
         {/* Primary CTA - Claude style (circle + plus) */}
-        <div className={isCollapsed ? "py-4" : "p-4"}>
-          {!isCollapsed ? (
-            <button
-              onClick={() => {
-                if (typeof window !== "undefined") {
-                  window.dispatchEvent(new CustomEvent("write:close-slideout"));
-                }
-                router.push("/write");
-                if (onItemClick) {
-                  onItemClick();
-                }
-              }}
+        <div className="p-4 transition-all duration-300 ease-out">
+          <button
+            onClick={() => {
+              if (typeof window !== "undefined") {
+                window.dispatchEvent(new CustomEvent("write:close-slideout"));
+              }
+              router.push("/write");
+              if (onItemClick) {
+                onItemClick();
+              }
+            }}
+            className={cn(
+              "group flex items-center rounded-md transition-all duration-300 ease-out",
+              "hover:bg-neutral-100",
+              isCollapsed ? "h-8 w-8 justify-center" : "h-10 w-full gap-3 p-2 text-left",
+            )}
+          >
+            <span
               className={cn(
-                "group flex w-full items-center gap-3 rounded-md p-2 text-left transition-colors",
-                "hover:bg-neutral-100",
+                "bg-brand flex items-center justify-center rounded-full text-white flex-shrink-0",
+                "shadow-sm transition-all duration-300 group-hover:shadow-md",
+                // In collapsed state, the CTA circle must be 32x32 to match the 32px content area
+                isCollapsed ? "h-8 w-8" : "h-10 w-10",
               )}
             >
-              <span
-                className={cn(
-                  "bg-brand flex h-8 w-8 items-center justify-center rounded-full text-white",
-                  "shadow-sm group-hover:shadow-md transition-shadow",
-                )}
-              >
-                <Plus className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
-              </span>
-              <span className="text-sm font-medium text-neutral-900">New Script</span>
-            </button>
-          ) : (
-            <FixedTooltip isVisible={isCollapsed} content="New Script">
-              <button
-                onClick={() => {
-                  if (typeof window !== "undefined") {
-                    window.dispatchEvent(new CustomEvent("write:close-slideout"));
-                  }
-                  router.push("/write");
-                  if (onItemClick) {
-                    onItemClick();
-                  }
-                }}
-                className={cn(
-                  "bg-brand group mx-auto flex h-10 w-10 items-center justify-center rounded-full text-white transition-all duration-200 ease-out",
-                  "hover:bg-brand-600 active:bg-brand-700 shadow-sm hover:shadow-md hover:scale-[1.03]",
-                )}
-                aria-label="New Script"
-                title="New Script"
-              >
-                <Plus className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
-              </button>
-            </FixedTooltip>
-          )}
+              <Plus className={cn("transition-transform duration-200 group-hover:scale-110", isCollapsed ? "h-5 w-5" : "h-4 w-4")} />
+            </span>
+            <span
+              className="text-sm font-medium text-neutral-900 transition-all duration-300 ease-out overflow-hidden whitespace-nowrap"
+              style={{
+                opacity: isCollapsed ? 0 : 1,
+                width: isCollapsed ? 0 : "auto",
+                transform: isCollapsed ? "translateX(-10px)" : "translateX(0)",
+              }}
+            >
+              New Script
+            </span>
+          </button>
+          {/* Tooltip is handled on buttons via FixedTooltip for nav items; no overlay needed here */}
         </div>
 
         {/* Quick Generators - removed for Claude style */}
@@ -438,11 +418,18 @@ export function AppSidebarClaude({ className, onItemClick }: AppSidebarProps) {
             return (
               <div key={section.id} className="mb-6">
                 {showHeader && (
-                  <div className="mb-3 flex items-center justify-between">
-                    <h3 className="text-xs font-medium tracking-wide text-neutral-600 uppercase">{section.title}</h3>
+                  <div
+                    className="mb-3 flex items-center justify-between transition-all duration-300 ease-out overflow-hidden"
+                    style={{
+                      opacity: isCollapsed ? 0 : 1,
+                      height: isCollapsed ? 0 : "auto",
+                      transform: isCollapsed ? "translateX(-10px)" : "translateX(0)",
+                    }}
+                  >
+                    <h3 className="text-xs font-medium tracking-wide text-neutral-600 uppercase whitespace-nowrap">{section.title}</h3>
                     <button
                       onClick={() => toggleSection(section.id)}
-                      className="rounded p-0.5 transition-colors duration-200 hover:bg-gray-100"
+                      className="rounded p-0.5 transition-colors duration-200 hover:bg-gray-100 flex-shrink-0"
                     >
                       <ChevronDown
                         className={cn(
@@ -471,33 +458,38 @@ export function AppSidebarClaude({ className, onItemClick }: AppSidebarProps) {
                         <button
                           onClick={() => !item.comingSoon && handleItemClick(item.id)}
                           disabled={item.comingSoon}
-                          className={cn(
-                            "group flex w-full items-center gap-3 rounded-md p-2.5 text-left transition-all duration-200 ease-out",
-                            pathname === `/${item.id}` ||
-                              (item.id === "library" && pathname === "/library") ||
-                              (item.id === "brand-voice" && pathname === "/brand-hub")
-                              ? "bg-neutral-100 font-medium text-neutral-900"
-                              : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900",
-                            item.comingSoon && "cursor-not-allowed opacity-50",
-                            isCollapsed && "justify-center p-2",
-                          )}
-                        >
-                          {section.id !== "recent" && (
-                            <div
-                              className={cn(
-                                "flex-shrink-0 transition-all duration-200 ease-out",
-                                isCollapsed
-                                  ? "-m-1 rounded-md p-1 group-hover:scale-125 group-hover:bg-neutral-200"
-                                  : "group-hover:scale-110",
-                              )}
-                            >
-                              <item.icon className="h-4 w-4" />
-                            </div>
-                          )}
+                    className={cn(
+                      "group flex h-10 w-full items-center rounded-md transition-all duration-300 ease-out overflow-hidden",
+                      pathname === `/${item.id}` ||
+                        (item.id === "library" && pathname === "/library") ||
+                        (item.id === "brand-voice" && pathname === "/brand-hub")
+                        ? "bg-neutral-100 font-medium text-neutral-900"
+                        : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900",
+                      item.comingSoon && "cursor-not-allowed opacity-50",
+                      // Collapsed: use exact 32px content width (sidebar 64px - 2*16px padding)
+                      // Avoid extra inner padding to keep icons centered and unclipped
+                      isCollapsed ? "justify-center p-0" : "gap-3 p-2.5 text-left",
+                    )}
+                  >
+                    {section.id !== "recent" && (
+                      <div
+                        className={cn(
+                          "flex-shrink-0 transition-all duration-300 ease-out",
+                          // Collapsed: fixed 32x32 touch target centered precisely
+                          isCollapsed
+                            ? "inline-flex h-8 w-8 items-center justify-center rounded-md group-hover:bg-neutral-200"
+                            : "group-hover:scale-110",
+                        )}
+                      >
+                        <item.icon className="h-4 w-4" />
+                      </div>
+                    )}
 
                           {!isCollapsed && (
                             <>
-                              <span className="flex-1 text-sm font-medium">{item.title}</span>
+                              <span className="flex-1 text-sm font-medium overflow-hidden whitespace-nowrap">
+                                {item.title}
+                              </span>
 
                               {item.badge && (
                                 <div className="flex h-5 min-w-5 flex-shrink-0 items-center justify-center rounded-full bg-neutral-700 px-2 py-0.5 text-xs text-white">
@@ -524,57 +516,56 @@ export function AppSidebarClaude({ className, onItemClick }: AppSidebarProps) {
 
         {/* Tools (bottom links) */}
         <div className="border-t border-gray-50 px-4 py-3">
-          {!isCollapsed ? (
-            <div className="space-y-2">
-              <button
-                onClick={() => router.push("/chrome-extension")}
+          <div className="space-y-2">
+            <button
+              onClick={() => router.push("/chrome-extension")}
+              className={cn(
+                "group flex w-full items-center rounded-md text-sm transition-all duration-300 ease-out overflow-hidden",
+                pathname === "/chrome-extension"
+                  ? "bg-neutral-100 text-neutral-900"
+                  : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900",
+                isCollapsed ? "justify-center p-0" : "gap-2 p-2",
+              )}
+            >
+              <div
                 className={cn(
-                  "group flex w-full items-center gap-2 rounded-md p-2 text-sm",
-                  pathname === "/chrome-extension"
-                    ? "bg-neutral-100 text-neutral-900"
-                    : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900",
+                  "inline-flex items-center justify-center rounded-md",
+                  isCollapsed ? "h-8 w-8 group-hover:bg-neutral-200" : "h-8 w-8",
                 )}
               >
-                <Chrome className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
-                Chrome Extension
-              </button>
-              <button
-                onClick={() => router.push("/downloads")}
+                <Chrome className="h-4 w-4 transition-transform duration-200 group-hover:scale-110 flex-shrink-0" />
+              </div>
+              {!isCollapsed && (
+                <span className="overflow-hidden whitespace-nowrap">Chrome Extension</span>
+              )}
+            </button>
+            <button
+              onClick={() => router.push("/ios-shortcut")}
+              className={cn(
+                "group flex w-full items-center rounded-md text-sm transition-all duration-300 ease-out overflow-hidden",
+                pathname === "/ios-shortcut"
+                  ? "bg-neutral-100 text-neutral-900"
+                  : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900",
+                isCollapsed ? "justify-center p-0" : "gap-2 p-2",
+              )}
+            >
+              <div
                 className={cn(
-                  "group flex w-full items-center gap-2 rounded-md p-2 text-sm",
-                  pathname === "/downloads"
-                    ? "bg-neutral-100 text-neutral-900"
-                    : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900",
+                  "inline-flex items-center justify-center rounded-md",
+                  isCollapsed ? "h-8 w-8 group-hover:bg-neutral-200" : "h-8 w-8",
                 )}
               >
-                <Smartphone className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
-                iOS Shortcut
-              </button>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center gap-2">
-              <FixedTooltip isVisible={isCollapsed} content="Chrome Extension">
-                <button
-                  onClick={() => router.push("/chrome-extension")}
-                  className="group flex h-9 w-9 items-center justify-center rounded-md text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
-                >
-                  <Chrome className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
-                </button>
-              </FixedTooltip>
-              <FixedTooltip isVisible={isCollapsed} content="iOS Shortcut">
-                <button
-                  onClick={() => router.push("/downloads")}
-                  className="group flex h-9 w-9 items-center justify-center rounded-md text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
-                >
-                  <Smartphone className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
-                </button>
-              </FixedTooltip>
-            </div>
-          )}
+                <Smartphone className="h-4 w-4 transition-transform duration-200 group-hover:scale-110 flex-shrink-0" />
+              </div>
+              {!isCollapsed && (
+                <span className="overflow-hidden whitespace-nowrap">iOS Shortcut</span>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Footer */}
-        <div className="border-t border-gray-50 p-4">{!isCollapsed ? <NavUser /> : <NavUser compact />}</div>
+        <div className="border-t border-gray-50 p-4 relative z-10">{!isCollapsed ? <NavUser /> : <NavUser compact />}</div>
       </div>
     </div>
   );

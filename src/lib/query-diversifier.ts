@@ -4,17 +4,17 @@ export class QueryDiversifier {
 
   constructor() {
     this.patterns = [
-      '{keyword} tutorial',
-      'how to {keyword}',
-      'best {keyword} tips',
-      '{keyword} hack',
-      '{keyword} challenge',
-      '{keyword} transformation',
-      'ultimate {keyword} guide',
+      "{keyword} tutorial",
+      "how to {keyword}",
+      "best {keyword} tips",
+      "{keyword} hack",
+      "{keyword} challenge",
+      "{keyword} transformation",
+      "ultimate {keyword} guide",
     ];
 
     this.temporalModifiers = {
-      current: ['2024', '2025', 'latest', 'trending'],
+      current: ["2024", "2025", "latest", "trending"],
       seasonal: this.getSeasonalModifiers(),
     };
   }
@@ -27,14 +27,14 @@ export class QueryDiversifier {
 
     // Pattern-based expansion
     this.patterns.forEach((pattern) => {
-      queries.add(pattern.replace('{keyword}', normalized));
+      queries.add(pattern.replace("{keyword}", normalized));
     });
 
     // Semantic expansion (fallback if no model is available)
     const semanticVariants = await this.getSemanticVariants(normalized);
     semanticVariants.forEach((variant) => {
       this.patterns.slice(0, 3).forEach((pattern) => {
-        queries.add(pattern.replace('{keyword}', variant));
+        queries.add(pattern.replace("{keyword}", variant));
       });
     });
 
@@ -60,24 +60,18 @@ export class QueryDiversifier {
     const k = keyword.toLowerCase();
 
     const curated: Record<string, string[]> = {
-      'artificial intelligence': [
-        'ai',
-        'machine intelligence',
-        'intelligent systems',
-        'ai technology',
-        'ai tools',
-        'ai applications',
-        'deep learning',
-        'machine learning',
-        'neural networks',
+      "artificial intelligence": [
+        "ai",
+        "machine intelligence",
+        "intelligent systems",
+        "ai technology",
+        "ai tools",
+        "ai applications",
+        "deep learning",
+        "machine learning",
+        "neural networks",
       ],
-      ai: [
-        'artificial intelligence',
-        'machine intelligence',
-        'ai tools',
-        'ai technology',
-        'machine learning',
-      ],
+      ai: ["artificial intelligence", "machine intelligence", "ai tools", "ai technology", "machine learning"],
     };
 
     const variants = new Set<string>();
@@ -89,9 +83,9 @@ export class QueryDiversifier {
 
     // Heuristic transforms
     // - Remove hyphens
-    if (k.includes('-')) variants.add(k.replace(/-/g, ' '));
+    if (k.includes("-")) variants.add(k.replace(/-/g, " "));
     // - Common abbreviations
-    if (k === 'artificial intelligence') variants.add('ai');
+    if (k === "artificial intelligence") variants.add("ai");
     // - Title case variant
     variants.add(this.toTitleCase(k));
 
@@ -121,9 +115,8 @@ export class QueryDiversifier {
 
   private toTitleCase(s: string): string {
     return s
-      .split(' ')
+      .split(" ")
       .map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w))
-      .join(' ');
+      .join(" ");
   }
 }
-

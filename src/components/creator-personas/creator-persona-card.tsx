@@ -4,8 +4,8 @@ import React from "react";
 
 import { Plus, AtSign, Pencil, Trash2 } from "lucide-react";
 
-import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
+import { cn } from "@/lib/utils";
 
 // Types
 export interface CreatorPersona {
@@ -33,7 +33,15 @@ interface AddPersonaCardProps {
 }
 
 // Individual Persona Card Component
-export function CreatorPersonaCard({ persona, onClick, className, selected = false, selectable = false, onEdit, onDelete }: CreatorPersonaCardProps) {
+export function CreatorPersonaCard({
+  persona,
+  onClick,
+  className,
+  selected = false,
+  selectable = false,
+  onEdit,
+  onDelete,
+}: CreatorPersonaCardProps) {
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     onClick?.(persona.id);
@@ -63,7 +71,7 @@ export function CreatorPersonaCard({ persona, onClick, className, selected = fal
       onKeyDown={handleKeyDown}
       className={cn(
         "group flex cursor-pointer flex-col text-left",
-        "rounded-[var(--radius-card)] focus:outline-hidden focus:ring-2 focus:ring-brand-400 focus:ring-offset-2",
+        "focus:ring-brand-400 rounded-[var(--radius-card)] focus:ring-2 focus:ring-offset-2 focus:outline-hidden",
         "transition-all duration-200",
         className,
       )}
@@ -71,7 +79,7 @@ export function CreatorPersonaCard({ persona, onClick, className, selected = fal
       {/* Card Container */}
       <div
         className={cn(
-          "border bg-card",
+          "bg-card border",
           selected ? "border-brand-500 bg-brand-50" : "border-neutral-200",
           "rounded-[var(--radius-card)] p-5 transition-all duration-200",
           !selected && "hover:border-neutral-300 hover:shadow-[var(--shadow-soft-drop)]",
@@ -103,7 +111,7 @@ export function CreatorPersonaCard({ persona, onClick, className, selected = fal
               onKeyDown={(e) => e.stopPropagation()}
               className={cn(
                 "size-4 rounded-[var(--radius-button)]",
-                selected ? "bg-brand-500 border-brand-500" : "border-neutral-300"
+                selected ? "bg-brand-500 border-brand-500" : "border-neutral-300",
               )}
             />
           )}
@@ -121,7 +129,7 @@ export function CreatorPersonaCard({ persona, onClick, className, selected = fal
             <Pencil className="h-4 w-4" /> Edit
           </button>
           <button
-            className="flex flex-1 items-center justify-center gap-2 rounded-[var(--radius-button)] border border-destructive-200 bg-neutral-50 px-3 py-2 text-sm font-medium text-destructive-600 transition-colors duration-150 hover:bg-destructive-50"
+            className="border-destructive-200 text-destructive-600 hover:bg-destructive-50 flex flex-1 items-center justify-center gap-2 rounded-[var(--radius-button)] border bg-neutral-50 px-3 py-2 text-sm font-medium transition-colors duration-150"
             onClick={(e) => {
               e.stopPropagation();
               onDelete?.(persona.id);
@@ -187,16 +195,17 @@ interface CreatorPersonaGridProps {
   onPersonaSelect?: (personaId: string) => void;
 }
 
-export function CreatorPersonaGrid({ personas, onPersonaClick, onAddClick, className, selectedId, selectable = false, onPersonaSelect }: CreatorPersonaGridProps) {
+export function CreatorPersonaGrid({
+  personas,
+  onPersonaClick,
+  onAddClick,
+  className,
+  selectedId,
+  selectable = false,
+  onPersonaSelect,
+}: CreatorPersonaGridProps) {
   return (
-    <div
-      className={cn(
-        "grid gap-4",
-        "grid-cols-[repeat(auto-fill,minmax(240px,1fr))]",
-        "sm:grid-cols-2",
-        className,
-      )}
-    >
+    <div className={cn("grid gap-4", "grid-cols-[repeat(auto-fill,minmax(240px,1fr))]", "sm:grid-cols-2", className)}>
       {personas.map((persona) => {
         const handle = (id: string) => {
           onPersonaSelect?.(id);
@@ -210,7 +219,9 @@ export function CreatorPersonaGrid({ personas, onPersonaClick, onAddClick, class
             selected={selectedId === persona.id}
             selectable={selectable}
             onEdit={(id) => onPersonaClick?.(id)}
-            onDelete={() => { /* no-op by default; wire up in page if needed */ }}
+            onDelete={() => {
+              /* no-op by default; wire up in page if needed */
+            }}
           />
         );
       })}

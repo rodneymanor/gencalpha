@@ -4,6 +4,8 @@
 import { ContentIdea } from "@/app/api/content/ideas/route";
 import { Hook } from "@/app/api/hooks/route";
 import { ContentItem } from "@/components/content-inbox/types";
+import type { Note } from "@/lib/services/notes-service";
+import { NoteType } from "@/app/(main)/dashboard/idea-inbox/_components/types";
 import { Script } from "@/types/script";
 
 import { scriptsToLibraryItems, hooksToLibraryItems, contentIdeasToLibraryItems } from "./generated-content-adapter";
@@ -175,6 +177,54 @@ export function contentsToLibraryItems(contents: ContentItem[]): LibraryItem[] {
 }
 
 /**
+ * Transforms user Notes (idea inbox, text, voice) to LibraryItems
+ */
+export function notesToLibraryItems(notes: Note[]): LibraryItem[] {
+  return notes.map((note) => {
+    // Determine category for notes – treat as ideas by default
+    const category: LibraryItem["category"] = "idea";
+
+    // Tags to help filtering and identification
+    const tags = [
+      "notes",
+      "note",
+      ...(note.type ? [note.type] : []),
+      ...(note.source ? [note.source] : []),
+      ...(note.noteType ? [note.noteType] : []),
+      ...(note.starred ? ["starred"] : []),
+    ].filter(Boolean) as string[];
+
+    // Description preview from content
+    const description = note.content
+      ? note.content.slice(0, 200) + (note.content.length > 200 ? "..." : "")
+      : undefined;
+
+    return {
+      id: note.id,
+      title: note.title || "Untitled Note",
+      description,
+      type: "note",
+      category,
+      status: note.starred ? "reviewing" : "draft",
+      author: {
+        id: note.userId,
+        name: "You",
+      },
+      tags,
+      createdAt: new Date(note.createdAt),
+      updatedAt: new Date(note.updatedAt),
+      viewCount: 0,
+      url: "/library",
+      metadata: {
+        noteType: note.noteType ?? NoteType.NOTE,
+        source: note.source,
+        scriptContent: note.content,
+      },
+    } satisfies LibraryItem;
+  });
+}
+
+/**
  * Enhanced data combiner that includes all content sources
  */
 export function combineAllDataSources(
@@ -183,6 +233,7 @@ export function combineAllDataSources(
   scripts: Script[],
   hooks: Hook[],
   contentIdeas: ContentIdea[],
+  notes: Note[],
   mockData: LibraryItem[],
 ): LibraryItem[] {
   // Import the existing chat adapter
@@ -196,9 +247,10 @@ export function combineAllDataSources(
   const scriptItems = scriptsToLibraryItems(scripts);
   const hookItems = hooksToLibraryItems(hooks);
   const ideaItems = contentIdeasToLibraryItems(contentIdeas);
+  const noteItems = notesToLibraryItems(notes);
 
   // Combine and sort by updatedAt date, with pinned items first
-  return [...chatItems, ...contentItems, ...scriptItems, ...hookItems, ...ideaItems, ...mockData].sort((a, b) => {
+  return [...chatItems, ...contentItems, ...scriptItems, ...hookItems, ...ideaItems, ...noteItems, ...mockData].sort((a, b) => {
     // Pinned items first
     const aPinned = a.tags.includes("pinned");
     const bPinned = b.tags.includes("pinned");

@@ -298,7 +298,6 @@ export function ContentGeneratorCards({
           ))}
         </div>
       </div>
-
     </div>
   );
 }

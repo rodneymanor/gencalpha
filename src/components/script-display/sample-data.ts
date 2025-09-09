@@ -1,287 +1,290 @@
-import type { VideoScript } from './types'
+import type { VideoScript } from "./types";
 
 export const sampleScripts: VideoScript[] = [
   {
     id: 1,
-    title: 'Productivity',
-    duration: '30s',
+    title: "Productivity",
+    duration: "30s",
     sections: [
       {
-        type: 'hook',
-        label: 'HOOK',
-        timeRange: '0-3s',
-        dialogue: 'This 2-minute trick saved me 3 hours every day',
-        action: 'Show clock visual'
+        type: "hook",
+        label: "HOOK",
+        timeRange: "0-3s",
+        dialogue: "This 2-minute trick saved me 3 hours every day",
+        action: "Show clock visual",
       },
       {
-        type: 'bridge',
-        label: 'BRIDGE',
-        timeRange: '3-8s',
-        dialogue: 'I used to spend hours in my inbox every morning...',
-        action: 'Show overwhelming inbox'
+        type: "bridge",
+        label: "BRIDGE",
+        timeRange: "3-8s",
+        dialogue: "I used to spend hours in my inbox every morning...",
+        action: "Show overwhelming inbox",
       },
       {
-        type: 'golden-nugget',
-        label: 'GOLDEN NUGGET',
-        timeRange: '8-25s',
-        dialogue: 'The 2-minute rule: If it takes less than 2 minutes, do it NOW. Everything else gets scheduled.',
-        action: 'Demo the system'
+        type: "golden-nugget",
+        label: "GOLDEN NUGGET",
+        timeRange: "8-25s",
+        dialogue: "The 2-minute rule: If it takes less than 2 minutes, do it NOW. Everything else gets scheduled.",
+        action: "Demo the system",
       },
       {
-        type: 'wta',
-        label: 'WTA',
-        timeRange: '25-30s',
-        dialogue: 'Save this and try it tomorrow morning!',
-        action: 'Save button animation'
-      }
-    ]
+        type: "wta",
+        label: "WTA",
+        timeRange: "25-30s",
+        dialogue: "Save this and try it tomorrow morning!",
+        action: "Save button animation",
+      },
+    ],
   },
   {
     id: 2,
-    title: 'Side Hustle',
-    duration: '45s',
+    title: "Side Hustle",
+    duration: "45s",
     spanRows: true,
     sections: [
       {
-        type: 'hook',
-        label: 'HOOK',
-        timeRange: '0-5s',
-        dialogue: 'I made $5K last month with this simple service no one talks about',
-        action: 'Show earnings proof'
+        type: "hook",
+        label: "HOOK",
+        timeRange: "0-5s",
+        dialogue: "I made $5K last month with this simple service no one talks about",
+        action: "Show earnings proof",
       },
       {
-        type: 'bridge',
-        label: 'BRIDGE',
-        timeRange: '5-12s',
+        type: "bridge",
+        label: "BRIDGE",
+        timeRange: "5-12s",
         dialogue: "Everyone's trying to sell courses or do dropshipping... but there's something way easier",
-        action: 'Contrast with common methods'
+        action: "Contrast with common methods",
       },
       {
-        type: 'golden-nugget',
-        label: 'GOLDEN NUGGET',
-        timeRange: '12-35s',
-        dialogue: 'Email management for busy executives. Charge $500/month per client. Use templates and filters. Takes 30 min/day per client.',
-        action: 'Show the process and tools'
+        type: "golden-nugget",
+        label: "GOLDEN NUGGET",
+        timeRange: "12-35s",
+        dialogue:
+          "Email management for busy executives. Charge $500/month per client. Use templates and filters. Takes 30 min/day per client.",
+        action: "Show the process and tools",
       },
       {
-        type: 'wta',
-        label: 'WTA',
-        timeRange: '35-45s',
+        type: "wta",
+        label: "WTA",
+        timeRange: "35-45s",
         dialogue: "Comment 'EMAIL' for my exact cold outreach template",
-        action: 'Show comment section'
-      }
-    ]
+        action: "Show comment section",
+      },
+    ],
   },
   {
     id: 3,
-    title: 'Fitness',
-    duration: '40s',
+    title: "Fitness",
+    duration: "40s",
     sections: [
       {
-        type: 'hook',
-        label: 'HOOK',
-        timeRange: '0-3s',
-        dialogue: 'Stop doing 100 crunches! This one exercise is 10x better',
-        action: 'X over crunches visual'
+        type: "hook",
+        label: "HOOK",
+        timeRange: "0-3s",
+        dialogue: "Stop doing 100 crunches! This one exercise is 10x better",
+        action: "X over crunches visual",
       },
       {
-        type: 'bridge',
-        label: 'BRIDGE',
-        timeRange: '3-10s',
-        dialogue: 'I wasted years doing traditional ab workouts with zero results...',
-        action: 'Show frustration'
+        type: "bridge",
+        label: "BRIDGE",
+        timeRange: "3-10s",
+        dialogue: "I wasted years doing traditional ab workouts with zero results...",
+        action: "Show frustration",
       },
       {
-        type: 'golden-nugget',
-        label: 'GOLDEN NUGGET',
-        timeRange: '10-30s',
-        dialogue: 'Dead hangs. 3 sets, 30 seconds each. Works entire core, improves grip, decompresses spine.',
-        action: 'Demonstrate proper form'
+        type: "golden-nugget",
+        label: "GOLDEN NUGGET",
+        timeRange: "10-30s",
+        dialogue: "Dead hangs. 3 sets, 30 seconds each. Works entire core, improves grip, decompresses spine.",
+        action: "Demonstrate proper form",
       },
       {
-        type: 'wta',
-        label: 'WTA',
-        timeRange: '30-40s',
-        dialogue: 'Follow for more exercises that actually work',
-        action: 'Follow button highlight'
-      }
-    ]
+        type: "wta",
+        label: "WTA",
+        timeRange: "30-40s",
+        dialogue: "Follow for more exercises that actually work",
+        action: "Follow button highlight",
+      },
+    ],
   },
   {
     id: 4,
-    title: 'Tech Tips',
-    duration: '35s',
+    title: "Tech Tips",
+    duration: "35s",
     sections: [
       {
-        type: 'hook',
-        label: 'HOOK',
-        timeRange: '0-3s',
+        type: "hook",
+        label: "HOOK",
+        timeRange: "0-3s",
         dialogue: "Your iPhone has a secret feature that Apple doesn't advertise",
-        action: 'iPhone with question marks'
+        action: "iPhone with question marks",
       },
       {
-        type: 'bridge',
-        label: 'BRIDGE',
-        timeRange: '3-8s',
+        type: "bridge",
+        label: "BRIDGE",
+        timeRange: "3-8s",
         dialogue: "Most people never discover this because it's hidden in settings...",
-        action: 'Show complex settings'
+        action: "Show complex settings",
       },
       {
-        type: 'golden-nugget',
-        label: 'GOLDEN NUGGET',
-        timeRange: '8-28s',
-        dialogue: 'Back Tap: Settings > Accessibility > Touch > Back Tap. Double tap to screenshot!',
-        action: 'Step-by-step demo'
+        type: "golden-nugget",
+        label: "GOLDEN NUGGET",
+        timeRange: "8-28s",
+        dialogue: "Back Tap: Settings > Accessibility > Touch > Back Tap. Double tap to screenshot!",
+        action: "Step-by-step demo",
       },
       {
-        type: 'wta',
-        label: 'WTA',
-        timeRange: '28-35s',
-        dialogue: 'Share this with someone who needs to know!',
-        action: 'Share animation'
-      }
-    ]
+        type: "wta",
+        label: "WTA",
+        timeRange: "28-35s",
+        dialogue: "Share this with someone who needs to know!",
+        action: "Share animation",
+      },
+    ],
   },
   {
     id: 5,
-    title: 'Money',
-    duration: '50s',
+    title: "Money",
+    duration: "50s",
     spanRows: true,
     sections: [
       {
-        type: 'hook',
-        label: 'HOOK',
-        timeRange: '0-5s',
+        type: "hook",
+        label: "HOOK",
+        timeRange: "0-5s",
         dialogue: "The rich don't save money the way you think they do...",
-        action: 'Intriguing visual'
+        action: "Intriguing visual",
       },
       {
-        type: 'bridge',
-        label: 'BRIDGE',
-        timeRange: '5-15s',
-        dialogue: 'I studied 100 millionaires and they all do this ONE thing differently',
-        action: 'Research visuals'
+        type: "bridge",
+        label: "BRIDGE",
+        timeRange: "5-15s",
+        dialogue: "I studied 100 millionaires and they all do this ONE thing differently",
+        action: "Research visuals",
       },
       {
-        type: 'golden-nugget',
-        label: 'GOLDEN NUGGET',
-        timeRange: '15-40s',
-        dialogue: 'They buy assets first, lifestyle second. Every purchase must either make money or save time to make money.',
-        action: 'Examples and comparisons'
+        type: "golden-nugget",
+        label: "GOLDEN NUGGET",
+        timeRange: "15-40s",
+        dialogue:
+          "They buy assets first, lifestyle second. Every purchase must either make money or save time to make money.",
+        action: "Examples and comparisons",
       },
       {
-        type: 'wta',
-        label: 'WTA',
-        timeRange: '40-50s',
+        type: "wta",
+        label: "WTA",
+        timeRange: "40-50s",
         dialogue: "Type 'WEALTH' if this changed your perspective",
-        action: 'Comments appearing'
-      }
-    ]
+        action: "Comments appearing",
+      },
+    ],
   },
   {
     id: 6,
-    title: 'Cooking',
-    duration: '30s',
+    title: "Cooking",
+    duration: "30s",
     sections: [
       {
-        type: 'hook',
-        label: 'HOOK',
-        timeRange: '0-3s',
+        type: "hook",
+        label: "HOOK",
+        timeRange: "0-3s",
         dialogue: "You've been cutting onions wrong your whole life",
-        action: 'Crying while cutting'
+        action: "Crying while cutting",
       },
       {
-        type: 'bridge',
-        label: 'BRIDGE',
-        timeRange: '3-8s',
+        type: "bridge",
+        label: "BRIDGE",
+        timeRange: "3-8s",
         dialogue: "The tears, the smell on your hands... there's a chef secret that fixes everything",
-        action: 'Show the problems'
+        action: "Show the problems",
       },
       {
-        type: 'golden-nugget',
-        label: 'GOLDEN NUGGET',
-        timeRange: '8-25s',
-        dialogue: 'Freeze the onion for 10 minutes first. No tears. Cut under running water. No smell.',
-        action: 'Demonstrate technique'
+        type: "golden-nugget",
+        label: "GOLDEN NUGGET",
+        timeRange: "8-25s",
+        dialogue: "Freeze the onion for 10 minutes first. No tears. Cut under running water. No smell.",
+        action: "Demonstrate technique",
       },
       {
-        type: 'wta',
-        label: 'WTA',
-        timeRange: '25-30s',
-        dialogue: 'Save this for your next meal prep!',
-        action: 'Save icon animation'
-      }
-    ]
+        type: "wta",
+        label: "WTA",
+        timeRange: "25-30s",
+        dialogue: "Save this for your next meal prep!",
+        action: "Save icon animation",
+      },
+    ],
   },
   {
     id: 7,
-    title: 'Study Method',
-    duration: '45s',
+    title: "Study Method",
+    duration: "45s",
     spanRows: true,
     sections: [
       {
-        type: 'hook',
-        label: 'HOOK',
-        timeRange: '0-4s',
+        type: "hook",
+        label: "HOOK",
+        timeRange: "0-4s",
         dialogue: "I went from C's to straight A's with this weird study trick",
-        action: 'Grade transformation'
+        action: "Grade transformation",
       },
       {
-        type: 'bridge',
-        label: 'BRIDGE',
-        timeRange: '4-12s',
-        dialogue: 'I tried everything - flashcards, all-nighters, study groups... nothing worked until...',
-        action: 'Show failed methods'
+        type: "bridge",
+        label: "BRIDGE",
+        timeRange: "4-12s",
+        dialogue: "I tried everything - flashcards, all-nighters, study groups... nothing worked until...",
+        action: "Show failed methods",
       },
       {
-        type: 'golden-nugget',
-        label: 'GOLDEN NUGGET',
-        timeRange: '12-35s',
-        dialogue: "The Feynman Technique: Explain it to a 5-year-old. If you can't, you don't understand it. Study the gaps. Repeat.",
-        action: 'Visual demonstration'
+        type: "golden-nugget",
+        label: "GOLDEN NUGGET",
+        timeRange: "12-35s",
+        dialogue:
+          "The Feynman Technique: Explain it to a 5-year-old. If you can't, you don't understand it. Study the gaps. Repeat.",
+        action: "Visual demonstration",
       },
       {
-        type: 'wta',
-        label: 'WTA',
-        timeRange: '35-45s',
+        type: "wta",
+        label: "WTA",
+        timeRange: "35-45s",
         dialogue: "DM me 'STUDY' for my complete note-taking template",
-        action: 'DM notification'
-      }
-    ]
+        action: "DM notification",
+      },
+    ],
   },
   {
     id: 8,
-    title: 'Relationships',
-    duration: '40s',
+    title: "Relationships",
+    duration: "40s",
     sections: [
       {
-        type: 'hook',
-        label: 'HOOK',
-        timeRange: '0-4s',
-        dialogue: 'This question saved my marriage',
-        action: 'Emotional opening'
+        type: "hook",
+        label: "HOOK",
+        timeRange: "0-4s",
+        dialogue: "This question saved my marriage",
+        action: "Emotional opening",
       },
       {
-        type: 'bridge',
-        label: 'BRIDGE',
-        timeRange: '4-12s',
-        dialogue: 'We were fighting constantly, both feeling unheard and unappreciated...',
-        action: 'Show tension'
+        type: "bridge",
+        label: "BRIDGE",
+        timeRange: "4-12s",
+        dialogue: "We were fighting constantly, both feeling unheard and unappreciated...",
+        action: "Show tension",
       },
       {
-        type: 'golden-nugget',
-        label: 'GOLDEN NUGGET',
-        timeRange: '12-32s',
+        type: "golden-nugget",
+        label: "GOLDEN NUGGET",
+        timeRange: "12-32s",
         dialogue: "'What can I do tomorrow to make your day better?' Simple. Powerful. Changes everything.",
-        action: 'Show conversation'
+        action: "Show conversation",
       },
       {
-        type: 'wta',
-        label: 'WTA',
-        timeRange: '32-40s',
-        dialogue: 'Share this with someone you love',
-        action: 'Heart animation'
-      }
-    ]
-  }
-]
+        type: "wta",
+        label: "WTA",
+        timeRange: "32-40s",
+        dialogue: "Share this with someone you love",
+        action: "Heart animation",
+      },
+    ],
+  },
+];

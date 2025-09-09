@@ -23,9 +23,9 @@ import { VideoInsights } from "@/types/video-insights";
 import { AddVideoDialog } from "./_components/add-video-dialog";
 import { CollectionManagementPanel } from "./_components/collection-management-panel";
 import { CollectionsProvider, useCollections } from "./_components/collections-context";
-import { VideoManagementPanel } from "./_components/video-management-panel";
 import { CollectionsTabs } from "./_components/collections-tabs";
 import { VideoGrid } from "./_components/video-grid";
+import { VideoManagementPanel } from "./_components/video-management-panel";
 
 // Helper hook for collection editing
 const useCollectionEditing = (
@@ -531,48 +531,48 @@ function SavedCollectionsTabContent({
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <div className="col-span-1 lg:col-span-12">
-          <Card>
-            <CardHeader className="pb-4 sm:pb-6">
-              <CardTitle className="text-lg sm:text-xl">Saved Videos</CardTitle>
-              <p className="text-muted-foreground mt-1 text-xs sm:text-sm">Videos you&apos;ve saved for later</p>
-            </CardHeader>
-            <CardContent className="p-3 sm:p-6">
-              {isLoading ? (
-                <div className="@container">
-                  <div className="grid grid-cols-1 gap-3 @sm:grid-cols-2 @sm:gap-4 @lg:grid-cols-3 @lg:gap-5 @xl:grid-cols-4 @xl:gap-6">
-                    {Array.from({ length: 8 }, (_, index) => (
-                      <div key={`loading-skeleton-${index}`} className="relative aspect-[9/16]">
-                        <CardSkeleton />
-                      </div>
-                    ))}
-                  </div>
+      <div className="col-span-1 lg:col-span-12">
+        <Card>
+          <CardHeader className="pb-4 sm:pb-6">
+            <CardTitle className="text-lg sm:text-xl">Saved Videos</CardTitle>
+            <p className="text-muted-foreground mt-1 text-xs sm:text-sm">Videos you&apos;ve saved for later</p>
+          </CardHeader>
+          <CardContent className="p-3 sm:p-6">
+            {isLoading ? (
+              <div className="@container">
+                <div className="grid grid-cols-1 gap-3 @sm:grid-cols-2 @sm:gap-4 @lg:grid-cols-3 @lg:gap-5 @xl:grid-cols-4 @xl:gap-6">
+                  {Array.from({ length: 8 }, (_, index) => (
+                    <div key={`loading-skeleton-${index}`} className="relative aspect-[9/16]">
+                      <CardSkeleton />
+                    </div>
+                  ))}
                 </div>
-              ) : savedVideos.length > 0 ? (
-                <div className="@container">
-                  <div className="relative">
-                    <NewVideoGrid
-                      videos={savedVideos.map(transformVideoToVideoDataWithLogging)}
-                      columns={isPanelOpen ? 1 : 4}
-                      onVideoClick={handleNewVideoGridClick}
-                      onVideoSelect={handleVideoSelection}
-                      enableKeyboardNavigation={true}
-                    />
-                  </div>
+              </div>
+            ) : savedVideos.length > 0 ? (
+              <div className="@container">
+                <div className="relative">
+                  <NewVideoGrid
+                    videos={savedVideos.map(transformVideoToVideoDataWithLogging)}
+                    columns={isPanelOpen ? 1 : 4}
+                    onVideoClick={handleNewVideoGridClick}
+                    onVideoSelect={handleVideoSelection}
+                    enableKeyboardNavigation={true}
+                  />
                 </div>
-              ) : (
-                <div className="py-8 text-center sm:py-12">
-                  <Bookmark className="text-muted-foreground mx-auto mb-3 h-12 w-12 opacity-50 sm:mb-4 sm:h-16 sm:w-16" />
-                  <h3 className="mb-1.5 text-base font-semibold sm:mb-2 sm:text-lg">No saved videos</h3>
-                  <p className="text-muted-foreground mb-3 px-4 text-xs sm:mb-4 sm:text-base">
-                    Videos you favorite will appear here for quick access.
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+              </div>
+            ) : (
+              <div className="py-8 text-center sm:py-12">
+                <Bookmark className="text-muted-foreground mx-auto mb-3 h-12 w-12 opacity-50 sm:mb-4 sm:h-16 sm:w-16" />
+                <h3 className="mb-1.5 text-base font-semibold sm:mb-2 sm:text-lg">No saved videos</h3>
+                <p className="text-muted-foreground mb-3 px-4 text-xs sm:mb-4 sm:text-base">
+                  Videos you favorite will appear here for quick access.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
+    </div>
   );
 }
 
@@ -752,7 +752,7 @@ function CollectionsContent() {
             />
           )}
 
-        {/* Bottom margin for spacing */}
+          {/* Bottom margin for spacing */}
           <div className="mb-6"></div>
         </div>
       </div>

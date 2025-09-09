@@ -53,12 +53,12 @@ export type PickedVideo = {
   used540?: boolean; // true if a 540p variant was chosen
 };
 
-const RAPIDAPI_HOST = 'tiktok-api23.p.rapidapi.com';
+const RAPIDAPI_HOST = "tiktok-api23.p.rapidapi.com";
 
 export async function searchTikTok(keyword: string, cursor = 0, searchId = 0): Promise<TikTokSearchResponse> {
   const key = process.env.RAPIDAPI_TIKTOK_KEY || process.env.RAPIDAPI_KEY;
   if (!key) {
-    throw new Error('Missing RAPIDAPI_TIKTOK_KEY environment variable');
+    throw new Error("Missing RAPIDAPI_TIKTOK_KEY environment variable");
   }
 
   const url = `https://${RAPIDAPI_HOST}/api/search/general?keyword=${encodeURIComponent(keyword)}&cursor=${cursor}&search_id=${searchId}`;
@@ -66,16 +66,14 @@ export async function searchTikTok(keyword: string, cursor = 0, searchId = 0): P
     console.log(`🔎 [RAPIDAPI][TikTok][Search] GET ${url}`);
 
     const res = await fetch(url, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'x-rapidapi-key': key,
-        'x-rapidapi-host': RAPIDAPI_HOST,
+        "x-rapidapi-key": key,
+        "x-rapidapi-host": RAPIDAPI_HOST,
       },
     });
 
-    console.log(
-      `🔎 [RAPIDAPI][TikTok][Search] status: ${res.status} ${res.statusText}`,
-    );
+    console.log(`🔎 [RAPIDAPI][TikTok][Search] status: ${res.status} ${res.statusText}`);
 
     const text = await res.text();
     try {
@@ -87,10 +85,7 @@ export async function searchTikTok(keyword: string, cursor = 0, searchId = 0): P
       return json;
     } catch (e) {
       console.warn(
-        `⚠️ [RAPIDAPI][TikTok][Search] JSON parse failed. Raw length=${text.length}. Snippet=\n${text.slice(
-          0,
-          600,
-        )}`,
+        `⚠️ [RAPIDAPI][TikTok][Search] JSON parse failed. Raw length=${text.length}. Snippet=\n${text.slice(0, 600)}`,
       );
       return { status_code: res.status, data: [] } as TikTokSearchResponse;
     }
@@ -107,20 +102,20 @@ export function pickSmallest540(resp: TikTokSearchResponse): PickedVideo | undef
 
   let best: { item: TikTokItem; info: BitrateInfo; size: number } | undefined;
 
-  const scoreGear = (name = ''): number => {
+  const scoreGear = (name = ""): number => {
     const n = name.toLowerCase();
-    if (n.includes('lowest_540_0')) return 3;
-    if (n.includes('normal_540_0')) return 2;
-    if (n.includes('540')) return 1;
+    if (n.includes("lowest_540_0")) return 3;
+    if (n.includes("normal_540_0")) return 2;
+    if (n.includes("540")) return 1;
     return 0;
   };
 
-  for (const entry of resp.data!) {
+  for (const entry of resp.data) {
     const item = entry.item;
     if (!item?.video?.bitrateInfo?.length) continue;
     for (const info of item.video.bitrateInfo) {
       const ds = info?.PlayAddr?.DataSize;
-      if (typeof ds !== 'number') continue;
+      if (typeof ds !== "number") continue;
       const s = scoreGear(info.GearName);
 
       if (!best) {
@@ -166,22 +161,19 @@ function withinLastDays(epochSeconds: number | undefined, days: number): boolean
   return epochSeconds >= threshold;
 }
 
-export function pickSmallest540PerItem(
-  resp: TikTokSearchResponse,
-  opts?: TikTokFilterOptions,
-): PickedVideo[] {
+export function pickSmallest540PerItem(resp: TikTokSearchResponse, opts?: TikTokFilterOptions): PickedVideo[] {
   if (!resp?.data?.length) return [];
 
-  const scoreGear = (name = ''): number => {
+  const scoreGear = (name = ""): number => {
     const n = name.toLowerCase();
-    if (n.includes('lowest_540_0')) return 3;
-    if (n.includes('normal_540_0')) return 2;
-    if (n.includes('540')) return 1;
+    if (n.includes("lowest_540_0")) return 3;
+    if (n.includes("normal_540_0")) return 2;
+    if (n.includes("540")) return 1;
     return 0;
   };
 
   const results: PickedVideo[] = [];
-  for (const entry of resp.data!) {
+  for (const entry of resp.data) {
     const item = entry.item;
     const infos = item?.video?.bitrateInfo;
     if (!item || !Array.isArray(infos) || infos.length === 0) continue;
@@ -209,7 +201,7 @@ export function pickSmallest540PerItem(
     let bestAny: { info: BitrateInfo; size: number } | undefined; // any bitrate as fallback
     for (const info of infos) {
       const ds = info?.PlayAddr?.DataSize;
-      if (typeof ds !== 'number') continue;
+      if (typeof ds !== "number") continue;
       const s = scoreGear(info.GearName);
       // Track global smallest for fallback
       if (!bestAny || ds < bestAny.size) {
@@ -231,10 +223,10 @@ export function pickSmallest540PerItem(
     const choice = bestPreferred ?? bestAny;
     if (choice) {
       // Prefer HTTPS URL from UrlList when available
-      const urlList = (choice.info?.PlayAddr?.UrlList ?? []).filter((u) => typeof u === 'string');
-      let preferredUrl = (urlList.find((u) => u.startsWith('https://')) || urlList[0]) as string | undefined;
-      if (preferredUrl && preferredUrl.startsWith('http://')) {
-        preferredUrl = 'https://' + preferredUrl.slice('http://'.length);
+      const urlList = (choice.info?.PlayAddr?.UrlList ?? []).filter((u) => typeof u === "string");
+      let preferredUrl = (urlList.find((u) => u.startsWith("https://")) || urlList[0]) as string | undefined;
+      if (preferredUrl && preferredUrl.startsWith("http://")) {
+        preferredUrl = "https://" + preferredUrl.slice("http://".length);
       }
 
       results.push({

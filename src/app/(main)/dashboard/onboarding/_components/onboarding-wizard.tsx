@@ -8,10 +8,10 @@ import { Check, Search, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { OnboardingSelections } from "@/components/ui/onboarding-wizard-modal";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/auth-context";
 import { ClientOnboardingService } from "@/lib/services/client-onboarding-service";
-import { OnboardingSelections } from "@/components/ui/onboarding-wizard-modal";
 import { cn } from "@/lib/utils";
 
 interface Topic {

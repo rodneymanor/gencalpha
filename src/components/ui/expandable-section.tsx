@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
+
 import { ChevronsUp } from 'lucide-react'
 
 interface ExpandableSectionProps {
@@ -36,13 +37,13 @@ const ExpandableSection: React.FC<ExpandableSectionProps> = ({
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop
         const windowHeight = window.innerHeight
         const documentHeight = document.documentElement.scrollHeight
-        
+
         // Check if user is near the bottom of the page (within 100px of trigger)
         const triggerElement = triggerRef.current
         if (triggerElement) {
           const triggerRect = triggerElement.getBoundingClientRect()
           const triggerVisible = triggerRect.top < windowHeight && triggerRect.bottom > 0
-          
+
           // If trigger is visible and user scrolls down, expand the section
           if (triggerVisible) {
             event.preventDefault()
@@ -82,18 +83,15 @@ const ExpandableSection: React.FC<ExpandableSectionProps> = ({
         ref={triggerRef}
         onClick={handleToggle}
         className={
-          `w-full py-4 px-6 transition-all duration-200 group fixed left-0 right-0 z-40 ` +
+          `w-full py-4 px-6 transition-all duration-200 group ` +
           (plain ? '' : 'bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 rounded-pill shadow-xs')
         }
-        style={{
-          bottom: 'calc(15px + env(safe-area-inset-bottom, 0px))',
-        }}
       >
         <div className="max-w-[1200px] mx-auto flex items-center justify-center gap-3">
           <span className="text-neutral-700 font-medium text-sm float-subtle">
             {isExpanded ? expandedText : collapsedText}
           </span>
-          <ChevronsUp 
+          <ChevronsUp
             className={`
               w-4 h-4 text-neutral-600
               transition-transform duration-500 ease-out
@@ -105,7 +103,7 @@ const ExpandableSection: React.FC<ExpandableSectionProps> = ({
       </button>
 
       {/* Expandable content */}
-      <div 
+      <div
         ref={contentRef}
         className="overflow-hidden"
         style={{

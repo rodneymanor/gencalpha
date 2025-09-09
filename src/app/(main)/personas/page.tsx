@@ -7,14 +7,21 @@ import { onAuthStateChanged } from "firebase/auth";
 // Components
 import { CreatorPersonaGrid, type CreatorPersona } from "@/components/creator-personas/creator-persona-card";
 import { type PersonaDetails } from "@/components/persona-details-panel/persona-details-content";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { SkeletonPersonaGrid } from "@/components/ui/skeleton";
+import { useAuth } from "@/contexts/auth-context";
 import { auth } from "@/lib/firebase";
 
 import { PersonaCreatePanel } from "./components/persona-create-panel";
 import { PersonaDetailsPanel } from "./components/persona-details-panel";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/auth-context";
 import { PersonaEmptyState } from "./components/persona-empty-state";
 import { PersonaHeader } from "./components/persona-header";
 // Services
@@ -96,9 +103,7 @@ export default function PersonasPage() {
       setUserPersonas(convertedPersonas);
 
       // Default select "aron sogi" if present, else first
-      const defaultByName = convertedPersonas.find(
-        (p) => p.name?.toLowerCase?.().trim() === "aron sogi"
-      );
+      const defaultByName = convertedPersonas.find((p) => p.name?.toLowerCase?.().trim() === "aron sogi");
       const defaultId = defaultByName?.id ?? convertedPersonas[0]?.id ?? null;
       setSelectedId((prev) => prev ?? defaultId);
     } catch (err) {
@@ -231,9 +236,7 @@ export default function PersonasPage() {
           </DialogHeader>
           <div className="max-h-[60vh] overflow-y-auto pr-1">
             {descPersona?.description ? (
-              <p className="whitespace-pre-wrap text-sm leading-relaxed text-neutral-700">
-                {descPersona.description}
-              </p>
+              <p className="text-sm leading-relaxed whitespace-pre-wrap text-neutral-700">{descPersona.description}</p>
             ) : (
               <p className="text-sm text-neutral-500">No description available for this persona.</p>
             )}

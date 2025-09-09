@@ -121,11 +121,11 @@ async function downloadVideoBuffer(videoUrl: string): Promise<ArrayBuffer> {
   }
 
   const u = new URL(videoUrl);
-  const isTikTok = u.hostname.includes('tiktok');
+  const isTikTok = u.hostname.includes("tiktok");
   const headers: Record<string, string> = {
     "User-Agent":
       "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    "Accept": "*/*",
+    Accept: "*/*",
   };
   if (isTikTok) {
     headers["Referer"] = "https://www.tiktok.com/";

@@ -111,7 +111,8 @@ export class UnifiedVideoScraper {
       (lowerUrl.includes("/reel") ||
         lowerUrl.includes("/reels/") ||
         lowerUrl.includes("/p/") ||
-        lowerUrl.includes("/tv/"))
+        lowerUrl.includes("/tv/") ||
+        lowerUrl.includes("/share/"))
     ) {
       return "instagram";
     }
@@ -159,7 +160,7 @@ export class UnifiedVideoScraper {
    */
   static getUrlPatterns() {
     return {
-      instagram: /^https?:\/\/(www\.)?(instagram\.com|instagr\.am)\/(p|reel|reels|tv)\/[A-Za-z0-9_-]+/,
+      instagram: /^https?:\/\/(www\.)?(instagram\.com|instagr\.am)\/(p|reel|reels|tv|share)\/[A-Za-z0-9_-]+/,
       tiktok:
         /^https?:\/\/(www\.)?(tiktok\.com\/@[\w.-]+\/video\/\d+|vm\.tiktok\.com\/[A-Za-z0-9]+|tiktok\.com\/t\/[A-Za-z0-9]+)/,
     };

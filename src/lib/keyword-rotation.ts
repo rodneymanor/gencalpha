@@ -1,5 +1,6 @@
-import { Timestamp, FieldValue } from 'firebase-admin/firestore';
-import { getAdminDb } from './firebase-admin';
+import { Timestamp, FieldValue } from "firebase-admin/firestore";
+
+import { getAdminDb } from "./firebase-admin";
 
 export type PoolKeyword = {
   id: string;
@@ -10,29 +11,28 @@ export type PoolKeyword = {
   createdAt: FirebaseFirestore.Timestamp;
 };
 
-const POOL_COLLECTION = 'keyword_pool';
-const ROTATION_COLLECTION = 'keyword_rotation_days';
+const POOL_COLLECTION = "keyword_pool";
+const ROTATION_COLLECTION = "keyword_rotation_days";
 
 const toId = (kw: string) =>
   kw
     .trim()
     .toLowerCase()
-    .replace(/\s+/g, '_')
-    .replace(/[^a-z0-9_\-]/g, '')
-    .slice(0, 128) ||
-  Math.random().toString(36).slice(2);
+    .replace(/\s+/g, "_")
+    .replace(/[^a-z0-9_\-]/g, "")
+    .slice(0, 128) || Math.random().toString(36).slice(2);
 
 export function dateKey(d?: Date | string) {
-  const dt = typeof d === 'string' ? new Date(d) : d ?? new Date();
+  const dt = typeof d === "string" ? new Date(d) : (d ?? new Date());
   const y = dt.getFullYear();
-  const m = String(dt.getMonth() + 1).padStart(2, '0');
-  const day = String(dt.getDate()).padStart(2, '0');
+  const m = String(dt.getMonth() + 1).padStart(2, "0");
+  const day = String(dt.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
 }
 
 export async function seedKeywordPool(keywords: string[]) {
   const db = getAdminDb();
-  if (!db) throw new Error('Firebase Admin is not initialized');
+  if (!db) throw new Error("Firebase Admin is not initialized");
 
   const batch = db.batch();
   for (const kw of keywords) {
@@ -57,7 +57,7 @@ export async function seedKeywordPool(keywords: string[]) {
 // Seed with an explicit category (preferred for new docs)
 export async function seedKeywordPoolForCategory(category: string, keywords: string[]) {
   const db = getAdminDb();
-  if (!db) throw new Error('Firebase Admin is not initialized');
+  if (!db) throw new Error("Firebase Admin is not initialized");
 
   const batch = db.batch();
   for (const kw of keywords) {
@@ -82,19 +82,15 @@ export async function seedKeywordPoolForCategory(category: string, keywords: str
 // Limits the number of documents scanned for safety.
 export async function seedPoolFromKeywordQueries(options?: { limit?: number }) {
   const db = getAdminDb();
-  if (!db) throw new Error('Firebase Admin is not initialized');
+  if (!db) throw new Error("Firebase Admin is not initialized");
 
   const limit = Math.max(1, Math.min(500, options?.limit ?? 50));
-  const snap = await db
-    .collection('keyword_queries')
-    .orderBy('createdAt', 'desc')
-    .limit(limit)
-    .get();
+  const snap = await db.collection("keyword_queries").orderBy("createdAt", "desc").limit(limit).get();
 
   const set = new Set<string>();
   snap.forEach((doc) => {
-    const d = doc.data() as any;
-    if (typeof d?.primaryKeyword === 'string' && d.primaryKeyword.trim()) {
+    const d = doc.data();
+    if (typeof d?.primaryKeyword === "string" && d.primaryKeyword.trim()) {
       set.add(String(d.primaryKeyword).trim());
     }
   });
@@ -105,25 +101,33 @@ export async function seedPoolFromKeywordQueries(options?: { limit?: number }) {
   return { added: keywords.length, keywords };
 }
 
-export async function getActiveKeywordsForDate(d?: Date | string, category?: string | undefined): Promise<string[] | null> {
+export async function getActiveKeywordsForDate(
+  d?: Date | string,
+  category?: string | undefined,
+): Promise<string[] | null> {
   const db = getAdminDb();
-  if (!db) throw new Error('Firebase Admin is not initialized');
+  if (!db) throw new Error("Firebase Admin is not initialized");
   const base = dateKey(d);
-  const suffix = category ? `__${String(category).toLowerCase()}` : '';
+  const suffix = category ? `__${String(category).toLowerCase()}` : "";
   const key = `${base}${suffix}`;
   const doc = await db.collection(ROTATION_COLLECTION).doc(key).get();
   if (!doc.exists) return null;
-  const data = doc.data() as any;
+  const data = doc.data();
   return Array.isArray(data?.keywords) ? (data.keywords as string[]) : [];
 }
 
-export async function rotateKeywords(options?: { count?: number; date?: Date | string; force?: boolean; category?: string }) {
+export async function rotateKeywords(options?: {
+  count?: number;
+  date?: Date | string;
+  force?: boolean;
+  category?: string;
+}) {
   const db = getAdminDb();
-  if (!db) throw new Error('Firebase Admin is not initialized');
+  if (!db) throw new Error("Firebase Admin is not initialized");
   const count = Math.max(1, Math.min(10, options?.count ?? 3));
   const baseKey = dateKey(options?.date);
-  const key = `${baseKey}${requestedCategory ? `__${requestedCategory}` : ''}`;
-  const requestedCategory = (options?.category || '').toString().trim().toLowerCase() || undefined;
+  const key = `${baseKey}${requestedCategory ? `__${requestedCategory}` : ""}`;
+  const requestedCategory = (options?.category || "").toString().trim().toLowerCase() || undefined;
 
   if (!options?.force) {
     const existing = await getActiveKeywordsForDate(options?.date, requestedCategory);
@@ -136,20 +140,26 @@ export async function rotateKeywords(options?: { count?: number; date?: Date | s
   async function fetchCandidates() {
     // Fetch a generous number so we can client-filter by category without a composite index
     const limit = Math.max(count * 10, 100);
-    const snap = await db
-      .collection(POOL_COLLECTION)
-      .orderBy('lastUsed', 'asc')
-      .limit(limit)
-      .get();
-    let candidates: Array<{ id: string; keyword: string; createdAt?: FirebaseFirestore.Timestamp | null; category?: string | null }> = [];
+    const snap = await db.collection(POOL_COLLECTION).orderBy("lastUsed", "asc").limit(limit).get();
+    let candidates: Array<{
+      id: string;
+      keyword: string;
+      createdAt?: FirebaseFirestore.Timestamp | null;
+      category?: string | null;
+    }> = [];
     snap.forEach((doc) => {
-      const d = doc.data() as any;
-      if (typeof d.keyword === 'string' && d.keyword.trim()) {
-        candidates.push({ id: doc.id, keyword: d.keyword, createdAt: d.createdAt ?? null, category: d.category ?? null });
+      const d = doc.data();
+      if (typeof d.keyword === "string" && d.keyword.trim()) {
+        candidates.push({
+          id: doc.id,
+          keyword: d.keyword,
+          createdAt: d.createdAt ?? null,
+          category: d.category ?? null,
+        });
       }
     });
     if (requestedCategory) {
-      candidates = candidates.filter((c) => (c.category || '').toString().toLowerCase() === requestedCategory);
+      candidates = candidates.filter((c) => (c.category || "").toString().toLowerCase() === requestedCategory);
     }
     // Secondary sort client-side by createdAt asc to avoid composite index
     candidates.sort((a, b) => {
@@ -181,7 +191,7 @@ export async function rotateKeywords(options?: { count?: number; date?: Date | s
 
   const batch = db.batch();
   const useTimestamp =
-    typeof options?.date === 'string' || options?.date instanceof Date
+    typeof options?.date === "string" || options?.date instanceof Date
       ? Timestamp.fromDate(new Date(options.date as any))
       : (FieldValue.serverTimestamp() as any);
 
@@ -198,9 +208,19 @@ export async function rotateKeywords(options?: { count?: number; date?: Date | s
   }
 
   const dayRef = db.collection(ROTATION_COLLECTION).doc(key);
-  batch.set(dayRef, { date: baseKey, keywords: chosen.map((c) => c.keyword), category: requestedCategory ?? null, createdAt: FieldValue.serverTimestamp() });
+  batch.set(dayRef, {
+    date: baseKey,
+    keywords: chosen.map((c) => c.keyword),
+    category: requestedCategory ?? null,
+    createdAt: FieldValue.serverTimestamp(),
+  });
 
   await batch.commit();
 
-  return { date: baseKey, keywords: chosen.map((c) => c.keyword), seeded: seededFromQueries, category: requestedCategory } as const;
+  return {
+    date: baseKey,
+    keywords: chosen.map((c) => c.keyword),
+    seeded: seededFromQueries,
+    category: requestedCategory,
+  } as const;
 }

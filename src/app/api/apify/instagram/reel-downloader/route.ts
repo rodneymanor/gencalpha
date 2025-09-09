@@ -74,7 +74,7 @@ export interface InstagramReelDownloadResponse {
 
 function extractShortcodeFromUrl(url: string): string {
   // Extract shortcode from Instagram URL
-  const match = url.match(/\/(?:reel|p|tv)\/([A-Za-z0-9_-]+)/);
+  const match = url.match(/\/(?:reel|p|tv|share)\/([A-Za-z0-9_-]+)/);
   return match ? match[1] : "";
 }
 
@@ -85,7 +85,7 @@ async function downloadInstagramReel(input: InstagramReelDownloadRequest): Promi
 
   // Validate URL format and extract shortcode
   // eslint-disable-next-line security/detect-unsafe-regex
-  const urlPattern = /(?:https?:\/\/)?(?:www\.)?instagram\.com\/(?:reel|p|tv)\/([A-Za-z0-9_-]+)/i;
+  const urlPattern = /(?:https?:\/\/)?(?:www\.)?instagram\.com\/(?:reel|p|tv|share)\/([A-Za-z0-9_-]+)/i;
   if (!urlPattern.test(input.url)) {
     throw new Error("Invalid Instagram reel URL format. Please provide a valid Instagram reel, post, or TV URL.");
   }

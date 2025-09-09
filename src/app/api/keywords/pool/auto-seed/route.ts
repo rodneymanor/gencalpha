@@ -1,15 +1,16 @@
-import { NextRequest } from 'next/server';
-import { seedKeywordPool, seedPoolFromKeywordQueries } from '@/lib/keyword-rotation';
+import { NextRequest } from "next/server";
+
+import { seedKeywordPool, seedPoolFromKeywordQueries } from "@/lib/keyword-rotation";
 
 // GET triggers auto-seed from keyword_queries with optional limit
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const limit = Number(searchParams.get('limit') || 50);
+  const limit = Number(searchParams.get("limit") || 50);
   try {
     const result = await seedPoolFromKeywordQueries({ limit });
     return Response.json({ ok: true, ...result });
   } catch (e: any) {
-    return Response.json({ ok: false, error: e?.message || 'Auto-seed failed' }, { status: 500 });
+    return Response.json({ ok: false, error: e?.message || "Auto-seed failed" }, { status: 500 });
   }
 }
 
@@ -28,7 +29,6 @@ export async function POST(req: NextRequest) {
     const result = await seedPoolFromKeywordQueries({ limit });
     return Response.json({ ok: true, ...result });
   } catch (e: any) {
-    return Response.json({ ok: false, error: e?.message || 'Auto-seed failed' }, { status: 500 });
+    return Response.json({ ok: false, error: e?.message || "Auto-seed failed" }, { status: 500 });
   }
 }
-

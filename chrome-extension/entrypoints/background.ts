@@ -22,7 +22,16 @@ export default defineBackground(() => {
     }
 
     const getAuthHeaders = async (): Promise<{ baseUrl: string; headers: Record<string, string> } | null> => {
-      const baseUrl = (await browser.storage.sync.get("genc_base_url")).genc_base_url ?? "http://localhost:3000";
+      // In production, use fixed URL. In dev, allow custom URL from storage
+      const isProduction = process.env.NODE_ENV === 'production';
+      let baseUrl: string;
+      
+      if (isProduction) {
+        baseUrl = "https://www.gencapp.pro";
+      } else {
+        baseUrl = (await browser.storage.sync.get("genc_base_url")).genc_base_url ?? "http://localhost:3000";
+      }
+      
       const apiKey = (await browser.storage.sync.get("genc_api_key")).genc_api_key;
       if (!apiKey) {
         console.warn("No API key set");

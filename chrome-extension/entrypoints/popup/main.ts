@@ -58,7 +58,17 @@ const show = (msg: string, isError = false) => {
 
 const getApiConfig = async () => {
   const { genc_base_url, genc_api_key } = await browser.storage.sync.get(["genc_base_url", "genc_api_key"]);
-  const baseUrl = genc_base_url ?? "http://localhost:3000";
+  
+  // In production, use fixed URL. In dev, allow custom URL from storage
+  const isProduction = process.env.NODE_ENV === 'production';
+  let baseUrl: string;
+  
+  if (isProduction) {
+    baseUrl = "https://www.gencapp.pro";
+  } else {
+    baseUrl = genc_base_url ?? "http://localhost:3000";
+  }
+  
   const apiKey = genc_api_key as string | undefined;
   return { baseUrl, apiKey };
 };
@@ -147,7 +157,10 @@ const isVideoUrl = (url: string): { isVideo: boolean; platform: string } => {
   if (url.includes("tiktok.com")) {
     return { isVideo: true, platform: "TikTok" };
   }
-  if (url.includes("instagram.com") && (url.includes("/p/") || url.includes("/reel/") || url.includes("/reels/"))) {
+  if (
+    url.includes("instagram.com") &&
+    (url.includes("/p/") || url.includes("/reel/") || url.includes("/reels/") || url.includes("/share/"))
+  ) {
     return { isVideo: true, platform: "Instagram" };
   }
   return { isVideo: false, platform: "" };
@@ -162,7 +175,13 @@ const isCreatorProfile = (url: string): { isCreator: boolean; platform: string; 
   
   // Instagram profile: instagram.com/username (but not posts/reels)
   const instagramMatch = url.match(/instagram\.com\/([^\/\?]+)\/?$/);
-  if (instagramMatch && !url.includes("/p/") && !url.includes("/reel/") && !url.includes("/reels/")) {
+  if (
+    instagramMatch &&
+    !url.includes("/p/") &&
+    !url.includes("/reel/") &&
+    !url.includes("/reels/") &&
+    !url.includes("/share/")
+  ) {
     // Exclude common non-profile paths
     const username = instagramMatch[1];
     if (!["explore", "accounts", "stories", "direct", "tv"].includes(username)) {

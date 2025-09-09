@@ -63,14 +63,15 @@ export function NavUser({ compact = false }: { compact?: boolean }) {
         <DropdownMenuTrigger asChild>
           {compact ? (
             <button
+              type="button"
               aria-label="Open profile menu"
               title="Profile"
-              className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 text-foreground text-sm font-medium leading-none hover:bg-gray-300 transition-transform duration-200 hover:scale-110"
+              className="text-foreground mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 text-sm leading-none font-medium transition-transform duration-200 hover:scale-110 hover:bg-gray-300"
             >
               {firstInitial}
             </button>
           ) : (
-            <button className="flex w-full items-center gap-3 rounded-md p-2.5 text-left transition-all duration-200 ease-out hover:bg-gray-50 data-[state=open]:bg-gray-100">
+            <button type="button" className="flex w-full items-center gap-3 rounded-md p-2.5 text-left transition-all duration-200 ease-out hover:bg-gray-50 data-[state=open]:bg-gray-100">
               <div className="text-foreground flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-200 text-sm leading-none font-medium">
                 {firstInitial}
               </div>
@@ -115,8 +116,7 @@ export function NavUser({ compact = false }: { compact?: boolean }) {
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
-          
-          
+
           <DropdownMenuItem onClick={handleThemeToggle} className="flex items-center gap-2">
             {themeMode === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             {themeMode === "dark" ? "Light Mode" : "Dark Mode"}

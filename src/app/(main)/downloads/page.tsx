@@ -2,26 +2,26 @@
 
 import { useState } from "react";
 
-import { Download, Chrome, Smartphone, ArrowRight, CheckCircle, ExternalLink } from "lucide-react";
+import { Download, Smartphone, ArrowRight, CheckCircle, ExternalLink } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-// Download page component featuring Chrome extension and iOS shortcut
+// Download page featuring two iOS shortcuts
 export default function DownloadsPage() {
-  const [installedChrome, setInstalledChrome] = useState(false);
+  const [installedIOSVideos, setInstalledIOSVideos] = useState(false);
   const [installedIOS, setInstalledIOS] = useState(false);
 
-  // Handle Chrome extension installation
-  const handleChromeInstall = () => {
-    // Open Chrome Web Store link - placeholder URL for now
-    window.open("https://chrome.google.com/webstore/", "_blank");
-    setInstalledChrome(true);
+  // Handle iOS Shortcut (Save Videos) installation
+  const handleIOSVideosInstall = () => {
+    // Open iOS Shortcuts link for the "Save Videos to Claude" shortcut (placeholder for now)
+    window.open("https://www.icloud.com/shortcuts/", "_blank");
+    setInstalledIOSVideos(true);
   };
 
-  // Handle iOS shortcut installation
+  // Handle iOS Shortcut (Voice Notes) installation
   const handleIOSInstall = () => {
-    // Open iOS Shortcuts app with custom shortcut - placeholder URL for now
+    // Open iOS Shortcuts link for the voice-notes shortcut (placeholder for now)
     window.open("https://www.icloud.com/shortcuts/", "_blank");
     setInstalledIOS(true);
   };
@@ -38,72 +38,58 @@ export default function DownloadsPage() {
           <h1 className="mb-3 text-4xl font-bold text-neutral-900">Expand what you can do with Claude</h1>
 
           <p className="mx-auto max-w-2xl text-lg text-neutral-600">
-            Two new ways to capture and save content directly to your Claude collections. Install our browser extension
-            and mobile shortcut to streamline your workflow.
+            Two new ways to capture and save content directly to your Claude collections. Install our mobile shortcuts
+            to streamline your workflow on iPhone.
           </p>
         </div>
 
         {/* Download Cards */}
         <div className="mb-12 grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Chrome Extension Card */}
+          {/* iOS Shortcut - Save Videos Card */}
           <Card className="border-neutral-200 bg-neutral-50 transition-all duration-200 hover:border-neutral-300 hover:bg-white">
             <CardHeader className="pb-4">
               <div className="mb-2 flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-[var(--radius-card)] border border-neutral-200 bg-white">
-                  <Chrome className="h-6 w-6 text-neutral-700" />
+                  <Smartphone className="h-6 w-6 text-neutral-700" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl text-neutral-900">Chrome Extension</CardTitle>
-                  <p className="text-sm text-neutral-500">For Desktop Browsers</p>
+                  <CardTitle className="text-xl text-neutral-900">iOS Shortcut — Save Videos</CardTitle>
+                  <p className="text-sm text-neutral-500">For iPhone Users</p>
                 </div>
               </div>
             </CardHeader>
 
             <CardContent className="space-y-4">
-              <div className="flex aspect-video items-center justify-center rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-100">
-                <div className="text-center">
-                  <Download className="mx-auto mb-2 h-8 w-8 text-neutral-400" />
-                  <p className="text-sm text-neutral-500">Extension Preview</p>
-                </div>
-              </div>
-
               <div>
                 <h3 className="mb-2 font-semibold text-neutral-900">Save videos to collections</h3>
                 <p className="mb-4 text-sm text-neutral-600">
-                  Add social videos from YouTube, Twitter, TikTok, and more directly to your Claude collections single
-                  click. Works seamlessly across all major social media platforms.
+                  On iPhone, use the Share Sheet to add videos from YouTube, Twitter, TikTok, and more directly to your
+                  Claude collections in a single tap. Works from Safari and most social apps.
                 </p>
 
                 <ul className="mb-6 space-y-2">
                   <li className="flex items-center gap-2 text-sm text-neutral-600">
-                    <CheckCircle className="text-primary-500 h-4 w-4" />
-                    One-click video saving
+                    <CheckCircle className="text-primary-500 h-4 w-4" /> One-tap saving via Share Sheet
                   </li>
                   <li className="flex items-center gap-2 text-sm text-neutral-600">
-                    <CheckCircle className="text-primary-500 h-4 w-4" />
-                    Auto-metadata extraction
+                    <CheckCircle className="text-primary-500 h-4 w-4" /> Auto-metadata extraction
                   </li>
                   <li className="flex items-center gap-2 text-sm text-neutral-600">
-                    <CheckCircle className="text-primary-500 h-4 w-4" />
-                    Collection organization
+                    <CheckCircle className="text-primary-500 h-4 w-4" /> Collection organization
                   </li>
                   <li className="flex items-center gap-2 text-sm text-neutral-600">
-                    <CheckCircle className="text-primary-500 h-4 w-4" />
-                    Works on YouTube, TikTok, Twitter
+                    <CheckCircle className="text-primary-500 h-4 w-4" /> Works on YouTube, TikTok, Twitter
                   </li>
                 </ul>
 
-                {installedChrome ? (
+                {installedIOSVideos ? (
                   <Button className="bg-primary-500 hover:bg-primary-600 w-full text-white" disabled>
                     <CheckCircle className="mr-2 h-4 w-4" />
                     Installed
                   </Button>
                 ) : (
-                  <Button
-                    onClick={handleChromeInstall}
-                    className="bg-primary-500 hover:bg-primary-600 w-full text-white"
-                  >
-                    Add to Chrome
+                  <Button onClick={handleIOSVideosInstall} className="bg-primary-500 hover:bg-primary-600 w-full text-white">
+                    Get Shortcut
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 )}
@@ -126,13 +112,6 @@ export default function DownloadsPage() {
             </CardHeader>
 
             <CardContent className="space-y-4">
-              <div className="flex aspect-video items-center justify-center rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-100">
-                <div className="text-center">
-                  <Download className="mx-auto mb-2 h-8 w-8 text-neutral-400" />
-                  <p className="text-sm text-neutral-500">Shortcut Preview</p>
-                </div>
-              </div>
-
               <div>
                 <h3 className="mb-2 font-semibold text-neutral-900">Voice notes shortcut</h3>
                 <p className="mb-4 text-sm text-neutral-600">
@@ -179,16 +158,16 @@ export default function DownloadsPage() {
         <Card className="mb-8 border-neutral-200 bg-white">
           <CardHeader>
             <CardTitle className="text-center text-2xl text-neutral-900">How it works</CardTitle>
-            <p className="text-center text-neutral-600">Simple steps to get started with both tools</p>
+            <p className="text-center text-neutral-600">Simple steps to get started with both shortcuts</p>
           </CardHeader>
 
           <CardContent>
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-              {/* Chrome Extension Steps */}
+              {/* iOS Shortcut — Save Videos Steps */}
               <div>
                 <h3 className="mb-4 flex items-center gap-2 font-semibold text-neutral-900">
-                  <Chrome className="h-5 w-5" />
-                  Chrome Extension
+                  <Smartphone className="h-5 w-5" />
+                  iOS Shortcut — Save Videos
                 </h3>
                 <div className="space-y-4">
                   <div className="flex gap-3">
@@ -196,8 +175,8 @@ export default function DownloadsPage() {
                       1
                     </div>
                     <div>
-                      <p className="font-medium text-neutral-900">Install the extension</p>
-                      <p className="text-sm text-neutral-600">Add to Chrome from the Web Store</p>
+                      <p className="font-medium text-neutral-900">Install the shortcut</p>
+                      <p className="text-sm text-neutral-600">Add from the iOS Shortcuts app</p>
                     </div>
                   </div>
                   <div className="flex gap-3">
@@ -205,8 +184,8 @@ export default function DownloadsPage() {
                       2
                     </div>
                     <div>
-                      <p className="font-medium text-neutral-900">Browse social videos</p>
-                      <p className="text-sm text-neutral-600">Visit YouTube, TikTok, or Twitter</p>
+                      <p className="font-medium text-neutral-900">Open a video</p>
+                      <p className="text-sm text-neutral-600">Use Safari or the YouTube/TikTok/Twitter apps</p>
                     </div>
                   </div>
                   <div className="flex gap-3">
@@ -214,8 +193,8 @@ export default function DownloadsPage() {
                       3
                     </div>
                     <div>
-                      <p className="font-medium text-neutral-900">Save to Claude</p>
-                      <p className="text-sm text-neutral-600">Click the extension icon to save any video</p>
+                      <p className="font-medium text-neutral-900">Share to Claude</p>
+                      <p className="text-sm text-neutral-600">Use the Share Sheet → ‘Save to Claude’</p>
                     </div>
                   </div>
                 </div>

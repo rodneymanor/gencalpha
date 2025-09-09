@@ -1,8 +1,9 @@
 import { detectSocialUrl } from "@/lib/utils/lightweight-url-detector";
 import { TranscriptionOrchestrator } from "@/lib/video-actions/orchestrators/transcription-orchestrator";
 import type { VideoActionInput } from "@/lib/video-actions/types";
-import { formatScriptWithComponents, createFallbackTranscript } from "../utils/formatters";
+
 import { ORCHESTRATOR_CONFIG } from "../utils/constants";
+import { formatScriptWithComponents, createFallbackTranscript } from "../utils/formatters";
 
 export interface TranscriptionResult {
   success: boolean;

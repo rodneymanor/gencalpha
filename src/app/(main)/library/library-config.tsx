@@ -250,6 +250,7 @@ export const getLibraryConfig = (): DataTableTemplateConfig<LibraryItem> => ({
       options: [
         { value: "chat", label: "Chat Conversations" },
         { value: "captured", label: "Captured Content" },
+        { value: "notes", label: "Notes" },
       ],
     },
     {

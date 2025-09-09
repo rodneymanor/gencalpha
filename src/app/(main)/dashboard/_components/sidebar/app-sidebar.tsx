@@ -1,15 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import Link from "next/link";
 
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
 import {
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  Chrome,
+  Globe,
   Smartphone,
   FileText,
   FolderOpen,
@@ -147,8 +145,6 @@ export function AppSidebar({ className, onItemClick }: AppSidebarProps) {
     }
     return true;
   });
-
-  const [isAIActive, setIsAIActive] = useState(true);
 
   // Initialize collapsed sections from localStorage
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>(() => {
@@ -330,127 +326,84 @@ export function AppSidebar({ className, onItemClick }: AppSidebarProps) {
     fetchSidebarData();
   }, [user, contentData]);
 
-  useEffect(() => {
-    // Simulate AI activity indicator
-    const interval = setInterval(() => {
-      setIsAIActive((prev) => !prev);
-    }, 4000);
-
-    return () => clearInterval(interval);
-  }, []);
-
   return (
-    <div
-      className={cn(
-        "overflow-visible border-r border-gray-100 bg-white transition-all duration-200 ease-out",
-        isCollapsed ? "w-16" : "w-80",
-        className,
+    <>
+      {/* Backdrop overlay for mobile */}
+      {!isCollapsed && typeof window !== "undefined" && window.innerWidth < 768 && (
+        <div
+          className="fixed inset-0 z-30 bg-black/30 backdrop-blur-sm transition-opacity duration-300 ease-out md:hidden"
+          onClick={() => setIsCollapsed(true)}
+        />
       )}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      {/* Main Sidebar */}
-      <div className="flex h-full w-full flex-col">
-        {/* Header */}
-        <div className="flex h-16 items-center justify-between border-b border-gray-50 px-4">
-          {!isCollapsed ? (
-            <>
-              {/* Logo */}
-              <div className="flex items-center gap-3">
-                <div
-                  className="hover:text-primary flex cursor-pointer items-center gap-1 transition-colors duration-200 ease-linear"
-                  onClick={handleLogoClick}
-                >
-                  <span className="text-foreground text-xl font-bold">Gen</span>
-                  <div className="bg-brand h-2 w-2 rounded-[var(--radius-pill)]"></div>
-                  <span className="text-foreground text-xl font-bold">C</span>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5 text-xs text-neutral-600">
-                    <div
-                      className={cn(
-                        "h-1.5 w-1.5 rounded-full transition-colors duration-300",
-                        isAIActive ? "bg-emerald-500" : "bg-neutral-400",
-                      )}
-                    />
-                    <span>{isAIActive ? "AI Active" : "AI Idle"}</span>
+
+      {/* Enhanced Sidebar with Claude-style transitions */}
+      <div
+        className={cn(
+          "fixed left-0 top-0 z-40 h-full border-r border-neutral-200 bg-white",
+          "transition-transform duration-300",
+          isCollapsed ? "w-16" : "w-80",
+          className,
+        )}
+        style={{
+          transform: isCollapsed ? "translateX(-100%)" : "translateX(0)",
+          transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+          willChange: "transform",
+          backfaceVisibility: "hidden",
+        }}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        {/* Main Sidebar with GPU-accelerated animations */}
+        <div className="flex h-full w-full flex-col overflow-visible" style={{ transform: "translateZ(0)" }}>
+          {/* Header with smooth transitions */}
+          <div className="flex h-16 items-center justify-between border-b border-neutral-100 px-4 transition-all duration-300 ease-out">
+            {!isCollapsed ? (
+              <>
+                {/* Logo */}
+                <div className="flex items-center gap-3">
+                  <div
+                    className="flex cursor-pointer items-center gap-1 transition-all duration-200 ease-out hover:scale-105 hover:text-primary-600"
+                    onClick={handleLogoClick}
+                  >
+                    <span className="text-xl font-bold text-foreground">Gen</span>
+                    <div className="h-2 w-2 rounded-[var(--radius-pill)] bg-brand"></div>
+                    <span className="text-xl font-bold text-foreground">C</span>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center text-xs text-neutral-600">
+                      <span>AI writing assistant</span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Pin toggle - Hidden on mobile */}
+                {/* Pin toggle - Hidden on mobile */}
+                <button
+                  onClick={togglePin}
+                  aria-pressed={isPinned}
+                  aria-label={isPinned ? "Unpin sidebar" : "Pin sidebar"}
+                  className="hidden rounded-[var(--radius-button)] p-1.5 text-neutral-600 transition-all duration-200 ease-out hover:bg-neutral-100 hover:text-neutral-900 hover:shadow-[var(--shadow-soft-drop)] md:block"
+                  title={isPinned ? "Unpin" : "Pin"}
+                >
+                  <PanelLeft className="h-4 w-4" />
+                </button>
+              </>
+            ) : (
+              // Collapsed header shows only pin toggle
               <button
                 onClick={togglePin}
                 aria-pressed={isPinned}
                 aria-label={isPinned ? "Unpin sidebar" : "Pin sidebar"}
-                className="hidden rounded-md p-1.5 text-neutral-600 transition-colors duration-200 hover:bg-neutral-100 hover:text-neutral-900 md:block"
+                className="mx-auto hidden rounded-[var(--radius-button)] p-2 text-neutral-600 transition-all duration-200 ease-out hover:bg-neutral-100 hover:text-neutral-900 hover:shadow-[var(--shadow-soft-drop)] md:block"
                 title={isPinned ? "Unpin" : "Pin"}
               >
                 <PanelLeft className="h-4 w-4" />
               </button>
-            </>
-          ) : (
-            // Collapsed header shows only pin toggle
-            <button
-              onClick={togglePin}
-              aria-pressed={isPinned}
-              aria-label={isPinned ? "Unpin sidebar" : "Pin sidebar"}
-              className="mx-auto hidden rounded-md p-2 text-neutral-600 transition-colors duration-200 hover:bg-neutral-100 hover:text-neutral-900 md:block"
-              title={isPinned ? "Unpin" : "Pin"}
-            >
-              <PanelLeft className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-
-        {/* Search Bar - Commented out for now */}
-        {/* {!isCollapsed && (
-          <div className="border-b border-gray-50 p-4">
-            <div className="relative">
-              <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search or ask AI..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50/50 pr-10 pl-10 text-sm text-gray-700 transition-all duration-200 focus:border-gray-300 focus:bg-white focus:ring-1 focus:ring-gray-200 focus:outline-none"
-              />
-              <button className="absolute top-1/2 right-2 -translate-y-1/2 transform rounded-md p-1 text-gray-400 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-600">
-                <Mic className="h-3.5 w-3.5" />
-              </button>
-            </div>
+            )}
           </div>
-        )} */}
 
-        {/* Primary CTA */}
-        <div className={isCollapsed ? "py-4" : "p-4"}>
-          {!isCollapsed ? (
-            <button
-              onClick={() => {
-                // Close slideout wrapper by dispatching a global event
-                if (typeof window !== "undefined") {
-                  window.dispatchEvent(new CustomEvent("write:close-slideout"));
-                }
-
-                // Navigate to write page
-                router.push("/write");
-
-                // Call the onItemClick callback if provided (for mobile menu close)
-                if (onItemClick) {
-                  onItemClick();
-                }
-              }}
-              className={cn(
-                "bg-brand group flex h-10 w-full items-center justify-center gap-2 rounded-lg",
-                "text-sm font-medium text-white transition-all duration-200 ease-out",
-                "hover:bg-brand-600 active:bg-brand-700 shadow-sm hover:shadow-md",
-              )}
-            >
-              <PenTool className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
-              <span>New Script</span>
-            </button>
-          ) : (
-            <FixedTooltip isVisible={isCollapsed} content="New Script">
+          {/* Primary CTA with enhanced animations */}
+          <div className={cn("transition-all duration-300 ease-out", isCollapsed ? "py-4" : "p-4")}>
+            {!isCollapsed ? (
               <button
                 onClick={() => {
                   // Close slideout wrapper by dispatching a global event
@@ -467,37 +420,26 @@ export function AppSidebar({ className, onItemClick }: AppSidebarProps) {
                   }
                 }}
                 className={cn(
-                  "bg-brand group mx-auto flex h-10 w-10 items-center justify-center rounded-lg text-white transition-all duration-200 ease-out",
-                  "hover:bg-brand-600 active:bg-brand-700 shadow-sm hover:shadow-md hover:scale-[1.03]",
+                  "group flex h-10 w-full items-center justify-center gap-2 rounded-[var(--radius-button)] bg-brand-500",
+                  "cubic-bezier(0.4, 0, 0.2, 1) text-sm font-medium text-white transition-all duration-300",
+                  "shadow-[var(--shadow-soft-drop)] hover:-translate-y-0.5 hover:bg-brand-600 hover:shadow-[var(--shadow-hover)] active:bg-brand-700",
+                  "active:scale-[0.98]",
                 )}
               >
                 <PenTool className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
+                <span>New Script</span>
               </button>
-            </FixedTooltip>
-          )}
-        </div>
-
-        {/* Quick Generators */}
-        {!isCollapsed && (
-          <div className="mb-6 px-4">
-            <h3 className="mb-3 text-xs font-medium tracking-wide text-neutral-600 uppercase">Quick Actions</h3>
-            <div className="grid grid-cols-2 gap-2">
-              {quickGenerators.map((generator) => (
+            ) : (
+              <FixedTooltip isVisible={isCollapsed} content="New Script">
                 <button
-                  key={generator.id}
                   onClick={() => {
                     // Close slideout wrapper by dispatching a global event
                     if (typeof window !== "undefined") {
                       window.dispatchEvent(new CustomEvent("write:close-slideout"));
                     }
 
-                    // Navigate to write page with appropriate parameter
-                    // Hook Generator and Content Ideas are generators, the other two are templates
-                    const isGenerator = generator.id === "generate-hooks" || generator.id === "content-ideas";
-                    const paramName = isGenerator ? "generator" : "template";
-                    const url = `/write?${paramName}=${generator.id}`;
-
-                    router.push(url);
+                    // Navigate to write page
+                    router.push("/write");
 
                     // Call the onItemClick callback if provided (for mobile menu close)
                     if (onItemClick) {
@@ -505,176 +447,227 @@ export function AppSidebar({ className, onItemClick }: AppSidebarProps) {
                     }
                   }}
                   className={cn(
-                    "group border border-gray-100 bg-gray-50/50 p-3 text-left transition-all duration-200",
-                    "rounded-lg hover:border-gray-200 hover:bg-gray-100/80",
+                    "group mx-auto flex h-10 w-10 items-center justify-center rounded-[var(--radius-button)] bg-brand-500 text-white",
+                    "cubic-bezier(0.4, 0, 0.2, 1) transition-all duration-300",
+                    "shadow-[var(--shadow-soft-drop)] hover:scale-110 hover:bg-brand-600 hover:shadow-[var(--shadow-hover)] active:bg-brand-700",
+                    "active:scale-[0.98]",
                   )}
                 >
-                  <div className="mb-2 flex items-center gap-2">
-                    <div className="flex h-5 w-5 items-center justify-center rounded-md bg-neutral-300 text-neutral-700 transition-all duration-200 group-hover:bg-neutral-400">
-                      <generator.icon className="h-3 w-3" />
-                    </div>
-                    <div className="text-xs font-medium text-neutral-700 group-hover:text-neutral-900">
-                      {generator.title}
-                    </div>
-                  </div>
-                  <div className="text-xs text-neutral-600">{generator.uses} uses</div>
+                  <PenTool className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
                 </button>
-              ))}
-            </div>
+              </FixedTooltip>
+            )}
           </div>
-        )}
 
-        {/* Navigation Sections */}
-        <div className="flex-1 overflow-x-visible overflow-y-auto px-4 pb-4">
-          {sections.map((section) => {
-            // Hide "Recent Activity" section when sidebar is collapsed
-            if (section.id === "recent" && isCollapsed) {
-              return null;
-            }
+          {/* Quick Generators */}
+          {!isCollapsed && (
+            <div className="mb-6 px-4">
+              <h3 className="mb-3 text-xs font-medium uppercase tracking-wide text-neutral-600">Quick Actions</h3>
+              <div className="grid grid-cols-2 gap-2">
+                {quickGenerators.map((generator) => (
+                  <button
+                    key={generator.id}
+                    onClick={() => {
+                      // Close slideout wrapper by dispatching a global event
+                      if (typeof window !== "undefined") {
+                        window.dispatchEvent(new CustomEvent("write:close-slideout"));
+                      }
 
-            return (
-              <div key={section.id} className="mb-6">
-                {!isCollapsed && (
-                  <div className="mb-3 flex items-center justify-between">
-                    <h3 className="text-xs font-medium tracking-wide text-neutral-600 uppercase">{section.title}</h3>
-                    <button
-                      onClick={() => toggleSection(section.id)}
-                      className="rounded p-0.5 transition-colors duration-200 hover:bg-gray-100"
-                    >
-                      <ChevronDown
-                        className={cn(
-                          "h-3.5 w-3.5 text-neutral-500 transition-transform duration-200",
-                          collapsedSections[section.id] && "rotate-180",
-                        )}
-                      />
-                    </button>
-                  </div>
-                )}
+                      // Navigate to write page with appropriate parameter
+                      // Hook Generator and Content Ideas are generators, the other two are templates
+                      const isGenerator = generator.id === "generate-hooks" || generator.id === "content-ideas";
+                      const paramName = isGenerator ? "generator" : "template";
+                      const url = `/write?${paramName}=${generator.id}`;
 
-                {(!collapsedSections[section.id] || isCollapsed) && (
-                  <div className="space-y-1">
-                    {section.items.map((item) => (
-                      <FixedTooltip
-                        key={item.id}
-                        isVisible={isCollapsed}
-                        content={
-                          <>
-                            {item.title}
-                            {item.badge && ` (${item.badge})`}
-                            {item.comingSoon && " (Coming Soon)"}
-                          </>
-                        }
-                      >
-                        <button
-                          onClick={() => !item.comingSoon && handleItemClick(item.id)}
-                          disabled={item.comingSoon}
-                        className={cn(
-                          "group flex w-full items-center gap-3 rounded-md p-2.5 text-left transition-all duration-200 ease-out",
-                          pathname === `/${item.id}` ||
-                            (item.id === "library" && pathname === "/library") ||
-                            (item.id === "brand-voice" && pathname === "/brand-hub")
-                            ? "bg-neutral-100 font-medium text-neutral-900"
-                            : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900",
-                          item.comingSoon && "cursor-not-allowed opacity-50",
-                          isCollapsed && "justify-center p-2",
-                        )}
-                        >
-                          {section.id !== "recent" && (
-                            <div
-                              className={cn(
-                                "flex-shrink-0 transition-all duration-200 ease-out",
-                                isCollapsed
-                                  ? "-m-1 rounded-md p-1 group-hover:scale-125 group-hover:bg-neutral-200"
-                                  : "group-hover:scale-110",
-                              )}
-                            >
-                              <item.icon className="h-4 w-4" />
-                            </div>
-                          )}
+                      router.push(url);
 
-                          {!isCollapsed && (
-                            <>
-                              <span className="flex-1 text-sm font-medium">{item.title}</span>
-
-                              {item.badge && (
-                                <div className="flex h-5 min-w-5 flex-shrink-0 items-center justify-center rounded-full bg-neutral-700 px-2 py-0.5 text-xs text-white">
-                                  {item.badge}
-                                </div>
-                              )}
-
-                              {item.comingSoon && (
-                                <div className="flex-shrink-0 rounded-full bg-neutral-300 px-2 py-0.5 text-xs text-neutral-700">
-                                  Soon
-                                </div>
-                              )}
-                            </>
-                          )}
-                        </button>
-                      </FixedTooltip>
-                    ))}
-                  </div>
-                )}
+                      // Call the onItemClick callback if provided (for mobile menu close)
+                      if (onItemClick) {
+                        onItemClick();
+                      }
+                    }}
+                    className={cn(
+                      "group border border-neutral-200 bg-neutral-50 p-3 text-left",
+                      "cubic-bezier(0.4, 0, 0.2, 1) transition-all duration-300",
+                      "rounded-[var(--radius-button)] hover:border-neutral-300 hover:bg-neutral-100",
+                      "hover:-translate-y-0.5 hover:shadow-[var(--shadow-soft-drop)]",
+                      "active:translate-y-0 active:scale-[0.98]",
+                    )}
+                  >
+                    <div className="mb-2 flex items-center gap-2">
+                      <div className="flex h-5 w-5 items-center justify-center rounded-[var(--radius-button)] bg-neutral-300 text-neutral-700 transition-all duration-300 ease-out group-hover:scale-110 group-hover:bg-neutral-400">
+                        <generator.icon className="h-3 w-3" />
+                      </div>
+                      <div className="text-xs font-medium text-neutral-700 group-hover:text-neutral-900">
+                        {generator.title}
+                      </div>
+                    </div>
+                    <div className="text-xs text-neutral-600">{generator.uses} uses</div>
+                  </button>
+                ))}
               </div>
-            );
-          })}
-        </div>
-
-        {/* Tools (bottom links) */}
-        <div className="border-t border-gray-50 px-4 py-3">
-          {!isCollapsed ? (
-            <div className="space-y-2">
-              <Link
-                href="/chrome-extension"
-                className={cn(
-                  "group flex items-center gap-2 rounded-md p-2 text-sm",
-                  pathname === "/chrome-extension"
-                    ? "bg-neutral-100 text-neutral-900"
-                    : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900",
-                )}
-              >
-                <Chrome className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
-                Chrome Extension
-              </Link>
-              <Link
-                href="/downloads"
-                className={cn(
-                  "group flex items-center gap-2 rounded-md p-2 text-sm",
-                  pathname === "/downloads"
-                    ? "bg-neutral-100 text-neutral-900"
-                    : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900",
-                )}
-              >
-                <Smartphone className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
-                iOS Shortcut
-              </Link>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center gap-2">
-              <FixedTooltip isVisible={isCollapsed} content="Chrome Extension">
-                <Link
-                  href="/chrome-extension"
-                  className="group flex h-9 w-9 items-center justify-center rounded-md text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
-                >
-                  <Chrome className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
-                </Link>
-              </FixedTooltip>
-              <FixedTooltip isVisible={isCollapsed} content="iOS Shortcut">
-                <Link
-                  href="/downloads"
-                  className="group flex h-9 w-9 items-center justify-center rounded-md text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
-                >
-                  <Smartphone className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
-                </Link>
-              </FixedTooltip>
             </div>
           )}
-        </div>
 
-        {/* Footer */}
-        <div className="border-t border-gray-50 p-4">
-          {!isCollapsed ? <NavUser /> : <NavUser compact />}
+          {/* Navigation Sections with smooth scrolling */}
+          <div className="flex-1 overflow-y-auto px-4 pb-4 transition-all duration-300 ease-out">
+            {sections.map((section) => {
+              // Hide "Recent Activity" section when sidebar is collapsed
+              if (section.id === "recent" && isCollapsed) {
+                return null;
+              }
+
+              return (
+                <div key={section.id} className="mb-6">
+                  {!isCollapsed && (
+                    <div className="mb-3 flex items-center justify-between">
+                      <h3 className="text-xs font-medium uppercase tracking-wide text-neutral-600">{section.title}</h3>
+                      <button
+                        onClick={() => toggleSection(section.id)}
+                        className="rounded-[var(--radius-button)] p-0.5 transition-all duration-200 ease-out hover:bg-neutral-100"
+                      >
+                        <ChevronDown
+                          className={cn(
+                            "h-3.5 w-3.5 text-neutral-500 transition-transform duration-200",
+                            collapsedSections[section.id] && "rotate-180",
+                          )}
+                        />
+                      </button>
+                    </div>
+                  )}
+
+                  {(!collapsedSections[section.id] || isCollapsed) && (
+                    <div className="space-y-1">
+                      {section.items.map((item) => (
+                        <FixedTooltip
+                          key={item.id}
+                          isVisible={isCollapsed}
+                          content={
+                            <>
+                              {item.title}
+                              {item.badge && ` (${item.badge})`}
+                              {item.comingSoon && " (Coming Soon)"}
+                            </>
+                          }
+                        >
+                          <button
+                            onClick={() => !item.comingSoon && handleItemClick(item.id)}
+                            disabled={item.comingSoon}
+                            className={cn(
+                              "group flex w-full items-center gap-3 rounded-[var(--radius-button)] p-2.5 text-left",
+                              "cubic-bezier(0.4, 0, 0.2, 1) transition-all duration-300",
+                              pathname === `/${item.id}` ||
+                                (item.id === "library" && pathname === "/library") ||
+                                (item.id === "brand-voice" && pathname === "/brand-hub")
+                                ? "bg-neutral-200 font-medium text-neutral-900 shadow-[var(--shadow-inset-subtle)]"
+                                : "text-neutral-600 hover:-translate-x-0.5 hover:bg-neutral-100 hover:text-neutral-900 hover:shadow-[var(--shadow-soft-drop)]",
+                              item.comingSoon && "cursor-not-allowed opacity-50",
+                              isCollapsed && "justify-center p-2",
+                              "active:scale-[0.98]",
+                            )}
+                          >
+                            {section.id !== "recent" && (
+                              <div
+                                className={cn(
+                                  "flex-shrink-0 transition-all duration-300",
+                                  "cubic-bezier(0.4, 0, 0.2, 1)",
+                                  isCollapsed
+                                    ? "-m-1 rounded-[var(--radius-button)] p-1 group-hover:scale-125 group-hover:bg-neutral-200"
+                                    : "group-hover:rotate-3 group-hover:scale-110",
+                                )}
+                              >
+                                <item.icon className="h-4 w-4" />
+                              </div>
+                            )}
+
+                            {!isCollapsed && (
+                              <>
+                                <span className="flex-1 text-sm font-medium">{item.title}</span>
+
+                                {item.badge && (
+                                  <div className="flex h-5 min-w-5 flex-shrink-0 items-center justify-center rounded-full bg-neutral-700 px-2 py-0.5 text-xs text-white">
+                                    {item.badge}
+                                  </div>
+                                )}
+
+                                {item.comingSoon && (
+                                  <div className="flex-shrink-0 rounded-full bg-neutral-300 px-2 py-0.5 text-xs text-neutral-700">
+                                    Soon
+                                  </div>
+                                )}
+                              </>
+                            )}
+                          </button>
+                        </FixedTooltip>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Tools (bottom links) with enhanced transitions */}
+          <div className="border-t border-neutral-100 px-4 py-3 transition-all duration-300 ease-out">
+            {!isCollapsed ? (
+              <div className="space-y-2">
+                <Link
+                  href="/chrome-extension"
+                  className={cn(
+                    "group flex items-center gap-2 rounded-[var(--radius-button)] p-2 text-sm",
+                    "cubic-bezier(0.4, 0, 0.2, 1) transition-all duration-300",
+                    pathname === "/chrome-extension"
+                      ? "bg-neutral-200 text-neutral-900 shadow-[var(--shadow-inset-subtle)]"
+                      : "text-neutral-600 hover:-translate-x-0.5 hover:bg-neutral-100 hover:text-neutral-900 hover:shadow-[var(--shadow-soft-drop)]",
+                    "active:scale-[0.98]",
+                  )}
+                >
+                  <Globe className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
+                  Chrome Extension
+                </Link>
+                <Link
+                  href="/downloads"
+                  className={cn(
+                    "group flex items-center gap-2 rounded-[var(--radius-button)] p-2 text-sm",
+                    "cubic-bezier(0.4, 0, 0.2, 1) transition-all duration-300",
+                    pathname === "/downloads"
+                      ? "bg-neutral-200 text-neutral-900 shadow-[var(--shadow-inset-subtle)]"
+                      : "text-neutral-600 hover:-translate-x-0.5 hover:bg-neutral-100 hover:text-neutral-900 hover:shadow-[var(--shadow-soft-drop)]",
+                    "active:scale-[0.98]",
+                  )}
+                >
+                  <Smartphone className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
+                  iOS Shortcut
+                </Link>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-2">
+                <FixedTooltip isVisible={isCollapsed} content="Chrome Extension">
+                  <Link
+                    href="/chrome-extension"
+                    className="group flex h-9 w-9 items-center justify-center rounded-[var(--radius-button)] text-neutral-600 transition-all duration-300 hover:scale-110 hover:bg-neutral-100 hover:text-neutral-900 hover:shadow-[var(--shadow-soft-drop)] active:scale-[0.98]"
+                  >
+                    <Globe className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
+                  </Link>
+                </FixedTooltip>
+                <FixedTooltip isVisible={isCollapsed} content="iOS Shortcut">
+                  <Link
+                    href="/downloads"
+                    className="group flex h-9 w-9 items-center justify-center rounded-[var(--radius-button)] text-neutral-600 transition-all duration-300 hover:scale-110 hover:bg-neutral-100 hover:text-neutral-900 hover:shadow-[var(--shadow-soft-drop)] active:scale-[0.98]"
+                  >
+                    <Smartphone className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
+                  </Link>
+                </FixedTooltip>
+              </div>
+            )}
+          </div>
+
+          {/* Footer with smooth transitions */}
+          <div className="border-t border-neutral-100 p-4 transition-all duration-300 ease-out">
+            {!isCollapsed ? <NavUser /> : <NavUser compact />}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -175,7 +175,7 @@ export function extractInstagramShortcode(url: string): string | null {
   console.log("🔍 [INSTAGRAM] Original URL:", url);
   console.log("🔍 [INSTAGRAM] Decoded URL:", decodedUrl);
 
-  const match = decodedUrl.match(/(?:instagram\.com|instagr\.am)\/(?:p|reels?)\/([A-Za-z0-9_-]+)/);
+  const match = decodedUrl.match(/(?:instagram\.com|instagr\.am)\/(?:p|reels?|tv|share)\/([A-Za-z0-9_-]+)/);
   const shortcode = match ? match[1] : null;
 
   console.log("🆔 [INSTAGRAM] Extracted shortcode:", shortcode);

@@ -1,15 +1,17 @@
 {
-  "name": "wxt-starter",
-  "description": "manifest.json description",
+  "name": "genc-extension",
+  "description": "Save videos and content to your GenC workspace",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "wxt",
     "dev:firefox": "wxt -b firefox",
     "build": "wxt build",
+    "build:prod": "NODE_ENV=production wxt build",
     "build:firefox": "wxt build -b firefox",
     "zip": "wxt zip",
+    "zip:prod": "NODE_ENV=production wxt zip",
     "zip:firefox": "wxt zip -b firefox",
     "compile": "tsc --noEmit",
     "postinstall": "wxt prepare"

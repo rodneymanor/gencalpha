@@ -272,7 +272,7 @@ export function BrandSettingsModal({ open, onOpenChange }: BrandSettingsModalPro
                   Select categories that align with your brand for personalized content suggestions.
                 </p>
               </div>
-              
+
               {editMode ? (
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   {(Object.keys(RSS_FEEDS) as Category[]).map((category) => {

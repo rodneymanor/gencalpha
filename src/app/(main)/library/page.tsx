@@ -5,27 +5,29 @@
 
 import React, { useMemo, useState, useEffect } from "react";
 
-import dynamic from 'next/dynamic';
+import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
+
+import { ChevronsRight, Maximize, Minimize, Copy, Download, PenTool, Lightbulb, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { ChevronsRight, Maximize, Minimize, Copy, Download, PenTool, Lightbulb } from "lucide-react";
 
-import { DataTableTemplate } from "@/components/templates/data-table-template";
-import { Button } from "@/components/ui/button";
-
-import { listConversations, type ChatConversation } from "@/components/write-chat/services/chat-service";
-import { useContentItems } from "@/components/content-inbox/hooks/use-content-inbox";
+import { ContentIdea } from "@/app/api/content/ideas/route";
+import { Hook } from "@/app/api/hooks/route";
+import { useContentItems, useDeleteContent } from "@/components/content-inbox/hooks/use-content-inbox";
 import { type ContentItem } from "@/components/content-inbox/types";
 import { NotionPanel } from "@/components/panels/notion";
 import type { PageProperty, TabData } from "@/components/panels/notion";
+import { DataTableTemplate } from "@/components/templates/data-table-template";
+import { Button } from "@/components/ui/button";
+import { listConversations, type ChatConversation } from "@/components/write-chat/services/chat-service";
 import { useAuth } from "@/contexts/auth-context";
 import { useScriptsApi } from "@/hooks/use-scripts-api";
-import { Hook } from "@/app/api/hooks/route";
-import { ContentIdea } from "@/app/api/content/ideas/route";
 
 import { combineAllDataSources } from "./content-adapter";
 import { getLibraryConfig } from "./library-config";
 import { generateMockData } from "./types";
+import { clientNotesService, type Note } from "@/lib/services/client-notes-service";
+import { NoteType } from "@/app/(main)/dashboard/idea-inbox/_components/types";
 
 // Dynamically import BlockNote to avoid SSR issues
 const BlockNoteEditor = dynamic(() => import("@/components/editor/block-note-editor"), {
@@ -45,11 +47,13 @@ export default function LibraryPage() {
   const [contentItems, setContentItems] = useState<ContentItem[]>([]);
 
   // Add generated content data
-  const { scripts, fetchScripts, loading: scriptsLoading } = useScriptsApi();
+  const { scripts, fetchScripts, loading: scriptsLoading, deleteScript } = useScriptsApi();
+  const deleteContentMutation = useDeleteContent();
   const [hooks, setHooks] = useState<Hook[]>([]);
   const [contentIdeas, setContentIdeas] = useState<ContentIdea[]>([]);
   const [hooksLoading, setHooksLoading] = useState(false);
   const [ideasLoading, setIdeasLoading] = useState(false);
+  const [userNotes, setUserNotes] = useState<Note[]>([]);
 
   // NotionPanel state
   const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -189,6 +193,17 @@ export default function LibraryPage() {
         } finally {
           setIdeasLoading(false);
         }
+
+        // Load idea inbox notes (from Chrome extension/iOS shortcut)
+        try {
+          const res = await clientNotesService.getNotes({
+            noteType: NoteType.NOTE,
+            type: "idea_inbox",
+          });
+          setUserNotes(res.notes);
+        } catch (err) {
+          console.error("Failed to load notes:", err);
+        }
       }
 
       setLoading(false);
@@ -210,8 +225,8 @@ export default function LibraryPage() {
 
   // Combine all data sources: chats + content + scripts + hooks + ideas + mock data
   const combinedData = useMemo(
-    () => combineAllDataSources(conversations, contentItems, scripts, hooks, contentIdeas, mockData),
-    [conversations, contentItems, scripts, hooks, contentIdeas, mockData],
+    () => combineAllDataSources(conversations, contentItems, scripts, hooks, contentIdeas, userNotes, mockData),
+    [conversations, contentItems, scripts, hooks, contentIdeas, userNotes, mockData],
   );
 
   // State for active filters
@@ -223,10 +238,10 @@ export default function LibraryPage() {
 
     // Filter by content source
     if (filters.contentSource?.length > 0) {
+      const selected = new Set(filters.contentSource);
       filtered = filtered.filter((item) => {
-        if (filters.contentSource.includes("chat")) return item.tags.includes("chat");
-        if (filters.contentSource.includes("captured")) return item.tags.includes("captured");
-        return false;
+        const sources = ["chat", "captured", "notes"];
+        return sources.some((s) => selected.has(s) && item.tags.includes(s));
       });
     }
 
@@ -244,10 +259,7 @@ export default function LibraryPage() {
   };
 
   // Apply filters to combined data
-  const filteredData = useMemo(() =>
-    applyFilters(combinedData, activeFilters),
-    [combinedData, activeFilters]
-  );
+  const filteredData = useMemo(() => applyFilters(combinedData, activeFilters), [combinedData, activeFilters]);
 
   // Helper function to render markdown content
   const renderMarkdownContent = (content: string) => {
@@ -285,7 +297,7 @@ export default function LibraryPage() {
             );
           }
 
-        // Handle bullet lists
+          // Handle bullet lists
           if (line.startsWith("- ") || line.startsWith("* ")) {
             return (
               <li key={index} className="ml-4 text-neutral-700">
@@ -303,7 +315,6 @@ export default function LibraryPage() {
             );
           }
 
-
           // Handle bold text
           const boldText = line.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
 
@@ -313,20 +324,148 @@ export default function LibraryPage() {
           // Handle code spans
           const codeText = italicText.replace(
             /`(.*?)`/g,
-            '<code class="bg-neutral-100 px-1 py-0.5 rounded text-sm font-mono">$1</code>'
+            '<code class="bg-neutral-100 px-1 py-0.5 rounded text-sm font-mono">$1</code>',
           );
 
           // Regular paragraphs
-          return (
-            <p
-              key={index}
-              className="mb-2 text-neutral-700"
-              dangerouslySetInnerHTML={{ __html: codeText }}
-            />
-          );
+          return <p key={index} className="mb-2 text-neutral-700" dangerouslySetInnerHTML={{ __html: codeText }} />;
         })}
       </>
     );
+  };
+
+  // Helper to refresh all loaded data
+  const refreshAll = async () => {
+    try {
+      const chats = await listConversations();
+      setConversations(chats);
+      await refetchContent();
+      await fetchScripts();
+      if (user) {
+        const idToken = await user.getIdToken();
+        const [hooksRes, ideasRes] = await Promise.all([
+          fetch("/api/hooks", { headers: { Authorization: `Bearer ${idToken}` } }),
+          fetch("/api/content/ideas", { headers: { Authorization: `Bearer ${idToken}` } }),
+        ]);
+        const [hooksData, ideasData] = await Promise.all([hooksRes.json(), ideasRes.json()]);
+        if (hooksData.success) setHooks(hooksData.hooks);
+        if (ideasData.success) setContentIdeas(ideasData.ideas);
+      }
+    } catch (err) {
+      console.error("Failed to refresh data:", err);
+    }
+  };
+
+  // Delete a single library item (per source)
+  const deleteLibraryItem = async (item: any) => {
+    // Content Inbox items
+    if (item.tags?.includes("captured")) {
+      await deleteContentMutation.mutateAsync([item.id]);
+      toast.success("Content deleted");
+      return;
+    }
+    // Generated scripts
+    if (item.category === "script") {
+      // script items are prefixed as "script-<id>"
+      const scriptId = typeof item.id === "string" && item.id.startsWith("script-") ? item.id.slice(7) : item.id;
+      const ok = await deleteScript(scriptId);
+      if (ok) toast.success("Script deleted");
+      else toast.error("Failed to delete script");
+      return;
+    }
+    // Chats (delete conversation)
+    if (item.tags?.includes("chat")) {
+      if (!user) throw new Error("Not authenticated");
+      const idToken = await user.getIdToken();
+      const res = await fetch(`/api/chat/conversations/${item.id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${idToken}` },
+      });
+      if (!res.ok) throw new Error("Failed to delete chat");
+      toast.success("Chat deleted");
+      return;
+    }
+    // Hooks (generated)
+    if (item.category === "hooks") {
+      if (!user) throw new Error("Not authenticated");
+      const hookId = typeof item.id === "string" && item.id.startsWith("hook-") ? item.id.slice(5) : item.id;
+      const idToken = await user.getIdToken();
+      const res = await fetch(`/api/hooks/${hookId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${idToken}` },
+      });
+      if (!res.ok) throw new Error("Failed to delete hooks");
+      toast.success("Hooks deleted");
+      return;
+    }
+    // Ideas (generated)
+    if (item.category === "idea") {
+      if (!user) throw new Error("Not authenticated");
+      const ideaId = typeof item.id === "string" && item.id.startsWith("idea-") ? item.id.slice(5) : item.id;
+      const idToken = await user.getIdToken();
+      const res = await fetch(`/api/content/ideas/${ideaId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${idToken}` },
+      });
+      if (!res.ok) throw new Error("Failed to delete idea");
+      toast.success("Idea deleted");
+      return;
+    }
+    toast.info("This item type cannot be deleted");
+  };
+
+  // Bulk delete
+  const deleteLibraryItems = async (items: any[]) => {
+    const contentIds: string[] = [];
+    const scriptIds: string[] = [];
+    const chatIds: string[] = [];
+    const hookIds: string[] = [];
+    const ideaIds: string[] = [];
+
+    for (const item of items) {
+      if (item.tags?.includes("captured")) contentIds.push(item.id);
+      else if (item.category === "script") {
+        const sid = typeof item.id === "string" && item.id.startsWith("script-") ? item.id.slice(7) : item.id;
+        scriptIds.push(sid);
+      } else if (item.tags?.includes("chat")) chatIds.push(item.id);
+      else if (item.category === "hooks") {
+        const hid = typeof item.id === "string" && item.id.startsWith("hook-") ? item.id.slice(5) : item.id;
+        hookIds.push(hid);
+      } else if (item.category === "idea") {
+        const iid = typeof item.id === "string" && item.id.startsWith("idea-") ? item.id.slice(5) : item.id;
+        ideaIds.push(iid);
+      }
+    }
+
+    if (contentIds.length) {
+      await deleteContentMutation.mutateAsync(contentIds);
+    }
+    for (const id of scriptIds) {
+      await deleteScript(id);
+    }
+    if (user) {
+      const idToken = await user.getIdToken();
+      for (const cid of chatIds) {
+        await fetch(`/api/chat/conversations/${cid}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${idToken}` },
+        });
+      }
+      for (const hid of hookIds) {
+        await fetch(`/api/hooks/${hid}`, { method: "DELETE", headers: { Authorization: `Bearer ${idToken}` } });
+      }
+      for (const iid of ideaIds) {
+        await fetch(`/api/content/ideas/${iid}`, { method: "DELETE", headers: { Authorization: `Bearer ${idToken}` } });
+      }
+    }
+
+    const skipped =
+      items.length - contentIds.length - scriptIds.length - chatIds.length - hookIds.length - ideaIds.length;
+    if (skipped > 0) {
+      toast.info(`${skipped} item(s) could not be deleted yet`);
+    }
+    const deletedCount = contentIds.length + scriptIds.length + chatIds.length + hookIds.length + ideaIds.length;
+    if (deletedCount > 0) toast.success(`Deleted ${deletedCount} item(s)`);
   };
 
   // Handle item selection for the panel
@@ -547,6 +686,23 @@ export default function LibraryPage() {
         // Open in panel for detailed view
         handleItemSelect(item);
       },
+      bulkActions: (baseConfig.bulkActions ?? []).map((action) =>
+        action.key === "delete"
+          ? {
+              ...action,
+              handler: async (items: any[]) => {
+                if (!items || items.length === 0) return;
+                try {
+                  await deleteLibraryItems(items);
+                  await refreshAll();
+                } catch (err) {
+                  console.error("Bulk delete failed:", err);
+                  toast.error("Failed to delete selected items");
+                }
+              },
+            }
+          : action,
+      ),
       itemActions: [
         ...(baseConfig.itemActions ?? []).map((action) => {
           if (action.key === "edit") {
@@ -566,6 +722,23 @@ export default function LibraryPage() {
           }
           return action;
         }),
+        // Append Delete per-item action
+        {
+          key: "delete",
+          label: "Delete",
+          icon: <Trash2 className="mr-2 h-4 w-4" />,
+          handler: async (item: any) => {
+            const confirmed = window.confirm(`Delete "${item.title}"? This cannot be undone.`);
+            if (!confirmed) return;
+            try {
+              await deleteLibraryItem(item);
+              await refreshAll();
+            } catch (err) {
+              console.error("Failed to delete item:", err);
+              toast.error("Failed to delete item");
+            }
+          },
+        },
       ],
     };
   }, [router, handleNewScript, handleNewIdea]);
@@ -627,7 +800,7 @@ export default function LibraryPage() {
               // Update active filters state
               setActiveFilters(filters);
 
-            // Update URL to reflect current filters
+              // Update URL to reflect current filters
               const params = new URLSearchParams();
               if (filters.contentSource?.length) {
                 params.set("source", filters.contentSource[0]);
@@ -654,11 +827,11 @@ export default function LibraryPage() {
               const selected = filteredData.filter((item) => selectedIds.has(item.id));
               console.log("Selection changed:", selected);
 
-            // Track different types of selected content
+              // Track different types of selected content
               const selectedChats = selected.filter((item) => item.url?.startsWith("/write"));
               const selectedContent = selected.filter((item) => item.tags.includes("captured"));
 
-            if (selectedChats.length > 0) {
+              if (selectedChats.length > 0) {
                 console.log(`${selectedChats.length} chat(s) selected`);
               }
               if (selectedContent.length > 0) {

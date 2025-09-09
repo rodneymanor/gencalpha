@@ -178,4 +178,3 @@ export const KEYWORD_POOLS: Record<KeywordCategory, string[]> = {
     "eating out smart",
   ],
 };
-

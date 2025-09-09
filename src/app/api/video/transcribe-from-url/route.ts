@@ -51,20 +51,27 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, operation:
 async function downloadVideo(
   url: string,
   options?: { cookieHeader?: string },
-): Promise<{ success: boolean; buffer?: ArrayBuffer; error?: string; status?: number; headersUsed?: string[]; cookieNames?: string[] }> {
+): Promise<{
+  success: boolean;
+  buffer?: ArrayBuffer;
+  error?: string;
+  status?: number;
+  headersUsed?: string[];
+  cookieNames?: string[];
+}> {
   console.log("⬇️ Downloading video from CDN:", url);
   const parsed = new URL(url);
-  const isTikTok = parsed.hostname.includes('tiktok');
+  const isTikTok = parsed.hostname.includes("tiktok");
 
   const headers: Record<string, string> = {
     // Use stable desktop Chrome UA
     "User-Agent":
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.74 Safari/537.36",
     // Prefer video content types explicitly
-    "Accept": "video/mp4,video/*;q=0.9,*/*;q=0.8",
+    Accept: "video/mp4,video/*;q=0.9,*/*;q=0.8",
     "Accept-Language": "en-US,en;q=0.5",
     "Accept-Encoding": "gzip, deflate, br",
-    "Connection": "keep-alive",
+    Connection: "keep-alive",
   };
   if (isTikTok) {
     headers["Referer"] = "https://www.tiktok.com/";
@@ -83,21 +90,33 @@ async function downloadVideo(
 
   try {
     // Preflight HEAD to confirm accessibility without downloading payload
-    const headRes = await fetch(url, { method: 'HEAD', headers, redirect: 'follow' as any, cache: 'no-store' as any });
+    const headRes = await fetch(url, { method: "HEAD", headers, redirect: "follow" as any, cache: "no-store" as any });
     if (!headRes.ok) {
       const status = headRes.status;
-      const text = await headRes.text().catch(() => '');
+      const text = await headRes.text().catch(() => "");
       console.warn(`⚠️ [DOWNLOAD] HEAD responded ${status} ${headRes.statusText}. Body snippet:`, text.slice(0, 200));
-      return { success: false, error: `HEAD failed: ${status} ${headRes.statusText}`, status, headersUsed: Object.keys(headers), cookieNames };
+      return {
+        success: false,
+        error: `HEAD failed: ${status} ${headRes.statusText}`,
+        status,
+        headersUsed: Object.keys(headers),
+        cookieNames,
+      };
     }
 
     // GET full resource (limit enforced below)
-    const response = await fetch(url, { headers, redirect: 'follow' as any, cache: 'no-store' as any });
+    const response = await fetch(url, { headers, redirect: "follow" as any, cache: "no-store" as any });
     if (!response.ok) {
       const status = response.status;
-      const text = await response.text().catch(() => '');
+      const text = await response.text().catch(() => "");
       console.warn(`⚠️ [DOWNLOAD] CDN responded ${status} ${response.statusText}. Body snippet:`, text.slice(0, 200));
-      return { success: false, error: `Failed to download video: ${status} ${response.statusText}`, status, headersUsed: Object.keys(headers), cookieNames };
+      return {
+        success: false,
+        error: `Failed to download video: ${status} ${response.statusText}`,
+        status,
+        headersUsed: Object.keys(headers),
+        cookieNames,
+      };
     }
 
     const buffer = await response.arrayBuffer();
@@ -302,30 +321,27 @@ export async function POST(request: NextRequest) {
     const { videoUrl: initialUrl } = body;
 
     // Build optional Cookie header from provided cookies
-    function buildCookieHeader(input: TranscriptionRequest['cookies']): string | undefined {
+    function buildCookieHeader(input: TranscriptionRequest["cookies"]): string | undefined {
       if (!input) return undefined;
-      if (typeof input === 'string') return input.trim() || undefined;
+      if (typeof input === "string") return input.trim() || undefined;
       if (Array.isArray(input)) {
-        const parts = input
-          .map((c) => (c && c.name ? `${c.name}=${c.value ?? ''}` : ''))
-          .filter(Boolean);
-        return parts.length ? parts.join('; ') : undefined;
+        const parts = input.map((c) => (c && c.name ? `${c.name}=${c.value ?? ""}` : "")).filter(Boolean);
+        return parts.length ? parts.join("; ") : undefined;
       }
-      if (typeof input === 'object') {
+      if (typeof input === "object") {
         const parts = Object.entries(input)
           .filter(([k]) => !!k)
-          .map(([k, v]) => `${k}=${v ?? ''}`);
-        return parts.length ? parts.join('; ') : undefined;
+          .map(([k, v]) => `${k}=${v ?? ""}`);
+        return parts.length ? parts.join("; ") : undefined;
       }
       return undefined;
     }
     const cookieHeader = buildCookieHeader(body.cookies);
 
     if (!initialUrl) {
-      return NextResponse.json(
-        { success: false, error: "Video URL is required" } satisfies TranscriptionResponse,
-        { status: 400 },
-      );
+      return NextResponse.json({ success: false, error: "Video URL is required" } satisfies TranscriptionResponse, {
+        status: 400,
+      });
     }
 
     // Validate environment
@@ -349,7 +365,11 @@ export async function POST(request: NextRequest) {
           success: false,
           error: "Failed to download video",
           details: downloadResult.error,
-          debug: { headersUsed: downloadResult.headersUsed, cookieNames: downloadResult.cookieNames, status: downloadResult.status },
+          debug: {
+            headersUsed: downloadResult.headersUsed,
+            cookieNames: downloadResult.cookieNames,
+            status: downloadResult.status,
+          },
         } satisfies TranscriptionResponse,
         { status: 400 },
       );

@@ -17,6 +17,7 @@ export function StreamlinedScriptWriter({
   preselectedGenerator,
   preselectedTemplate,
   onBrandModalOpen,
+  heroBanner,
 }: StreamlinedScriptWriterProps) {
   // Use the main orchestrator hook that manages all state and logic
   const {
@@ -75,6 +76,7 @@ export function StreamlinedScriptWriter({
         selectedPersona={selectedPersona}
         onPersonaSelect={handleChatPersonaSelect}
         onBrandModalOpen={onBrandModalOpen}
+        heroBanner={heroBanner}
         className={className}
       />
     );

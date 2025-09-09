@@ -6,6 +6,8 @@ export interface PersonaOption {
 
 export type FlowState = "input" | "generating" | "transcribing" | "editing";
 
+import type { ReactNode } from "react";
+
 export interface StreamlinedScriptWriterProps {
   initialPrompt?: string;
   onScriptComplete?: (script: string) => void;
@@ -14,6 +16,8 @@ export interface StreamlinedScriptWriterProps {
   preselectedGenerator?: string;
   preselectedTemplate?: string;
   onBrandModalOpen?: () => void;
+  /** Optional banner rendered above the hero headline on the input view */
+  heroBanner?: ReactNode;
 }
 
 export interface ScriptGeneratorData {

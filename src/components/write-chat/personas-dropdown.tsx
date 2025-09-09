@@ -27,8 +27,8 @@ interface FirestorePersona {
 interface PersonasDropdownProps {
   selectedPersona?: string;
   onPersonaSelect?: (persona: string) => void;
-  selectedGenerator?: 'hook' | 'template' | null;
-  onGeneratorSelect?: (generator: 'hook' | 'template') => void;
+  selectedGenerator?: "hook" | "template" | null;
+  onGeneratorSelect?: (generator: "hook" | "template") => void;
   className?: string;
   disabled?: boolean;
 }
@@ -183,91 +183,90 @@ export function PersonasDropdown({
     const sections: DropdownSection[] = [];
 
     // Personas Section
-    const personaItems: DropdownItem[] = savedPersonas.length > 0 
-      ? savedPersonas.slice(0, 3).map((persona) => ({
-          id: persona.id,
-          label: persona.name,
-          description: `@${persona.username}`,
-          icon: persona.avatar ? (
-            <img
-              src={persona.avatar}
-              alt={persona.name}
-              className="h-4 w-4 rounded-full object-cover"
-            />
-          ) : (
-            <div className="flex h-4 w-4 items-center justify-center rounded-full bg-neutral-200 text-xs font-medium text-neutral-700">
-              {persona.initials}
-            </div>
-          ),
-          selected: selectedPersona === persona.id,
-          onClick: () => handlePersonaSelect(persona.id)
-        }))
-      : [{
-          id: 'no-personas',
-          label: 'No personas saved yet',
-          description: 'Create your first persona to get started',
-          icon: <Users className="h-4 w-4" />,
-          disabled: true,
-          onClick: () => {}
-        }];
+    const personaItems: DropdownItem[] =
+      savedPersonas.length > 0
+        ? savedPersonas.slice(0, 3).map((persona) => ({
+            id: persona.id,
+            label: persona.name,
+            description: `@${persona.username}`,
+            icon: persona.avatar ? (
+              <img src={persona.avatar} alt={persona.name} className="h-4 w-4 rounded-full object-cover" />
+            ) : (
+              <div className="flex h-4 w-4 items-center justify-center rounded-full bg-neutral-200 text-xs font-medium text-neutral-700">
+                {persona.initials}
+              </div>
+            ),
+            selected: selectedPersona === persona.id,
+            onClick: () => handlePersonaSelect(persona.id),
+          }))
+        : [
+            {
+              id: "no-personas",
+              label: "No personas saved yet",
+              description: "Create your first persona to get started",
+              icon: <Users className="h-4 w-4" />,
+              disabled: true,
+              onClick: () => {},
+            },
+          ];
 
     sections.push({
-      id: 'personas',
-      label: 'Personas',
-      items: personaItems
+      id: "personas",
+      label: "Personas",
+      items: personaItems,
     });
 
     // Script Options Section
     sections.push({
-      id: 'script-options',
-      label: 'Script Options',
+      id: "script-options",
+      label: "Script Options",
       items: [
         {
-          id: 'hook-generator',
-          label: 'Hook Generator',
-          description: 'Create engaging openings',
+          id: "hook-generator",
+          label: "Hook Generator",
+          description: "Create engaging openings",
           icon: <Zap className="h-4 w-4" />,
-          selected: selectedGenerator === 'hook',
-          onClick: () => onGeneratorSelect?.('hook')
+          selected: selectedGenerator === "hook",
+          onClick: () => onGeneratorSelect?.("hook"),
         },
         {
-          id: 'if-you-then-do-this',
-          label: 'If You Then Do This',
-          description: 'Conditional logic scripts',
+          id: "if-you-then-do-this",
+          label: "If You Then Do This",
+          description: "Conditional logic scripts",
           icon: <FileText className="h-4 w-4" />,
-          selected: selectedGenerator === 'template',
-          onClick: () => onGeneratorSelect?.('template')
-        }
-      ]
+          selected: selectedGenerator === "template",
+          onClick: () => onGeneratorSelect?.("template"),
+        },
+      ],
     });
 
     // Management Section
     sections.push({
-      id: 'management',
-      label: 'Management',
+      id: "management",
+      label: "Management",
       items: [
         {
-          id: 'view-personas',
-          label: 'View Your Personas',
-          description: 'Manage voice profiles from creators',
+          id: "view-personas",
+          label: "View Your Personas",
+          description: "Manage voice profiles from creators",
           icon: <ExternalLink className="h-4 w-4" />,
           onClick: () => {
             setIsOpen(false);
             router.push("/personas");
-          }
+          },
         },
         {
-          id: 'create-persona',
-          label: 'Create New Persona',
-          description: 'Analyze a creator\'s voice patterns',
+          id: "create-persona",
+          label: "Create New Persona",
+          description: "Analyze a creator's voice patterns",
           icon: <Plus className="h-4 w-4" />,
-          badge: 'NEW',
+          badge: "NEW",
           onClick: () => {
             setIsOpen(false);
             router.push("/personas");
-          }
-        }
-      ]
+          },
+        },
+      ],
     });
 
     return sections;
@@ -305,11 +304,11 @@ export function PersonasDropdown({
       </Button>
 
       {/* Dropdown Portal - positioned fixed to avoid layout shifts */}
-      {isOpen && (
-        loading ? (
+      {isOpen &&
+        (loading ? (
           <div
             ref={dropdownRef}
-            className="fixed z-[9999] w-72 rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-50 shadow-[var(--shadow-soft-drop)] p-4"
+            className="fixed z-[9999] w-72 rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-50 p-4 shadow-[var(--shadow-soft-drop)]"
             style={{
               top: `${dropdownPosition.top}px`,
               left: `${dropdownPosition.left}px`,
@@ -329,8 +328,7 @@ export function PersonasDropdown({
               }}
             />
           </div>
-        )
-      )}
+        ))}
     </div>
   );
 }

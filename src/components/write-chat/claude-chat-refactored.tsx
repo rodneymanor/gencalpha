@@ -10,28 +10,28 @@ import { createVideoActionHandler } from "@/components/write-chat/handlers/video
 import { useActionSelectionState } from "@/components/write-chat/hooks/use-action-selection-state";
 import { useChatState } from "@/components/write-chat/hooks/use-chat-state";
 import { useConversationState } from "@/components/write-chat/hooks/use-conversation-state";
+import { useIdeaModeState } from "@/components/write-chat/hooks/use-idea-mode-state";
 import { useVideoActionState } from "@/components/write-chat/hooks/use-video-action-state";
+import { type VideoAction } from "@/components/write-chat/hooks/use-video-action-state";
+import { useVideoState } from "@/components/write-chat/hooks/use-video-state";
 import { useVoiceRecorder } from "@/components/write-chat/hooks/use-voice-recorder";
+import { type PersonaOption, type ActionType } from "@/components/write-chat/persona-selector";
+import { HeroSection } from "@/components/write-chat/presentation/hero-section";
+import { useSmoothMessageManager } from "@/components/write-chat/smooth-message-manager";
+import { ChatContainer } from "@/components/write-chat/ui/chat-container";
+import { TransitionWrapper } from "@/components/write-chat/ui/transition-wrapper";
 import { useAuth } from "@/contexts/auth-context";
 import { useIdeaInboxFlag } from "@/hooks/use-feature-flag";
 import { useLightweightUrlDetection } from "@/hooks/use-lightweight-url-detection";
-import { useSmoothMessageManager } from "@/components/write-chat/smooth-message-manager";
 import { detectSocialUrl } from "@/lib/utils/lightweight-url-detector";
 
 // Custom state hooks
-import { useIdeaModeState } from "@/components/write-chat/hooks/use-idea-mode-state";
-import { useVideoState } from "@/components/write-chat/hooks/use-video-state";
 
 // Action handlers
 
 // UI Components
-import { HeroSection } from "@/components/write-chat/presentation/hero-section";
-import { ChatContainer } from "@/components/write-chat/ui/chat-container";
-import { TransitionWrapper } from "@/components/write-chat/ui/transition-wrapper";
 
 // Types and constants
-import { type PersonaOption, type ActionType } from "@/components/write-chat/persona-selector";
-import { type VideoAction } from "@/components/write-chat/hooks/use-video-action-state";
 
 // Helper function to convert LightweightDetectionResult to legacy DetectionResult format
 function convertDetectionResult(lightweight: any): any {

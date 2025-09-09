@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
 
     // Test different URL formats
     const testGuid = "00000000-0000-0000-0000-000000000000";
-    
+
     const urls = {
       iframe: `https://iframe.mediadelivery.net/embed/${config.libraryId}/${testGuid}`,
       directVideo: `https://iframe.mediadelivery.net/${config.libraryId}/${testGuid}/play_720p.mp4`,
@@ -33,26 +33,26 @@ export async function POST(request: NextRequest) {
     for (const [key, url] of Object.entries(urls)) {
       try {
         console.log(`🔍 [BUNNY_TEST] Testing ${key}: ${url}`);
-        const response = await fetch(url, { 
-          method: 'HEAD',
+        const response = await fetch(url, {
+          method: "HEAD",
           headers: {
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
-          }
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+          },
         });
-        
+
         results[key] = {
           url,
           status: response.status,
           ok: response.ok,
           headers: {
-            contentType: response.headers.get('content-type'),
-            contentLength: response.headers.get('content-length'),
-          }
+            contentType: response.headers.get("content-type"),
+            contentLength: response.headers.get("content-length"),
+          },
         };
       } catch (error) {
         results[key] = {
           url,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? error.message : "Unknown error",
         };
       }
     }
@@ -61,17 +61,19 @@ export async function POST(request: NextRequest) {
       success: true,
       config: {
         ...config,
-        apiKey: config.apiKey ? '[PRESENT]' : '[MISSING]'
+        apiKey: config.apiKey ? "[PRESENT]" : "[MISSING]",
       },
       urls,
-      results
+      results,
     });
-
   } catch (error) {
     console.error("❌ [BUNNY_TEST] Error:", error);
-    return NextResponse.json({
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
+    );
   }
 }

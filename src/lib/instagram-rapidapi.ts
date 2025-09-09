@@ -4,7 +4,8 @@
 import { UnifiedVideoResult } from "@/lib/types/video-scraper";
 
 export function extractInstagramShortcode(url: string): string | null {
-  const match = url.match(/\/(p|reel|reels|tv)\/([A-Za-z0-9_-]+)/);
+  // Support canonical post/reel/tv as well as share links which contain the shortcode
+  const match = url.match(/\/(p|reel|reels|tv|share)\/([A-Za-z0-9_-]+)/);
   return match ? match[2] : null;
 }
 
@@ -40,13 +41,13 @@ export function mapInstagramToUnified(
     const t = String(v?.type || v?.mime_type || v?.content_type || "").toLowerCase();
     const codecs = String(v?.codecs || "").toLowerCase();
     const url = String(v?.url || "").toLowerCase();
-    const noDimensions = (v?.height === 0 || v?.width === 0) || (v?.height == null && v?.width == null);
+    const noDimensions = v?.height === 0 || v?.width === 0 || (v?.height == null && v?.width == null);
     return (
       t.includes("audio") ||
       codecs.includes("mp4a") ||
       url.includes("/audio/") ||
       url.includes("audio_only") ||
-      noDimensions && !t.includes("video")
+      (noDimensions && !t.includes("video"))
     );
   };
 
