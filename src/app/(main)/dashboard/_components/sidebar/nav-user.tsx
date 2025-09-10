@@ -26,7 +26,7 @@ function getDisplayName(userProfile: any, user: any): string {
   return userProfile?.displayName ?? user.displayName ?? user.email?.split("@")[0] ?? "User";
 }
 
-export function NavUser({ compact = false }: { compact?: boolean }) {
+export function NavUser({ compact = false, onMenuOpenChange }: { compact?: boolean; onMenuOpenChange?: (open: boolean) => void }) {
   const { user, userProfile, logout, loading } = useAuth();
   const themeMode = usePreferencesStore((s) => s.themeMode);
   const setThemeMode = usePreferencesStore((s) => s.setThemeMode);
@@ -59,7 +59,8 @@ export function NavUser({ compact = false }: { compact?: boolean }) {
 
   return (
     <div>
-      <DropdownMenu>
+      <DropdownMenu onOpenChange={onMenuOpenChange}
+      >
         <DropdownMenuTrigger asChild>
           {compact ? (
             <button

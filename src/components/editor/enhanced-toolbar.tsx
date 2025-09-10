@@ -58,6 +58,7 @@ export interface EnhancedToolbarProps {
   isSaving?: boolean;
   disabled?: boolean;
   className?: string;
+  savedAt?: number | null;
 }
 
 const toneOptions = [
@@ -112,8 +113,27 @@ export function EnhancedToolbar({
   isSaving = false,
   disabled = false,
   className,
+  savedAt = null,
 }: EnhancedToolbarProps) {
   const [_isVisible, _setIsVisible] = useState(true);
+  const [relativeSaved, setRelativeSaved] = useState<string>("");
+
+  // Compute human-readable "Saved just now" indicator
+  React.useEffect(() => {
+    const compute = () => {
+      if (!savedAt) return setRelativeSaved("");
+      const diff = Date.now() - savedAt;
+      if (diff < 8000) return setRelativeSaved("Saved just now");
+      if (diff < 60000) return setRelativeSaved(`Saved ${Math.floor(diff / 1000)}s ago`);
+      const mins = Math.floor(diff / 60000);
+      if (mins < 60) return setRelativeSaved(`Saved ${mins}m ago`);
+      const hrs = Math.floor(mins / 60);
+      return setRelativeSaved(`Saved ${hrs}h ago`);
+    };
+    compute();
+    const t = setInterval(compute, 5000);
+    return () => clearInterval(t);
+  }, [savedAt]);
 
   return (
     <div
@@ -294,6 +314,11 @@ export function EnhancedToolbar({
 
           {/* Actions */}
           <div className="flex items-center gap-1">
+            {!isSaving && relativeSaved && (
+              <span className="text-[#64748B] mr-2 select-none text-xs" aria-live="polite">
+                {relativeSaved}
+              </span>
+            )}
             <Button
               variant="ghost"
               size="sm"

@@ -42,6 +42,7 @@ interface EditingViewProps {
 
   // Save state
   isSaving: boolean;
+  savedAt?: number | null;
 
   // Transcript toggle state
   showFullTranscript: boolean;
@@ -76,6 +77,7 @@ export function EditingView({
   canUndo,
   canRedo,
   isSaving,
+  savedAt,
   showFullTranscript,
   onTranscriptToggle,
   transcriptionDebug,
@@ -212,6 +214,7 @@ export function EditingView({
               canUndo={!!canUndo}
               canRedo={!!canRedo}
               isSaving={isSaving}
+              savedAt={savedAt ?? null}
             />
           </div>
 

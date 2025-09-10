@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useEnhancedScriptAnalytics } from "@/hooks/use-script-analytics";
 import { detectSocialUrl } from "@/lib/utils/lightweight-url-detector";
@@ -191,6 +191,9 @@ export function useScriptGeneration({
       scriptState.setScriptTitle(title);
     },
   });
+
+  // Track last saved time for UI indicator
+  const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
 
   // Data transformations
   const quickGenerators = mapContentActionsToQuickGenerators();
@@ -456,12 +459,18 @@ export function useScriptGeneration({
       try {
         await handleAutoSave();
         lastSavedRef.current = scriptState.generatedScript;
+        setLastSavedAt(Date.now());
       } catch (e) {
         // error handled in save hook
       }
     }, 1500);
     return () => clearTimeout(t);
   }, [scriptState.generatedScript, handleAutoSave]);
+
+  const handleSaveNow = useCallback(async () => {
+    await handleSaveScript();
+    setLastSavedAt(Date.now());
+  }, [handleSaveScript]);
 
   // AI Action Sidebar Handlers
   const handleActionTrigger = useCallback(
@@ -493,6 +502,7 @@ export function useScriptGeneration({
     ...templateSelection,
     scriptAnalysis,
     isSaving,
+    lastSavedAt,
 
     // Data
     quickGenerators,
@@ -510,5 +520,6 @@ export function useScriptGeneration({
     // Undo/Redo
     undo: scriptState.undo,
     redo: scriptState.redo,
+    handleSaveNow,
   };
 }

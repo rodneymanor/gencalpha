@@ -110,7 +110,7 @@ export function StreamlinedScriptWriter({
       sidebarTab={sidebarTab}
       setSidebarTab={setSidebarTab}
       wordCount={wordCount}
-      onSave={handleSaveScript}
+      onSave={handleSaveNow}
       onPersonaSelect={handlePersonaSelect}
       onActionTrigger={handleActionTrigger}
       onToolbarAction={handleToolbarAction}
@@ -119,6 +119,7 @@ export function StreamlinedScriptWriter({
       canUndo={canUndo}
       canRedo={canRedo}
       isSaving={isSaving}
+      savedAt={lastSavedAt}
       showFullTranscript={showFullTranscript}
       onTranscriptToggle={setShowFullTranscript}
       transcriptionDebug={transcriptionDebug}

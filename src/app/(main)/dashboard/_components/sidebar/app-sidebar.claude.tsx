@@ -149,6 +149,9 @@ export function AppSidebarClaude({ className, onItemClick }: AppSidebarProps) {
 
   const [collectionsCount, setCollectionsCount] = useState(0);
   const [recentItems, setRecentItems] = useState<SidebarItem[]>([]);
+  // Lock expansion while profile menu is open to avoid jitter
+  const [menuOpen, setMenuOpen] = useState(false);
+  const prevCollapsedRef = useRef<boolean>(false);
 
   // Use content items hook for fetching library items
   const { data: contentData } = useContentItems({}, { field: "savedAt", direction: "desc" });
@@ -195,13 +198,13 @@ export function AppSidebarClaude({ className, onItemClick }: AppSidebarProps) {
   const handleMouseEnter = () => {
     if (typeof window === "undefined") return;
     const isMobile = window.innerWidth < 768;
-    if (!isMobile && !isPinned) setIsCollapsed(false);
+    if (!isMobile && !isPinned && !menuOpen) setIsCollapsed(false);
   };
 
   const handleMouseLeave = () => {
     if (typeof window === "undefined") return;
     const isMobile = window.innerWidth < 768;
-    if (!isMobile && !isPinned) setIsCollapsed(true);
+    if (!isMobile && !isPinned && !menuOpen) setIsCollapsed(true);
   };
 
   const togglePin = () => {
@@ -406,7 +409,10 @@ export function AppSidebarClaude({ className, onItemClick }: AppSidebarProps) {
         {/* Quick Generators - removed for Claude style */}
 
         {/* Navigation Sections */}
-        <div className="flex-1 overflow-x-visible overflow-y-auto px-4 pb-4">
+        <div
+          className="flex-1 overflow-x-visible overflow-y-auto overscroll-contain px-4 pb-4"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
           {sections.map((section) => {
             if (section.id === "recent" && isCollapsed) {
               return null;
@@ -429,7 +435,8 @@ export function AppSidebarClaude({ className, onItemClick }: AppSidebarProps) {
                     <h3 className="text-xs font-medium tracking-wide text-neutral-600 uppercase whitespace-nowrap">{section.title}</h3>
                     <button
                       onClick={() => toggleSection(section.id)}
-                      className="rounded p-0.5 transition-colors duration-200 hover:bg-gray-100 flex-shrink-0"
+                      aria-label={collapsedSections[section.id] ? `Expand ${section.title}` : `Collapse ${section.title}`}
+                      className="relative rounded p-2 md:p-0.5 transition-colors duration-200 hover:bg-gray-100 flex-shrink-0 after:absolute after:-inset-2 md:after:hidden"
                     >
                       <ChevronDown
                         className={cn(
@@ -459,7 +466,7 @@ export function AppSidebarClaude({ className, onItemClick }: AppSidebarProps) {
                           onClick={() => !item.comingSoon && handleItemClick(item.id)}
                           disabled={item.comingSoon}
                     className={cn(
-                      "group flex h-10 w-full items-center rounded-md transition-all duration-300 ease-out overflow-hidden",
+                      "group flex h-11 md:h-10 w-full items-center rounded-md transition-all duration-300 ease-out overflow-hidden",
                       pathname === `/${item.id}` ||
                         (item.id === "library" && pathname === "/library") ||
                         (item.id === "brand-voice" && pathname === "/brand-hub")
@@ -468,7 +475,7 @@ export function AppSidebarClaude({ className, onItemClick }: AppSidebarProps) {
                       item.comingSoon && "cursor-not-allowed opacity-50",
                       // Collapsed: use exact 32px content width (sidebar 64px - 2*16px padding)
                       // Avoid extra inner padding to keep icons centered and unclipped
-                      isCollapsed ? "justify-center p-0" : "gap-3 p-2.5 text-left",
+                      isCollapsed ? "justify-center p-0" : "gap-3 p-3 md:p-2.5 text-left",
                     )}
                   >
                     {section.id !== "recent" && (
@@ -477,7 +484,7 @@ export function AppSidebarClaude({ className, onItemClick }: AppSidebarProps) {
                           "flex-shrink-0 transition-all duration-300 ease-out",
                           // Collapsed: fixed 32x32 touch target centered precisely
                           isCollapsed
-                            ? "inline-flex h-8 w-8 items-center justify-center rounded-md group-hover:bg-neutral-200"
+                            ? "inline-flex h-11 w-11 md:h-8 md:w-8 items-center justify-center rounded-md group-hover:bg-neutral-200"
                             : "group-hover:scale-110",
                         )}
                       >
@@ -521,17 +528,17 @@ export function AppSidebarClaude({ className, onItemClick }: AppSidebarProps) {
               <button
                 onClick={() => router.push("/chrome-extension")}
                 className={cn(
-                  "group flex w-full items-center rounded-md text-sm transition-all duration-300 ease-out overflow-hidden",
+                  "group flex h-11 md:h-10 w-full items-center rounded-md text-sm transition-all duration-300 ease-out overflow-hidden",
                   pathname === "/chrome-extension"
                     ? "bg-neutral-100 text-neutral-900"
                     : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900",
-                  isCollapsed ? "justify-center p-0" : "gap-2 p-2",
+                  isCollapsed ? "justify-center p-0" : "gap-2 p-3 md:p-2",
                 )}
               >
                 <div
                   className={cn(
                     "inline-flex items-center justify-center rounded-md",
-                    isCollapsed ? "h-8 w-8 group-hover:bg-neutral-200" : "h-8 w-8",
+                    isCollapsed ? "h-11 w-11 md:h-8 md:w-8 group-hover:bg-neutral-200" : "h-8 w-8",
                   )}
                 >
                   <Chrome className="h-4 w-4 transition-transform duration-200 group-hover:scale-110 flex-shrink-0" />
@@ -541,17 +548,17 @@ export function AppSidebarClaude({ className, onItemClick }: AppSidebarProps) {
               <button
                 onClick={() => router.push("/downloads")}
                 className={cn(
-                  "group flex w-full items-center rounded-md text-sm transition-all duration-300 ease-out overflow-hidden",
+                  "group flex h-11 md:h-10 w-full items-center rounded-md text-sm transition-all duration-300 ease-out overflow-hidden",
                   pathname === "/downloads"
                     ? "bg-neutral-100 text-neutral-900"
                     : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900",
-                  isCollapsed ? "justify-center p-0" : "gap-2 p-2",
+                  isCollapsed ? "justify-center p-0" : "gap-2 p-3 md:p-2",
                 )}
               >
                 <div
                   className={cn(
                     "inline-flex items-center justify-center rounded-md",
-                    isCollapsed ? "h-8 w-8 group-hover:bg-neutral-200" : "h-8 w-8",
+                    isCollapsed ? "h-11 w-11 md:h-8 md:w-8 group-hover:bg-neutral-200" : "h-8 w-8",
                   )}
                 >
                   <Smartphone className="h-4 w-4 transition-transform duration-200 group-hover:scale-110 flex-shrink-0" />
@@ -563,7 +570,35 @@ export function AppSidebarClaude({ className, onItemClick }: AppSidebarProps) {
         </div>
 
         {/* Footer */}
-        <div className="border-t border-gray-50 p-4 relative z-10">{!isCollapsed ? <NavUser /> : <NavUser compact />}</div>
+        <div className="border-t border-gray-50 p-4 relative z-10">
+          {!isCollapsed ? (
+            <NavUser
+              onMenuOpenChange={(open) => {
+                setMenuOpen(open);
+                if (open) {
+                  prevCollapsedRef.current = isCollapsed;
+                  setIsCollapsed(false);
+                } else {
+                  // Restore previous collapse state when menu closes, unless pinned
+                  setIsCollapsed((prev) => (isPinned ? false : prevCollapsedRef.current));
+                }
+              }}
+            />
+          ) : (
+            <NavUser
+              compact
+              onMenuOpenChange={(open) => {
+                setMenuOpen(open);
+                if (open) {
+                  prevCollapsedRef.current = isCollapsed;
+                  setIsCollapsed(false);
+                } else {
+                  setIsCollapsed((prev) => (isPinned ? false : prevCollapsedRef.current));
+                }
+              }}
+            />
+          )}
+        </div>
       </div>
     </div>
   );

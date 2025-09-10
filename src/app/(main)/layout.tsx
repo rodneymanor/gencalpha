@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useState } from "react";
+import { ReactNode, useRef, useState } from "react";
 
 import { Menu, ArrowLeft } from "lucide-react";
 
@@ -18,6 +18,10 @@ import { VideoProcessingProvider } from "@/contexts/video-processing-context";
 
 export default function MainLayout({ children }: Readonly<{ children: ReactNode }>) {
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+  // Simple swipe-to-close for mobile sidebar
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+  const touchActive = useRef<boolean>(false);
 
   return (
     <AuthProvider>
@@ -33,7 +37,32 @@ export default function MainLayout({ children }: Readonly<{ children: ReactNode 
 
                     {/* Mobile Sidebar - Full page view */}
                     {showMobileSidebar && (
-                      <div className="fixed inset-0 z-50 bg-white md:hidden">
+                      <div
+                        className="fixed inset-0 z-50 bg-white md:hidden"
+                        onTouchStart={(e) => {
+                          if (e.touches.length !== 1) return;
+                          touchActive.current = true;
+                          touchStartX.current = e.touches[0].clientX;
+                          touchStartY.current = e.touches[0].clientY;
+                        }}
+                        onTouchMove={(e) => {
+                          if (!touchActive.current || touchStartX.current == null || touchStartY.current == null) return;
+                          const dx = e.touches[0].clientX - touchStartX.current;
+                          const dy = e.touches[0].clientY - touchStartY.current;
+                          // Ignore if primarily vertical gesture
+                          if (Math.abs(dy) > Math.abs(dx)) return;
+                          // If swiping right more than 60px with minimal vertical jitter, close
+                          if (dx > 60 && Math.abs(dy) < 40) {
+                            touchActive.current = false;
+                            setShowMobileSidebar(false);
+                          }
+                        }}
+                        onTouchEnd={() => {
+                          touchActive.current = false;
+                          touchStartX.current = null;
+                          touchStartY.current = null;
+                        }}
+                      >
                         <div className="flex h-14 items-center border-b border-neutral-100 px-4">
                           <button
                             onClick={() => setShowMobileSidebar(false)}
