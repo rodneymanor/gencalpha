@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -13,54 +13,67 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-
-import { GoogleButton } from "../../(main)/auth/_components/social-auth/google-button";
+import { useAuth } from "@/contexts/auth-context";
 
 const FormSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address." }),
+  password: z.string().min(8, { message: "Password must be at least 8 characters." }),
 });
 
-export default function LoginV1() {
+export default function PasswordPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [email, setEmail] = useState<string>("");
   const formRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { signIn } = useAuth();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      email: "",
+      password: "",
     },
   });
 
-  // Add data-lpignore attributes after mount to prevent LastPass injection
   useEffect(() => {
-    if (formRef.current) {
-      // Add to form
-      formRef.current.setAttribute("data-lpignore", "true");
+    // Get email from URL parameters
+    const emailParam = searchParams.get("email");
+    if (emailParam) {
+      setEmail(decodeURIComponent(emailParam));
+    } else {
+      // If no email, redirect back to login
+      router.push("/login");
+    }
 
-      // Add to all inputs
-      const inputs = formRef.current.querySelectorAll('input[type="email"], input[type="password"]');
+    // Add data-lpignore attributes after mount to prevent LastPass injection
+    if (formRef.current) {
+      formRef.current.setAttribute("data-lpignore", "true");
+      const inputs = formRef.current.querySelectorAll('input[type="password"]');
       inputs.forEach((input) => {
         input.setAttribute("data-lpignore", "true");
         input.setAttribute("data-form-type", "other");
-        input.setAttribute("data-lpignore", "true");
       });
     }
-  }, []);
+  }, [searchParams, router]);
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     setIsSubmitting(true);
     try {
-      // Validate email format (already handled by zod)
-      // Navigate to password page with email as query parameter
-      const encodedEmail = encodeURIComponent(data.email);
-      router.push(`/password?email=${encodedEmail}`);
+      // Authenticate with Firebase using the email and password
+      await signIn(email, data.password);
+
+      // On successful authentication, redirect to write page
+      toast.success("Login successful!");
+      router.push("/write");
     } catch (error) {
-      console.error("Login error:", error);
-      toast.error(error instanceof Error ? error.message : "Login failed. Please try again.");
+      console.error("Authentication error:", error);
+      toast.error(error instanceof Error ? error.message : "Invalid password. Please try again.");
       setIsSubmitting(false);
     }
   };
+
+  if (!email) {
+    return null; // Will redirect to login
+  }
 
   return (
     <div
@@ -77,20 +90,26 @@ export default function LoginV1() {
           </div>
         </div>
 
+        {/* Email Display */}
+        <div className="text-center">
+          <p className="text-sm text-neutral-600">Enter password for</p>
+          <p className="text-lg font-medium text-neutral-900">{email}</p>
+        </div>
+
         {/* Form Section */}
         <div className="space-y-6" suppressHydrationWarning>
           <Form {...form}>
             <form ref={formRef} onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" data-lpignore="true">
               <FormField
                 control={form.control}
-                name="email"
+                name="password"
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
                       <Input
-                        id="email"
-                        type="email"
-                        placeholder="Enter your email"
+                        id="password"
+                        type="password"
+                        placeholder="Enter your password"
                         autoComplete="off"
                         data-lpignore="true"
                         data-form-type="other"
@@ -103,25 +122,29 @@ export default function LoginV1() {
                 )}
               />
 
-              {/* Next Button with Brand Color */}
+              {/* Login Button */}
               <Button
                 className="active:bg-brand-700 bg-brand-500 hover:bg-brand-600 h-12 w-full text-neutral-50 transition-all duration-150"
                 type="submit"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? "Processing..." : "Next"}
+                {isSubmitting ? "Logging in..." : "Login"}
               </Button>
             </form>
           </Form>
 
-          {/* Google Login Button */}
-          <GoogleButton className="h-12 w-full" variant="outline" />
+          {/* Back Link */}
+          <div className="text-center">
+            <Link href="/login" className="hover:text-brand-600 text-sm text-neutral-600 hover:underline">
+              ← Back to email
+            </Link>
+          </div>
 
           {/* Footer Links */}
           <p className="text-center text-sm text-neutral-600">
-            Don&apos;t have an account?{" "}
-            <Link href="/register" className="text-brand-600 hover:text-brand-700 hover:underline">
-              Sign up
+            Forgot your password?{" "}
+            <Link href="/reset-password" className="text-brand-600 hover:text-brand-700 hover:underline">
+              Reset it
             </Link>
           </p>
         </div>
