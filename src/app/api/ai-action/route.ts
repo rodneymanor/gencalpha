@@ -27,6 +27,46 @@ Please provide only the modified text in your response, no explanations or comme
     } else {
       // Handle predefined actions
       switch (actionType) {
+        case "expand":
+          prompt = `Expand and enrich this text while preserving its structure and voice. Add specific supporting details or examples where helpful. Keep it concise enough for short-form content; do not ramble.
+
+Current text:
+${text}
+
+Provide ONLY the expanded text, no commentary.`;
+          break;
+
+        case "check_grammar":
+        case "check-grammar":
+          prompt = `Fix grammar, spelling, and punctuation in this text. Preserve original meaning and tone. Improve clarity where needed.
+
+Current text:
+${text}
+
+Provide ONLY the corrected text, no commentary.`;
+          break;
+
+        case "translate":
+          {
+            const language = (option as string) || "Spanish";
+            prompt = `Translate the following text to ${language}. Keep a natural, conversational style appropriate for spoken short-form video. Preserve formatting cues like headings or numbering.
+
+Text:
+${text}
+
+Provide ONLY the translation, no commentary.`;
+          }
+          break;
+
+        case "generate_ideas":
+        case "generate-ideas":
+          prompt = `Generate 10 concise content ideas based on the topic and context of the following text. Each idea should be punchy, specific, and suitable for short-form video. Number each idea 1-10.
+
+Source text:
+${text}
+
+Provide ONLY the 10 numbered ideas, no commentary.`;
+          break;
         case "change_tone":
           const toneInstructions = {
             professional:

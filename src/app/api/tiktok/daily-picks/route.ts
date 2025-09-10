@@ -34,11 +34,11 @@ export async function GET(req: NextRequest) {
     }
 
     // Fetch raw daily picks (for visibility of keywords) and processed scripts
-    const { videos } = await getOrComputeDailyPicks({ category: category ?? undefined, force });
+    const { videos, date } = await getOrComputeDailyPicks({ category: category ?? undefined, force });
     const keywordsUsed = Array.from(new Set((videos || []).map((v: any) => v.keyword).filter(Boolean)));
     const { scripts } = await getOrComputeProcessedDailyScripts({ category: category ?? undefined, force, userId });
     return Response.json(
-      { ok: true, count: scripts.length, scripts, category: category ?? null, keywordsUsed },
+      { ok: true, count: scripts.length, scripts, category: category ?? null, keywordsUsed, date },
       { status: 200 },
     );
   } catch (e: any) {

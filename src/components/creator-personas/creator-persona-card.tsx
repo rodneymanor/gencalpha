@@ -58,7 +58,7 @@ export function CreatorPersonaCard({
     light: "bg-neutral-200 text-neutral-900 dark:bg-neutral-700 dark:text-neutral-100",
     dark: "bg-neutral-900 text-neutral-50 dark:bg-neutral-100 dark:text-neutral-900",
     outlined:
-      "bg-transparent text-neutral-900 border-2 border-neutral-900 dark:text-neutral-100 dark:border-neutral-100",
+      "bg-transparent text-neutral-900 border border-neutral-900 dark:text-neutral-100 dark:border-neutral-100",
   };
 
   const avatarVariant = persona.avatarVariant ?? "light";
@@ -165,7 +165,7 @@ export function AddPersonaCard({ onClick, className }: AddPersonaCardProps) {
       <div
         className={cn(
           "relative flex h-[164px] items-center justify-center",
-          "border-2 border-dashed border-neutral-300 bg-transparent",
+          "border border-dashed border-neutral-300 bg-transparent",
           "dark:border-neutral-600",
           "rounded-[var(--radius-card)]",
           "transition-all duration-300 ease-out",

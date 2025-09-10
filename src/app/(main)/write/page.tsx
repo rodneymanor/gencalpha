@@ -23,9 +23,14 @@ export default function WritePage({
   const [hasFirebaseConfig, setHasFirebaseConfig] = useState(false);
   const [isBrandHubOpen, setIsBrandHubOpen] = useState(false);
   const [dailyScripts, setDailyScripts] = useState<VideoScript[] | null>(null);
+  const [dailyDate, setDailyDate] = useState<string | null>(null);
+  const [keywordsUsed, setKeywordsUsed] = useState<string[] | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [processedCount, setProcessedCount] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [activeQuery, setActiveQuery] = useState<string | null>(null);
   const { user, userProfile } = useAuth();
 
   // Unwrap search params using React.use()
@@ -51,9 +56,10 @@ export default function WritePage({
   }, []);
 
   // Fetch server-processed daily scripts (cached per day)
-  const loadTopSix = async (force?: boolean) => {
+  const loadTopSix = async (force?: boolean, signal?: AbortSignal) => {
     try {
       setIsRefreshing(true);
+      setErrorMsg(null);
       setProcessedCount(0);
       const topicParam = preselectedTopic ?? (userProfile as any)?.contentTopic ?? undefined;
       const search = new URLSearchParams();
@@ -62,20 +68,62 @@ export default function WritePage({
       if (user?.uid) search.set("userId", user.uid);
       const qs = search.toString();
       const url = `/api/tiktok/daily-picks${qs ? `?${qs}` : ""}`;
-      const res = await fetch(url, { cache: "no-store" });
+      const res = await fetch(url, { cache: "no-store", signal });
       const json = await res.json();
       if (res.ok && json?.ok && Array.isArray(json.scripts)) {
         if (Array.isArray(json.keywordsUsed)) {
+          setKeywordsUsed(json.keywordsUsed as string[]);
           console.log(`🔑 [DailyPicks] Keywords used: ${json.keywordsUsed.join(", ")}`);
+        } else {
+          setKeywordsUsed(null);
         }
+        setActiveQuery(null);
+        setDailyDate(typeof json.date === "string" ? json.date : null);
         setTotalCount(json.scripts.length);
         setDailyScripts(json.scripts as VideoScript[]);
         setProcessedCount(json.scripts.length);
       } else {
         setDailyScripts([]);
+        setErrorMsg(String(json?.error || "Failed to load daily picks"));
       }
-    } catch {
+    } catch (e: any) {
+      if (e?.name === "AbortError") return; // ignore aborted fetches
       setDailyScripts([]);
+      setErrorMsg("Request failed. Please try again.");
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  // Fetch ad-hoc picks for a specific keyword/hashtag
+  const loadByKeyword = async (kw: string, signal?: AbortSignal) => {
+    const keyword = String(kw || "").trim();
+    if (!keyword) return;
+    try {
+      setIsRefreshing(true);
+      setErrorMsg(null);
+      setProcessedCount(0);
+      const search = new URLSearchParams();
+      search.set("keyword", keyword);
+      if (user?.uid) search.set("userId", user.uid);
+      const url = `/api/tiktok/search-picks?${search.toString()}`;
+      const res = await fetch(url, { cache: "no-store", signal });
+      const json = await res.json();
+      if (res.ok && json?.ok && Array.isArray(json.scripts)) {
+        setKeywordsUsed([keyword]);
+        setActiveQuery(keyword);
+        setDailyDate(null);
+        setTotalCount(json.scripts.length);
+        setDailyScripts(json.scripts as VideoScript[]);
+        setProcessedCount(json.scripts.length);
+      } else {
+        setDailyScripts([]);
+        setErrorMsg(String(json?.error || "No results for that keyword"));
+      }
+    } catch (e: any) {
+      if (e?.name === "AbortError") return;
+      setDailyScripts([]);
+      setErrorMsg("Request failed. Please try again.");
     } finally {
       setIsRefreshing(false);
     }
@@ -84,10 +132,12 @@ export default function WritePage({
   const resolvedTopic = preselectedTopic ?? ((userProfile as any)?.contentTopic as string | undefined) ?? null;
 
   useEffect(() => {
-    if (!resolvedTopic) return; // wait until topic is known
-    loadTopSix();
+    // Always attempt to load daily picks; server may infer topic from profile.
+    const controller = new AbortController();
+    loadTopSix(false, controller.signal);
+    return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [resolvedTopic]);
+  }, [resolvedTopic, user?.uid]);
 
   if (!hasFirebaseConfig && typeof window !== "undefined") {
     return <FirebaseConfigError />;
@@ -144,17 +194,47 @@ export default function WritePage({
         expandedText="Hide Content Library"
         plain
       >
+        {/* On-demand topic/hashtag search */}
+        <div className="mb-4 flex items-center gap-2 px-6">
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                loadByKeyword(query);
+              }
+            }}
+            placeholder="Search topic or #hashtag"
+            className="h-9 w-full max-w-md rounded-md border border-neutral-200 bg-white px-3 text-sm text-neutral-800 outline-none focus:border-neutral-300"
+            aria-label="Search topic or hashtag"
+          />
+          <button
+            type="button"
+            className="h-9 rounded-md border border-neutral-200 bg-white px-3 text-sm text-neutral-700 hover:bg-neutral-50"
+            onClick={() => loadByKeyword(query)}
+            disabled={isRefreshing || !query.trim()}
+            aria-label="Search"
+            title="Search"
+          >
+            Search
+          </button>
+        </div>
         <ScriptCardGrid
           scripts={dailyScripts && dailyScripts.length > 0 ? dailyScripts : sampleScripts}
-          title="Daily Picks"
-          subtitle={
-            dailyScripts && dailyScripts.length > 0
-              ? "Top six videos transformed into ready-to-write outlines"
-              : "Sample scripts shown (no daily picks available)"
-          }
+          title={activeQuery ? `Picks for "${activeQuery}"` : "Daily Picks"}
+          subtitle={(() => {
+            if (errorMsg) return `Error: ${errorMsg}`;
+            if (dailyScripts && dailyScripts.length > 0) {
+              const datePart = dailyDate && !activeQuery ? `Picks for ${dailyDate}` : undefined;
+              const kwPart = keywordsUsed && keywordsUsed.length ? `Keywords: ${keywordsUsed.join(", ")}` : undefined;
+              const base = "Top six videos transformed into ready-to-write outlines";
+              return [base, datePart, kwPart].filter(Boolean).join(" • ");
+            }
+            return "Sample scripts shown (no daily picks available)";
+          })()}
           loading={isRefreshing}
           progressLabel={totalCount ? `Processing ${processedCount}/${totalCount}…` : undefined}
-          onRefresh={() => loadTopSix(true)}
+          onRefresh={() => (activeQuery ? loadByKeyword(activeQuery) : loadTopSix(true))}
         />
       </ExpandableSection>
 

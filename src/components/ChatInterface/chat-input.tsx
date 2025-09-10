@@ -226,7 +226,7 @@ export default function ChatInput({
         {/* Shine border - only visible on hover or focus */}
         {(isHovered || isFocused) && (
           <ShineBorder
-            borderWidth={2}
+            borderWidth={1}
             duration={8}
             shineColor={["#3186FF", "#FFF114", "#FF4641", "#3186FF"]}
             className="opacity-70"

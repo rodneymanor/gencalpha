@@ -2,27 +2,7 @@
 
 import React, { useState } from "react";
 
-import {
-  FileText,
-  Save,
-  FolderOpen,
-  Download,
-  Undo,
-  Redo,
-  Bold,
-  Underline,
-  Strikethrough,
-  ChevronDown,
-  Sparkles,
-  Wand2,
-  Settings,
-  Share,
-  Eye,
-  EyeOff,
-  Code,
-  Quote,
-  Search,
-} from "lucide-react";
+import { FileText, Save, FolderOpen, Download, Undo, Redo, ChevronDown, Sparkles, Wand2, Settings, Share, Eye, EyeOff, Code, Quote, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -62,7 +42,7 @@ export interface EnhancedToolbarProps {
   onChangeTone?: (tone: string) => void;
   onGenerateIdeas?: () => void;
   onCheckGrammar?: () => void;
-  onTranslate?: () => void;
+  onTranslate?: () => void; // kept for compatibility, not rendered
 
   // View options
   onTogglePreview?: () => void;
@@ -266,10 +246,7 @@ export function EnhancedToolbar({
                 <Search className="mr-2 h-4 w-4 font-semibold" />
                 Check Grammar
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={onTranslate}>
-                <FileText className="mr-2 h-4 w-4 font-semibold" />
-                Translate
-              </DropdownMenuItem>
+              {/* Translate option removed as requested */}
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -297,35 +274,7 @@ export function EnhancedToolbar({
             </Button>
           </div>
 
-          <Separator orientation="vertical" className="mx-2 h-6" />
-
-          {/* Text Formatting */}
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onBold}
-              className="rounded-[var(--radius-button)] font-bold text-[#475569] hover:bg-[#F9FAFB] hover:text-[#191B1F]"
-            >
-              <Bold className="h-4 w-4 font-semibold" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onUnderline}
-              className="rounded-[var(--radius-button)] text-[#475569] underline hover:bg-[#F9FAFB] hover:text-[#191B1F]"
-            >
-              <Underline className="h-4 w-4 font-semibold" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onStrikethrough}
-              className="rounded-[var(--radius-button)] text-[#475569] hover:bg-[#F9FAFB] hover:text-[#191B1F]"
-            >
-              <Strikethrough className="h-4 w-4 font-semibold" />
-            </Button>
-          </div>
+          {/* Text formatting removed per product direction */}
 
           <Separator orientation="vertical" className="mx-2 h-6" />
 

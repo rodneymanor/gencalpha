@@ -15,6 +15,9 @@ import {
   createSpeedWriteVariables,
   calculateTargetWords,
 } from "./speed-write";
+import hookClassifierPrompt from "./hook-classifier";
+import hookTypeClassifierPrompt from "./hook-type-classifier";
+import hookStyleClassifierPrompt from "./hook-style-classifier";
 
 // Aggregate all script generation prompts
 export const SCRIPT_GENERATION_LIBRARY: PromptLibrary = {
@@ -22,6 +25,11 @@ export const SCRIPT_GENERATION_LIBRARY: PromptLibrary = {
     standard: SPEED_WRITE_PROMPTS.standard,
     educational: SPEED_WRITE_PROMPTS.educational,
     viral: SPEED_WRITE_PROMPTS.viral,
+  },
+  "hook-classifier": {
+    "hook-classifier-v1": hookClassifierPrompt,
+    "hook-type-classifier-v1": hookTypeClassifierPrompt,
+    "hook-style-classifier-v1": hookStyleClassifierPrompt,
   },
 };
 

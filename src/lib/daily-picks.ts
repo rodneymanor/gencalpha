@@ -4,7 +4,9 @@ import type { VideoScript } from "@/components/script-display/types";
 import { VideoTranscriber } from "@/core/video/transcriber";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { scriptGenerationService } from "@/lib/services/script-generation-service";
-import { getTopSixFromRotatedKeywords, RankedVideo } from "@/lib/tiktok/top-six";
+import { getTopSixFromRotatedKeywords, getTopSixForKeyword, RankedVideo } from "@/lib/tiktok/top-six";
+import { classifyHook } from "@/lib/hook-classifier";
+import { executePrompt } from "@/lib/prompts";
 
 type DailyPicksDoc = {
   date: string; // YYYY-MM-DD
@@ -162,6 +164,40 @@ export async function getOrComputeProcessedDailyScripts(params?: {
 
     const [hook = idea, bridge = parts[1] || "", nugget = parts[2] || "", wta = parts[3] || ""] = parts;
 
+    // Classify hook category via prompt (fallback to heuristic)
+    let hookCategory: string | undefined = undefined;
+    try {
+      const cls = await executePrompt<{ category: string }>("hook-classifier-v1", { variables: { hook } });
+      if (cls.success && cls.content && typeof (cls.content as any).category === "string") {
+        hookCategory = (cls.content as any).category;
+      }
+    } catch {}
+    if (!hookCategory) hookCategory = classifyHook(hook) || undefined;
+
+    // Classify hook type and style via prompts
+    let hookTypeId: string | undefined;
+    let hookTypeLabel: string | undefined;
+    let hookStyleId: string | undefined;
+    let hookStyleLabel: string | undefined;
+    try {
+      const typeRes = await executePrompt<{ typeId: string; label: string }>("hook-type-classifier-v1", {
+        variables: { hook },
+      });
+      if (typeRes.success && typeRes.content) {
+        hookTypeId = (typeRes.content as any).typeId;
+        hookTypeLabel = (typeRes.content as any).label;
+      }
+    } catch {}
+    try {
+      const styleRes = await executePrompt<{ styleId: string; label: string }>("hook-style-classifier-v1", {
+        variables: { hook },
+      });
+      if (styleRes.success && styleRes.content) {
+        hookStyleId = (styleRes.content as any).styleId;
+        hookStyleLabel = (styleRes.content as any).label;
+      }
+    } catch {}
+
     const secs = typeof v.duration === "number" ? v.duration : 0;
     const durationLabel = secs ? `${Math.round(secs)}s` : "";
     const title = v.description?.slice(0, 80) || `Video ${idx + 1}`;
@@ -171,6 +207,11 @@ export async function getOrComputeProcessedDailyScripts(params?: {
       title,
       duration: durationLabel,
       status: "ready",
+      hookCategory,
+      hookTypeId,
+      hookTypeLabel,
+      hookStyleId,
+      hookStyleLabel,
       sections: [
         { type: "hook", label: "Hook", timeRange: "0-3s", dialogue: hook, action: "Open strong" },
         { type: "bridge", label: "Bridge", timeRange: "3-8s", dialogue: bridge, action: "Set context" },
@@ -195,4 +236,122 @@ export async function getOrComputeProcessedDailyScripts(params?: {
   }
 
   return { date: dateKey, category: cat, scripts } as const;
+}
+
+// Ad-hoc: process scripts for a specific keyword without persisting to Firestore
+export async function getProcessedScriptsForKeyword(params: {
+  keyword: string;
+  userId?: string;
+}) {
+  const kw = String(params.keyword || "").trim();
+  if (!kw) return { scripts: [] as VideoScript[], keyword: kw } as const;
+
+  const videos = await getTopSixForKeyword(kw);
+
+  const scripts: VideoScript[] = [];
+  for (let idx = 0; idx < videos.length; idx++) {
+    const v = videos[idx];
+    let transcript: string | undefined;
+    let hookText: string | undefined;
+
+    try {
+      if ((v as any)?.url && process.env.INTERNAL_API_SECRET) {
+        const cdnUrl = (v as any).url as string;
+        const t = await VideoTranscriber.transcribeFromUrl(cdnUrl, "tiktok" as any);
+        transcript = t?.transcript ?? undefined;
+        hookText = t?.components?.hook ?? undefined;
+      }
+    } catch {}
+
+    const ideaBase =
+      hookText || (transcript ? transcript.slice(0, 200) : String(v.description || "Script idea from trending video"));
+    const idea = String(ideaBase).slice(0, 900);
+
+    let contentFromGen: string | null = null;
+    try {
+      const gen = await scriptGenerationService.generateScript({
+        idea,
+        length: "60",
+        userId: params?.userId || "public",
+        type: "speed",
+      });
+      if (gen.success && gen.content) {
+        contentFromGen = gen.content;
+      }
+    } catch {}
+
+    const content = contentFromGen || "";
+    const parts = content
+      ? content
+          .split(/\n\n+/)
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : [hookText || "", "", "", ""];
+
+    const [hook = idea, bridge = parts[1] || "", nugget = parts[2] || "", wta = parts[3] || ""] = parts;
+
+    // Classify hook category via prompt (fallback to heuristic)
+    let hookCategory2: string | undefined = undefined;
+    try {
+      const cls = await executePrompt<{ category: string }>("hook-classifier-v1", { variables: { hook } });
+      if (cls.success && cls.content && typeof (cls.content as any).category === "string") {
+        hookCategory2 = (cls.content as any).category;
+      }
+    } catch {}
+    if (!hookCategory2) hookCategory2 = classifyHook(hook) || undefined;
+
+    // Also classify hook type and style
+    let hookTypeId2: string | undefined;
+    let hookTypeLabel2: string | undefined;
+    let hookStyleId2: string | undefined;
+    let hookStyleLabel2: string | undefined;
+    try {
+      const typeRes = await executePrompt<{ typeId: string; label: string }>("hook-type-classifier-v1", {
+        variables: { hook },
+      });
+      if (typeRes.success && typeRes.content) {
+        hookTypeId2 = (typeRes.content as any).typeId;
+        hookTypeLabel2 = (typeRes.content as any).label;
+      }
+    } catch {}
+    try {
+      const styleRes = await executePrompt<{ styleId: string; label: string }>("hook-style-classifier-v1", {
+        variables: { hook },
+      });
+      if (styleRes.success && styleRes.content) {
+        hookStyleId2 = (styleRes.content as any).styleId;
+        hookStyleLabel2 = (styleRes.content as any).label;
+      }
+    } catch {}
+
+    const secs = typeof v.duration === "number" ? v.duration : 0;
+    const durationLabel = secs ? `${Math.round(secs)}s` : "";
+    const title = v.description?.slice(0, 80) || `Video ${idx + 1}`;
+
+    scripts.push({
+      id: idx + 1,
+      title,
+      duration: durationLabel,
+      status: "ready",
+      hookCategory: hookCategory2,
+      hookTypeId: hookTypeId2,
+      hookTypeLabel: hookTypeLabel2,
+      hookStyleId: hookStyleId2,
+      hookStyleLabel: hookStyleLabel2,
+      sections: [
+        { type: "hook", label: "Hook", timeRange: "0-3s", dialogue: hook, action: "Open strong" },
+        { type: "bridge", label: "Bridge", timeRange: "3-8s", dialogue: bridge, action: "Set context" },
+        {
+          type: "golden-nugget",
+          label: "Golden Nugget",
+          timeRange: "8-20s",
+          dialogue: nugget,
+          action: "Deliver insight",
+        },
+        { type: "wta", label: "What To Action", timeRange: "20-30s", dialogue: wta, action: "Give next step" },
+      ],
+    });
+  }
+
+  return { scripts, keyword: kw } as const;
 }

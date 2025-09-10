@@ -125,7 +125,7 @@ function FixedTooltip({ children, content, isVisible }: TooltipProps) {
 export function AppSidebar({ className, onItemClick }: AppSidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
 
   // Pin + hover-to-open (desktop only); always expanded on mobile
   const [isPinned, setIsPinned] = useState<boolean>(() => {
@@ -609,56 +609,60 @@ export function AppSidebar({ className, onItemClick }: AppSidebarProps) {
 
           {/* Tools (bottom links) with enhanced transitions */}
           <div className="border-t border-neutral-100 px-4 py-3 transition-all duration-300 ease-out">
-            {!isCollapsed ? (
-              <div className="space-y-2">
-                <Link
-                  href="/chrome-extension"
-                  className={cn(
-                    "group flex items-center gap-2 rounded-[var(--radius-button)] p-2 text-sm",
-                    "cubic-bezier(0.4, 0, 0.2, 1) transition-all duration-300",
-                    pathname === "/chrome-extension"
-                      ? "bg-neutral-200 text-neutral-900 shadow-[var(--shadow-inset-subtle)]"
-                      : "text-neutral-600 hover:-translate-x-0.5 hover:bg-neutral-100 hover:text-neutral-900 hover:shadow-[var(--shadow-soft-drop)]",
-                    "active:scale-[0.98]",
-                  )}
-                >
-                  <Globe className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
-                  Chrome Extension
-                </Link>
-                <Link
-                  href="/downloads"
-                  className={cn(
-                    "group flex items-center gap-2 rounded-[var(--radius-button)] p-2 text-sm",
-                    "cubic-bezier(0.4, 0, 0.2, 1) transition-all duration-300",
-                    pathname === "/downloads"
-                      ? "bg-neutral-200 text-neutral-900 shadow-[var(--shadow-inset-subtle)]"
-                      : "text-neutral-600 hover:-translate-x-0.5 hover:bg-neutral-100 hover:text-neutral-900 hover:shadow-[var(--shadow-soft-drop)]",
-                    "active:scale-[0.98]",
-                  )}
-                >
-                  <Smartphone className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
-                  iOS Shortcut
-                </Link>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center gap-2">
-                <FixedTooltip isVisible={isCollapsed} content="Chrome Extension">
-                  <Link
-                    href="/chrome-extension"
-                    className="group flex h-9 w-9 items-center justify-center rounded-[var(--radius-button)] text-neutral-600 transition-all duration-300 hover:scale-110 hover:bg-neutral-100 hover:text-neutral-900 hover:shadow-[var(--shadow-soft-drop)] active:scale-[0.98]"
-                  >
-                    <Globe className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
-                  </Link>
-                </FixedTooltip>
-                <FixedTooltip isVisible={isCollapsed} content="iOS Shortcut">
-                  <Link
-                    href="/downloads"
-                    className="group flex h-9 w-9 items-center justify-center rounded-[var(--radius-button)] text-neutral-600 transition-all duration-300 hover:scale-110 hover:bg-neutral-100 hover:text-neutral-900 hover:shadow-[var(--shadow-soft-drop)] active:scale-[0.98]"
-                  >
-                    <Smartphone className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
-                  </Link>
-                </FixedTooltip>
-              </div>
+            {(userProfile?.role === "creator" || userProfile?.role === "coach" || userProfile?.role === "super_admin") && (
+              <>
+                {!isCollapsed ? (
+                  <div className="space-y-2">
+                    <Link
+                      href="/chrome-extension"
+                      className={cn(
+                        "group flex items-center gap-2 rounded-[var(--radius-button)] p-2 text-sm",
+                        "cubic-bezier(0.4, 0, 0.2, 1) transition-all duration-300",
+                        pathname === "/chrome-extension"
+                          ? "bg-neutral-200 text-neutral-900 shadow-[var(--shadow-inset-subtle)]"
+                          : "text-neutral-600 hover:-translate-x-0.5 hover:bg-neutral-100 hover:text-neutral-900 hover:shadow-[var(--shadow-soft-drop)]",
+                        "active:scale-[0.98]",
+                      )}
+                    >
+                      <Globe className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
+                      Chrome Extension
+                    </Link>
+                    <Link
+                      href="/downloads"
+                      className={cn(
+                        "group flex items-center gap-2 rounded-[var(--radius-button)] p-2 text-sm",
+                        "cubic-bezier(0.4, 0, 0.2, 1) transition-all duration-300",
+                        pathname === "/downloads"
+                          ? "bg-neutral-200 text-neutral-900 shadow-[var(--shadow-inset-subtle)]"
+                          : "text-neutral-600 hover:-translate-x-0.5 hover:bg-neutral-100 hover:text-neutral-900 hover:shadow-[var(--shadow-soft-drop)]",
+                        "active:scale-[0.98]",
+                      )}
+                    >
+                      <Smartphone className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
+                      iOS Shortcut
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2">
+                    <FixedTooltip isVisible={isCollapsed} content="Chrome Extension">
+                      <Link
+                        href="/chrome-extension"
+                        className="group flex h-9 w-9 items-center justify-center rounded-[var(--radius-button)] text-neutral-600 transition-all duration-300 hover:scale-110 hover:bg-neutral-100 hover:text-neutral-900 hover:shadow-[var(--shadow-soft-drop)] active:scale-[0.98]"
+                      >
+                        <Globe className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
+                      </Link>
+                    </FixedTooltip>
+                    <FixedTooltip isVisible={isCollapsed} content="iOS Shortcut">
+                      <Link
+                        href="/downloads"
+                        className="group flex h-9 w-9 items-center justify-center rounded-[var(--radius-button)] text-neutral-600 transition-all duration-300 hover:scale-110 hover:bg-neutral-100 hover:text-neutral-900 hover:shadow-[var(--shadow-soft-drop)] active:scale-[0.98]"
+                      >
+                        <Smartphone className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
+                      </Link>
+                    </FixedTooltip>
+                  </div>
+                )}
+              </>
             )}
           </div>
 

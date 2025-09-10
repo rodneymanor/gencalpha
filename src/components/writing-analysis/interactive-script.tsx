@@ -177,17 +177,17 @@ export function InteractiveScript({ script, onScriptUpdate, className = "", scri
   const getSectionColor = (type: ScriptSection["type"]) => {
     switch (type) {
       case "hook":
-        return "border-2 border-red-200 bg-red-50";
+        return "border border-red-200 bg-red-50";
       case "micro-hook":
-        return "border-2 border-orange-200 bg-orange-50";
+        return "border border-orange-200 bg-orange-50";
       case "bridge":
-        return "border-2 border-yellow-200 bg-yellow-50";
+        return "border border-yellow-200 bg-yellow-50";
       case "nugget":
-        return "border-2 border-green-200 bg-green-50";
+        return "border border-green-200 bg-green-50";
       case "cta":
-        return "border-2 border-blue-200 bg-blue-50";
+        return "border border-blue-200 bg-blue-50";
       default:
-        return "border-2 border-gray-200 bg-gray-50";
+        return "border border-gray-200 bg-gray-50";
     }
   };
 

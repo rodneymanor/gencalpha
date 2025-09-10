@@ -114,7 +114,7 @@ function FixedTooltip({ children, content, isVisible }: TooltipProps) {
 export function AppSidebarClaude({ className, onItemClick }: AppSidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
 
   // Pin state and collapsed state
   const [isPinned, setIsPinned] = useState<boolean>(() => {
@@ -516,52 +516,50 @@ export function AppSidebarClaude({ className, onItemClick }: AppSidebarProps) {
 
         {/* Tools (bottom links) */}
         <div className="border-t border-gray-50 px-4 py-3">
-          <div className="space-y-2">
-            <button
-              onClick={() => router.push("/chrome-extension")}
-              className={cn(
-                "group flex w-full items-center rounded-md text-sm transition-all duration-300 ease-out overflow-hidden",
-                pathname === "/chrome-extension"
-                  ? "bg-neutral-100 text-neutral-900"
-                  : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900",
-                isCollapsed ? "justify-center p-0" : "gap-2 p-2",
-              )}
-            >
-              <div
+          {(userProfile?.role === "creator" || userProfile?.role === "coach" || userProfile?.role === "super_admin") && (
+            <div className="space-y-2">
+              <button
+                onClick={() => router.push("/chrome-extension")}
                 className={cn(
-                  "inline-flex items-center justify-center rounded-md",
-                  isCollapsed ? "h-8 w-8 group-hover:bg-neutral-200" : "h-8 w-8",
+                  "group flex w-full items-center rounded-md text-sm transition-all duration-300 ease-out overflow-hidden",
+                  pathname === "/chrome-extension"
+                    ? "bg-neutral-100 text-neutral-900"
+                    : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900",
+                  isCollapsed ? "justify-center p-0" : "gap-2 p-2",
                 )}
               >
-                <Chrome className="h-4 w-4 transition-transform duration-200 group-hover:scale-110 flex-shrink-0" />
-              </div>
-              {!isCollapsed && (
-                <span className="overflow-hidden whitespace-nowrap">Chrome Extension</span>
-              )}
-            </button>
-            <button
-              onClick={() => router.push("/ios-shortcut")}
-              className={cn(
-                "group flex w-full items-center rounded-md text-sm transition-all duration-300 ease-out overflow-hidden",
-                pathname === "/ios-shortcut"
-                  ? "bg-neutral-100 text-neutral-900"
-                  : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900",
-                isCollapsed ? "justify-center p-0" : "gap-2 p-2",
-              )}
-            >
-              <div
+                <div
+                  className={cn(
+                    "inline-flex items-center justify-center rounded-md",
+                    isCollapsed ? "h-8 w-8 group-hover:bg-neutral-200" : "h-8 w-8",
+                  )}
+                >
+                  <Chrome className="h-4 w-4 transition-transform duration-200 group-hover:scale-110 flex-shrink-0" />
+                </div>
+                {!isCollapsed && <span className="overflow-hidden whitespace-nowrap">Chrome Extension</span>}
+              </button>
+              <button
+                onClick={() => router.push("/downloads")}
                 className={cn(
-                  "inline-flex items-center justify-center rounded-md",
-                  isCollapsed ? "h-8 w-8 group-hover:bg-neutral-200" : "h-8 w-8",
+                  "group flex w-full items-center rounded-md text-sm transition-all duration-300 ease-out overflow-hidden",
+                  pathname === "/downloads"
+                    ? "bg-neutral-100 text-neutral-900"
+                    : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900",
+                  isCollapsed ? "justify-center p-0" : "gap-2 p-2",
                 )}
               >
-                <Smartphone className="h-4 w-4 transition-transform duration-200 group-hover:scale-110 flex-shrink-0" />
-              </div>
-              {!isCollapsed && (
-                <span className="overflow-hidden whitespace-nowrap">iOS Shortcut</span>
-              )}
-            </button>
-          </div>
+                <div
+                  className={cn(
+                    "inline-flex items-center justify-center rounded-md",
+                    isCollapsed ? "h-8 w-8 group-hover:bg-neutral-200" : "h-8 w-8",
+                  )}
+                >
+                  <Smartphone className="h-4 w-4 transition-transform duration-200 group-hover:scale-110 flex-shrink-0" />
+                </div>
+                {!isCollapsed && <span className="overflow-hidden whitespace-nowrap">iOS Shortcut</span>}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Footer */}

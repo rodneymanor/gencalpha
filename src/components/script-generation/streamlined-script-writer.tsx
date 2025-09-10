@@ -114,11 +114,16 @@ export function StreamlinedScriptWriter({
       onPersonaSelect={handlePersonaSelect}
       onActionTrigger={handleActionTrigger}
       onToolbarAction={handleToolbarAction}
+      onUndo={undo}
+      onRedo={redo}
+      canUndo={canUndo}
+      canRedo={canRedo}
       isSaving={isSaving}
       showFullTranscript={showFullTranscript}
       onTranscriptToggle={setShowFullTranscript}
       transcriptionDebug={transcriptionDebug}
       className={className}
+      onBrandModalOpen={onBrandModalOpen}
     />
   );
 }

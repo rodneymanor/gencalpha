@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import { useEnhancedScriptAnalytics } from "@/hooks/use-script-analytics";
 import { detectSocialUrl } from "@/lib/utils/lightweight-url-detector";
@@ -178,7 +178,7 @@ export function useScriptGeneration({
   const scriptAnalysis = useEnhancedScriptAnalytics(scriptState.generatedScript);
 
   // Script saving
-  const { isSaving, handleSaveScript } = useScriptSave({
+  const { isSaving, handleSaveScript, handleAutoSave } = useScriptSave({
     generatedScript: scriptState.generatedScript,
     scriptTitle: scriptState.scriptTitle,
     savedScriptId: scriptState.savedScriptId,
@@ -241,7 +241,7 @@ export function useScriptGeneration({
 
               // Small delay to show completion state in debug
               setTimeout(() => {
-                scriptState.setGeneratedScript(result.script);
+                scriptState.applyGeneratedScript(result.script);
                 scriptState.setFlowState("editing");
                 onScriptComplete?.(result.script);
               }, 1000);
@@ -319,8 +319,7 @@ export function useScriptGeneration({
       } else {
         scriptState.setLastError(null);
       }
-
-      scriptState.setGeneratedScript(script);
+      scriptState.applyGeneratedScript(script);
       scriptState.setFlowState("editing");
       onScriptComplete?.(script);
     },
@@ -335,12 +334,134 @@ export function useScriptGeneration({
 
   // Enhanced Toolbar Handlers
   const handleToolbarAction = useCallback(
-    (action: string) => {
-      console.log("Toolbar action:", action);
-      scriptState.addRecentAction(action);
+    async (action: string) => {
+      try {
+        console.log("Toolbar action:", action);
+        scriptState.addRecentAction(action);
+
+        const text = scriptState.generatedScript || "";
+        if (!text.trim()) return;
+
+        const postJson = async (url: string, body: any) => {
+          const res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return res.json();
+        };
+
+        if (action === "humanize") {
+          const data = await postJson("/api/humanize", { text });
+          if (data?.success && data.humanizedText) {
+            scriptState.applyGeneratedScript(data.humanizedText);
+          } else {
+            throw new Error(data?.error || "Humanize failed");
+          }
+          return;
+        }
+
+        if (action === "shorten") {
+          const data = await postJson("/api/shorten", { text });
+          if (data?.success && data.shortenedText) {
+            scriptState.applyGeneratedScript(data.shortenedText);
+          } else {
+            throw new Error(data?.error || "Shorten failed");
+          }
+          return;
+        }
+
+        if (action === "simplify") {
+          const data = await postJson("/api/ai-action", { actionType: "simplify", text });
+          if (data?.success && data.modifiedText) {
+            scriptState.applyGeneratedScript(data.modifiedText);
+          } else {
+            throw new Error(data?.error || "Simplify failed");
+          }
+          return;
+        }
+
+        if (action === "expand") {
+          const data = await postJson("/api/ai-action", { actionType: "expand", text });
+          if (data?.success && data.modifiedText) {
+            scriptState.applyGeneratedScript(data.modifiedText);
+          } else {
+            throw new Error(data?.error || "Expand failed");
+          }
+          return;
+        }
+
+        if (action.startsWith("change-tone-")) {
+          const tone = action.replace("change-tone-", "");
+          const data = await postJson("/api/ai-action", { actionType: "change_tone", option: tone, text });
+          if (data?.success && data.modifiedText) {
+            scriptState.applyGeneratedScript(data.modifiedText);
+          } else {
+            throw new Error(data?.error || "Change tone failed");
+          }
+          return;
+        }
+
+        if (action === "check-grammar") {
+          const data = await postJson("/api/ai-action", { actionType: "check_grammar", text });
+          if (data?.success && data.modifiedText) {
+            scriptState.applyGeneratedScript(data.modifiedText);
+          } else {
+            throw new Error(data?.error || "Grammar check failed");
+          }
+          return;
+        }
+
+        if (action === "translate") {
+          // Default to Spanish if no UI option selected
+          const data = await postJson("/api/ai-action", { actionType: "translate", option: "Spanish", text });
+          if (data?.success && data.modifiedText) {
+            scriptState.applyGeneratedScript(data.modifiedText);
+          } else {
+            throw new Error(data?.error || "Translate failed");
+          }
+          return;
+        }
+
+        if (action === "generate-ideas") {
+          const data = await postJson("/api/ai-action", { actionType: "generate_ideas", text });
+          if (data?.success && data.modifiedText) {
+            // Switch to ideas view and show results
+            templateSelection.handleQuickGeneratorSelect("content-ideas");
+            scriptState.applyGeneratedScript(data.modifiedText);
+          } else {
+            throw new Error(data?.error || "Generate ideas failed");
+          }
+          return;
+        }
+
+        console.warn("Unhandled toolbar action:", action);
+      } catch (err: any) {
+        console.error("Toolbar action error", action, err);
+        scriptState.setLastError(typeof err?.message === "string" ? err.message : "Action failed");
+      }
     },
-    [scriptState],
+    [scriptState, templateSelection],
   );
+
+  // Autosave: save changes after debounce if a script already exists
+  // (keeps first-time creation as manual save, avoids noisy toasts)
+  const lastSavedRef = useRef<string>("");
+  useEffect(() => {
+    const content = scriptState.generatedScript?.trim();
+    if (!content || content === lastSavedRef.current) return;
+
+    const t = setTimeout(async () => {
+      try {
+        await handleAutoSave();
+        lastSavedRef.current = scriptState.generatedScript;
+      } catch (e) {
+        // error handled in save hook
+      }
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [scriptState.generatedScript, handleAutoSave]);
 
   // AI Action Sidebar Handlers
   const handleActionTrigger = useCallback(
@@ -386,5 +507,8 @@ export function useScriptGeneration({
     handleActionTrigger,
     handleContentChange,
     handleCreateCustomTemplate,
+    // Undo/Redo
+    undo: scriptState.undo,
+    redo: scriptState.redo,
   };
 }

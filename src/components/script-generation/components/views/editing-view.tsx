@@ -35,6 +35,10 @@ interface EditingViewProps {
   onPersonaSelect: (persona: PersonaOption | null) => void;
   onActionTrigger: (action: string, prompt: string) => void;
   onToolbarAction: (action: string) => void;
+  onUndo?: () => void;
+  onRedo?: () => void;
+  canUndo?: boolean;
+  canRedo?: boolean;
 
   // Save state
   isSaving: boolean;
@@ -48,6 +52,7 @@ interface EditingViewProps {
   };
 
   className?: string;
+  onBrandModalOpen?: () => void;
 }
 
 export function EditingView({
@@ -66,11 +71,16 @@ export function EditingView({
   onPersonaSelect,
   onActionTrigger,
   onToolbarAction,
+  onUndo,
+  onRedo,
+  canUndo,
+  canRedo,
   isSaving,
   showFullTranscript,
   onTranscriptToggle,
   transcriptionDebug,
   className = "",
+  onBrandModalOpen,
 }: EditingViewProps) {
   // Helper function to filter out full transcript sections from components
   const filterOutFullTranscript = (script: string): string => {
@@ -150,6 +160,24 @@ export function EditingView({
   const scriptKey = `script-${showFullTranscript ? "full" : "components"}-${displayScript.length}`;
   console.log("🔑 [EditingView] InteractiveScript key:", scriptKey);
 
+  // Keyboard shortcuts: Undo/Redo
+  React.useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      const isMac = navigator.platform.toUpperCase().includes("MAC");
+      const mod = isMac ? e.metaKey : e.ctrlKey;
+      if (!mod) return;
+      if (e.key.toLowerCase() === "z" && !e.shiftKey) {
+        e.preventDefault();
+        onUndo?.();
+      } else if ((e.key.toLowerCase() === "z" && e.shiftKey) || e.key.toLowerCase() === "y") {
+        e.preventDefault();
+        onRedo?.();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [onUndo, onRedo]);
+
   return (
     <div className={`bg-background fixed inset-0 z-50 flex flex-col ${className}`}>
       {/* Enhanced Toolbar - Static Header with Back Button */}
@@ -170,7 +198,7 @@ export function EditingView({
           <div className="flex flex-1 justify-center px-2 md:px-4">
             <EnhancedToolbar
               onSave={onSave}
-              onSimplify={() => console.log("Simplify text using AI")}
+              onSimplify={() => onToolbarAction("simplify")}
               onHumanize={() => onToolbarAction("humanize")}
               onShorten={() => onToolbarAction("shorten")}
               onExpand={() => onToolbarAction("expand")}
@@ -178,14 +206,11 @@ export function EditingView({
               onGenerateIdeas={() => onToolbarAction("generate-ideas")}
               onCheckGrammar={() => onToolbarAction("check-grammar")}
               onTranslate={() => onToolbarAction("translate")}
-              onBold={() => onToolbarAction("bold")}
-              onUnderline={() => onToolbarAction("underline")}
-              onStrikethrough={() => onToolbarAction("strikethrough")}
-              onUndo={() => console.log("Undo")}
-              onRedo={() => console.log("Redo")}
+              onUndo={onUndo}
+              onRedo={onRedo}
               onShare={() => console.log("Share")}
-              canUndo={false}
-              canRedo={false}
+              canUndo={!!canUndo}
+              canRedo={!!canRedo}
               isSaving={isSaving}
             />
           </div>
@@ -205,7 +230,11 @@ export function EditingView({
       <div className="flex min-h-0 flex-1 flex-col md:flex-row">
         {/* Left Sidebar - AI Actions Panel - Static */}
         <div className="border-border bg-card hidden w-full border-b p-4 md:block md:w-80 md:flex-shrink-0 md:border-r md:border-b-0">
-          <FloatingAiActionsPanel onPersonaSelect={onPersonaSelect} onActionTrigger={onActionTrigger} />
+          <FloatingAiActionsPanel
+            onPersonaSelect={onPersonaSelect}
+            onActionTrigger={onActionTrigger}
+            onOpenBrandHub={onBrandModalOpen}
+          />
         </div>
 
         {/* Main Editor - Scrollable Content */}

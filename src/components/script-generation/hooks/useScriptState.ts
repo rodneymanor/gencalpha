@@ -34,12 +34,46 @@ export function useScriptState(initialPrompt = "") {
   // Toggle for transcript view mode
   const [showFullTranscript, setShowFullTranscript] = useState(false);
 
+  // History for undo/redo
+  const [past, setPast] = useState<string[]>([]);
+  const [future, setFuture] = useState<string[]>([]);
+
+  const canUndo = past.length > 0;
+  const canRedo = future.length > 0;
+
+  const applyGeneratedScript = (next: string) => {
+    if (next === generatedScript) return;
+    setPast((p) => [...p, generatedScript]);
+    setGeneratedScript(next);
+    setFuture([]);
+    // Clear error state when content changes
+    if (lastError) setLastError(null);
+  };
+
+  const undo = () => {
+    if (!canUndo) return;
+    setPast((p) => {
+      const prev = [...p];
+      const last = prev.pop() as string;
+      setFuture((f) => [generatedScript, ...f]);
+      setGeneratedScript(last);
+      return prev;
+    });
+  };
+
+  const redo = () => {
+    if (!canRedo) return;
+    setFuture((f) => {
+      const nextArr = [...f];
+      const next = nextArr.shift() as string;
+      setPast((p) => [...p, generatedScript]);
+      setGeneratedScript(next);
+      return nextArr;
+    });
+  };
+
   const handleScriptUpdate = (updatedScript: string) => {
-    setGeneratedScript(updatedScript);
-    // Clear error state when user starts editing
-    if (lastError) {
-      setLastError(null);
-    }
+    applyGeneratedScript(updatedScript);
   };
 
   const handleBackToInput = () => {
@@ -78,6 +112,8 @@ export function useScriptState(initialPrompt = "") {
     lastError,
     transcriptionDebug,
     showFullTranscript,
+    canUndo,
+    canRedo,
 
     // Setters
     setFlowState,
@@ -97,5 +133,8 @@ export function useScriptState(initialPrompt = "") {
     handlePersonaSelect,
     handleChatPersonaSelect,
     addRecentAction,
+    applyGeneratedScript,
+    undo,
+    redo,
   };
 }

@@ -520,7 +520,7 @@ const BrandHub: React.FC<BrandHubProps> = ({ initialBrandVoices = [], onSaveSett
                   {Object.entries(topicData).map(([key, topic]) => (
                     <div
                       key={key}
-                      className={`cursor-pointer rounded-[var(--radius-card)] border-2 p-4 text-center transition-all duration-150 ${
+                      className={`cursor-pointer rounded-[var(--radius-card)] border p-4 text-center transition-all duration-150 ${
                         selectedTopic === key
                           ? "border-neutral-600 bg-neutral-50"
                           : "border-neutral-200 bg-white hover:border-neutral-300 hover:bg-neutral-50"
@@ -621,7 +621,7 @@ const BrandHub: React.FC<BrandHubProps> = ({ initialBrandVoices = [], onSaveSett
                         onClick={() => handleGoalToggle(goal)}
                       >
                         <div
-                          className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border-2 transition-all duration-150 ${
+                          className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border transition-all duration-150 ${
                             selectedGoals.has(goal)
                               ? "border-neutral-600 bg-neutral-600 text-xs text-white"
                               : "border-neutral-300"

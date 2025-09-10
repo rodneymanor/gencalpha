@@ -3,6 +3,7 @@
 import React from "react";
 
 import { RefreshCw, Loader2 } from "lucide-react";
+import { ScriptCard as CompactScriptCard } from "@/components/magicui/script-card";
 
 import type { ScriptSection, VideoScript } from "./types";
 
@@ -44,30 +45,58 @@ const ScriptSection: React.FC<{ section: ScriptSection }> = ({ section }) => {
   );
 };
 
-// Component for individual video script card
+// Compact carousel card for each script
 const ScriptCard: React.FC<{ script: VideoScript }> = ({ script }) => {
+  const items = script.sections.map((s, i) => {
+    const isHook = s.type === "hook";
+    return {
+      id: `${script.id}-${i}`,
+      type: s.type as any,
+      // For hook slide, show the hook type as the title; otherwise keep the section label
+      title: isHook && script.hookTypeLabel ? script.hookTypeLabel : s.label,
+      content: s.dialogue,
+      // For hook slide, show the style under the title; otherwise show the action
+      description: isHook && script.hookStyleLabel ? `Style: ${script.hookStyleLabel}` : s.action,
+      timeRange: s.timeRange,
+    };
+  });
+
+  // Append a full content script card at the end
+  const fullContent = script.sections.map((s) => s.dialogue).filter(Boolean).join("\n\n");
+  items.push({
+    id: `${script.id}-full`,
+    type: "main-content-script" as any,
+    title: "Full Content Script",
+    content: fullContent,
+    description: "Combined Hook, Bridge, Golden Nugget, and WTA",
+    timeRange: script.duration ? `Total: ${script.duration}` : undefined,
+  });
+
   return (
-    <div
-      className={
-        "rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-50 p-4 transition-colors duration-200 hover:border-neutral-300"
-      }
-    >
-      {/* Status badge */}
+    <div className="relative">
+      {script.hookCategory && (
+        <div className="absolute right-3 top-3 z-10 inline-flex items-center gap-1 rounded-full border border-neutral-200 bg-white px-2 py-0.5 text-[10px] uppercase tracking-wide text-neutral-600">
+          {script.hookCategory}
+        </div>
+      )}
       {script.status === "loading" && (
-        <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-neutral-100 px-2 py-1 text-[11px] text-neutral-600">
+        <div className="absolute left-3 top-3 z-10 inline-flex items-center gap-2 rounded-full bg-neutral-100 px-2 py-1 text-[11px] text-neutral-600">
           <Loader2 className="h-3.5 w-3.5 animate-spin" /> Processing…
         </div>
       )}
-      {/* Script sections container */}
-      <div className="flex flex-col gap-2">
-        {script.sections.map((section, index) => (
-          <ScriptSection key={index} section={section} />
-        ))}
-      </div>
-
-      {/* Footer with duration */}
-      <div className="mt-3 flex items-center justify-end border-t border-neutral-200 pt-3 text-xs text-neutral-600">
+      <CompactScriptCard scripts={items} initialScript="hook" className="w-full" />
+      <div className="mt-2 flex items-center justify-between text-xs text-neutral-600">
+        <span className="truncate pr-2" title={script.title}>
+          {script.title}
+        </span>
         <span>Duration: {script.duration}</span>
+      </div>
+      <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-neutral-600">
+        {script.sections.map((s, i) => (
+          <span key={`${script.id}-leg-${i}`} className="rounded-full border border-neutral-200 bg-white px-2 py-0.5">
+            {s.label}: {s.timeRange}
+          </span>
+        ))}
       </div>
     </div>
   );
@@ -112,7 +141,7 @@ const ScriptCardGrid: React.FC<ScriptCardGridProps> = ({
         </div>
 
         {/* Masonry-style grid layout */}
-        <div className="grid auto-rows-auto grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid auto-rows-auto grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {scripts.map((script) => (
             <ScriptCard key={script.id} script={script} />
           ))}

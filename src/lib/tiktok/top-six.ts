@@ -16,6 +16,25 @@ function isNonNews(desc?: string): boolean {
   return !NEWS_REGEX.test(desc);
 }
 
+// Heuristic English detector for short descriptions.
+// Returns true if text appears to be English based on ASCII ratio and common word/vowel presence.
+function isLikelyEnglish(desc?: string): boolean {
+  if (!desc) return false;
+  const text = String(desc).trim();
+  if (!text) return false;
+  const asciiLetters = (text.match(/[A-Za-z]/g) || []).length;
+  const nonAscii = (text.match(/[^\x00-\x7F]/g) || []).length;
+  const total = text.length || 1;
+  const asciiRatio = asciiLetters / total;
+  // Basic word/vowel checks
+  const hasVowel = /[aeiouAEIOU]/.test(text);
+  const hasSpace = /\s/.test(text);
+  const commonWords = /(the|and|for|with|this|that|you|your|how|why|tips|guide|best|make|learn|today)/i.test(text);
+  // Thresholds tuned for short social captions
+  if (nonAscii > 0 && asciiRatio < 0.6) return false;
+  return (asciiRatio >= 0.5 && hasVowel && hasSpace) || commonWords;
+}
+
 function recencyWeight(createdAt?: number): number {
   if (!createdAt) return 0.8; // unknown, slight penalty
   const now = Math.floor(Date.now() / 1000);
@@ -83,13 +102,15 @@ export async function getTopSixFromRotatedKeywords(options?: {
     for (const kw of keywords) {
       try {
         const resp = await searchTikTok(kw, 0, 0);
-        const items = pickSmallest540PerItem(resp);
+        // Prefer fresher and reasonable-length videos
+        const items = pickSmallest540PerItem(resp, { withinDays: 180, maxDurationSec: 240 });
         console.log(
           `🔎 [TopSix] keyword="${kw}" -> resp_code=${resp?.status_code ?? "n/a"} raw=${resp?.data?.length ?? 0} filtered=${items.length}`,
         );
 
         for (const it of items) {
           if (!isNonNews(it.description)) continue;
+          if (!isLikelyEnglish(it.description)) continue;
           const durationPenalty = it.duration && it.duration > 180 ? 0.6 : 1;
           const score = successScore(it.views, it.likes) * recencyWeight(it.createdAt) * durationPenalty;
           all.push({ ...it, score, keyword: kw });
@@ -126,4 +147,35 @@ export async function getTopSixFromRotatedKeywords(options?: {
     });
 
   return await state.inFlight;
+}
+
+// Fetch and rank top six for a specific keyword (ad-hoc search)
+export async function getTopSixForKeyword(keyword: string): Promise<RankedVideo[]> {
+  const kw = String(keyword || "").trim();
+  if (!kw) return [];
+
+  try {
+    const resp = await searchTikTok(kw, 0, 0);
+    const items = pickSmallest540PerItem(resp, { withinDays: 180, maxDurationSec: 240 });
+    const all: RankedVideo[] = [];
+    for (const it of items) {
+      if (!isNonNews(it.description)) continue;
+      if (!isLikelyEnglish(it.description)) continue;
+      const durationPenalty = it.duration && it.duration > 180 ? 0.6 : 1;
+      const score = successScore(it.views, it.likes) * recencyWeight(it.createdAt) * durationPenalty;
+      all.push({ ...it, score, keyword: kw });
+    }
+
+    const byId = new Map<string, RankedVideo>();
+    for (const v of all) {
+      if (v.itemId && (!byId.has(v.itemId) || byId.get(v.itemId)!.score < v.score)) {
+        byId.set(v.itemId, v);
+      }
+    }
+    return Array.from(byId.values())
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 6);
+  } catch {
+    return [];
+  }
 }

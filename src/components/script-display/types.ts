@@ -15,4 +15,9 @@ export interface VideoScript {
   spanRows?: boolean;
   status?: "loading" | "ready" | "error";
   statusText?: string;
+  hookCategory?: "speed" | "educational" | "viral" | string;
+  hookTypeId?: "problem" | "benefit" | "curiosity" | "question" | "story" | string;
+  hookTypeLabel?: string;
+  hookStyleId?: "question" | "statistic" | "story" | "provocative" | "direct" | "contrarian" | string;
+  hookStyleLabel?: string;
 }

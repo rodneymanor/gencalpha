@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { Download, Smartphone, ArrowRight, CheckCircle, ExternalLink } from "lucide-react";
+import { Download, Smartphone, ArrowRight, CheckCircle, ExternalLink, Key } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,21 +14,52 @@ export default function DownloadsPage() {
 
   // Handle iOS Shortcut (Save Videos) installation
   const handleIOSVideosInstall = () => {
-    // Open iOS Shortcuts link for the "Save Videos to Claude" shortcut (placeholder for now)
-    window.open("https://www.icloud.com/shortcuts/", "_blank");
+    // Download local shortcut from public folder
+    const url = "/downloads/" + encodeURIComponent("Add To Collections.shortcut");
+    window.location.href = url;
     setInstalledIOSVideos(true);
   };
 
   // Handle iOS Shortcut (Voice Notes) installation
   const handleIOSInstall = () => {
-    // Open iOS Shortcuts link for the voice-notes shortcut (placeholder for now)
-    window.open("https://www.icloud.com/shortcuts/", "_blank");
+    // Download local shortcut from public folder
+    const url = "/downloads/" + encodeURIComponent("Gen.C Voice Notes.shortcut");
+    window.location.href = url;
     setInstalledIOS(true);
   };
 
   return (
     <div className="min-h-screen bg-neutral-50">
       <div className="container mx-auto px-6 py-8" style={{ maxWidth: "1000px" }}>
+        {/* Setup Requirements (Emphasized) */}
+        <div className="mb-6">
+          <div className="rounded-[var(--radius-card)] border border-brand-200 bg-brand-50 p-4 shadow-[var(--shadow-soft-drop)]">
+            <div className="mb-2 flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-[var(--radius-button)] bg-white">
+                <Key className="h-4 w-4 text-brand-700" />
+              </div>
+              <div className="text-brand-700 text-sm font-semibold tracking-wide">Important — Before You Start</div>
+            </div>
+            <ul className="list-disc space-y-2 pl-6 text-sm text-neutral-800">
+              <li>
+                Get your API key from Settings → API Keys.
+                <Button asChild variant="soft" size="sm" className="ml-2 align-middle">
+                  <a href="/dashboard/settings?tab=api-keys">Open Settings</a>
+                </Button>
+              </li>
+              <li>
+                On first run, the shortcut will ask for your API key. Paste it when prompted — it will be saved locally
+                for future use.
+              </li>
+              <li>The shortcut may request 2–3 permissions the first time. Allow them to continue.</li>
+              <li>
+                Link support (Collections shortcut): works with Instagram Reels (including share links that are Reels)
+                and TikTok links.
+              </li>
+            </ul>
+          </div>
+        </div>
+
         {/* Header Section */}
         <div className="mb-8 text-center">
           <div className="bg-brand-50 text-brand-700 rounded-pill border-brand-200 mb-4 inline-flex items-center border px-3 py-1 text-sm font-medium">
@@ -42,6 +73,8 @@ export default function DownloadsPage() {
             to streamline your workflow on iPhone.
           </p>
         </div>
+
+        {/* Setup Requirements (moved above) */}
 
         {/* Download Cards */}
         <div className="mb-12 grid grid-cols-1 gap-6 lg:grid-cols-2">
