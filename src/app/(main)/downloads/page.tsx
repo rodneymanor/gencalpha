@@ -64,10 +64,10 @@ export default function DownloadsPage() {
             New Features
           </div>
 
-          <h1 className="mb-3 text-4xl font-bold text-neutral-900">Expand what you can do with Claude</h1>
+          <h1 className="mb-3 text-4xl font-bold text-neutral-900">Expand what you can do with Gen.C</h1>
 
           <p className="mx-auto max-w-2xl text-lg text-neutral-600">
-            Two new ways to capture and save content directly to your Claude collections. Install our mobile shortcuts
+            Two new ways to capture and save content directly to your Gen.C collections. Install our mobile shortcuts
             to streamline your workflow on iPhone.
           </p>
         </div>
@@ -95,7 +95,7 @@ export default function DownloadsPage() {
                 <h3 className="mb-2 font-semibold text-neutral-900">Save videos to collections</h3>
                 <p className="mb-4 text-sm text-neutral-600">
                   On iPhone, use the Share Sheet to add videos from YouTube, Twitter, TikTok, and more directly to your
-                  Claude collections in a single tap. Works from Safari and most social apps.
+                  Gen.C collections in a single tap. Works from Safari and most social apps.
                 </p>
 
                 <ul className="mb-6 space-y-2">
@@ -150,7 +150,7 @@ export default function DownloadsPage() {
                 <h3 className="mb-2 font-semibold text-neutral-900">Voice notes shortcut</h3>
                 <p className="mb-4 text-sm text-neutral-600">
                   Record thoughts instantly using your iPhone&apos;s voice memo button and add text notes. syncs with
-                  Claude for seamless content creation workflow.
+                  Gen.C for seamless content creation workflow.
                 </p>
 
                 <ul className="mb-6 space-y-2">
@@ -227,8 +227,8 @@ export default function DownloadsPage() {
                       3
                     </div>
                     <div>
-                      <p className="font-medium text-neutral-900">Share to Claude</p>
-                      <p className="text-sm text-neutral-600">Use the Share Sheet → ‘Save to Claude’</p>
+                      <p className="font-medium text-neutral-900">Share to Gen.C</p>
+                      <p className="text-sm text-neutral-600">Use the Share Sheet → ‘Save to Gen.C’</p>
                     </div>
                   </div>
                 </div>
@@ -264,8 +264,8 @@ export default function DownloadsPage() {
                       3
                     </div>
                     <div>
-                      <p className="font-medium text-neutral-900">Auto-sync to Claude</p>
-                      <p className="text-sm text-neutral-600">Voice notes appear in your Claude workspace</p>
+                      <p className="font-medium text-neutral-900">Auto-sync to Gen.C</p>
+                      <p className="text-sm text-neutral-600">Voice notes appear in your Gen.C workspace</p>
                     </div>
                   </div>
                 </div>
