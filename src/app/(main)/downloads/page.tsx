@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { Download, Smartphone, ArrowRight, CheckCircle, ExternalLink, Key } from "lucide-react";
+import { Smartphone, ArrowRight, CheckCircle, ExternalLink, Key } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,19 +12,17 @@ export default function DownloadsPage() {
   const [installedIOSVideos, setInstalledIOSVideos] = useState(false);
   const [installedIOS, setInstalledIOS] = useState(false);
 
-  // Handle iOS Shortcut (Save Videos) installation
+  // Handle iOS Shortcut (Add to Collections) installation
   const handleIOSVideosInstall = () => {
-    // Download local shortcut from public folder
-    const url = "/downloads/" + encodeURIComponent("Add To Collections.shortcut");
-    window.location.href = url;
+    // Direct link to iCloud shortcut
+    window.open("https://www.icloud.com/shortcuts/4df1106c51d8490d912ef65502fb187c", "_blank");
     setInstalledIOSVideos(true);
   };
 
   // Handle iOS Shortcut (Voice Notes) installation
   const handleIOSInstall = () => {
-    // Download local shortcut from public folder
-    const url = "/downloads/" + encodeURIComponent("Gen.C Voice Notes.shortcut");
-    window.location.href = url;
+    // Direct link to iCloud shortcut
+    window.open("https://www.icloud.com/shortcuts/cdd9fc53f93149d0a5341589fd1cd4c0", "_blank");
     setInstalledIOS(true);
   };
 
@@ -33,10 +31,10 @@ export default function DownloadsPage() {
       <div className="container mx-auto px-6 py-8" style={{ maxWidth: "1000px" }}>
         {/* Setup Requirements (Emphasized) */}
         <div className="mb-6">
-          <div className="rounded-[var(--radius-card)] border border-brand-200 bg-brand-50 p-4 shadow-[var(--shadow-soft-drop)]">
+          <div className="border-brand-200 bg-brand-50 rounded-[var(--radius-card)] border p-4 shadow-[var(--shadow-soft-drop)]">
             <div className="mb-2 flex items-center gap-2">
               <div className="flex h-7 w-7 items-center justify-center rounded-[var(--radius-button)] bg-white">
-                <Key className="h-4 w-4 text-brand-700" />
+                <Key className="text-brand-700 h-4 w-4" />
               </div>
               <div className="text-brand-700 text-sm font-semibold tracking-wide">Important — Before You Start</div>
             </div>
@@ -44,7 +42,7 @@ export default function DownloadsPage() {
               <li>
                 Get your API key from Settings → API Keys.
                 <Button asChild variant="soft" size="sm" className="ml-2 align-middle">
-                  <a href="/dashboard/settings?tab=api-keys">Open Settings</a>
+                  <a href="/settings?tab=api-keys">Open Settings</a>
                 </Button>
               </li>
               <li>
@@ -121,7 +119,10 @@ export default function DownloadsPage() {
                     Installed
                   </Button>
                 ) : (
-                  <Button onClick={handleIOSVideosInstall} className="bg-primary-500 hover:bg-primary-600 w-full text-white">
+                  <Button
+                    onClick={handleIOSVideosInstall}
+                    className="bg-primary-500 hover:bg-primary-600 w-full text-white"
+                  >
                     Get Shortcut
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
