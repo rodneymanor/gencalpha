@@ -187,7 +187,11 @@ export async function getOrComputeProcessedDailyScripts(params?: {
         hookTypeId = (typeRes.content as any).typeId;
         hookTypeLabel = (typeRes.content as any).label;
       }
-    } catch {}
+    } catch {
+      // Provide fallback type classification when prompt fails
+      hookTypeId = "curiosity";
+      hookTypeLabel = "Curiosity";
+    }
     try {
       const styleRes = await executePrompt<{ styleId: string; label: string }>("hook-style-classifier-v1", {
         variables: { hook },
@@ -196,7 +200,11 @@ export async function getOrComputeProcessedDailyScripts(params?: {
         hookStyleId = (styleRes.content as any).styleId;
         hookStyleLabel = (styleRes.content as any).label;
       }
-    } catch {}
+    } catch {
+      // Provide fallback style classification when prompt fails
+      hookStyleId = "direct";
+      hookStyleLabel = "Direct";
+    }
 
     const secs = typeof v.duration === "number" ? v.duration : 0;
     const durationLabel = secs ? `${Math.round(secs)}s` : "";
@@ -313,7 +321,11 @@ export async function getProcessedScriptsForKeyword(params: {
         hookTypeId2 = (typeRes.content as any).typeId;
         hookTypeLabel2 = (typeRes.content as any).label;
       }
-    } catch {}
+    } catch {
+      // Provide fallback type classification when prompt fails
+      hookTypeId2 = "curiosity";
+      hookTypeLabel2 = "Curiosity";
+    }
     try {
       const styleRes = await executePrompt<{ styleId: string; label: string }>("hook-style-classifier-v1", {
         variables: { hook },
@@ -322,7 +334,11 @@ export async function getProcessedScriptsForKeyword(params: {
         hookStyleId2 = (styleRes.content as any).styleId;
         hookStyleLabel2 = (styleRes.content as any).label;
       }
-    } catch {}
+    } catch {
+      // Provide fallback style classification when prompt fails
+      hookStyleId2 = "direct";
+      hookStyleLabel2 = "Direct";
+    }
 
     const secs = typeof v.duration === "number" ? v.duration : 0;
     const durationLabel = secs ? `${Math.round(secs)}s` : "";
