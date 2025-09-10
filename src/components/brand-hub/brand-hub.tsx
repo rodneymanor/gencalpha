@@ -9,6 +9,7 @@ import { CreatorPersonaGrid, type CreatorPersona } from "@/components/creator-pe
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/auth-context";
 import { UserManagementService } from "@/lib/user-management";
+import { useRouter } from "next/navigation";
 
 // Type definitions for brand voice and content data
 interface BrandVoice {
@@ -38,9 +39,10 @@ interface TopicData {
 interface BrandHubProps {
   initialBrandVoices?: BrandVoice[];
   onSaveSettings?: (settings: any) => void;
+  modalLayout?: "default" | "wide" | "fullscreen";
 }
 
-const BrandHub: React.FC<BrandHubProps> = ({ initialBrandVoices = [], onSaveSettings }) => {
+const BrandHub: React.FC<BrandHubProps> = ({ initialBrandVoices = [], onSaveSettings, modalLayout = "default" }) => {
   // State management for the component
   const [activeSection, setActiveSection] = useState<"content-settings" | "brand-voice">("brand-voice");
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
@@ -49,6 +51,7 @@ const BrandHub: React.FC<BrandHubProps> = ({ initialBrandVoices = [], onSaveSett
   const [hasChanges, setHasChanges] = useState(false);
   const [brandVoices, setBrandVoices] = useState<BrandVoice[]>(initialBrandVoices);
   const { user } = useAuth();
+  const router = useRouter();
   const [personas, setPersonas] = useState<CreatorPersona[]>([]);
   const [selectedPersonaId, setSelectedPersonaId] = useState<string | null>(null);
   const [isSavingPersona, setIsSavingPersona] = useState(false);
@@ -60,6 +63,11 @@ const BrandHub: React.FC<BrandHubProps> = ({ initialBrandVoices = [], onSaveSett
   const [analysisLoading, setAnalysisLoading] = useState(false);
   const [analysisError, setAnalysisError] = useState<string>("");
   const [analysisResult, setAnalysisResult] = useState<any | null>(null);
+  // Wizard state for 3-step flow
+  const [wizardStep, setWizardStep] = useState<1 | 2 | 3>(1);
+  const [getVideosLoading, setGetVideosLoading] = useState(false);
+  const [videos, setVideos] = useState<any[]>([]);
+  const [selectedVideoIds, setSelectedVideoIds] = useState<Set<string>>(new Set());
   const [metadataLoading, setMetadataLoading] = useState(false);
   const [generatedMetadata, setGeneratedMetadata] = useState<{
     name: string;
@@ -71,10 +79,21 @@ const BrandHub: React.FC<BrandHubProps> = ({ initialBrandVoices = [], onSaveSett
   const [personaTags, setPersonaTags] = useState("");
   const [createLoading, setCreateLoading] = useState(false);
   const [createError, setCreateError] = useState("");
+  // Personas raw data for edit operations
+  const [personasData, setPersonasData] = useState<any[]>([]);
+  // Edit modal state
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editPersonaId, setEditPersonaId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editTags, setEditTags] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState("");
 
   const reloadPersonas = async () => {
     try {
       const list = await PersonaApiService.loadPersonas();
+      setPersonasData(list);
       const converted: CreatorPersona[] = list.map((p: any) => {
         const initials = (p.name || "?")
           .split(" ")
@@ -89,6 +108,8 @@ const BrandHub: React.FC<BrandHubProps> = ({ initialBrandVoices = [], onSaveSett
           followers: p.username ? `@${p.username}` : (p.platform ?? "TikTok"),
           lastEdited: p.lastUsedAt ? `Used ${new Date(p.lastUsedAt).toLocaleDateString()}` : "Recently added",
           avatarVariant: "light",
+          status: p.status,
+          creationStatus: p.creationStatus,
         };
       });
       setPersonas(converted);
@@ -303,6 +324,7 @@ const BrandHub: React.FC<BrandHubProps> = ({ initialBrandVoices = [], onSaveSett
     const loadPersonas = async () => {
       try {
         const list = await PersonaApiService.loadPersonas();
+        setPersonasData(list);
         const converted: CreatorPersona[] = list.map((p: any) => {
           const initials = (p.name || "?")
             .split(" ")
@@ -317,6 +339,8 @@ const BrandHub: React.FC<BrandHubProps> = ({ initialBrandVoices = [], onSaveSett
             followers: p.username ? `@${p.username}` : (p.platform ?? "TikTok"),
             lastEdited: p.lastUsedAt ? `Used ${new Date(p.lastUsedAt).toLocaleDateString()}` : "Recently added",
             avatarVariant: "light",
+            status: p.status,
+            creationStatus: p.creationStatus,
           };
         });
         setPersonas(converted);
@@ -453,6 +477,10 @@ const BrandHub: React.FC<BrandHubProps> = ({ initialBrandVoices = [], onSaveSett
                       setAnalysisLoading(false);
                       setAnalysisError("");
                       setAnalysisResult(null);
+                      setWizardStep(1);
+                      setGetVideosLoading(false);
+                      setVideos([]);
+                      setSelectedVideoIds(new Set());
                       setMetadataLoading(false);
                       setGeneratedMetadata(null);
                       setPersonaName("");
@@ -482,6 +510,25 @@ const BrandHub: React.FC<BrandHubProps> = ({ initialBrandVoices = [], onSaveSett
                   onPersonaClick={(id) => {
                     // Save immediately when the card (not edit/delete) is clicked
                     handleImmediateSaveBrandVoice(id);
+                  }}
+                  onPersonaEdit={(id) => {
+                    const p = personasData.find((x) => x.id === id);
+                    if (!p) return;
+                    setEditPersonaId(id);
+                    setEditName(p.name || "");
+                    setEditDescription(p.description || "");
+                    setEditTags(Array.isArray(p.tags) ? p.tags.join(", ") : "");
+                    setEditError("");
+                    setIsEditOpen(true);
+                  }}
+                  onPersonaDelete={async (id) => {
+                    try {
+                      await PersonaApiService.deletePersona(id);
+                      await reloadPersonas();
+                      if (selectedPersonaId === id) setSelectedPersonaId(null);
+                    } catch (e: any) {
+                      console.error("Failed to delete persona", e);
+                    }
                   }}
                 />
 
@@ -657,14 +704,23 @@ const BrandHub: React.FC<BrandHubProps> = ({ initialBrandVoices = [], onSaveSett
 
       {/* Add Voice Modal */}
       <Dialog open={isAddVoiceOpen} onOpenChange={setIsAddVoiceOpen}>
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent
+          className={
+            modalLayout === "fullscreen"
+              ? "w-[95vw] max-w-none h-[90vh]"
+              : modalLayout === "wide"
+                ? "sm:max-w-5xl max-h-[90vh]"
+                : "sm:max-w-2xl"
+          }
+        >
           <DialogHeader>
             <DialogTitle>Add Brand Voice</DialogTitle>
           </DialogHeader>
           <div className="space-y-6">
             {/* Step 1: Creator profile */}
+            {wizardStep === 1 && (
             <div>
-              <div className="mb-2 text-sm font-medium text-neutral-900">Creator Profile</div>
+              <div className="mb-2 text-sm font-medium text-neutral-900">Step 1 — Creator Profile</div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <div className="sm:col-span-1">
                   <label className="mb-1 block text-xs font-medium text-neutral-600">Platform</label>
@@ -672,7 +728,7 @@ const BrandHub: React.FC<BrandHubProps> = ({ initialBrandVoices = [], onSaveSett
                     className="focus:ring-brand-400 w-full rounded-[var(--radius-button)] border border-neutral-200 bg-white px-3 py-2 text-sm focus:ring-1 focus:outline-none"
                     value={creatorPlatform}
                     onChange={(e) => setCreatorPlatform(e.target.value as any)}
-                    disabled={analysisLoading || createLoading}
+                    disabled={getVideosLoading || analysisLoading || createLoading}
                   >
                     <option value="tiktok">TikTok</option>
                     <option value="youtube">YouTube</option>
@@ -688,7 +744,7 @@ const BrandHub: React.FC<BrandHubProps> = ({ initialBrandVoices = [], onSaveSett
                     placeholder="@creator or profile URL"
                     value={creatorInput}
                     onChange={(e) => setCreatorInput(e.target.value)}
-                    disabled={analysisLoading || createLoading}
+                    disabled={getVideosLoading || analysisLoading || createLoading}
                   />
                 </div>
               </div>
@@ -697,20 +753,11 @@ const BrandHub: React.FC<BrandHubProps> = ({ initialBrandVoices = [], onSaveSett
                   className="inline-flex items-center gap-2 rounded-[var(--radius-button)] bg-neutral-900 px-3 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-70"
                   onClick={async () => {
                     setAnalysisError("");
-                    setGeneratedMetadata(null);
-                    setAnalysisResult(null);
-                    setMetadataLoading(false);
-                    setPersonaName("");
-                    setPersonaDescription("");
-                    setPersonaTags("");
-
                     const raw = creatorInput.trim();
                     if (!raw) {
                       setAnalysisError("Please enter a username or profile URL");
                       return;
                     }
-
-                    // For now, handle TikTok best; other platforms may require manual transcripts later
                     const username = raw.startsWith("@")
                       ? raw.slice(1)
                       : raw
@@ -719,58 +766,55 @@ const BrandHub: React.FC<BrandHubProps> = ({ initialBrandVoices = [], onSaveSett
                           .find((p) => p.startsWith("@"))
                           ?.slice(1) || raw;
 
-                    setAnalysisLoading(true);
+                    setGetVideosLoading(true);
                     try {
-                      // 1) Fetch creator feed
                       const feed = await PersonaApiService.fetchUserFeed(username, 20);
-
-                      // 2) Take top N video URLs
-                      const videoUrls: string[] = feed
-                        .map((v: any) => v.playAddr || v.videoUrl || v.url)
-                        .filter(Boolean)
-                        .slice(0, 10);
-
-                      if (!videoUrls.length) throw new Error("No videos found for this creator");
-
-                      // 3) Transcribe (server API handles URL)
-                      const transcripts: string[] = [];
-                      for (const url of videoUrls.slice(0, 6)) {
-                        try {
-                          const t = await PersonaApiService.transcribeVideo(url);
-                          if (t) transcripts.push(t);
-                        } catch (e) {
-                          console.warn("Transcript failed for one video, continuing", e);
-                        }
+                      setVideos(feed);
+                      // Persist a draft after videos are collected
+                      try {
+                        const pageUrls: string[] = feed
+                          .map((v: any, idx: number) => {
+                            const id = v.id || v.aweme_id || v.videoId;
+                            const author = v.author?.username || v.author?.uniqueId || v.author || username;
+                            if (id && author) return `https://www.tiktok.com/@${author}/video/${id}`;
+                            return v.url || v.playAddr || v.videoUrl || "";
+                          })
+                          .filter(Boolean);
+                        await PersonaApiService.createPersona({
+                          name: `${username} Voice`,
+                          description: "Draft persona — videos collected",
+                          platform: creatorPlatform,
+                          username,
+                          // @ts-ignore partial draft state
+                          creationStatus: "videos_collected",
+                          // @ts-ignore include video URLs context
+                          videoUrls: pageUrls,
+                          // no analysis yet
+                          analysis: undefined as any,
+                          tags: [],
+                        });
+                      } catch (persistErr) {
+                        console.warn("Failed to persist draft after videos collected", persistErr);
                       }
-                      if (transcripts.length < 3) throw new Error("Not enough transcripts. Try another creator.");
-
-                      // 4) Analyze voice
-                      const analysis = await PersonaApiService.analyzeVoicePatterns(transcripts);
-                      setAnalysisResult(analysis);
-
-                      // 5) Generate metadata to prefill
-                      setMetadataLoading(true);
-                      const meta = await PersonaApiService.generateMetadata(analysis);
-                      setGeneratedMetadata(meta);
-                      setPersonaName(meta.name || "");
-                      setPersonaDescription(meta.description || "");
-                      setPersonaTags((meta.tags || []).join(", "));
+                      const def = new Set<string>();
+                      feed.slice(0, 5).forEach((v: any, idx: number) => def.add(String(v.id || v.aweme_id || v.videoId || idx)));
+                      setSelectedVideoIds(def);
+                      setWizardStep(2);
                     } catch (e: any) {
-                      setAnalysisError(e?.message || "Failed to analyze voice. Please try again.");
+                      setAnalysisError(e?.message || "Failed to fetch videos");
                     } finally {
-                      setMetadataLoading(false);
-                      setAnalysisLoading(false);
+                      setGetVideosLoading(false);
                     }
                   }}
-                  disabled={analysisLoading || createLoading}
+                  disabled={getVideosLoading || analysisLoading || createLoading}
                 >
-                  {analysisLoading ? (
+                  {getVideosLoading ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Analyzing…
+                      Getting Videos…
                     </>
                   ) : (
-                    "Analyze Voice"
+                    "Get Videos"
                   )}
                 </button>
                 {analysisError && (
@@ -780,15 +824,199 @@ const BrandHub: React.FC<BrandHubProps> = ({ initialBrandVoices = [], onSaveSett
                 )}
               </div>
             </div>
+            )}
 
-            {/* Step 2: Persona details (after metadata) */}
-            <div className="rounded-[var(--radius-card)] border border-neutral-200 p-4">
-              <div className="mb-3 text-sm font-medium text-neutral-900">Persona Details</div>
-              {metadataLoading && (
-                <div className="mb-3 inline-flex items-center gap-2 text-sm text-neutral-700">
-                  <Loader2 className="h-4 w-4 animate-spin" /> Generating suggestions…
+            {/* Step 2: Select & Analyze videos */}
+            {wizardStep === 2 && (
+              <div>
+                <div className="mb-2 text-sm font-medium text-neutral-900">Step 2 — Select Videos to Analyze</div>
+                <div className="max-h-64 overflow-auto rounded-[var(--radius-card)] border border-neutral-200 bg-white">
+                  {videos.length === 0 ? (
+                    <div className="p-4 text-sm text-neutral-600">No videos found.</div>
+                  ) : (
+                    <ul className="divide-y divide-neutral-200">
+                      {videos.map((v: any, idx: number) => {
+                        const id = String(v.id || v.aweme_id || v.videoId || idx);
+                        const author = v.author?.username || v.author?.uniqueId || v.author || "";
+                        const desc = v.desc || v.description || "";
+                        const selected = selectedVideoIds.has(id);
+                        return (
+                          <li key={id} className="flex items-start gap-3 p-3">
+                            <input
+                              type="checkbox"
+                              checked={selected}
+                              onChange={(e) => {
+                                const next = new Set(selectedVideoIds);
+                                if (e.target.checked) next.add(id);
+                                else next.delete(id);
+                                setSelectedVideoIds(next);
+                              }}
+                              className="mt-1"
+                            />
+                            <div className="min-w-0">
+                              <div className="text-sm font-medium text-neutral-900">{author ? `@${author}` : `Video ${idx + 1}`}</div>
+                              {desc && <div className="text-xs text-neutral-600 line-clamp-2">{desc}</div>}
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
                 </div>
-              )}
+                <div className="mt-3 flex items-center gap-2">
+                  <button
+                    className="inline-flex items-center gap-2 rounded-[var(--radius-button)] bg-neutral-900 px-3 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-70"
+                    onClick={async () => {
+                      setAnalysisError("");
+                      setMetadataLoading(false);
+                      setGeneratedMetadata(null);
+                      setPersonaName("");
+                      setPersonaDescription("");
+                      setPersonaTags("");
+
+                      const raw = creatorInput.trim();
+                      const username = raw.startsWith("@")
+                        ? raw.slice(1)
+                        : raw
+                            .split("/")
+                            .filter(Boolean)
+                            .find((p) => p.startsWith("@"))
+                            ?.slice(1) || raw;
+
+                      const selected = videos.filter((v: any, idx: number) => {
+                        const id = String(v.id || v.aweme_id || v.videoId || idx);
+                        return selectedVideoIds.has(id);
+                      });
+
+                      if (selected.length === 0) {
+                        setAnalysisError("Please select at least one video to analyze");
+                        return;
+                      }
+
+                      setAnalysisLoading(true);
+                      try {
+                        const pageUrls: string[] = selected
+                          .map((v: any, idx: number) => {
+                            const id = v.id || v.aweme_id || v.videoId;
+                            const author = v.author?.username || v.author?.uniqueId || v.author || username;
+                            if (id && author) return `https://www.tiktok.com/@${author}/video/${id}`;
+                            return v.url || v.playAddr || v.videoUrl || "";
+                          })
+                          .filter(Boolean);
+
+                        // Server-side resolve + transcribe for reliability
+                        const transcribeResp = await fetch("/api/video/batch-resolve-and-transcribe", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ pageUrls, max: 10 }),
+                        });
+                        const transcribeJson = await transcribeResp.json();
+                        if (!transcribeResp.ok || !transcribeJson?.success) {
+                          throw new Error(transcribeJson?.error || "Could not fetch transcripts");
+                        }
+                        const transcripts: string[] = transcribeJson.transcripts || [];
+                        if (transcripts.length < 3) {
+                          throw new Error("Not enough transcripts. Try selecting more videos.");
+                        }
+                        const analysis = await PersonaApiService.analyzeVoicePatterns(transcripts);
+                        setAnalysisResult(analysis);
+
+                        setMetadataLoading(true);
+                        const meta = await PersonaApiService.generateMetadata(analysis);
+                        setGeneratedMetadata(meta);
+                        setPersonaName(meta.name || "");
+                        setPersonaDescription(meta.description || "");
+                        setPersonaTags((meta.tags || []).join(", "));
+
+                        setWizardStep(3);
+                      } catch (e: any) {
+                        // Persist draft with videos collected if analysis fails
+                        try {
+                          const pageUrls: string[] = selected
+                            .map((v: any, idx: number) => {
+                              const id = v.id || v.aweme_id || v.videoId;
+                              const author = v.author?.username || v.author?.uniqueId || v.author || username;
+                              if (id && author) return `https://www.tiktok.com/@${author}/video/${id}`;
+                              return v.url || v.playAddr || v.videoUrl || "";
+                            })
+                            .filter(Boolean);
+
+                          await PersonaApiService.createPersona({
+                            name: `${username} Voice`,
+                            description: "Draft persona — videos collected",
+                            platform: creatorPlatform,
+                            username,
+                            // @ts-ignore partial save supported by API
+                            creationStatus: "videos_collected",
+                            // @ts-ignore include context of videos
+                            videoUrls: pageUrls,
+                            analysis: undefined as any,
+                            tags: [],
+                          });
+                        } catch (persistErr) {
+                          console.warn("Failed to persist draft persona", persistErr);
+                        }
+
+                        setAnalysisError(e?.message || "Failed to analyze selected videos. A draft has been saved.");
+                      } finally {
+                        setMetadataLoading(false);
+                        setAnalysisLoading(false);
+                      }
+                    }}
+                    disabled={analysisLoading || createLoading}
+                  >
+                    {analysisLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Analyzing…
+                      </>
+                    ) : (
+                      "Analyze Selected"
+                    )}
+                  </button>
+                  <button
+                    className="rounded-[var(--radius-button)] px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-200"
+                    onClick={() => setWizardStep(1)}
+                    disabled={analysisLoading}
+                  >
+                    Back
+                  </button>
+                </div>
+                {analysisError && (
+                  <div className="border-destructive-200 bg-destructive-50 text-destructive-700 mt-2 rounded-[var(--radius-button)] border px-3 py-2 text-sm">
+                    {analysisError}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Step 3: Analysis and creation */}
+            {wizardStep === 3 && (
+              <div className="rounded-[var(--radius-card)] border border-neutral-200 p-4">
+                <div className="mb-3 flex items-center justify-between">
+                  <div className="text-sm font-medium text-neutral-900">Step 3 — Review Analysis & Create</div>
+                  <button
+                    className="rounded-[var(--radius-button)] border border-neutral-300 px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-100"
+                    onClick={() => {
+                      const blob = new Blob([JSON.stringify(analysisResult ?? {}, null, 2)], { type: "application/json" });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = `analysis_${Date.now()}.json`;
+                      document.body.appendChild(a);
+                      a.click();
+                      a.remove();
+                      URL.revokeObjectURL(url);
+                    }}
+                  >
+                    Download Analysis
+                  </button>
+                </div>
+                {metadataLoading && (
+                  <div className="mb-3 inline-flex items-center gap-2 text-sm text-neutral-700">
+                    <Loader2 className="h-4 w-4 animate-spin" /> Generating suggestions…
+                  </div>
+                )}
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="sm:col-span-2">
                   <label className="mb-1 block text-xs font-medium text-neutral-600">Persona Name</label>
@@ -825,15 +1053,52 @@ const BrandHub: React.FC<BrandHubProps> = ({ initialBrandVoices = [], onSaveSett
                 </div>
               </div>
 
-              <div className="mt-4 flex items-center gap-3">
-                <button
-                  className="bg-brand-600 hover:bg-brand-700 inline-flex items-center gap-2 rounded-[var(--radius-button)] px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-70"
-                  onClick={async () => {
-                    setCreateError("");
-                    if (!analysisResult) {
-                      setCreateError("Run Analyze Voice first");
-                      return;
-                    }
+                <div className="mt-4 flex items-center gap-3">
+                  <button
+                    className="inline-flex items-center gap-2 rounded-[var(--radius-button)] border border-neutral-300 px-3 py-2 text-sm font-medium text-neutral-800 hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-70"
+                    onClick={async () => {
+                      setCreateError("");
+                      try {
+                        const raw = creatorInput.trim();
+                        const username = raw.startsWith("@")
+                          ? raw.slice(1)
+                          : raw
+                              .split("/")
+                              .filter(Boolean)
+                              .find((p) => p.startsWith("@"))
+                              ?.slice(1) || raw;
+                        await PersonaApiService.createPersona({
+                          name: personaName.trim() || `${username} Voice`,
+                          description: personaDescription || "Draft persona — analyzed",
+                          platform: creatorPlatform,
+                          username,
+                          analysis: analysisResult || undefined,
+                          // @ts-ignore analyzed draft state
+                          creationStatus: "analyzed",
+                          tags: personaTags
+                            ? personaTags
+                                .split(",")
+                                .map((t) => t.trim())
+                                .filter(Boolean)
+                            : [],
+                        });
+                        setCreateError("Saved draft");
+                      } catch (e: any) {
+                        setCreateError(e?.message || "Failed to save draft");
+                      }
+                    }}
+                    disabled={createLoading}
+                  >
+                    Save Draft
+                  </button>
+                  <button
+                    className="bg-brand-600 hover:bg-brand-700 inline-flex items-center gap-2 rounded-[var(--radius-button)] px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-70"
+                    onClick={async () => {
+                      setCreateError("");
+                      if (!analysisResult) {
+                        setCreateError("Run Analyze Selected first");
+                        return;
+                      }
                     if (!personaName.trim()) {
                       setCreateError("Please provide a persona name");
                       return;
@@ -854,6 +1119,8 @@ const BrandHub: React.FC<BrandHubProps> = ({ initialBrandVoices = [], onSaveSett
                         platform: creatorPlatform,
                         username,
                         analysis: analysisResult,
+                        // @ts-ignore mark final state
+                        creationStatus: "created",
                         tags: personaTags
                           ? personaTags
                               .split(",")
@@ -886,12 +1153,112 @@ const BrandHub: React.FC<BrandHubProps> = ({ initialBrandVoices = [], onSaveSett
                     "Create Persona"
                   )}
                 </button>
-                {createError && (
-                  <div className="border-destructive-200 bg-destructive-50 text-destructive-700 rounded-[var(--radius-button)] border px-3 py-2 text-sm">
-                    {createError}
-                  </div>
-                )}
+                  {createError && (
+                    <div className="border-destructive-200 bg-destructive-50 text-destructive-700 rounded-[var(--radius-button)] border px-3 py-2 text-sm">
+                      {createError}
+                    </div>
+                  )}
+                </div>
               </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Persona Modal */}
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Edit Persona</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-neutral-600">Name</label>
+              <input
+                type="text"
+                className="focus:ring-brand-400 w-full rounded-[var(--radius-button)] border border-neutral-200 bg-white px-3 py-2 text-sm focus:ring-1 focus:outline-none"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                disabled={editSaving}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-neutral-600">Description</label>
+              <textarea
+                rows={3}
+                className="focus:ring-brand-400 w-full resize-none rounded-[var(--radius-button)] border border-neutral-200 bg-white px-3 py-2 text-sm focus:ring-1 focus:outline-none"
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                disabled={editSaving}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-neutral-600">Tags (comma-separated)</label>
+              <input
+                type="text"
+                className="focus:ring-brand-400 w-full rounded-[var(--radius-button)] border border-neutral-200 bg-white px-3 py-2 text-sm focus:ring-1 focus:outline-none"
+                value={editTags}
+                onChange={(e) => setEditTags(e.target.value)}
+                disabled={editSaving}
+              />
+            </div>
+            {editError && (
+              <div className="border-destructive-200 bg-destructive-50 text-destructive-700 rounded-[var(--radius-button)] border px-3 py-2 text-sm">
+                {editError}
+              </div>
+            )}
+            <div className="mt-2 flex items-center gap-2">
+              <button
+                className="bg-brand-600 hover:bg-brand-700 inline-flex items-center gap-2 rounded-[var(--radius-button)] px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-70"
+                disabled={editSaving}
+                onClick={async () => {
+                  if (!editPersonaId) return;
+                  setEditError("");
+                  setEditSaving(true);
+                  try {
+                    const tags = editTags
+                      ? editTags.split(",").map((t) => t.trim()).filter(Boolean)
+                      : [];
+                    await PersonaApiService.updatePersona(editPersonaId, {
+                      name: editName.trim(),
+                      description: editDescription,
+                      tags,
+                    });
+                    await reloadPersonas();
+                    setIsEditOpen(false);
+                  } catch (e: any) {
+                    setEditError(e?.message || "Failed to save changes");
+                  } finally {
+                    setEditSaving(false);
+                  }
+                }}
+              >
+                {editSaving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Saving…
+                  </>
+                ) : (
+                  "Save Changes"
+                )}
+              </button>
+              <button
+                className="border-destructive-200 text-destructive-600 hover:bg-destructive-50 rounded-[var(--radius-button)] border bg-neutral-50 px-3 py-2 text-sm font-medium"
+                disabled={editSaving}
+                onClick={async () => {
+                  if (!editPersonaId) return;
+                  setEditError("");
+                  try {
+                    await PersonaApiService.deletePersona(editPersonaId);
+                    await reloadPersonas();
+                    setIsEditOpen(false);
+                  } catch (e: any) {
+                    setEditError(e?.message || "Failed to delete persona");
+                  }
+                }}
+              >
+                Delete
+              </button>
             </div>
           </div>
         </DialogContent>

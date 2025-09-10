@@ -89,7 +89,7 @@ export function NotificationsSettings() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Mail className="text-primary h-5 w-5" />
+            <Mail className="h-5 w-5 text-primary-700" />
             <CardTitle>Email Notifications</CardTitle>
           </div>
           <CardDescription>Control which emails you receive from us</CardDescription>
@@ -98,7 +98,7 @@ export function NotificationsSettings() {
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label htmlFor="email-marketing">Marketing & Promotions</Label>
-              <p className="text-muted-foreground text-sm">Receive updates about new features and special offers</p>
+              <p className="text-neutral-600 text-sm">Receive updates about new features and special offers</p>
             </div>
             <Switch
               id="email-marketing"
@@ -112,7 +112,7 @@ export function NotificationsSettings() {
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label htmlFor="email-security">Security Alerts</Label>
-              <p className="text-muted-foreground text-sm">Important security updates and login notifications</p>
+              <p className="text-neutral-600 text-sm">Important security updates and login notifications</p>
             </div>
             <Switch
               id="email-security"
@@ -126,7 +126,7 @@ export function NotificationsSettings() {
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label htmlFor="email-updates">Product Updates</Label>
-              <p className="text-muted-foreground text-sm">Updates about new features and improvements</p>
+              <p className="text-neutral-600 text-sm">Updates about new features and improvements</p>
             </div>
             <Switch
               id="email-updates"
@@ -140,7 +140,7 @@ export function NotificationsSettings() {
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label htmlFor="email-billing">Billing & Invoices</Label>
-              <p className="text-muted-foreground text-sm">Billing statements and payment confirmations</p>
+              <p className="text-neutral-600 text-sm">Billing statements and payment confirmations</p>
             </div>
             <Switch
               id="email-billing"
@@ -155,7 +155,7 @@ export function NotificationsSettings() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Smartphone className="text-primary h-5 w-5" />
+            <Smartphone className="h-5 w-5 text-primary-700" />
             <CardTitle>Push Notifications</CardTitle>
           </div>
           <CardDescription>Manage notifications sent to your devices</CardDescription>
@@ -164,7 +164,7 @@ export function NotificationsSettings() {
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label htmlFor="push-enabled">Enable Push Notifications</Label>
-              <p className="text-muted-foreground text-sm">Allow notifications to be sent to your devices</p>
+              <p className="text-neutral-600 text-sm">Allow notifications to be sent to your devices</p>
             </div>
             <Switch
               id="push-enabled"
@@ -180,7 +180,7 @@ export function NotificationsSettings() {
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label htmlFor="push-mentions">Mentions & Replies</Label>
-                  <p className="text-muted-foreground text-sm">When someone mentions you or replies to your content</p>
+                  <p className="text-neutral-600 text-sm">When someone mentions you or replies to your content</p>
                 </div>
                 <Switch
                   id="push-mentions"
@@ -194,7 +194,7 @@ export function NotificationsSettings() {
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label htmlFor="push-messages">Direct Messages</Label>
-                  <p className="text-muted-foreground text-sm">New direct messages and chat notifications</p>
+                  <p className="text-neutral-600 text-sm">New direct messages and chat notifications</p>
                 </div>
                 <Switch
                   id="push-messages"
@@ -208,7 +208,7 @@ export function NotificationsSettings() {
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label htmlFor="push-updates">System Updates</Label>
-                  <p className="text-muted-foreground text-sm">Important system updates and maintenance notices</p>
+                  <p className="text-neutral-600 text-sm">Important system updates and maintenance notices</p>
                 </div>
                 <Switch
                   id="push-updates"
@@ -225,7 +225,7 @@ export function NotificationsSettings() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Bell className="text-primary h-5 w-5" />
+            <Bell className="h-5 w-5 text-primary-700" />
             <CardTitle>In-App Notifications</CardTitle>
           </div>
           <CardDescription>Configure notifications within the application</CardDescription>
@@ -234,7 +234,7 @@ export function NotificationsSettings() {
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label htmlFor="inapp-enabled">Enable In-App Notifications</Label>
-              <p className="text-muted-foreground text-sm">Show notifications while using the application</p>
+              <p className="text-neutral-600 text-sm">Show notifications while using the application</p>
             </div>
             <Switch
               id="inapp-enabled"
@@ -250,7 +250,7 @@ export function NotificationsSettings() {
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label htmlFor="inapp-sound">Sound Notifications</Label>
-                  <p className="text-muted-foreground text-sm">Play sound when receiving notifications</p>
+                  <p className="text-neutral-600 text-sm">Play sound when receiving notifications</p>
                 </div>
                 <Switch
                   id="inapp-sound"
@@ -264,7 +264,7 @@ export function NotificationsSettings() {
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label htmlFor="inapp-desktop">Desktop Notifications</Label>
-                  <p className="text-muted-foreground text-sm">Show desktop notifications when app is minimized</p>
+                  <p className="text-neutral-600 text-sm">Show desktop notifications when app is minimized</p>
                 </div>
                 <Switch
                   id="inapp-desktop"

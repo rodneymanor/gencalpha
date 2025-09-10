@@ -15,6 +15,8 @@ export interface CreatorPersona {
   followers: string;
   lastEdited: string;
   avatarVariant?: "light" | "dark" | "outlined";
+  status?: "active" | "draft";
+  creationStatus?: "pending" | "videos_collected" | "analyzed" | "created";
 }
 
 interface CreatorPersonaCardProps {
@@ -103,6 +105,12 @@ export function CreatorPersonaCard({
               <span className="truncate">{persona.followers}</span>
             </div>
           </div>
+          {/* Status badge for incomplete personas */}
+          {(persona.status === "draft" || persona.creationStatus !== undefined) && persona.creationStatus !== "created" && (
+            <span className="border-neutral-300 bg-neutral-100 text-neutral-700 inline-flex h-6 items-center rounded-[999px] border px-2 text-xs font-medium">
+              Not finished
+            </span>
+          )}
           {selectable && (
             <Checkbox
               checked={selected}
@@ -193,6 +201,8 @@ interface CreatorPersonaGridProps {
   selectedId?: string;
   selectable?: boolean;
   onPersonaSelect?: (personaId: string) => void;
+  onPersonaEdit?: (personaId: string) => void;
+  onPersonaDelete?: (personaId: string) => void;
 }
 
 export function CreatorPersonaGrid({
@@ -203,6 +213,8 @@ export function CreatorPersonaGrid({
   selectedId,
   selectable = false,
   onPersonaSelect,
+  onPersonaEdit,
+  onPersonaDelete,
 }: CreatorPersonaGridProps) {
   return (
     <div className={cn("grid gap-4", "grid-cols-[repeat(auto-fill,minmax(240px,1fr))]", "sm:grid-cols-2", className)}>
@@ -218,10 +230,8 @@ export function CreatorPersonaGrid({
             onClick={handle}
             selected={selectedId === persona.id}
             selectable={selectable}
-            onEdit={(id) => onPersonaClick?.(id)}
-            onDelete={() => {
-              /* no-op by default; wire up in page if needed */
-            }}
+            onEdit={(id) => onPersonaEdit?.(id)}
+            onDelete={(id) => onPersonaDelete?.(id)}
           />
         );
       })}

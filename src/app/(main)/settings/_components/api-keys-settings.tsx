@@ -172,7 +172,7 @@ export function ApiKeysSettings() {
     <div className="space-y-6">
       {/* New API Key Display */}
       {newApiKey && (
-        <Alert className="border-amber-200 bg-amber-50">
+        <Alert className="border-warning-200 bg-warning-50">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription className="space-y-4">
             <div className="font-medium">Your new API key has been generated!</div>
@@ -180,7 +180,7 @@ export function ApiKeysSettings() {
               <strong>Important:</strong> This key will only be shown once. Please copy it now and store it securely.
             </div>
             <div className="flex items-center space-x-2">
-              <code className="flex-1 rounded border bg-white p-2 font-mono text-sm">
+              <code className="flex-1 rounded border border-neutral-200 bg-neutral-50 p-2 font-mono text-sm">
                 {showKey ? newApiKey : "••••••••••••••••••••••••••••••••••••••••"}
               </code>
               <Button variant="outline" size="sm" onClick={() => setShowKey(!showKey)}>
@@ -213,17 +213,17 @@ export function ApiKeysSettings() {
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <div className="flex items-center space-x-2">
-                  <Badge variant="default" className="bg-green-100 text-green-800">
+                  <Badge variant="default" className="bg-success-100 text-success-800">
                     <CheckCircle className="mr-1 h-3 w-3" />
                     Active
                   </Badge>
-                  <span className="text-muted-foreground font-mono text-sm">Key ID: {keyStatus.activeKey?.keyId}</span>
+                  <span className="font-mono text-sm text-neutral-600">Key ID: {keyStatus.activeKey?.keyId}</span>
                 </div>
-                <div className="text-muted-foreground text-sm">
+                <div className="text-neutral-600 text-sm">
                   Created: {new Date(keyStatus.activeKey?.createdAt || "").toLocaleDateString()}
                 </div>
                 {keyStatus.activeKey?.lastUsed && (
-                  <div className="text-muted-foreground text-sm">
+                  <div className="text-neutral-600 text-sm">
                     Last used: {new Date(keyStatus.activeKey.lastUsed).toLocaleDateString()}
                   </div>
                 )}
@@ -239,7 +239,7 @@ export function ApiKeysSettings() {
               <div className="space-y-2 border-t pt-4">
                 <div className="text-sm font-medium">Your API Key</div>
                 <div className="flex items-center space-x-2">
-                  <code className="flex-1 rounded border bg-neutral-50 p-2 font-mono text-sm">
+                  <code className="flex-1 rounded border border-neutral-200 bg-neutral-50 p-2 font-mono text-sm">
                     {showActiveKey ? keyStatus.activeKey.apiKey : "••••••••••••••••••••••••••••••••••••••••"}
                   </code>
                   <Button variant="outline" size="sm" onClick={() => setShowActiveKey(!showActiveKey)}>
@@ -255,11 +255,11 @@ export function ApiKeysSettings() {
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <div className="font-medium">Requests Made</div>
-                <div className="text-muted-foreground">{keyStatus.activeKey?.requestCount || 0}</div>
+                <div className="text-neutral-600">{keyStatus.activeKey?.requestCount || 0}</div>
               </div>
               <div>
                 <div className="font-medium">Violations</div>
-                <div className="text-muted-foreground">{keyStatus.activeKey?.violations || 0}</div>
+                <div className="text-neutral-600">{keyStatus.activeKey?.violations || 0}</div>
               </div>
             </div>
 
@@ -273,9 +273,9 @@ export function ApiKeysSettings() {
             )}
           </div>
         ) : (
-          <div className="rounded-lg border py-8 text-center">
+          <div className="rounded-lg border border-neutral-200 py-8 text-center">
             <div className="space-y-4">
-              <div className="text-muted-foreground">No active API key found</div>
+              <div className="text-neutral-600">No active API key found</div>
               <Button onClick={generateApiKey} disabled={generating}>
                 {generating ? "Generating..." : "Generate API Key"}
               </Button>
@@ -291,15 +291,15 @@ export function ApiKeysSettings() {
           <div className="bg-muted/50 grid grid-cols-1 gap-4 rounded-lg p-4 text-sm md:grid-cols-3">
             <div>
               <div className="font-medium">Rate Limit</div>
-              <div className="text-muted-foreground">{keyStatus.limits.requestsPerMinute} requests/minute</div>
+              <div className="text-neutral-600">{keyStatus.limits.requestsPerMinute} requests/minute</div>
             </div>
             <div>
               <div className="font-medium">Violation Lockout</div>
-              <div className="text-muted-foreground">{keyStatus.limits.violationLockoutHours} hour(s)</div>
+              <div className="text-neutral-600">{keyStatus.limits.violationLockoutHours} hour(s)</div>
             </div>
             <div>
               <div className="font-medium">Max Violations</div>
-              <div className="text-muted-foreground">{keyStatus.limits.maxViolationsBeforeLockout}</div>
+              <div className="text-neutral-600">{keyStatus.limits.maxViolationsBeforeLockout}</div>
             </div>
           </div>
         </div>
@@ -315,7 +315,7 @@ export function ApiKeysSettings() {
             </div>
             <div>
               <div className="font-medium">Install the Extension</div>
-              <div className="text-muted-foreground">Install the GenC Chrome extension from the Chrome Web Store</div>
+              <div className="text-neutral-600">Install the GenC Chrome extension from the Chrome Web Store</div>
             </div>
           </div>
           <div className="flex space-x-3">
@@ -324,7 +324,7 @@ export function ApiKeysSettings() {
             </div>
             <div>
               <div className="font-medium">Open Extension Options</div>
-              <div className="text-muted-foreground">
+              <div className="text-neutral-600">
                 Right-click the extension icon and select "Options" or go to chrome://extensions
               </div>
             </div>
@@ -335,7 +335,7 @@ export function ApiKeysSettings() {
             </div>
             <div>
               <div className="font-medium">Configure API Key</div>
-              <div className="text-muted-foreground">Paste your API key and set the base URL to your GenC instance</div>
+              <div className="text-neutral-600">Paste your API key and set the base URL to your GenC instance</div>
             </div>
           </div>
           <div className="flex space-x-3">
@@ -344,7 +344,7 @@ export function ApiKeysSettings() {
             </div>
             <div>
               <div className="font-medium">Test the Extension</div>
-              <div className="text-muted-foreground">
+              <div className="text-neutral-600">
                 Visit YouTube, TikTok, or Instagram and click the extension icon to test functionality
               </div>
             </div>

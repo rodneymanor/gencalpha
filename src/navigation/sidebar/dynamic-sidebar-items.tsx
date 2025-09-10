@@ -47,8 +47,8 @@ export function useDynamicSidebarItems(): NavGroup[] {
           isCustomButton: true,
         },
         {
-          title: "Personas",
-          url: "/personas",
+          title: "Brand Voice",
+          url: "/write?brand=1",
           icon: VenetianMask,
           isNew: true,
         },

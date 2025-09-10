@@ -61,7 +61,7 @@ export function AccountSettings() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <User className="text-primary h-5 w-5" />
+            <User className="h-5 w-5 text-primary-700" />
             <CardTitle>Profile Information</CardTitle>
           </div>
           <CardDescription>Update your personal information and account details</CardDescription>
@@ -101,7 +101,7 @@ export function AccountSettings() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Key className="text-primary h-5 w-5" />
+            <Key className="h-5 w-5 text-primary-700" />
             <CardTitle>Password & Security</CardTitle>
           </div>
           <CardDescription>Update your password to keep your account secure</CardDescription>
@@ -149,19 +149,19 @@ export function AccountSettings() {
       </Card>
 
       {/* Danger Zone */}
-      <Card className="border-destructive/20">
+      <Card className="border-destructive-200">
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Trash2 className="text-destructive h-5 w-5" />
-            <CardTitle className="text-destructive">Danger Zone</CardTitle>
+            <Trash2 className="h-5 w-5 text-destructive-700" />
+            <CardTitle className="text-destructive-700">Danger Zone</CardTitle>
           </div>
           <CardDescription>Irreversible and destructive actions</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="border-destructive/20 bg-destructive/5 flex items-center justify-between rounded-[var(--radius-card)] border p-4">
+          <div className="flex items-center justify-between rounded-[var(--radius-card)] border border-destructive-200 bg-destructive-50 p-4">
             <div>
-              <h3 className="text-foreground font-medium">Delete Account</h3>
-              <p className="text-muted-foreground text-sm">Permanently delete your account and all associated data</p>
+              <h3 className="text-neutral-900 font-medium">Delete Account</h3>
+              <p className="text-neutral-600 text-sm">Permanently delete your account and all associated data</p>
             </div>
             <Button variant="destructive" onClick={handleAccountDeletion} disabled={isLoading}>
               <Trash2 className="mr-2 h-4 w-4" />

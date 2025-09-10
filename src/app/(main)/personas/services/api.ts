@@ -146,8 +146,10 @@ export class PersonaApiService {
     description: string;
     platform: string;
     username: string;
-    analysis: any;
+    analysis?: any; // optional to allow draft saves
     tags: string[];
+    creationStatus?: "pending" | "videos_collected" | "analyzed" | "created";
+    videoUrls?: string[];
   }) {
     if (!auth || !auth.currentUser) {
       throw new Error("Please sign in to create personas");
@@ -197,5 +199,47 @@ export class PersonaApiService {
     }
 
     return cdnUrls;
+  }
+
+  // Update persona metadata
+  static async updatePersona(personaId: string, updates: Partial<{
+    name: string;
+    description: string;
+    tags: string[];
+    status: "active" | "draft";
+    creationStatus: "pending" | "videos_collected" | "analyzed" | "created";
+  }>) {
+    if (!auth || !auth.currentUser) {
+      throw new Error("Please sign in to update personas");
+    }
+    const token = await auth.currentUser.getIdToken();
+    const res = await fetch("/api/personas/update", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ personaId, ...updates }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data?.error || "Failed to update persona");
+    }
+    return await res.json();
+  }
+
+  // Delete persona
+  static async deletePersona(personaId: string) {
+    if (!auth || !auth.currentUser) {
+      throw new Error("Please sign in to delete personas");
+    }
+    const token = await auth.currentUser.getIdToken();
+    const res = await fetch("/api/personas/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ personaId }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data?.error || "Failed to delete persona");
+    }
+    return await res.json();
   }
 }

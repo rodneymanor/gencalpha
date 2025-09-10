@@ -70,13 +70,17 @@ interface VoiceAnalysis {
   }>;
 }
 
+type CreationStatus = "pending" | "videos_collected" | "analyzed" | "created";
+
 interface CreatePersonaRequest {
   name: string;
   description?: string;
   platform?: string;
   username?: string;
-  analysis: VoiceAnalysis;
+  analysis?: VoiceAnalysis; // optional to allow saving partial progress
   tags?: string[];
+  creationStatus?: CreationStatus; // track multi-step workflow state
+  videoUrls?: string[]; // optional context when saving after videos step
 }
 
 export async function POST(request: NextRequest) {
@@ -98,11 +102,18 @@ export async function POST(request: NextRequest) {
     }
 
     const body: CreatePersonaRequest = await request.json();
-    const { name, description, platform, username, analysis, tags = [] } = body;
+    const { name, description, platform, username, analysis, tags = [], creationStatus, videoUrls } = body;
 
-    if (!name || !analysis) {
-      return NextResponse.json({ error: "Name and analysis are required" }, { status: 400 });
+    if (!name) {
+      return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
+
+    // Determine workflow status
+    const inferredStatus: CreationStatus = creationStatus
+      ? creationStatus
+      : analysis
+        ? "created"
+        : "pending";
 
     console.log(`📝 [Create Persona API] Creating persona: ${name}`);
 
@@ -113,28 +124,35 @@ export async function POST(request: NextRequest) {
     const adminDb = getAdminDb();
     const now = new Date().toISOString();
 
-    // Create persona document
-    const personaData = {
+    // Create persona document (allow drafts without full analysis)
+    const personaData: any = {
       userId: authResult.user.uid,
       name: name.trim(),
       description: description?.trim() ?? "",
       platform: platform?.toLowerCase() ?? "tiktok",
       username: username?.trim() ?? "",
-      analysis,
+      // Only include analysis when provided
+      ...(analysis ? { analysis } : {}),
       tags,
-      status: "active",
+      // Only set active when explicitly created
+      status: inferredStatus === "created" ? "active" : "draft",
+      creationStatus: inferredStatus,
+      ...(videoUrls && videoUrls.length ? { videoUrls } : {}),
       createdAt: now,
       updatedAt: now,
       usageCount: 0,
       lastUsedAt: null,
-      // Additional metadata for organization
-      voiceStyle: analysis.voiceProfile.primaryStyle,
-      distinctiveness: analysis.voiceProfile.distinctiveness,
-      complexity: analysis.voiceProfile.complexity,
-      // Quick access to key patterns
-      hasHookSystem: !!analysis.hookReplicationSystem,
-      hasScriptRules: !!analysis.scriptGenerationRules,
-      signatureMoveCount: analysis.signatureMoves.length,
+      // Additional metadata for organization (only if analysis present)
+      ...(analysis
+        ? {
+            voiceStyle: analysis.voiceProfile.primaryStyle,
+            distinctiveness: analysis.voiceProfile.distinctiveness,
+            complexity: analysis.voiceProfile.complexity,
+            hasHookSystem: !!analysis.hookReplicationSystem,
+            hasScriptRules: !!analysis.scriptGenerationRules,
+            signatureMoveCount: analysis.signatureMoves.length,
+          }
+        : {}),
     };
 
     const docRef = await adminDb.collection("personas").add(personaData);

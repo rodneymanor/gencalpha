@@ -97,6 +97,8 @@ export default function PersonasPage() {
             ? `Used ${getRelativeTime(p.lastUsedAt)}`
             : `Created ${getRelativeTime(p.createdAt)}`,
           avatarVariant: "light" as const,
+          status: (p as any).status,
+          creationStatus: (p as any).creationStatus,
         };
       });
 

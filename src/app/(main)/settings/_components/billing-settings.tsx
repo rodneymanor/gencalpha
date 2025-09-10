@@ -95,22 +95,22 @@ export function BillingSettings() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <DollarSign className="text-primary h-5 w-5" />
+            <DollarSign className="h-5 w-5 text-primary-700" />
             <CardTitle>Current Plan</CardTitle>
           </div>
           <CardDescription>Manage your subscription and billing preferences</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="bg-accent/50 flex items-center justify-between rounded-[var(--radius-card)] border p-4">
+          <div className="flex items-center justify-between rounded-[var(--radius-card)] border border-neutral-200 bg-neutral-100 p-4">
             <div>
-              <h3 className="text-foreground font-medium">{billingInfo.plan}</h3>
-              <p className="text-muted-foreground text-sm">
+              <h3 className="text-neutral-900 font-medium">{billingInfo.plan}</h3>
+              <p className="text-neutral-600 text-sm">
                 Next billing: {new Date(billingInfo.nextBilling).toLocaleDateString()}
               </p>
             </div>
             <div className="text-right">
-              <p className="text-foreground text-2xl font-bold">${billingInfo.amount}</p>
-              <p className="text-muted-foreground text-sm">per month</p>
+              <p className="text-neutral-900 text-2xl font-bold">${billingInfo.amount}</p>
+              <p className="text-neutral-600 text-sm">per month</p>
             </div>
           </div>
 
@@ -140,7 +140,7 @@ export function BillingSettings() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <CreditCard className="text-primary h-5 w-5" />
+            <CreditCard className="h-5 w-5 text-primary-700" />
             <CardTitle>Payment Method</CardTitle>
           </div>
           <CardDescription>Update your payment information</CardDescription>
@@ -148,12 +148,12 @@ export function BillingSettings() {
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between rounded-[var(--radius-card)] border p-4">
             <div className="flex items-center gap-3">
-              <div className="bg-primary text-primary-foreground flex h-8 w-10 items-center justify-center rounded-[var(--radius-button)] text-sm font-medium">
+              <div className="flex h-8 w-10 items-center justify-center rounded-[var(--radius-button)] bg-neutral-100 text-sm font-medium text-neutral-900">
                 {billingInfo.paymentMethod.type}
               </div>
               <div>
-                <p className="text-foreground font-medium">•••• •••• •••• {billingInfo.paymentMethod.last4}</p>
-                <p className="text-muted-foreground text-sm">Expires {billingInfo.paymentMethod.expiry}</p>
+                <p className="text-neutral-900 font-medium">•••• •••• •••• {billingInfo.paymentMethod.last4}</p>
+                <p className="text-neutral-600 text-sm">Expires {billingInfo.paymentMethod.expiry}</p>
               </div>
             </div>
             <Button variant="outline" onClick={handlePaymentMethodUpdate} disabled={isLoading}>
@@ -178,7 +178,7 @@ export function BillingSettings() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Calendar className="text-primary h-5 w-5" />
+            <Calendar className="h-5 w-5 text-primary-700" />
             <CardTitle>Billing History</CardTitle>
           </div>
           <CardDescription>View and download your past invoices</CardDescription>
@@ -190,19 +190,19 @@ export function BillingSettings() {
                 <div className="flex items-center justify-between py-3">
                   <div className="flex items-center gap-3">
                     <div>
-                      <p className="text-foreground font-medium">{invoice.description}</p>
-                      <p className="text-muted-foreground text-sm">{new Date(invoice.date).toLocaleDateString()}</p>
-                    </div>
+                      <p className="text-neutral-900 font-medium">{invoice.description}</p>
+                      <p className="text-neutral-600 text-sm">{new Date(invoice.date).toLocaleDateString()}</p>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="text-right">
-                      <p className="text-foreground font-medium">${invoice.amount}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                      <p className="text-neutral-900 font-medium">${invoice.amount}</p>
                       <div className="flex items-center justify-end gap-1">
                         <div
                           className={`inline-flex items-center rounded-[var(--radius-button)] px-2 py-1 text-xs font-medium ${
                             invoice.status === "Paid"
-                              ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
-                              : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400"
+                              ? "bg-success-100 text-success-800"
+                              : "bg-warning-100 text-warning-800"
                           }`}
                         >
                           {invoice.status}
@@ -225,7 +225,7 @@ export function BillingSettings() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <AlertCircle className="text-primary h-5 w-5" />
+            <AlertCircle className="h-5 w-5 text-primary-700" />
             <CardTitle>Usage & Limits</CardTitle>
           </div>
           <CardDescription>Monitor your current usage and plan limits</CardDescription>
@@ -233,31 +233,31 @@ export function BillingSettings() {
         <CardContent className="space-y-4">
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-foreground text-sm font-medium">API Calls</span>
-              <span className="text-muted-foreground text-sm">8,250 / 10,000</span>
+              <span className="text-neutral-900 text-sm font-medium">API Calls</span>
+              <span className="text-neutral-600 text-sm">8,250 / 10,000</span>
             </div>
-            <div className="bg-accent h-2 w-full rounded-[var(--radius-pill)]">
-              <div className="bg-primary h-2 rounded-[var(--radius-pill)]" style={{ width: "82.5%" }}></div>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-foreground text-sm font-medium">Storage</span>
-              <span className="text-muted-foreground text-sm">1.2 GB / 5 GB</span>
-            </div>
-            <div className="bg-accent h-2 w-full rounded-[var(--radius-pill)]">
-              <div className="bg-secondary h-2 rounded-[var(--radius-pill)]" style={{ width: "24%" }}></div>
+            <div className="h-2 w-full rounded-[var(--radius-pill)] bg-neutral-200">
+              <div className="h-2 rounded-[var(--radius-pill)] bg-primary-500" style={{ width: "82.5%" }}></div>
             </div>
           </div>
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-foreground text-sm font-medium">Team Members</span>
-              <span className="text-muted-foreground text-sm">3 / 5</span>
+              <span className="text-neutral-900 text-sm font-medium">Storage</span>
+              <span className="text-neutral-600 text-sm">1.2 GB / 5 GB</span>
             </div>
-            <div className="bg-accent h-2 w-full rounded-[var(--radius-pill)]">
-              <div className="bg-chart-3 h-2 rounded-[var(--radius-pill)]" style={{ width: "60%" }}></div>
+            <div className="h-2 w-full rounded-[var(--radius-pill)] bg-neutral-200">
+              <div className="h-2 rounded-[var(--radius-pill)] bg-primary-500" style={{ width: "24%" }}></div>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-neutral-900 text-sm font-medium">Team Members</span>
+              <span className="text-neutral-600 text-sm">3 / 5</span>
+            </div>
+            <div className="h-2 w-full rounded-[var(--radius-pill)] bg-neutral-200">
+              <div className="h-2 rounded-[var(--radius-pill)] bg-primary-500" style={{ width: "60%" }}></div>
             </div>
           </div>
         </CardContent>

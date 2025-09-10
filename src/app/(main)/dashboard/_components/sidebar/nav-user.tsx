@@ -104,7 +104,7 @@ export function NavUser({ compact = false, onMenuOpenChange }: { compact?: boole
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
             <DropdownMenuItem asChild>
-              <Link href="/dashboard/settings" className="flex items-center gap-2">
+              <Link href="/settings" className="flex items-center gap-2">
                 <Settings className="h-4 w-4" />
                 Settings
               </Link>

@@ -55,6 +55,13 @@ export default function WritePage({
     setHasFirebaseConfig(!!isConfigured);
   }, []);
 
+  // Open Brand Voice modal when brand=1
+  useEffect(() => {
+    if (typeof params.brand === "string" && params.brand === "1") {
+      setIsBrandHubOpen(true);
+    }
+  }, [params.brand]);
+
   // Fetch server-processed daily scripts (cached per day)
   const loadTopSix = async (force?: boolean, signal?: AbortSignal) => {
     try {
