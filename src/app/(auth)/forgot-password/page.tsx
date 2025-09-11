@@ -46,23 +46,21 @@ export default function ForgotPasswordPage() {
 
   if (emailSent) {
     return (
-      <div className="relative flex min-h-screen items-center justify-center bg-white px-4 py-12 sm:px-6 lg:px-8">
+      <div className="relative flex min-h-screen items-center justify-center bg-neutral-50 px-4 py-12 sm:px-6 lg:px-8">
         <div className="w-full max-w-md space-y-8">
           <div className="mb-6 flex justify-center">
-            <div className="hover:text-primary flex cursor-pointer items-center gap-2 transition-colors">
-              <span className="text-foreground text-3xl font-bold">Gen</span>
-              <div className="h-3 w-3 rounded-full bg-yellow-400"></div>
-              <span className="text-foreground text-3xl font-bold">C</span>
+            <div className="flex cursor-pointer items-center gap-2 transition-colors hover:opacity-80">
+              <span className="text-3xl font-bold text-neutral-900">Gen</span>
+              <div className="bg-brand-500 h-3 w-3 rounded-full"></div>
+              <span className="text-3xl font-bold text-neutral-900">C</span>
             </div>
           </div>
           <div className="space-y-2 text-center">
-            <h1 className="text-3xl font-medium">Check your email</h1>
-            <p className="text-muted-foreground text-sm">
-              We&apos;ve sent a password reset link to your email address.
-            </p>
+            <h1 className="text-3xl font-medium text-neutral-900">Check your email</h1>
+            <p className="text-sm text-neutral-600">We&apos;ve sent a password reset link to your email address.</p>
           </div>
           <div className="text-center">
-            <Link href="/login" className="text-foreground hover:underline">
+            <Link href="/login" className="text-brand-600 hover:text-brand-700 hover:underline">
               Back to login
             </Link>
           </div>
@@ -72,18 +70,18 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-white px-4 py-12 sm:px-6 lg:px-8">
+    <div className="relative flex min-h-screen items-center justify-center bg-neutral-50 px-4 py-12 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">
         <div className="mb-6 flex justify-center">
-          <div className="hover:text-primary flex cursor-pointer items-center gap-2 transition-colors">
-            <span className="text-foreground text-3xl font-bold">Gen</span>
-            <div className="h-3 w-3 rounded-full bg-yellow-400"></div>
-            <span className="text-foreground text-3xl font-bold">C</span>
+          <div className="flex cursor-pointer items-center gap-2 transition-colors hover:opacity-80">
+            <span className="text-3xl font-bold text-neutral-900">Gen</span>
+            <div className="bg-brand-500 h-3 w-3 rounded-full"></div>
+            <span className="text-3xl font-bold text-neutral-900">C</span>
           </div>
         </div>
         <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-medium">Reset your password</h1>
-          <p className="text-muted-foreground text-sm">Enter your email and we&apos;ll send you a reset link.</p>
+          <h1 className="text-3xl font-medium text-neutral-900">Reset your password</h1>
+          <p className="text-sm text-neutral-600">Enter your email and we&apos;ll send you a reset link.</p>
         </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -92,21 +90,32 @@ export default function ForgotPasswordPage() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email Address</FormLabel>
+                  <FormLabel className="text-neutral-700">Email Address</FormLabel>
                   <FormControl>
-                    <Input id="email" type="email" placeholder="you@example.com" autoComplete="email" {...field} />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="you@example.com"
+                      autoComplete="email"
+                      className="focus:border-brand-400 h-12 border-neutral-200 bg-neutral-50 text-neutral-900 placeholder:text-neutral-500"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button className="w-full" type="submit" disabled={isSubmitting}>
+            <Button
+              className="active:bg-brand-700 bg-brand-500 hover:bg-brand-600 h-12 w-full text-neutral-50 transition-all duration-150"
+              type="submit"
+              disabled={isSubmitting}
+            >
               {isSubmitting ? "Sending..." : "Send Reset Link"}
             </Button>
           </form>
         </Form>
         <div className="text-center">
-          <Link href="/login" className="text-muted-foreground hover:text-foreground text-sm">
+          <Link href="/login" className="hover:text-brand-600 text-sm text-neutral-600 hover:underline">
             Back to login
           </Link>
         </div>

@@ -143,7 +143,7 @@ export default function PasswordPage() {
           {/* Footer Links */}
           <p className="text-center text-sm text-neutral-600">
             Forgot your password?{" "}
-            <Link href="/reset-password" className="text-brand-600 hover:text-brand-700 hover:underline">
+            <Link href="/forgot-password" className="text-brand-600 hover:text-brand-700 hover:underline">
               Reset it
             </Link>
           </p>
