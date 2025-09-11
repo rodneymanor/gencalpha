@@ -8,7 +8,7 @@ import { Prompt } from "../types";
 // Speed Write specific interfaces
 export interface SpeedWriteVariables {
   idea: string;
-  length: "15" | "20" | "30" | "45" | "60" | "90";
+  length: "15" | "20" | "30" | "45" | "60";
   targetWords: number;
   durationSubPrompt?: string;
   negativeKeywordInstruction?: string;
@@ -32,7 +32,7 @@ export interface SpeedWriteResult {
 /**
  * Generate dynamic hook guidelines based on script type
  */
-function generateHookGuidelines(scriptType?: "speed" | "educational" | "viral", tone?: string): string {
+function generateHookGuidelines(scriptType?: "speed" | "educational" | "viral"): string {
   // Simple, direct hook patterns without money/income examples
   const hookPatterns = {
     speed: [
@@ -58,8 +58,8 @@ function generateHookGuidelines(scriptType?: "speed" | "educational" | "viral", 
     ],
   };
 
-  const selectedType = scriptType || "speed";
-  const patterns = hookPatterns[selectedType] || hookPatterns.speed;
+  const selectedType = scriptType ?? "speed";
+  const patterns = hookPatterns[selectedType] ?? hookPatterns.speed;
 
   // Randomly select 3 patterns to show
   const shuffled = [...patterns].sort(() => Math.random() - 0.5);
@@ -161,9 +161,11 @@ Choose CTAs that feel natural and encourage the specific action you want viewers
 
   lengthGuidelines: `
 LENGTH OPTIMIZATION:
-- 20 seconds: ~44 words - Ultra-concise, punch impact, single core point
-- 60 seconds: ~132 words - Balanced depth, clear structure, room for examples
-- 90 seconds: ~198 words - Detailed explanation, multiple points, comprehensive coverage`,
+- 15 seconds: ~33 words - Ultra-quick impact, single powerful point
+- 20 seconds: ~44 words - Concise, punchy, focused core message  
+- 30 seconds: ~66 words - Quick value delivery with brief explanation
+- 45 seconds: ~99 words - Moderate depth, clear examples or steps
+- 60 seconds: ~132 words - Maximum depth allowed, comprehensive coverage`,
 
   platformOptimization: `
 PLATFORM OPTIMIZATION:
@@ -277,7 +279,7 @@ You must output valid JSON. No other format is acceptable.`,
         negativeKeywordInstruction: 500,
       },
       pattern: {
-        length: /^(15|20|30|45|60|90)$/,
+        length: /^(15|20|30|45|60)$/,
       },
     },
 
@@ -369,15 +371,14 @@ export function calculateTargetWords(length: string): number {
  */
 export function generateTypeSpecificHookGuidelines(
   scriptType: "speed" | "educational" | "viral",
-  tone?: string,
 ): string {
-  return generateHookGuidelines(scriptType, tone);
+  return generateHookGuidelines(scriptType);
 }
 
 // Helper function to create Speed Write variables with duration optimization
 export function createSpeedWriteVariables(
   idea: string,
-  length: "15" | "20" | "30" | "45" | "60" | "90",
+  length: "15" | "20" | "30" | "45" | "60",
   options?: {
     negativeKeywordInstruction?: string;
     tone?: SpeedWriteVariables["tone"];
@@ -391,11 +392,10 @@ export function createSpeedWriteVariables(
 
   if (shouldOptimize) {
     try {
-      // Import duration optimizer dynamically to avoid circular dependencies
-      const { createDurationSubPrompt } = require("../modifiers/duration-optimizer");
-      durationSubPrompt = createDurationSubPrompt(length);
+      // Use basic duration guidance without importing duration optimizer to avoid circular dependencies
+      durationSubPrompt = `For ${length} seconds (~${calculateTargetWords(length)} words), focus on tight pacing and clear delivery.`;
     } catch (error) {
-      console.warn("Failed to load duration optimizer, falling back to standard prompt:", error);
+      console.warn("Failed to create duration sub-prompt:", error);
     }
   }
 
@@ -408,7 +408,7 @@ export function createSpeedWriteVariables(
     tone: options?.tone,
     platform: options?.platform,
     // Add dynamic hook guidelines based on script type (default to script type or 'speed')
-    hookGuidelines: generateTypeSpecificHookGuidelines(options?.scriptType ?? "speed", options?.tone),
+    hookGuidelines: generateTypeSpecificHookGuidelines(options?.scriptType ?? "speed"),
   };
 }
 

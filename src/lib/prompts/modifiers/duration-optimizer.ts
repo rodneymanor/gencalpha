@@ -50,13 +50,6 @@ export const DURATION_CONFIGS: Record<string, DurationConfig> = {
     pacing: "comprehensive",
     focus: "comprehensive",
   },
-  "90": {
-    duration: "90",
-    targetWords: 198,
-    characteristics: ["Thorough coverage", "Complex topics", "Maximum value"],
-    pacing: "deep",
-    focus: "thorough",
-  },
 };
 
 /**
@@ -253,7 +246,7 @@ export function createDurationOptimizedVariables(
 
   return {
     idea,
-    length: length as "20" | "60" | "90", // Type assertion for compatibility
+    length: length as "15" | "20" | "30" | "45" | "60", // Type assertion for compatibility
     targetWords,
     durationSubPrompt,
     negativeKeywordInstruction: options?.negativeKeywordInstruction,

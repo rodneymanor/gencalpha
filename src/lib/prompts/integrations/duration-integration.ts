@@ -15,7 +15,7 @@ import { createSpeedWriteVariables, SpeedWriteVariables } from "../script-genera
  * Enhanced script generation input with duration optimization
  */
 export interface DurationOptimizedScriptInput extends Omit<ScriptGenerationInput, "length"> {
-  length: "15" | "20" | "30" | "45" | "60" | "90";
+  length: "15" | "20" | "30" | "45" | "60";
   enableDurationOptimization?: boolean;
 }
 

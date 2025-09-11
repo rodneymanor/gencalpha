@@ -53,7 +53,7 @@ export {
 // Convenience functions for script generation
 export async function generateSpeedWriteScript(
   idea: string,
-  length: "20" | "60" | "90",
+  length: "15" | "20" | "30" | "45" | "60",
   options?: {
     variant?: keyof typeof SPEED_WRITE_PROMPTS;
     negativeKeywordInstruction?: string;
